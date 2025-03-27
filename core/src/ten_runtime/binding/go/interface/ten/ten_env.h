@@ -95,70 +95,7 @@ const char *ten_go_ten_env_debug_info(uintptr_t bridge_addr);
  */
 ten_go_error_t ten_go_ten_env_get_property_type_and_size(
     uintptr_t bridge_addr, const void *path, int path_len, uint8_t *type,
-    uintptr_t *size, uintptr_t *value_addr);
-
-/**
- * @brief Get the value of a property as int8 from the ten_env_t.
- *
- * @param path The underlying buffer of the GO string, which is passed with
- * unsafe.Pointer in GO world, so the type of @a path is void*, not char*. Only
- * the read operation is permitted. And the buffer is managed by GO, do not read
- * it after the blocking cgo call.
- *
- * @param path_len The length of the underlying buffer.
- *
- * @param value The output for the value of the property.
- */
-ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
-                                                const void *path, int path_len,
-                                                int8_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int16_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int32_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int64_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 uint8_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint16_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint32_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint64_t *value);
-
-ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
-                                                   const void *path,
-                                                   int path_len, float *value);
-
-ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
-                                                   const void *path,
-                                                   int path_len, double *value);
-
-ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
-                                                const void *path, int path_len,
-                                                bool *value);
-
-ten_go_error_t ten_go_ten_env_get_property_ptr(uintptr_t bridge_addr,
-                                               const void *path, int path_len,
-                                               ten_go_handle_t *value);
+    uintptr_t *size, uintptr_t *value_addr, uintptr_t callback_handle);
 
 ten_go_error_t ten_go_ten_env_set_property_bool(uintptr_t bridge_addr,
                                                 const void *path, int path_len,
@@ -228,22 +165,6 @@ ten_go_error_t ten_go_ten_env_set_property_ptr(uintptr_t bridge_addr,
                                                const void *path, int path_len,
                                                ten_go_handle_t value,
                                                uintptr_t callback_handle);
-
-/**
- * @brief Get the json string and the size of the json string of a property.
- *
- * @param bridge_addr The bit pattern of the pointer to the struct
- * ten_go_ten_env_t.
- * @param json_str_len The output for the size of the json string.
- * @param json_str A double pointer to the json string.
- *
- * A GO slice will be created with a capacity of @a json_str_len in GO world,
- * and @a json_str will be copied to the slice and destroy using
- * ten_go_copy_c_str_to_slice_and_free.
- */
-ten_go_error_t ten_go_ten_env_get_property_json_and_size(
-    uintptr_t bridge_addr, const void *path, int path_len,
-    uintptr_t *json_str_len, const char **json_str);
 
 /**
  * @brief Parse @a json_str as a json object and set it as a property.

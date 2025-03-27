@@ -358,6 +358,279 @@ ten_go_error_t ten_go_value_get_buf(uintptr_t value_addr, void *value) {
   return cgo_error;
 }
 
+ten_go_error_t ten_go_value_get_int8(uintptr_t value_addr, int8_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_int8(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_int16(uintptr_t value_addr, int16_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_int16(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_int32(uintptr_t value_addr, int32_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_int32(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_int64(uintptr_t value_addr, int64_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_int64(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_uint8(uintptr_t value_addr, uint8_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_uint8(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_uint16(uintptr_t value_addr, uint16_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_uint16(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_uint32(uintptr_t value_addr, uint32_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_uint32(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_uint64(uintptr_t value_addr, uint64_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_uint64(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_float32(uintptr_t value_addr, float *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_float32(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_float64(uintptr_t value_addr, double *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_float64(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_bool(uintptr_t value_addr, bool *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  *value = ten_value_get_bool(self, &err);
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_get_ptr(uintptr_t value_addr, uintptr_t *value) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  ten_shared_ptr_t *handle_ptr = ten_value_get_ptr(self, &err);
+  if (ten_error_is_success(&err)) {
+    void *go_ref = ten_shared_ptr_get_data(handle_ptr);
+    *value = (ten_go_handle_t)go_ref;
+  }
+
+  ten_value_destroy(self);
+
+  ten_go_error_from_error(&cgo_error, &err);
+  ten_error_deinit(&err);
+
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_value_to_json(uintptr_t value_addr,
+                                    uintptr_t *json_str_len,
+                                    const char **json_str) {
+  ten_value_t *self = ten_go_value_reinterpret(value_addr);
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(json_str_len && json_str, "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_go_ten_value_to_json(self, json_str_len, json_str, &cgo_error);
+
+  ten_value_destroy(self);
+
+  return cgo_error;
+}
+
 void ten_go_value_destroy(uintptr_t value_addr) {
   ten_value_t *self = ten_go_value_reinterpret(value_addr);
   TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");

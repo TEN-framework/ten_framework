@@ -17,38 +17,46 @@
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/event.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
-#include "ten_utils/value/value_get.h"
 
-typedef struct ten_env_notify_peek_property_ctx_t {
+typedef struct ten_go_ten_env_notify_peek_property_ctx_t {
   ten_string_t path;
-  ten_value_t *c_value;
-  ten_event_t *completed;
-} ten_env_notify_peek_property_ctx_t;
 
-static ten_env_notify_peek_property_ctx_t *
-ten_env_notify_peek_property_ctx_create(const void *path, int path_len) {
-  ten_env_notify_peek_property_ctx_t *ctx =
-      TEN_MALLOC(sizeof(ten_env_notify_peek_property_ctx_t));
+  uint8_t *type;
+  uintptr_t *size;
+  uintptr_t *value_addr;
+  uintptr_t callback_handle;
+} ten_go_ten_env_notify_peek_property_ctx_t;
+
+static ten_go_ten_env_notify_peek_property_ctx_t *
+ten_env_notify_peek_property_ctx_create(const void *path, int path_len,
+                                        uint8_t *type, uintptr_t *size,
+                                        uintptr_t *value_addr,
+                                        uintptr_t callback_handle) {
+  ten_go_ten_env_notify_peek_property_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_go_ten_env_notify_peek_property_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_string_init_formatted(&ctx->path, "%.*s", path_len, path);
-  ctx->c_value = NULL;
-  ctx->completed = ten_event_create(0, 1);
+  ctx->type = type;
+  ctx->size = size;
+  ctx->value_addr = value_addr;
+  ctx->callback_handle = callback_handle;
 
   return ctx;
 }
 
 static void ten_env_notify_peek_property_ctx_destroy(
-    ten_env_notify_peek_property_ctx_t *ctx) {
+    ten_go_ten_env_notify_peek_property_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_string_deinit(&ctx->path);
-  ctx->c_value = NULL;
-  ten_event_destroy(ctx->completed);
+  ctx->type = NULL;
+  ctx->size = NULL;
+  ctx->value_addr = NULL;
+  ctx->callback_handle = 0;
 
   TEN_FREE(ctx);
 }
@@ -59,8 +67,11 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
-  ten_env_notify_peek_property_ctx_t *ctx = user_data;
+  ten_go_ten_env_notify_peek_property_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -90,70 +101,66 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
   ten_value_t *c_value =
       ten_env_peek_property(ten_env, ten_string_get_raw_str(&ctx->path), &err);
 
-  // Because this value will be passed out of the TEN world and back into the
-  // GO world, and these two worlds are in different threads, copy semantics are
-  // used to avoid thread safety issues.
-  ctx->c_value = c_value ? ten_value_clone(c_value) : NULL;
+  if (!c_value) {
+    ten_go_error_from_error(&cgo_error, &err);
+  } else {
+    // Because this value will be passed out of the TEN world and back into the
+    // GO world, and these two worlds are in different threads, copy semantics
+    // are used to avoid thread safety issues.
+    ten_value_t *cloned_value = ten_value_clone(c_value);
 
-  ten_event_set(ctx->completed);
+    ten_go_ten_value_get_type_and_size(cloned_value, ctx->type, ctx->size);
+    *ctx->value_addr = (uintptr_t)cloned_value;
+  }
+
+  // Call back into Go to signal that the async operation in C is complete.
+  tenGoCAsyncApiCallback(ctx->callback_handle, cgo_error);
 
   ten_error_deinit(&err);
+
+  ten_env_notify_peek_property_ctx_destroy(ctx);
 }
 
-static ten_value_t *ten_go_ten_env_peek_property(ten_go_ten_env_t *self,
-                                                 const void *path, int path_len,
-                                                 ten_go_error_t *status) {
+static ten_go_error_t ten_go_ten_env_peek_property(
+    ten_go_ten_env_t *self, const void *path, int path_len, uint8_t *type,
+    uintptr_t *size, uintptr_t *value_addr, uintptr_t callback_handle) {
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
-  ten_value_t *c_value = NULL;
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  ten_env_notify_peek_property_ctx_t *ctx =
-      ten_env_notify_peek_property_ctx_create(path, path_len);
+  ten_go_ten_env_notify_peek_property_ctx_t *ctx =
+      ten_env_notify_peek_property_ctx_create(path, path_len, type, size,
+                                              value_addr, callback_handle);
 
   if (!ten_env_proxy_notify(self->c_ten_env_proxy,
                             ten_env_proxy_notify_peek_property, ctx, false,
                             &err)) {
-    ten_go_error_from_error(status, &err);
-    goto done;
+    // Failed to invoke ten_env_proxy_notify.
+    ten_env_notify_peek_property_ctx_destroy(ctx);
+    ten_go_error_from_error(&cgo_error, &err);
   }
 
-  // The ten_go_ten_env_peek_property() is called from a
-  // goroutine in GO world. The goroutine runs on a OS thread (i.e., M is GO
-  // world), and the M won't be scheduled to other goroutine until the cgo call
-  // is completed (i.e., this function returns). The following
-  // `ten_event_wait()` may block the M which might lead to an increase of
-  // creating new M in GO world. Especially when there are a many messages
-  // piling up in the eventloop.
-  //
-  // TODO(Liu): compare the performance of the following two implementations.
-  //
-  // 1. Use `ten_event_wait()` to block the M, then the GO function is a sync
-  // call.
-  //
-  // 2. The C function is always async, using a callback to notify the GO world.
-  // There are a c-to-go call and a channel wait in GO.
-
-  ten_event_wait(ctx->completed, -1);
-  c_value = ctx->c_value;
-  if (c_value == NULL) {
-    ten_go_error_set_error_code(status, TEN_ERROR_CODE_GENERIC);
-  }
-
-done:
   ten_error_deinit(&err);
-  ten_env_notify_peek_property_ctx_destroy(ctx);
 
-  return c_value;
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
+
+ten_is_close:
+  return cgo_error;
 }
 
 ten_go_error_t ten_go_ten_env_get_property_type_and_size(
     uintptr_t bridge_addr, const void *path, int path_len, uint8_t *type,
-    uintptr_t *size, uintptr_t *value_addr) {
+    uintptr_t *size, uintptr_t *value_addr, uintptr_t callback_handle) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
@@ -167,507 +174,8 @@ ten_go_error_t ten_go_ten_env_get_property_type_and_size(
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_go_ten_value_get_type_and_size(c_value, type, size);
-
-    // The c_value is cloned from TEN runtime, refer to the comments in
-    // ten_notify_get_property.
-    //
-    // A property will be retrieved according to the following two steps.
-    //
-    // 1. Call this function (ten_go_ten_property_get_type_and_size) to get the
-    //    type and size. And do some preparation in GO world, ex: make a slice
-    //    to store the buffer.
-    //
-    // 2. Call the best match function to get the property value. Ex:
-    //    ten_go_ten_property_get_int8.
-    //
-    // However, the value of the property might be modified between step 1 and 2
-    // by other goroutine. That's also why the c_value is cloned in step 1. The
-    // value (i.e., the pointer to the ten_value_t and the data in the
-    // ten_value_t) operated in step 1 and 2 must be the same. Otherwise, the
-    // data in the ten_value_t might be corrupted, especially the type or size
-    // might be changed. So we have to keep the c_value as a returned value of
-    // this function, and the same c_value has to be passed to the step 2, and
-    // to be destroyed in step 2.
-    *value_addr = (uintptr_t)c_value;
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
-                                                const void *path, int path_len,
-                                                int8_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_int8(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int16_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_int16(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int32_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_int32(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 int64_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_int64(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
-                                                 const void *path, int path_len,
-                                                 uint8_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_uint8(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint16_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_uint16(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint32_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_uint32(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
-                                                  const void *path,
-                                                  int path_len,
-                                                  uint64_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_uint64(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
-                                                   const void *path,
-                                                   int path_len, float *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_float32(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
-                                                   const void *path,
-                                                   int path_len,
-                                                   double *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_float64(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
-                                                const void *path, int path_len,
-                                                bool *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    *value = ten_value_get_bool(c_value, &err);
-
-    ten_go_error_from_error(&cgo_error, &err);
-    ten_error_deinit(&err);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_ptr(uintptr_t bridge_addr,
-                                               const void *path, int path_len,
-                                               ten_go_handle_t *value) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "value should not be NULL.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *c_value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (c_value != NULL) {
-    ten_go_ten_value_get_ptr(c_value, value, &cgo_error);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(c_value);
-  }
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_get_property_json_and_size(
-    uintptr_t bridge_addr, const void *path, int path_len,
-    uintptr_t *json_str_len, const char **json_str) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(json_str && json_str_len > 0, "Should not happen.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_value_t *value =
-      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
-  if (value != NULL) {
-    ten_go_ten_value_to_json(value, json_str_len, json_str, &cgo_error);
-
-    // The c_value is cloned from TEN runtime, so we have to destroy it.
-    ten_value_destroy(value);
-  }
-
+  cgo_error = ten_go_ten_env_peek_property(self, path, path_len, type, size,
+                                           value_addr, callback_handle);
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
 
 ten_is_close:
