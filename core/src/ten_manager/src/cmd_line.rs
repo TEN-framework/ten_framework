@@ -116,14 +116,26 @@ fn create_cmd() -> clap::ArgMatches {
         .get_matches()
 }
 
+/// Parses command line arguments and returns a ParsedCmd structure.
+///
+/// This function processes all command line arguments, reads configuration
+/// files, and constructs a TmanConfig with appropriate values. It handles
+/// version flags and subcommand parsing.
+///
+/// Returns a Result containing ParsedCmd or an error if parsing fails.
 pub fn parse_cmd() -> Result<ParsedCmd> {
+    // Get command line arguments.
     let matches = create_cmd();
 
+    // Create default configuration.
     let default_config = TmanConfig::default();
 
+    // Get config file path from command line or use default.
     let config_file_path = matches.get_one::<String>("CONFIG_FILE").cloned();
     let tman_config_file = read_config(&config_file_path)?;
 
+    // Construct configuration by combining command line args, config file
+    // values, and defaults.
     let tman_config = TmanConfig {
         config_file: config_file_path.or(default_config.config_file),
         admin_token: matches.get_one::<String>("ADMIN_TOKEN").cloned().or_else(
@@ -152,8 +164,14 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
             default_config.registry
         },
         enable_package_cache: default_config.enable_package_cache,
+        designer: if let Some(tman_config_file) = &tman_config_file {
+            tman_config_file.designer.clone()
+        } else {
+            default_config.designer
+        },
     };
 
+    // Handle version flag separately.
     if matches.get_flag("VERSION") {
         // If `--version` exists, do not parse subcommands.
         return Ok(ParsedCmd {
@@ -163,6 +181,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
         });
     }
 
+    // Parse subcommands and their arguments.
     let command_data =
         if let Some((subcommand, sub_cmd_args)) = matches.subcommand() {
             match subcommand {
@@ -205,6 +224,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
             return Err(anyhow::anyhow!("No subcommand provided"));
         };
 
+    // Return the fully constructed ParsedCmd.
     Ok(ParsedCmd {
         tman_config: Arc::new(tman_config),
         command_data: Some(command_data),

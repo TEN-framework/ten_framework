@@ -40,6 +40,7 @@ mod package_file;
 pub mod package_info;
 mod registry;
 pub mod runner;
+pub mod schema;
 mod solver;
 pub mod version;
 pub mod version_utils;

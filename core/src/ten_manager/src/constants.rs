@@ -55,6 +55,9 @@ pub const DEFAULT_REGISTRY_PAGE_SIZE: u32 = 100;
 pub const PROCESS_STDOUT_MAX_LINE_CNT: usize = 1000;
 pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;
 
+// Designer frontend.
+pub const DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE: usize = 1000;
+
 pub const DESIGNER_BACKEND_DEFAULT_PORT: &str = "49483";
 
 pub const TEST_DIR: &str = "test_dir";
