@@ -27,14 +27,14 @@ pub fn save_config_to_file(
 
         // Serialize and write to file.
         let config_json = serde_json::to_value(config_file_content)
-            .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+            .map_err(actix_web::error::ErrorInternalServerError)?;
 
         std::fs::write(
             config_file,
             serde_json::to_string_pretty(&config_json)
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e))?,
+                .map_err(actix_web::error::ErrorInternalServerError)?,
         )
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
     Ok(())
