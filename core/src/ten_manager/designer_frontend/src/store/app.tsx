@@ -21,6 +21,7 @@ import { getZodDefaults } from "@/utils";
 
 export interface IAppStore {
   currentWorkspace: {
+    initialized?: boolean;
     baseDir: string | null;
     graphName: string | null;
   };
@@ -65,7 +66,15 @@ export const useAppStore = create<IAppStore>()(
       set((state) => ({
         currentWorkspace: {
           ...state.currentWorkspace,
-          ...currentWorkspace,
+          baseDir:
+            currentWorkspace.baseDir !== undefined
+              ? currentWorkspace.baseDir
+              : state.currentWorkspace.baseDir,
+          graphName:
+            currentWorkspace.graphName !== undefined
+              ? currentWorkspace.graphName
+              : state.currentWorkspace.graphName,
+          initialized: true,
         },
       })),
     runScript: TEN_DEFAULT_APP_RUN_SCRIPT,
