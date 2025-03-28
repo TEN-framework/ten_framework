@@ -20,6 +20,7 @@ pub mod mock;
 pub mod preferences;
 pub mod registry;
 pub mod response;
+mod template_pkgs;
 pub mod terminal;
 mod version;
 
@@ -76,6 +77,11 @@ pub fn configure_routes(
             .route(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
+            )
+            // Template packages endpoint.
+            .route(
+                "/template-pkgs",
+                web::post().to(template_pkgs::get_template_endpoint),
             )
             // Graphs endpoints.
             .route("/graphs", web::post().to(graphs::get_graphs_endpoint))

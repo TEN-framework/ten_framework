@@ -63,3 +63,13 @@ pub const DESIGNER_BACKEND_DEFAULT_PORT: &str = "49483";
 pub const TEST_DIR: &str = "test_dir";
 
 pub const DEFAULT: &str = "default";
+
+// Template package names.
+pub const DEFAULT_APP_CPP: &str = "default_app_cpp";
+pub const DEFAULT_APP_GO: &str = "default_app_go";
+pub const DEFAULT_APP_PYTHON: &str = "default_app_python";
+pub const DEFAULT_APP_NODEJS: &str = "default_app_nodejs";
+pub const DEFAULT_EXTENSION_CPP: &str = "default_extension_cpp";
+pub const DEFAULT_EXTENSION_GO: &str = "default_extension_go";
+pub const DEFAULT_EXTENSION_PYTHON: &str = "default_extension_python";
+pub const DEFAULT_EXTENSION_NODEJS: &str = "default_extension_nodejs";
