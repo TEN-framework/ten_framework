@@ -16,7 +16,6 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
@@ -681,12 +680,12 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
     ten_list_push_back(&impl->tasks, &task->node);
   }
 
-  rc = ten_mutex_unlock(impl->lock);
-  TEN_ASSERT(!rc, "Failed to unlock.");
-
   if (needs_notify) {
     ten_runloop_async_notify(impl->task_available_signal);
   }
+
+  rc = ten_mutex_unlock(impl->lock);
+  TEN_ASSERT(!rc, "Failed to unlock.");
 
 #if defined(_DEBUG)
   // Add some random delays in debug mode to test different timings.

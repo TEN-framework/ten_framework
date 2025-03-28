@@ -225,8 +225,8 @@ void ten_env_set_destroy_handler_in_target_lang(
 }
 
 ten_runloop_t *ten_env_get_attached_runloop(ten_env_t *self) {
-  TEN_ASSERT(self && ten_env_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(self, false), "Should not happen.");
 
   switch (self->attach_to) {
   case TEN_ENV_ATTACH_TO_APP:
