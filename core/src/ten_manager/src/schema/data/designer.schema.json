@@ -8,14 +8,6 @@
       "minimum": 100,
       "default": 1000
     },
-    "theme": {
-      "type": "string",
-      "enum": [
-        "dark",
-        "light"
-      ],
-      "default": "Light"
-    },
     "locale": {
       "type": "string",
       "enum": [
