@@ -63,6 +63,7 @@ fn create_cmd() -> clap::ArgMatches {
         .about("TEN manager")
         .disable_version_flag(true)
         .arg_required_else_help(true)
+        // Arguments.
         .arg(
             Arg::new("VERSION")
                 .long("version")
@@ -75,13 +76,6 @@ fn create_cmd() -> clap::ArgMatches {
                 .short('c')
                 .help("The location of config.json")
                 .default_value(None),
-        )
-        .arg(
-            Arg::new("ADMIN_TOKEN")
-                .long("admin-token")
-                .help("The administration token")
-                .default_value(None)
-                .hide(true),
         )
         .arg(
             Arg::new("USER_TOKEN")
@@ -102,17 +96,27 @@ fn create_cmd() -> clap::ArgMatches {
                 .help("Automatically answer 'yes' to all prompts")
                 .action(clap::ArgAction::SetTrue),
         )
+        // Hidden arguments.
+        .arg(
+            Arg::new("ADMIN_TOKEN")
+                .long("admin-token")
+                .help("The administration token")
+                .default_value(None)
+                .hide(true),
+        )
+        // Subcommands.
         .subcommand(crate::cmd::cmd_create::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_install::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_fetch::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_uninstall::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_package::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_publish::create_sub_cmd(&args_cfg))
-        .subcommand(crate::cmd::cmd_delete::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_designer::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_check::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_modify::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_run::create_sub_cmd(&args_cfg))
+        // Hidden subcommands.
+        .subcommand(crate::cmd::cmd_delete::create_sub_cmd(&args_cfg))
         .get_matches()
 }
 
@@ -203,9 +207,6 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
                 "publish" => crate::cmd::CommandData::Publish(
                     crate::cmd::cmd_publish::parse_sub_cmd(sub_cmd_args)?,
                 ),
-                "delete" => crate::cmd::CommandData::Delete(
-                    crate::cmd::cmd_delete::parse_sub_cmd(sub_cmd_args)?,
-                ),
                 "designer" => crate::cmd::CommandData::Designer(
                     crate::cmd::cmd_designer::parse_sub_cmd(sub_cmd_args)?,
                 ),
@@ -217,6 +218,10 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
                 ),
                 "run" => crate::cmd::CommandData::Run(
                     crate::cmd::cmd_run::parse_sub_cmd(sub_cmd_args)?,
+                ),
+                // Hidden commands.
+                "delete" => crate::cmd::CommandData::Delete(
+                    crate::cmd::cmd_delete::parse_sub_cmd(sub_cmd_args)?,
                 ),
                 _ => unreachable!("Command not found"),
             }

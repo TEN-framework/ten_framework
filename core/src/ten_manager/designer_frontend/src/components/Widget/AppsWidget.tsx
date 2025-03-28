@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useApps, useAppScripts } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import {
   EDefaultWidgetType,
   EWidgetDisplayType,
@@ -56,6 +56,8 @@ export const AppsManagerWidget = (props: { className?: string }) => {
   const { t } = useTranslation();
   const { data: loadedApps, isLoading, error, mutate } = useApps();
   const { appendWidgetIfNotExists } = useWidgetStore();
+  const { setNodesAndEdges } = useFlowStore();
+  const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
@@ -72,6 +74,13 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     try {
       setIsUnloading(true);
       await postUnloadApps(baseDir);
+      if (currentWorkspace.baseDir === baseDir) {
+        setNodesAndEdges([], []);
+        updateCurrentWorkspace({
+          baseDir: null,
+          graphName: null,
+        });
+      }
       toast.success(t("header.menuApp.unloadAppSuccess"));
     } catch (error) {
       console.error(error);

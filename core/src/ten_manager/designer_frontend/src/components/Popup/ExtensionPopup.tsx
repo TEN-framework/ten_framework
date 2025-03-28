@@ -16,6 +16,7 @@ import {
 } from "@/components/Widget/ExtensionWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { IListTenCloudStorePackage } from "@/types/extension";
+import { getCurrentWindowSize } from "@/utils/popup";
 
 export const ExtensionStorePopup = () => {
   const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
@@ -25,13 +26,15 @@ export const ExtensionStorePopup = () => {
     updateWidgetDisplayType(EXTENSION_STORE_POPUP_ID, EWidgetDisplayType.Dock);
   };
 
+  const windowSize = getCurrentWindowSize();
+
   return (
     <Popup
       id={EXTENSION_STORE_POPUP_ID}
       title={t("extensionStore.title")}
       onClose={() => removeWidget(EXTENSION_STORE_POPUP_ID)}
-      height={400}
       width={340}
+      height={windowSize?.height ? windowSize?.height - 100 : 400}
       contentClassName="p-0"
       resizable
       customActions={[

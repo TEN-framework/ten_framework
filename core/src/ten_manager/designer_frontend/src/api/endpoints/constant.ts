@@ -22,10 +22,11 @@ export const API_DESIGNER_V1 =
   API_ENDPOINT_VERSION.V1;
 
 export enum ENDPOINT_METHOD {
-  GET = "get",
-  POST = "post",
-  PUT = "put",
-  DELETE = "delete",
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  PATCH = "PATCH",
 }
 
 // Github

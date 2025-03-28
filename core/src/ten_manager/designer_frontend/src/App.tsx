@@ -12,6 +12,7 @@ import {
   EdgeChange,
   NodeChange,
 } from "@xyflow/react";
+import { toast } from "sonner";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar";
@@ -27,11 +28,14 @@ import {
 } from "@/components/ui/Resizable";
 import { GlobalDialogs } from "@/components/GlobalDialogs";
 import Dock from "@/components/Dock";
-import { useWidgetStore, useFlowStore } from "@/store";
+import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { GlobalPopups } from "@/components/Popup/GlobalPopups";
 import { BackstageWidgets } from "@/components/Widget/BackstageWidgets";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/api/services/common";
+import { SpinnerLoading } from "@/components/Status/Loading";
+import { PREFERENCES_SCHEMA_LOG } from "@/types/apps";
 
 const App: React.FC = () => {
   const { nodes, setNodes, edges, setEdges, setNodesAndEdges } = useFlowStore();
@@ -39,7 +43,14 @@ const App: React.FC = () => {
     "left" | "bottom" | "right"
   >("bottom");
 
+  const {
+    data: remotePreferences,
+    isLoading: isLoadingPreferences,
+    error: errorPreferences,
+  } = usePreferences();
+
   const { widgets } = useWidgetStore();
+  const { setPreferences } = useAppStore();
 
   const flowCanvasRef = useRef<FlowCanvasRef | null>(null);
 
@@ -78,8 +89,43 @@ const App: React.FC = () => {
     [edges]
   );
 
+  // init preferences
+  React.useEffect(() => {
+    if (
+      remotePreferences &&
+      remotePreferences?.preferences?.logviewer_line_size
+    ) {
+      const parsedValues = PREFERENCES_SCHEMA_LOG.safeParse(
+        remotePreferences.preferences
+      );
+      if (!parsedValues.success) {
+        throw new Error("Invalid values");
+      }
+      setPreferences(
+        "logviewer_line_size",
+        parsedValues.data.logviewer_line_size
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remotePreferences]);
+
+  React.useEffect(() => {
+    if (errorPreferences) {
+      console.error(errorPreferences);
+      toast.error(errorPreferences.message);
+    }
+  }, [errorPreferences]);
+
+  if (isLoadingPreferences) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full">
+        <SpinnerLoading />
+      </div>
+    );
+  }
+
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AppBar onAutoLayout={performAutoLayout} className="z-9997" />
 
       <ResizablePanelGroup

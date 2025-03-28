@@ -43,3 +43,12 @@ export const dispatchBringToFrontPopup = (widgetId: string) => {
     );
   }
 };
+
+export const getCurrentWindowSize = () => {
+  if (typeof window !== "undefined") {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }
+};

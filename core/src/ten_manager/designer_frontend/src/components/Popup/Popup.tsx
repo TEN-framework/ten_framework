@@ -186,7 +186,7 @@ export const Popup = (props: {
         "popup",
         "fixed text-sm overflow-hidden",
         "backdrop-blur-xs shadow-xl ",
-        "bg-slate-50/80 dark:bg-gray-900/90",
+        "bg-slate-50/80 dark:bg-gray-800/90",
         "border border-slate-100/50 dark:border-gray-900/50",
         "ring-1 ring-slate-100/50 dark:ring-gray-900/50",
         "text-foreground rounded-lg focus:outline-hidden flex flex-col",
@@ -210,7 +210,8 @@ export const Popup = (props: {
       <motion.div
         onPointerDown={(event) => dragControls.start(event)}
         className={cn(
-          "p-2.5 flex justify-between items-center cursor-move select-none",
+          "px-2.5 py-1",
+          "flex justify-between items-center cursor-move select-none",
           "bg-slate-100/80 dark:bg-gray-900/80",
           "rounded-t-lg",
           {

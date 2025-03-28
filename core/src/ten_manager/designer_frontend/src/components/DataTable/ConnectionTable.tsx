@@ -98,6 +98,19 @@ export const commonConnectionColumns: ColumnDef<TConnection>[] = [
       return <ConnectionTypeWithBadge type={type} />;
     },
   },
+  {
+    accessorKey: "name",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.name")}</div>}
+      </Translation>
+    ),
+    cell: ({ row }) => {
+      const name = row.getValue("name") as string;
+      if (!name) return null;
+      return <div className="text-xs">{name}</div>;
+    },
+  },
 ];
 
 // eslint-disable-next-line react-refresh/only-export-components

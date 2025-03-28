@@ -19,6 +19,9 @@ export type CustomEdgeType = Edge<
     labelOffsetX: number;
     labelOffsetY: number;
     connectionType: EConnectionType;
+    name: string;
+    srcApp: string;
+    destApp: string;
   },
   "customEdge"
 >;

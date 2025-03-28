@@ -27,10 +27,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/lib/utils";
 import { PREFERENCES_POPUP_ID } from "@/constants/widgets";
 import { useAppStore, useWidgetStore } from "@/store";
-import { PreferencesLogSchema, EPreferencesTabs } from "@/types/apps";
+import { PREFERENCES_SCHEMA_LOG, EPreferencesTabs } from "@/types/apps";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { ModeToggle } from "@/components/ModeToggle";
 import { useTheme } from "@/components/use-theme";
+import { updatePreferencesField } from "@/api/services/common";
 
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
@@ -96,8 +97,6 @@ export const PreferencesGeneralTab = () => {
     }
   };
 
-  console.log(theme);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 justify-between">
@@ -125,23 +124,42 @@ export const PreferencesGeneralTab = () => {
 
 export const PreferencesLogTab = (props: {
   onCancel?: () => void;
-  onSave?: (values: z.infer<typeof PreferencesLogSchema>) => void;
+  onSave?: (values: z.infer<typeof PREFERENCES_SCHEMA_LOG>) => void;
 }) => {
   const { t } = useTranslation();
   const { preferences, setPreferences } = useAppStore();
-  const form = useForm<z.infer<typeof PreferencesLogSchema>>({
-    resolver: zodResolver(PreferencesLogSchema),
-    defaultValues: preferences[EPreferencesTabs.LOG],
+  const form = useForm<z.infer<typeof PREFERENCES_SCHEMA_LOG>>({
+    resolver: zodResolver(PREFERENCES_SCHEMA_LOG),
+    defaultValues: preferences,
   });
 
-  const onSubmit = (values: z.infer<typeof PreferencesLogSchema>) => {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    setPreferences(EPreferencesTabs.LOG, values);
-    props.onSave?.(values);
-    toast.success(t("preferences.saved"), {
-      description: t("preferences.savedSuccess", { key: EPreferencesTabs.LOG }),
-    });
+  const onSubmit = async (values: z.infer<typeof PREFERENCES_SCHEMA_LOG>) => {
+    try {
+      const parsedValues = PREFERENCES_SCHEMA_LOG.safeParse(values);
+      if (!parsedValues.success) {
+        throw new Error("Invalid values");
+      }
+      await updatePreferencesField(
+        "logviewer_line_size",
+        parsedValues.data.logviewer_line_size
+      );
+      setPreferences(
+        "logviewer_line_size",
+        parsedValues.data.logviewer_line_size
+      );
+      props.onSave?.(parsedValues.data);
+      toast.success(t("preferences.saved"), {
+        description: t("preferences.savedSuccess", {
+          key: EPreferencesTabs.LOG,
+        }),
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error(t("preferences.saveFailed"));
+      }
+    }
   };
 
   return (
@@ -149,7 +167,7 @@ export const PreferencesLogTab = (props: {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="maxLines"
+          name="logviewer_line_size"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("preferences.log.maxLines")}</FormLabel>
