@@ -5,16 +5,17 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
-    fs,
     path::Path,
     sync::{Arc, RwLock},
 };
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
+use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    create::create_pkg_in_path,
     designer::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
@@ -23,9 +24,12 @@ use crate::{
     package_info::get_all_pkgs::get_all_pkgs,
 };
 
+use ten_rust::pkg_info::pkg_type::PkgType;
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CreateAppRequestPayload {
     pub base_dir: String,
+    pub template_name: String,
     pub app_name: String,
 }
 
@@ -38,8 +42,11 @@ pub async fn create_app_endpoint(
     request_payload: web::Json<CreateAppRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let CreateAppRequestPayload { base_dir, app_name } =
-        request_payload.into_inner();
+    let CreateAppRequestPayload {
+        base_dir,
+        app_name,
+        template_name,
+    } = request_payload.into_inner();
 
     // Validate base_dir exists.
     if !Path::new(&base_dir).exists() {
@@ -69,46 +76,39 @@ pub async fn create_app_endpoint(
         return Ok(HttpResponse::Conflict().json(error_response));
     }
 
-    // Create app directory and basic structure.
-    match fs::create_dir_all(&app_path) {
+    // Clone necessary values from state before the async call.
+    let tman_config_clone;
+    let out_clone;
+
+    {
+        let state_write = state.write().unwrap();
+        tman_config_clone = state_write.tman_config.clone();
+        out_clone = state_write.out.clone();
+    }
+
+    // Create app using create_pkg_in_path.
+    match create_pkg_in_path(
+        tman_config_clone,
+        Path::new(&base_dir),
+        &PkgType::App,
+        &app_name,
+        &template_name,
+        &VersionReq::default(),
+        None,
+        out_clone,
+    )
+    .await
+    {
         Ok(_) => {
-            // Create basic manifest file
-            let manifest_path = app_path.join("manifest.json");
-            let manifest_content = format!(
-                r#"{{
-  "type_and_name": {{
-    "pkg_type": "app",
-    "name": "{}"
-  }},
-  "version": "0.1.0",
-  "description": "A new TEN app",
-  "author": "",
-  "license": "Apache-2.0"
-}}"#,
-                app_name
-            );
+            let app_path_str = app_path.to_string_lossy().to_string();
 
-            if let Err(err) = fs::write(&manifest_path, manifest_content) {
-                // Clean up if manifest creation fails.
-                let _ = fs::remove_dir_all(&app_path);
-                let error_response = ErrorResponse::from_error(
-                    &anyhow!("Failed to create manifest file: {}", err),
-                    "Failed to create manifest file",
-                );
-                return Ok(
-                    HttpResponse::InternalServerError().json(error_response)
-                );
-            }
-
-            // Update cache with new app.
+            // Re-acquire the lock for updating the cache.
             let mut state_write = state.write().unwrap();
             let DesignerState {
                 tman_config,
                 pkgs_cache,
                 out,
             } = &mut *state_write;
-
-            let app_path_str = app_path.to_string_lossy().to_string();
 
             // Try to load the newly created app into the cache.
             if let Err(err) = get_all_pkgs(
@@ -137,8 +137,8 @@ pub async fn create_app_endpoint(
         }
         Err(err) => {
             let error_response = ErrorResponse::from_error(
-                &anyhow!("Failed to create app directory: {}", err),
-                "Failed to create app directory",
+                &anyhow!("Failed to create app: {}", err),
+                "Failed to create app",
             );
             Ok(HttpResponse::InternalServerError().json(error_response))
         }
@@ -153,7 +153,9 @@ mod tests {
     use tempfile::tempdir;
 
     use super::*;
-    use crate::{config::TmanConfig, output::TmanOutputCli};
+    use crate::{
+        config::TmanConfig, constants::DEFAULT_APP_CPP, output::TmanOutputCli,
+    };
 
     #[actix_web::test]
     async fn test_create_app_success() {
@@ -181,6 +183,7 @@ mod tests {
         let create_app_request = CreateAppRequestPayload {
             base_dir: temp_path,
             app_name: "test_app".to_string(),
+            template_name: DEFAULT_APP_CPP.to_string(),
         };
 
         let req = test::TestRequest::post()
@@ -189,7 +192,16 @@ mod tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success());
+        if !resp.status().is_success() {
+            println!("resp: {:?}", resp);
+
+            let body = test::read_body(resp).await;
+            let body_str = std::str::from_utf8(&body).unwrap();
+
+            println!("body: {:?}", body_str);
+
+            panic!("Failed to create app");
+        }
     }
 
     #[actix_web::test]
@@ -214,6 +226,7 @@ mod tests {
         let create_app_request = CreateAppRequestPayload {
             base_dir: "/non/existent/directory".to_string(),
             app_name: "test_app".to_string(),
+            template_name: "default".to_string(),
         };
 
         let req = test::TestRequest::post()

@@ -8,11 +8,10 @@ pub mod extension;
 
 use anyhow::Result;
 
-use crate::pkg_info::{
-    graph::Graph, property::predefined_graph::PredefinedGraph,
+use crate::{
+    graph::{connection::GraphConnection, node::GraphNode, Graph},
+    pkg_info::property::predefined_graph::PredefinedGraph,
 };
-
-use super::graph::{connection::GraphConnection, node::GraphNode};
 
 pub fn pkg_predefined_graphs_find<F>(
     pkg_predefined_graphs: Option<&Vec<PredefinedGraph>>,

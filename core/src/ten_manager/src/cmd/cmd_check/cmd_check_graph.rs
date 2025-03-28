@@ -10,9 +10,12 @@ use anyhow::{Context, Result};
 use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
-use ten_rust::pkg_info::{
-    get_app_installed_pkgs, graph::Graph, localhost,
-    property::parse_property_in_folder, PkgInfo,
+use ten_rust::{
+    graph::Graph,
+    pkg_info::{
+        get_app_installed_pkgs, localhost, property::parse_property_in_folder,
+        PkgInfo,
+    },
 };
 
 use crate::{config::TmanConfig, output::TmanOutput};

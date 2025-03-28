@@ -6,7 +6,6 @@
 //
 mod binding;
 pub mod constants;
-pub mod graph;
 pub mod hash;
 pub mod language;
 pub mod manifest;
@@ -22,8 +21,8 @@ pub mod value_type;
 
 use std::{collections::HashMap, path::Path};
 
+use crate::graph::Graph;
 use anyhow::{anyhow, Result};
-use graph::Graph;
 use pkg_type_and_name::PkgTypeAndName;
 
 use crate::schema::store::SchemaStore;

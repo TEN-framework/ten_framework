@@ -91,7 +91,11 @@ pub fn configure_routes(
             )
             .route(
                 "/graphs/nodes",
-                web::post().to(graphs::nodes::get_graph_nodes_endpoint),
+                web::post().to(graphs::nodes::get::get_graph_nodes_endpoint),
+            )
+            .route(
+                "/graphs/nodes/add",
+                web::post().to(graphs::nodes::add::add_graph_node_endpoint),
             )
             .route(
                 "/graphs/connections",
