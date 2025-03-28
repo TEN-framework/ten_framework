@@ -16,19 +16,17 @@ use crate::{
     constants::DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
 };
 
-use super::{locale::Locale, theme::Theme};
+use super::locale::Locale;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Designer {
     pub logviewer_line_size: usize,
-    pub theme: Theme,
     pub locale: Locale,
 }
 
 pub fn default_designer() -> Designer {
     Designer {
         logviewer_line_size: DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
-        theme: Theme::default(),
         locale: Locale::default(),
     }
 }

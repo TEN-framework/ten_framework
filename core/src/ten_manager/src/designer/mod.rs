@@ -21,7 +21,6 @@ pub mod preferences;
 pub mod registry;
 pub mod response;
 pub mod terminal;
-mod theme;
 mod version;
 
 use std::{

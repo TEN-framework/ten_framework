@@ -67,7 +67,6 @@ mod tests {
 
     use crate::config::TmanConfig;
     use crate::designer::locale::Locale;
-    use crate::designer::theme::Theme;
     use crate::designer::DesignerState;
     use crate::output::TmanOutputCli;
 
@@ -103,7 +102,6 @@ mod tests {
         let payload = UpdatePreferencesRequestPayload {
             preferences: Designer {
                 logviewer_line_size: 2000, // Valid value according to schema.
-                theme: Theme::Dark,
                 locale: Locale::EnUs,
             },
         };
@@ -129,7 +127,6 @@ mod tests {
         // in test).
         let state_read = state.read().unwrap();
         assert_eq!(state_read.tman_config.designer.logviewer_line_size, 2000);
-        assert!(matches!(state_read.tman_config.designer.theme, Theme::Dark));
         assert!(matches!(
             state_read.tman_config.designer.locale,
             Locale::EnUs
@@ -166,7 +163,6 @@ mod tests {
         let payload = UpdatePreferencesRequestPayload {
             preferences: Designer {
                 logviewer_line_size: 50, // Invalid value - minimum is 100.
-                theme: Theme::default(),
                 locale: Locale::default(),
             },
         };
