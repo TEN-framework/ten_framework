@@ -13,7 +13,7 @@ import {
   type IWidget,
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
-import { PreferencesLogSchema } from "@/types/apps";
+import { PREFERENCES_SCHEMA_LOG } from "@/types/apps";
 import { dispatchBringToFrontPopup } from "@/utils/popup";
 
 export const useWidgetStore = create<{
@@ -147,7 +147,7 @@ export const useWidgetStore = create<{
             history: (() => {
               const maxLength =
                 options?.maxLength ||
-                getZodDefaults(PreferencesLogSchema).maxLines;
+                getZodDefaults(PREFERENCES_SCHEMA_LOG).logviewer_line_size;
               const newHistory = options?.override
                 ? history
                 : [...(state.logViewerHistory[id]?.history || []), ...history];
@@ -155,7 +155,7 @@ export const useWidgetStore = create<{
             })(),
             maxLength:
               options?.maxLength ||
-              getZodDefaults(PreferencesLogSchema).maxLines,
+              getZodDefaults(PREFERENCES_SCHEMA_LOG).logviewer_line_size,
           },
         },
       })),

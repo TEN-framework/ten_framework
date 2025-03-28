@@ -103,6 +103,7 @@ function EdgeInfoContent(props: {
       .map((e) => ({
         id: e.id,
         type: e.data?.connectionType,
+        name: e.data?.name,
         source: e.source,
         target: e.target,
       }))
@@ -193,6 +194,7 @@ function CustomNodeConnPopupContent(props: {
       .map((e) => ({
         id: e.id,
         type: e.data?.connectionType,
+        name: e.data?.name,
         upstream: flowDirection === "upstream" ? e.source : e.target,
         downstream: flowDirection === "upstream" ? e.source : e.target,
       }))

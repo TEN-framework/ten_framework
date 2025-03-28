@@ -92,7 +92,7 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
         "flex justify-between items-center  text-sm select-none",
         "h-10 w-full px-5",
         "fixed top-0 left-0 right-0",
-        "bg-background/80 backdrop-blur-xs",
+        "bg-zinc-50 dark:bg-zinc-900",
         "border-b border-[#e5e7eb] dark:border-[#374151]",
         className
       )}

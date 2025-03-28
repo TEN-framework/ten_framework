@@ -21,7 +21,7 @@ import type { IBaseDirResponse } from "@/types/fileSystem";
 // request functions -------------------------------
 
 export const retrieveFileContent = async (path: string) => {
-  const template = ENDPOINT_FILE_SYSTEM.fileContent.post;
+  const template = ENDPOINT_FILE_SYSTEM.fileContent[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: {
       file_path: path,

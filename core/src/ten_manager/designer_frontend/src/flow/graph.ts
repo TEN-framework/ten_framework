@@ -15,6 +15,7 @@ import {
   type IBackendNode,
   type IBackendConnection,
   EConnectionType,
+  type TConnectionMap,
 } from "@/types/graphs";
 
 const NODE_WIDTH = 172;
@@ -133,24 +134,24 @@ export const processConnections = (
   backendConnections: IBackendConnection[]
 ): {
   initialEdges: CustomEdgeType[];
-  nodeSourceCmdMap: Record<string, Set<string>>;
-  nodeSourceDataMap: Record<string, Set<string>>;
-  nodeSourceAudioFrameMap: Record<string, Set<string>>;
-  nodeSourceVideoFrameMap: Record<string, Set<string>>;
-  nodeTargetCmdMap: Record<string, Set<string>>;
-  nodeTargetDataMap: Record<string, Set<string>>;
-  nodeTargetAudioFrameMap: Record<string, Set<string>>;
-  nodeTargetVideoFrameMap: Record<string, Set<string>>;
+  nodeSourceCmdMap: TConnectionMap;
+  nodeSourceDataMap: TConnectionMap;
+  nodeSourceAudioFrameMap: TConnectionMap;
+  nodeSourceVideoFrameMap: TConnectionMap;
+  nodeTargetCmdMap: TConnectionMap;
+  nodeTargetDataMap: TConnectionMap;
+  nodeTargetAudioFrameMap: TConnectionMap;
+  nodeTargetVideoFrameMap: TConnectionMap;
 } => {
   const initialEdges: CustomEdgeType[] = [];
-  const nodeSourceCmdMap: Record<string, Set<string>> = {};
-  const nodeSourceDataMap: Record<string, Set<string>> = {};
-  const nodeSourceAudioFrameMap: Record<string, Set<string>> = {};
-  const nodeSourceVideoFrameMap: Record<string, Set<string>> = {};
-  const nodeTargetCmdMap: Record<string, Set<string>> = {};
-  const nodeTargetDataMap: Record<string, Set<string>> = {};
-  const nodeTargetAudioFrameMap: Record<string, Set<string>> = {};
-  const nodeTargetVideoFrameMap: Record<string, Set<string>> = {};
+  const nodeSourceCmdMap: TConnectionMap = {};
+  const nodeSourceDataMap: TConnectionMap = {};
+  const nodeSourceAudioFrameMap: TConnectionMap = {};
+  const nodeSourceVideoFrameMap: TConnectionMap = {};
+  const nodeTargetCmdMap: TConnectionMap = {};
+  const nodeTargetDataMap: TConnectionMap = {};
+  const nodeTargetAudioFrameMap: TConnectionMap = {};
+  const nodeTargetVideoFrameMap: TConnectionMap = {};
 
   backendConnections.forEach((c) => {
     const sourceNodeId = c.extension;
@@ -165,7 +166,7 @@ export const processConnections = (
         (
           c[type as keyof IBackendConnection] as Array<{
             name: string;
-            dest: Array<{ extension: string }>;
+            dest: Array<{ extension: string; app: string }>;
           }>
         ).forEach((item) => {
           item.dest.forEach((d) => {
@@ -174,8 +175,8 @@ export const processConnections = (
             const itemName = item.name;
 
             // Record the item name in the appropriate source map based on type
-            let sourceMap: Record<string, Set<string>>;
-            let targetMap: Record<string, Set<string>>;
+            let sourceMap: TConnectionMap;
+            let targetMap: TConnectionMap;
             switch (type) {
               case EConnectionType.CMD:
                 sourceMap = nodeSourceCmdMap;
@@ -194,20 +195,28 @@ export const processConnections = (
                 targetMap = nodeTargetVideoFrameMap;
                 break;
               default:
-                sourceMap = nodeSourceCmdMap;
-                targetMap = nodeTargetCmdMap;
+                console.warn(`Unknown connection type: ${type}`);
+                return;
             }
 
             if (!sourceMap[sourceNodeId]) {
               sourceMap[sourceNodeId] = new Set();
             }
-            sourceMap[sourceNodeId].add(itemName);
+            sourceMap[sourceNodeId].add({
+              name: itemName,
+              srcApp: c.app,
+              destApp: d.app,
+            });
 
             // Record the item name in the appropriate target map
             if (!targetMap[targetNodeId]) {
               targetMap[targetNodeId] = new Set();
             }
-            targetMap[targetNodeId].add(itemName);
+            targetMap[targetNodeId].add({
+              name: itemName,
+              srcApp: c.app,
+              destApp: d.app,
+            });
 
             initialEdges.push({
               id: edgeId,
@@ -215,6 +224,9 @@ export const processConnections = (
               target: targetNodeId,
               data: {
                 connectionType: type,
+                name: itemName,
+                srcApp: c.app,
+                destApp: d.app,
                 labelOffsetX: 0,
                 labelOffsetY: 0,
               },
@@ -285,14 +297,14 @@ export const fetchAddonInfoForNodes = async (
 export const enhanceNodesWithCommands = (
   nodes: CustomNodeType[],
   options: {
-    nodeSourceCmdMap: Record<string, Set<string>>;
-    nodeTargetCmdMap: Record<string, Set<string>>;
-    nodeSourceDataMap: Record<string, Set<string>>;
-    nodeSourceAudioFrameMap: Record<string, Set<string>>;
-    nodeSourceVideoFrameMap: Record<string, Set<string>>;
-    nodeTargetDataMap: Record<string, Set<string>>;
-    nodeTargetAudioFrameMap: Record<string, Set<string>>;
-    nodeTargetVideoFrameMap: Record<string, Set<string>>;
+    nodeSourceCmdMap: TConnectionMap;
+    nodeTargetCmdMap: TConnectionMap;
+    nodeSourceDataMap: TConnectionMap;
+    nodeSourceAudioFrameMap: TConnectionMap;
+    nodeSourceVideoFrameMap: TConnectionMap;
+    nodeTargetDataMap: TConnectionMap;
+    nodeTargetAudioFrameMap: TConnectionMap;
+    nodeTargetVideoFrameMap: TConnectionMap;
   }
 ): CustomNodeType[] => {
   const {

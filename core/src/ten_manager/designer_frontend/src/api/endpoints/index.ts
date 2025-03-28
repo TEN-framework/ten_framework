@@ -65,6 +65,43 @@ export const ENDPOINT_COMMON = {
       ),
     },
   },
+  preferences: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/preferences`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<{
+        preferences: Record<string, unknown>;
+      }>(
+        z.object({
+          preferences: z.record(z.unknown()),
+        })
+      ),
+    },
+    [ENDPOINT_METHOD.PUT]: {
+      url: `${API_DESIGNER_V1}/preferences`,
+      method: ENDPOINT_METHOD.PUT,
+      requestSchema: z.object({
+        preferences: z.record(z.unknown()),
+      }),
+      responseSchema: genResSchema(z.any()),
+    },
+    [ENDPOINT_METHOD.PATCH]: {
+      url: `${API_DESIGNER_V1}/preferences/field`,
+      method: ENDPOINT_METHOD.PATCH,
+      requestSchema: z.object({
+        field: z.string(),
+        value: z.any(),
+      }),
+      responseSchema: genResSchema(z.any()),
+    },
+  },
+  preferencesSchema: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/preferences/schema`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema(z.any()),
+    },
+  },
 };
 
 export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";

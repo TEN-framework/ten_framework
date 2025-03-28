@@ -70,14 +70,18 @@ const StatusApps = () => {
   };
 
   React.useEffect(() => {
-    if (!currentWorkspace?.baseDir && data?.app_info?.[0]?.base_dir) {
+    if (
+      !currentWorkspace?.initialized &&
+      !currentWorkspace?.baseDir &&
+      data?.app_info?.[0]?.base_dir
+    ) {
       updateCurrentWorkspace({
         baseDir: data?.app_info?.[0]?.base_dir,
         graphName: null,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, currentWorkspace?.baseDir]);
+  }, [data, currentWorkspace?.baseDir, currentWorkspace?.initialized]);
 
   React.useEffect(() => {
     if (error) {

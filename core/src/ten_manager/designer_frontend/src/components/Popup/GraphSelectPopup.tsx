@@ -138,6 +138,7 @@ export function GraphSelectPopup() {
         baseDir: selectedApp,
         graphName: null,
       });
+      setNodesAndEdges([], []);
       toast.success(t("popup.selectGraph.updateSuccess"), {
         description: (
           <>
