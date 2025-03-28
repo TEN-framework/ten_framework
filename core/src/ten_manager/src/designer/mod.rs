@@ -56,7 +56,7 @@ pub fn configure_routes(
             )
             // Apps endpoints.
             .route("/apps", web::get().to(apps::get::get_apps_endpoint))
-            .route("/apps", web::post().to(apps::load::load_app_endpoint))
+            .route("/apps/load", web::post().to(apps::load::load_app_endpoint))
             .route(
                 "/apps/unload",
                 web::post().to(apps::unload::unload_app_endpoint),
@@ -64,6 +64,10 @@ pub fn configure_routes(
             .route(
                 "/apps/reload",
                 web::post().to(apps::reload::reload_app_endpoint),
+            )
+            .route(
+                "/apps/create",
+                web::post().to(apps::create::create_app_endpoint),
             )
             .route(
                 "/apps/addons",

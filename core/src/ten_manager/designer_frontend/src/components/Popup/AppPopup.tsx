@@ -29,7 +29,7 @@ import {
 } from "@/components/FileManager/utils";
 import { FileManager } from "@/components/FileManager/AppFolder";
 import { useRetrieveDirList } from "@/api/services/fileSystem";
-import { postBaseDir, useApps } from "@/api/services/apps";
+import { postLoadDir, useApps } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
   APP_FOLDER_POPUP_ID,
@@ -58,7 +58,7 @@ export const AppFolderPopup = () => {
 
   const handleSetBaseDir = async (folderPath: string) => {
     try {
-      await postBaseDir(folderPath.trim());
+      await postLoadDir(folderPath.trim());
       setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
       mutateApps();
       toast.success(t("header.menuApp.loadAppSuccess"));

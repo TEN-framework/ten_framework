@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod addons;
+pub mod create;
 pub mod get;
 pub mod load;
 pub mod reload;
