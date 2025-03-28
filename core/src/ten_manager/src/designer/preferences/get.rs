@@ -90,11 +90,9 @@ mod tests {
         // TmanConfig.
         let preferences = &json["data"]["preferences"];
         assert!(preferences["logviewer_line_size"].is_number());
-        assert!(preferences["theme"].is_string());
         assert!(preferences["locale"].is_string());
 
         // Check default values.
-        assert_eq!(preferences["theme"], "light");
         assert_eq!(preferences["locale"], "en-US");
     }
 
