@@ -11,12 +11,7 @@ import { z } from "zod";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
 import { type IFMItem } from "@/components/FileManager/utils";
-import {
-  type IExtensionAddon,
-  PREFERENCES_SCHEMA,
-  EPreferencesTabs,
-} from "@/types/apps";
-import { getZodDefaults } from "@/utils";
+import { type IExtensionAddon, PREFERENCES_SCHEMA } from "@/types/apps";
 
 export interface IAppStore {
   currentWorkspace: {
