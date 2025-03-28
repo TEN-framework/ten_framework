@@ -13,8 +13,7 @@ import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 import { type IFMItem } from "@/components/FileManager/utils";
 import {
   type IExtensionAddon,
-  PreferencesLogSchema,
-  PreferencesSchema,
+  PREFERENCES_SCHEMA,
   EPreferencesTabs,
 } from "@/types/apps";
 import { getZodDefaults } from "@/utils";
@@ -44,11 +43,13 @@ export interface IAppStore {
     arch?: string;
   };
   setDefaultOsArch: (osArch: { os?: string; arch?: string }) => void;
-  preferences: z.infer<typeof PreferencesSchema>;
+  preferences: z.infer<typeof PREFERENCES_SCHEMA>;
   setPreferences: (
-    key: keyof z.infer<typeof PreferencesSchema>,
+    key: keyof z.infer<typeof PREFERENCES_SCHEMA>,
     value: Partial<
-      z.infer<typeof PreferencesSchema>[keyof z.infer<typeof PreferencesSchema>]
+      z.infer<typeof PREFERENCES_SCHEMA>[keyof z.infer<
+        typeof PREFERENCES_SCHEMA
+      >]
     >
   ) => void;
 }
@@ -92,25 +93,21 @@ export const useAppStore = create<IAppStore>()(
     setDefaultOsArch: (osArch: { os?: string; arch?: string }) =>
       set({ defaultOsArch: osArch }),
     preferences: {
-      [EPreferencesTabs.LOG]: {
-        maxLines: getZodDefaults(PreferencesLogSchema).maxLines as number,
-      },
+      logviewer_line_size: 1000,
+      locale: "en-US", // TODO: get from the backend
     },
     setPreferences: (
-      key: keyof z.infer<typeof PreferencesSchema>,
+      key: keyof z.infer<typeof PREFERENCES_SCHEMA>,
       value: Partial<
-        z.infer<typeof PreferencesSchema>[keyof z.infer<
-          typeof PreferencesSchema
+        z.infer<typeof PREFERENCES_SCHEMA>[keyof z.infer<
+          typeof PREFERENCES_SCHEMA
         >]
       >
     ) =>
       set((state) => ({
         preferences: {
           ...state.preferences,
-          [key]: {
-            ...state.preferences[key],
-            ...value,
-          },
+          [key]: value,
         },
       })),
   }))

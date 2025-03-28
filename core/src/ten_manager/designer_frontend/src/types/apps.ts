@@ -39,10 +39,11 @@ export enum EPreferencesTabs {
   LOG = "log",
 }
 
-export const PreferencesLogSchema = z.object({
-  maxLines: z.number().min(1).default(1000),
+export const PREFERENCES_SCHEMA_LOG = z.object({
+  logviewer_line_size: z.number().min(1).default(1000),
 });
-
-export const PreferencesSchema = z.object({
-  [EPreferencesTabs.LOG]: PreferencesLogSchema,
+// tmp, need to move to scripts and retrieve from the backend.
+export const PREFERENCES_SCHEMA = z.object({
+  locale: z.enum(["en-US", "zh-CN", "zh-TW", "ja-JP"]).default("en-US"),
+  ...PREFERENCES_SCHEMA_LOG.shape,
 });
