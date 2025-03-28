@@ -35,7 +35,7 @@ impl PkgInfo {
                 supports,
             )
         } else {
-            String::new() // Cannot generate hash without manifest
+            String::new() // Cannot generate hash without manifest.
         }
     }
 }
