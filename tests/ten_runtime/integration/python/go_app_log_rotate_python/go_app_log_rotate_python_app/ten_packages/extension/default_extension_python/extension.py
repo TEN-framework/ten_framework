@@ -46,16 +46,24 @@ class DefaultExtension(Extension):
 
         ten_env.on_start_done()
 
-    def on_stop(self, ten_env: TenEnv) -> None:
-        ten_env.log_debug("on_stop")
-
+    def stop_routine(self, ten_env: TenEnv) -> None:
         self.stop_flag = True
         self.log_thread.join()
 
         ten_env.on_stop_done()
 
+    def on_stop(self, ten_env: TenEnv) -> None:
+        ten_env.log_debug("on_stop")
+
+        self.stop_thread = threading.Thread(
+            target=self.stop_routine, args=(ten_env,)
+        )
+        self.stop_thread.start()
+
     def on_deinit(self, ten_env: TenEnv) -> None:
         ten_env.log_debug("on_deinit")
+        self.stop_thread.join()
+
         ten_env.on_deinit_done()
 
     def check_greeting(
