@@ -146,6 +146,21 @@ pub async fn get_app_addons_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
+    // Check if base_dir exists in pkgs_cache.
+    if request_payload.base_dir.is_empty()
+        || !state_read
+            .pkgs_cache
+            .contains_key(&request_payload.base_dir)
+    {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: "Base directory not found or not specified".to_string(),
+            error: None,
+        };
+
+        return Ok(HttpResponse::NotFound().json(error_response));
+    }
+
     let mut all_addons: Vec<GetAppAddonsSingleResponseData> = state_read
         .pkgs_cache
         .get(&request_payload.base_dir)
@@ -166,23 +181,14 @@ pub async fn get_app_addons_endpoint(
         all_addons.retain(|addon| &addon.addon_name == addon_name);
     }
 
-    if all_addons.is_empty() {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "No addons found".to_string(),
-            error: None,
-        };
+    // Return success response even if all_addons is empty.
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: all_addons,
+        meta: None,
+    };
 
-        Ok(HttpResponse::NotFound().json(error_response))
-    } else {
-        let response = ApiResponse {
-            status: Status::Ok,
-            data: all_addons,
-            meta: None,
-        };
-
-        Ok(HttpResponse::Ok().json(response))
-    }
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[cfg(test)]
@@ -611,6 +617,8 @@ mod tests {
 
         assert_eq!(addons.data, expected_addons);
 
+        // Test non-existent addon should return empty array with success
+        // status.
         let request_payload = GetAppAddonsRequestPayload {
             base_dir: TEST_DIR.to_string(),
             addon_name: Some("non_existent_addon".to_string()),
@@ -623,14 +631,16 @@ mod tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
 
-        assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+        assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let error_response: ErrorResponse =
+        let addons: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
-        assert_eq!(error_response.message, "No addons found");
+
+        assert_eq!(addons.status, Status::Ok);
+        assert!(addons.data.is_empty());
     }
 
     #[actix_web::test]
@@ -731,5 +741,76 @@ mod tests {
 
         assert_eq!(addons.data[0].addon_type, "extension");
         assert_eq!(addons.data[0].addon_name, "extension_addon_1");
+    }
+
+    #[actix_web::test]
+    async fn test_get_addon_invalid_base_dir() {
+        let designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/addons",
+                    web::post().to(get_app_addons_endpoint),
+                ),
+        )
+        .await;
+
+        // Test with non-existent base_dir.
+        let request_payload = GetAppAddonsRequestPayload {
+            base_dir: "non_existent_dir".to_string(),
+            addon_name: None,
+            addon_type: None,
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/addons")
+            .set_json(request_payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+
+        let body = test::read_body(resp).await;
+        let body_str = std::str::from_utf8(&body).unwrap();
+
+        let error_response: ErrorResponse =
+            serde_json::from_str(body_str).unwrap();
+        assert_eq!(
+            error_response.message,
+            "Base directory not found or not specified"
+        );
+
+        // Test with empty base_dir.
+        let request_payload = GetAppAddonsRequestPayload {
+            base_dir: "".to_string(),
+            addon_name: None,
+            addon_type: None,
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/addons")
+            .set_json(request_payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+
+        let body = test::read_body(resp).await;
+        let body_str = std::str::from_utf8(&body).unwrap();
+
+        let error_response: ErrorResponse =
+            serde_json::from_str(body_str).unwrap();
+        assert_eq!(
+            error_response.message,
+            "Base directory not found or not specified"
+        );
     }
 }

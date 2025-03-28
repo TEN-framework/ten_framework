@@ -9,7 +9,29 @@ pub mod get_schema;
 pub mod update;
 pub mod update_field;
 
-use crate::config::{TmanConfig, TmanConfigFile};
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    config::{TmanConfig, TmanConfigFile},
+    constants::DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
+};
+
+use super::{locale::Locale, theme::Theme};
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Designer {
+    pub logviewer_line_size: usize,
+    pub theme: Theme,
+    pub locale: Locale,
+}
+
+pub fn default_designer() -> Designer {
+    Designer {
+        logviewer_line_size: DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
+        theme: Theme::default(),
+        locale: Locale::default(),
+    }
+}
 
 /// Helper function to save config to file.
 pub fn save_config_to_file(

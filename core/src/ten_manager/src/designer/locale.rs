@@ -11,8 +11,11 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derive(
+    Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Default,
+)]
 pub enum Locale {
+    #[default]
     #[serde(rename = "en-US")]
     EnUs,
 
@@ -21,6 +24,9 @@ pub enum Locale {
 
     #[serde(rename = "zh-TW")]
     ZhTw,
+
+    #[serde(rename = "ja-JP")]
+    JaJp,
 }
 
 impl Display for Locale {
@@ -29,6 +35,7 @@ impl Display for Locale {
             Locale::EnUs => "en-US",
             Locale::ZhCn => "zh-CN",
             Locale::ZhTw => "zh-TW",
+            Locale::JaJp => "ja-JP",
         };
         write!(f, "{}", s)
     }
@@ -42,6 +49,7 @@ impl FromStr for Locale {
             "en-US" => Ok(Locale::EnUs),
             "zh-CN" => Ok(Locale::ZhCn),
             "zh-TW" => Ok(Locale::ZhTw),
+            "ja-JP" => Ok(Locale::JaJp),
             _ => Err(format!("Invalid locale: {}", s)),
         }
     }

@@ -454,7 +454,7 @@ pub fn write_pkgs_into_manifest_lock_file(
             Emoji("🔒", "")
         ));
 
-        new_manifest_lock.print_changes(&old_manifest_lock.ok().unwrap());
+        new_manifest_lock.print_changes(&old_manifest_lock.ok().unwrap(), out);
     }
 
     Ok(())

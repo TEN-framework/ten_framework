@@ -14,12 +14,14 @@ mod file_content;
 pub mod frontend;
 pub mod graphs;
 mod help_text;
+mod locale;
 mod messages;
 pub mod mock;
 pub mod preferences;
 pub mod registry;
 pub mod response;
 pub mod terminal;
+mod theme;
 mod version;
 
 use std::{

@@ -12,7 +12,8 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-use crate::constants::DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE;
+use crate::designer::preferences::default_designer;
+use crate::designer::preferences::Designer;
 
 use super::constants::{DEFAULT, DEFAULT_REGISTRY};
 use super::schema::validate_tman_config;
@@ -22,19 +23,8 @@ pub struct Registry {
     pub index: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub struct Designer {
-    pub logviewer_line_size: usize,
-}
-
 fn default_enable_package_cache() -> bool {
     true
-}
-
-fn default_designer() -> Designer {
-    Designer {
-        logviewer_line_size: DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

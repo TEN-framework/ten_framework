@@ -13,13 +13,12 @@ use std::fmt;
 use std::str::FromStr;
 use std::sync::OnceLock;
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    locale::Locale,
+use crate::designer::{
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
+
+use super::locale::Locale;
 
 // Supported languages.
 const DEFAULT_LOCALE: Locale = Locale::EnUs;
