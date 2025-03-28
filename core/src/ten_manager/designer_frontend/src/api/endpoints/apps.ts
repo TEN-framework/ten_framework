@@ -55,8 +55,10 @@ export const ENDPOINT_APPS = {
         })
       ),
     },
+  },
+  loadApps: {
     [ENDPOINT_METHOD.POST]: {
-      url: `${API_DESIGNER_V1}/apps`,
+      url: `${API_DESIGNER_V1}/apps/load`,
       method: ENDPOINT_METHOD.POST,
       requestSchema: z.object({
         base_dir: z.string(),

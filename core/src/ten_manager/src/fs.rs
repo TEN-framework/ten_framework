@@ -83,6 +83,19 @@ pub fn check_is_app_folder(path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Check if the path is a valid directory.
+pub fn check_is_valid_dir(path: &Path) -> Result<()> {
+    if !path.exists() {
+        return Err(anyhow!("Directory does not exist"));
+    }
+
+    if !path.is_dir() {
+        return Err(anyhow!("Path is not a directory"));
+    }
+
+    Ok(())
+}
+
 /// Check if the directory specified by `path` is an extension directory.
 pub fn check_is_addon_folder(path: &Path) -> Result<()> {
     let manifest =
