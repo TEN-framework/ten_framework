@@ -55,6 +55,9 @@ class DefaultExtension(Extension):
     def on_stop(self, ten_env: TenEnv) -> None:
         ten_env.log_debug("on_stop")
 
+        # Because `stop_routine` is a blocking function, and to avoid blocking
+        # the extension thread, we need to create a new thread to stop the log
+        # thread/routine.
         self.stop_thread = threading.Thread(
             target=self.stop_routine, args=(ten_env,)
         )
