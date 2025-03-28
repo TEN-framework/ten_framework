@@ -58,3 +58,11 @@ export interface IGraph {
   name: string;
   auto_start: boolean;
 }
+
+export type TConnectionItem = {
+  name: string;
+  srcApp: string;
+  destApp: string;
+};
+
+export type TConnectionMap = Record<string, Set<TConnectionItem>>;

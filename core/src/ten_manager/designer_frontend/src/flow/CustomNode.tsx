@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 import CustomHandle from "@/flow/CustomHandle";
-import { EConnectionType } from "@/types/graphs";
+import { EConnectionType, type TConnectionItem } from "@/types/graphs";
 
 const onConnect = (params: Connection | Edge) =>
   console.log("Handle onConnect", params);
@@ -26,14 +26,14 @@ const onConnect = (params: Connection | Edge) =>
 export type TCustomNodeData = {
   name: string;
   addon: string;
-  sourceCmds: string[];
-  targetCmds: string[];
-  sourceData: string[];
-  targetData: string[];
-  sourceAudioFrame: string[];
-  targetAudioFrame: string[];
-  sourceVideoFrame: string[];
-  targetVideoFrame: string[];
+  sourceCmds: TConnectionItem[];
+  targetCmds: TConnectionItem[];
+  sourceData: TConnectionItem[];
+  targetData: TConnectionItem[];
+  sourceAudioFrame: TConnectionItem[];
+  targetAudioFrame: TConnectionItem[];
+  sourceVideoFrame: TConnectionItem[];
+  targetVideoFrame: TConnectionItem[];
   url?: string;
 };
 
