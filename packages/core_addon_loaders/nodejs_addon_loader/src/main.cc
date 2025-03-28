@@ -254,7 +254,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   // Clean up and shut down the Node.js addon loader to ensure resource
   // release, garbage collection execution, and proper termination of the
   // Node.js thread.
-  void on_deinit(TEN_UNUSED ten::ten_env_t &ten_env) override {
+  void on_deinit(ten::ten_env_t &ten_env) override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
       // Create a `uv_async_t` event to perform asynchronous operations within
       // the libuv event loop.
@@ -326,6 +326,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     this->node_thread_.join();
 
     std::cout << "Nodejs addon loader deinit completed" << '\n';
+
+    ten_env.on_deinit_done();
   }
 
   // Note: This function, used to dynamically load other addons, may be called

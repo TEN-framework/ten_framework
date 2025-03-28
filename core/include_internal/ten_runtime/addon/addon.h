@@ -28,6 +28,9 @@ typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
 typedef void (*ten_env_addon_destroy_instance_done_cb_t)(ten_env_t *ten_env,
                                                          void *cb_data);
 
+typedef void (*ten_on_all_addons_unregistered_cb_t)(ten_env_t *ten_env,
+                                                    void *cb_data);
+
 typedef enum TEN_ADDON_CONTEXT_FLOW {
   TEN_ADDON_CONTEXT_FLOW_INVALID,
 
@@ -90,6 +93,9 @@ TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
     ten_addon_store_t *store, const char *addon_name);
 
 TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup(void);
+
+TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup_after_app_close(
+    ten_env_t *ten_env, ten_on_all_addons_unregistered_cb_t cb, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_get_store(void);
 
