@@ -210,7 +210,8 @@ export const Popup = (props: {
       <motion.div
         onPointerDown={(event) => dragControls.start(event)}
         className={cn(
-          "p-2.5 flex justify-between items-center cursor-move select-none",
+          "px-2.5 py-1",
+          "flex justify-between items-center cursor-move select-none",
           "bg-slate-100/80 dark:bg-gray-900/80",
           "rounded-t-lg",
           {
