@@ -37,6 +37,9 @@ typedef void (*ten_addon_loader_on_load_addon_func_t)(
 typedef void (*ten_addon_loader_on_init_done_cb_t)(ten_env_t *ten_env,
                                                    void *cb_data);
 
+typedef void (*ten_addon_loader_on_deinit_done_cb_t)(ten_env_t *ten_env,
+                                                     void *cb_data);
+
 typedef struct ten_addon_loader_t {
   ten_binding_handle_t binding_handle;
   ten_signature_t signature;
@@ -49,6 +52,9 @@ typedef struct ten_addon_loader_t {
 
   ten_addon_loader_on_init_done_cb_t on_init_done_cb;
   void *on_init_done_cb_data;
+
+  ten_addon_loader_on_deinit_done_cb_t on_deinit_done_cb;
+  void *on_deinit_done_cb_data;
 
   ten_env_t *ten_env;
 } ten_addon_loader_t;

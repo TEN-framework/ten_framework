@@ -167,7 +167,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
     ten_env.on_init_done();
   }
 
-  void on_deinit(TEN_UNUSED ten::ten_env_t &ten_env) override {
+  void on_deinit(ten::ten_env_t &ten_env) override {
     // Do some de-initializations.
     if (py_thread_state_ != nullptr) {
       ten_py_eval_restore_thread(py_thread_state_);
@@ -183,6 +183,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
         TEN_ASSERT(0, "Should not happen.");
       }
     }
+
+    ten_env.on_deinit_done();
   }
 
   // **Note:** This function, used to dynamically load other addons, may be

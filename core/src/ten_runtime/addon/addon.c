@@ -31,6 +31,11 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
+typedef struct ten_on_all_addons_unregistered_ctx_t {
+  ten_on_all_addons_unregistered_cb_t cb;
+  void *cb_data;
+} ten_on_all_addons_unregistered_ctx_t;
+
 bool ten_addon_check_integrity(ten_addon_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   if (ten_signature_get(&self->signature) != TEN_ADDON_SIGNATURE) {
@@ -366,7 +371,46 @@ void ten_unregister_all_addons_and_cleanup(void) {
   ten_addon_unregister_all_except_addon_loader_addon();
 
   // Destroy all addon loaders' singleton to avoid memory leak.
-  ten_addon_loader_addons_destroy_singleton_instance();
+  ten_addon_loader_addons_destroy_singleton_instance_immediately();
 
   ten_addon_unregister_all_addon_loader();
+}
+
+static void ten_on_all_addons_unregistered_cb(ten_env_t *ten_env,
+                                              void *cb_data) {
+  ten_on_all_addons_unregistered_ctx_t *ctx =
+      (ten_on_all_addons_unregistered_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_addon_unregister_all_addon_loader();
+
+  if (ctx->cb) {
+    ctx->cb(ten_env, ctx->cb_data);
+  }
+
+  TEN_FREE(ctx);
+}
+
+TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup_after_app_close(
+    ten_env_t *ten_env, ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,
+             "Should not happen.");
+
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_on_all_addons_unregistered_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_on_all_addons_unregistered_ctx_t));
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+
+  ten_addon_unregister_all_except_addon_loader_addon();
+
+  ten_addon_loader_addons_destroy_singleton_instance(
+      ten_env, ten_on_all_addons_unregistered_cb, ctx);
 }

@@ -11,3 +11,5 @@
 #include "ten_runtime/ten_env/ten_env.h"
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_on_init_done(ten_env_t *self);
+
+TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_on_deinit_done(ten_env_t *self);
