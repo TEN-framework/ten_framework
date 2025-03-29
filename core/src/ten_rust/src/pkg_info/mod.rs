@@ -39,8 +39,8 @@ use property::{
     parse_property_in_folder, predefined_graph::PredefinedGraph, Property,
 };
 
-pub fn localhost() -> String {
-    "localhost".to_string()
+pub fn localhost() -> &'static str {
+    "localhost"
 }
 
 #[derive(Clone, Debug)]

@@ -102,20 +102,25 @@ pub fn get_pkg_info_for_extension<'a>(
 
 pub fn get_extension<'a>(
     extensions: &'a [GraphNode],
-    app: &String,
-    extension_group: &String,
-    extension: &String,
+    app: &Option<String>,
+    extension_group: &Option<String>,
+    extension_name: &str,
 ) -> Result<&'a GraphNode> {
-    extensions
-        .iter()
-        .find(|ext| {
-            ext.type_and_name.pkg_type == PkgType::Extension
-                && ext.get_app_uri() == app
-                && ext.extension_group.clone().unwrap_or("".to_string())
-                    == *extension_group
-                && &ext.type_and_name.name == extension
-        })
-        .ok_or_else(|| anyhow::anyhow!("Extension not found"))
+    for extension in extensions {
+        if extension.type_and_name.name == extension_name
+            && extension.extension_group.as_ref() == extension_group.as_ref()
+            && extension.app == *app
+        {
+            return Ok(extension);
+        }
+    }
+
+    Err(anyhow::anyhow!(
+        "Failed to find extension '{}' in extension group '{:?}', app: '{:?}'",
+        extension_name,
+        extension_group,
+        app
+    ))
 }
 
 pub struct CompatibleExtensionAndMsg<'a> {

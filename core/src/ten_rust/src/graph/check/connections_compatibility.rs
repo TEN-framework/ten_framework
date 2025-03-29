@@ -27,7 +27,11 @@ use crate::{
 };
 
 impl Graph {
-    fn get_addon_name_of_extension(&self, app: &str, extension: &str) -> &str {
+    fn get_addon_name_of_extension(
+        &self,
+        app: Option<&str>,
+        extension: &str,
+    ) -> &str {
         self.nodes
             .iter()
             .find_map(|node| {
@@ -103,18 +107,20 @@ impl Graph {
                 dest.extension.as_str(),
             );
 
-            let dest_app_installed_pkgs = if let Some(pkgs) =
-                installed_pkgs_of_all_apps.get(dest.get_app_uri())
-            {
-                pkgs
-            } else if ignore_missing_apps {
-                continue;
-            } else {
-                return Err(anyhow::anyhow!(
+            // Convert Option<&str> to String lookup key.
+            let app_key = Graph::option_str_to_string(dest.get_app_uri());
+
+            let dest_app_installed_pkgs =
+                if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
+                    pkgs
+                } else if ignore_missing_apps {
+                    continue;
+                } else {
+                    return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
-                    dest.get_app_uri()
+                    app_key
                 ));
-            };
+                };
 
             let dest_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
                 dest_app_installed_pkgs,
@@ -183,18 +189,20 @@ impl Graph {
                 dest.extension.as_str(),
             );
 
-            let dest_app_installed_pkgs = if let Some(pkgs) =
-                installed_pkgs_of_all_apps.get(dest.get_app_uri())
-            {
-                pkgs
-            } else if ignore_missing_apps {
-                continue;
-            } else {
-                return Err(anyhow::anyhow!(
+            // Convert Option<&str> to String lookup key.
+            let app_key = Graph::option_str_to_string(dest.get_app_uri());
+
+            let dest_app_installed_pkgs =
+                if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
+                    pkgs
+                } else if ignore_missing_apps {
+                    continue;
+                } else {
+                    return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
-                    dest.get_app_uri()
+                    app_key
                 ));
-            };
+                };
 
             let dest_cmd_schema = Self::find_cmd_schema_from_all_pkgs_info(
                 dest_app_installed_pkgs,
@@ -245,8 +253,11 @@ impl Graph {
             connection.extension.as_str(),
         );
 
+        // Convert Option<&str> to String lookup key.
+        let app_key = Graph::option_str_to_string(src_app_uri);
+
         let src_app_installed_pkgs =
-            if let Some(pkgs) = installed_pkgs_of_all_apps.get(src_app_uri) {
+            if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
                 pkgs
             } else if ignore_missing_apps {
                 // If the app is missing but we're ignoring missing apps,
@@ -255,7 +266,7 @@ impl Graph {
             } else {
                 return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
-                    src_app_uri
+                    app_key
                 ));
             };
 

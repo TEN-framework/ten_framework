@@ -69,9 +69,6 @@ impl GraphConnection {
                     constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
                 ));
             }
-
-            // Set default app URI to localhost.
-            self.app = Some(localhost().to_string());
         }
 
         // Validate all message flows.
@@ -114,8 +111,8 @@ impl GraphConnection {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> &str {
-        self.app.as_ref().unwrap().as_str()
+    pub fn get_app_uri(&self) -> Option<&str> {
+        self.app.as_deref()
     }
 }
 
@@ -210,9 +207,6 @@ impl GraphDestination {
                     constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
                 ));
             }
-
-            // Set default app URI for NoneDeclared state.
-            self.app = Some(localhost().to_string());
         }
 
         // Validate message conversion configuration if present.
@@ -225,7 +219,7 @@ impl GraphDestination {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> &str {
-        self.app.as_ref().unwrap().as_str()
+    pub fn get_app_uri(&self) -> Option<&str> {
+        self.app.as_deref()
     }
 }

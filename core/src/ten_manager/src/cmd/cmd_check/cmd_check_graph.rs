@@ -114,9 +114,11 @@ fn get_app_installed_pkgs_with_cmd_data(
 
         let app_property = parse_property_in_folder(app_path)?;
         let app_uri = if let Some(property) = app_property {
-            property.get_app_uri()
+            property
+                .get_app_uri()
+                .unwrap_or_else(|| localhost().to_string())
         } else {
-            localhost()
+            localhost().to_string()
         };
 
         if !single_app && app_uri.as_str() == localhost() {
@@ -126,7 +128,12 @@ fn get_app_installed_pkgs_with_cmd_data(
             ));
         }
 
-        let present_pkg = pkgs_info.insert(app_uri.clone(), app_installed_pkgs);
+        let key = if app_uri.as_str() == localhost() {
+            "".to_string()
+        } else {
+            app_uri.clone()
+        };
+        let present_pkg = pkgs_info.insert(key, app_installed_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",

@@ -303,6 +303,12 @@ impl Graph {
             }
         }
     }
+
+    /// Helper function to convert Option<&str> to String for HashMap keys and
+    /// string formatting.
+    pub(crate) fn option_str_to_string(app_uri: Option<&str>) -> String {
+        app_uri.map_or_else(String::new, |s| s.to_string())
+    }
 }
 
 /// Checks if the application URI is either not specified (None) or set to the
@@ -314,7 +320,7 @@ impl Graph {
 pub fn is_app_default_loc_or_none(app_uri: &Option<String>) -> bool {
     match app_uri {
         None => true,
-        Some(uri) => uri == &localhost(),
+        Some(uri) => uri == localhost(),
     }
 }
 

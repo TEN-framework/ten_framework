@@ -29,10 +29,14 @@ use crate::designer::{
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
     pub base_dir: String,
-
-    pub app: String,
     pub graph: String,
-    pub extension_group: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extension_group: Option<String>,
+
     pub extension: String,
     pub msg_type: String,
     pub msg_direction: String,
@@ -41,8 +45,12 @@ pub struct GetCompatibleMsgsRequestPayload {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct GetCompatibleMsgsSingleResponseData {
-    pub app: String,
-    pub extension_group: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extension_group: Option<String>,
+
     pub extension: String,
     pub msg_type: MsgType,
     pub msg_direction: MsgDirection,
@@ -54,13 +62,8 @@ impl From<CompatibleExtensionAndMsg<'_>>
 {
     fn from(compatible: CompatibleExtensionAndMsg) -> Self {
         GetCompatibleMsgsSingleResponseData {
-            app: compatible.extension.app.as_ref().unwrap().clone(),
-            extension_group: compatible
-                .extension
-                .extension_group
-                .clone()
-                .unwrap()
-                .clone(),
+            app: compatible.extension.app.clone(),
+            extension_group: compatible.extension.extension_group.clone(),
             extension: compatible.extension.type_and_name.name.clone(),
             msg_type: compatible.msg_type,
             msg_direction: compatible.msg_direction,
@@ -294,8 +297,6 @@ mod tests {
     use actix_web::{test, App};
     use serde_json::json;
 
-    use ten_rust::pkg_info::localhost;
-
     use super::*;
     use crate::{
         config::TmanConfig, constants::TEST_DIR,
@@ -347,8 +348,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -374,8 +373,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
-            app: localhost(),
-            extension_group: "extension_group_1".to_string(),
+            app: None,
+            extension_group: Some("extension_group_1".to_string()),
             extension: "extension_2".to_string(),
             msg_type: MsgType::Cmd,
             msg_direction: MsgDirection::In,
@@ -432,8 +431,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "default_extension_group",
           "extension": "default_extension_cpp",
@@ -499,8 +496,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -526,8 +521,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
-            app: localhost(),
-            extension_group: "extension_group_1".to_string(),
+            app: None,
+            extension_group: Some("extension_group_1".to_string()),
             extension: "extension_2".to_string(),
             msg_type: MsgType::Cmd,
             msg_direction: MsgDirection::In,
@@ -584,8 +579,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -612,8 +605,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
-            app: localhost(),
-            extension_group: "extension_group_1".to_string(),
+            app: None,
+            extension_group: Some("extension_group_1".to_string()),
             extension: "extension_2".to_string(),
             msg_type: MsgType::Cmd,
             msg_direction: MsgDirection::In,
@@ -670,8 +663,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -698,16 +689,16 @@ mod tests {
 
         let expected_compatibles = vec![
             GetCompatibleMsgsSingleResponseData {
-                app: localhost(),
-                extension_group: "extension_group_1".to_string(),
+                app: None,
+                extension_group: Some("extension_group_1".to_string()),
                 extension: "extension_1".to_string(),
                 msg_type: MsgType::Cmd,
                 msg_direction: MsgDirection::In,
                 msg_name: "cmd1".to_string(),
             },
             GetCompatibleMsgsSingleResponseData {
-                app: localhost(),
-                extension_group: "extension_group_1".to_string(),
+                app: None,
+                extension_group: Some("extension_group_1".to_string()),
                 extension: "extension_2".to_string(),
                 msg_type: MsgType::Cmd,
                 msg_direction: MsgDirection::In,
@@ -767,8 +758,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -794,8 +783,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
-            app: localhost(),
-            extension_group: "extension_group_1".to_string(),
+            app: None,
+            extension_group: Some("extension_group_1".to_string()),
             extension: "extension_2".to_string(),
             msg_type: MsgType::Cmd,
             msg_direction: MsgDirection::In,
@@ -854,8 +843,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -930,8 +917,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -1005,8 +990,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -1080,8 +1063,6 @@ mod tests {
         // Define input data.
         let input_data = json!({
           "base_dir": TEST_DIR,
-
-          "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
           "extension": "extension_1",
@@ -1107,8 +1088,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
-            app: localhost(),
-            extension_group: "extension_group_1".to_string(),
+            app: None,
+            extension_group: Some("extension_group_1".to_string()),
             extension: "extension_1".to_string(),
             msg_type: MsgType::VideoFrame,
             msg_direction: MsgDirection::In,

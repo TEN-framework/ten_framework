@@ -221,7 +221,7 @@ mod tests {
             graph_name: "default".to_string(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
-            app_uri: Some(localhost()),
+            app_uri: Some(localhost().to_string()),
         };
 
         let req = test::TestRequest::post()

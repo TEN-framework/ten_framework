@@ -22,7 +22,7 @@ use super::{
     utils::read_file_to_string,
 };
 use crate::graph::is_app_default_loc_or_none;
-use crate::{json_schema, pkg_info::localhost};
+use crate::json_schema;
 use predefined_graph::PredefinedGraph;
 
 /// Represents the property configuration of a TEN package.
@@ -124,22 +124,14 @@ impl Property {
     }
 
     /// Returns the application URI from the property configuration.
-    ///
-    /// # Returns
-    /// * The URI specified in the TEN configuration if it exists.
-    /// * A default localhost URI if no URI is specified in the configuration.
-    ///
-    /// This method retrieves the URI from the TEN-specific part of the property
-    /// configuration. If the TEN configuration is missing or doesn't contain a
-    /// URI, it falls back to a default localhost address.
-    pub fn get_app_uri(&self) -> String {
+    pub fn get_app_uri(&self) -> Option<String> {
         if let Some(_ten) = &self._ten {
             if let Some(uri) = &_ten.uri {
-                return uri.clone();
+                return Some(uri.clone());
             }
         }
 
-        localhost()
+        None
     }
 }
 
@@ -202,11 +194,6 @@ impl TenInProperty {
             for graph in graphs {
                 graph.validate_and_complete()?;
             }
-        }
-
-        // Set default URI if none is provided.
-        if self.uri.is_none() {
-            self.uri = Some(localhost());
         }
 
         Ok(())
@@ -276,6 +263,7 @@ pub fn parse_property_in_folder(
 #[cfg(test)]
 mod tests {
     use crate::graph::msg_conversion::{MsgConversionMode, MsgConversionType};
+    use crate::pkg_info::localhost;
 
     use super::*;
     use std::fs::{self};
@@ -421,7 +409,7 @@ mod tests {
         let predefined_graphs = ten.predefined_graphs.as_ref().unwrap();
         let nodes = &predefined_graphs.first().as_ref().unwrap().graph.nodes;
         let node = nodes.first().unwrap();
-        assert_eq!(node.get_app_uri(), localhost());
+        assert_eq!(node.get_app_uri(), None);
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("property.json");
@@ -429,7 +417,7 @@ mod tests {
 
         let saved_content = fs::read_to_string(file_path).unwrap();
         eprintln!("{}", saved_content);
-        assert_eq!(saved_content.find(localhost().as_str()), None);
+        assert_eq!(saved_content.find(localhost()), None);
     }
 
     #[test]
