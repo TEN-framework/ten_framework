@@ -6,9 +6,9 @@
 //
 use anyhow::Result;
 
-use crate::pkg_info::{
+use crate::{
     graph::{connection::GraphMessageFlow, Graph},
-    pkg_type::PkgType,
+    pkg_info::pkg_type::PkgType,
 };
 
 impl Graph {

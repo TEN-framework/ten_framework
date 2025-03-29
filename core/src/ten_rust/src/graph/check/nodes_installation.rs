@@ -8,7 +8,10 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::pkg_info::{graph::Graph, pkg_type::PkgType, PkgInfo};
+use crate::{
+    graph::Graph,
+    pkg_info::{pkg_type::PkgType, PkgInfo},
+};
 
 impl Graph {
     /// Verifies that all nodes in the graph have corresponding installed

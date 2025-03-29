@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod get_all_pkgs;
-pub mod predefined_graphs;
 
 use std::{path::Path, sync::Arc};
 

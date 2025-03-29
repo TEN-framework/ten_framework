@@ -7,7 +7,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::graph::Graph;
+use crate::graph::Graph;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PredefinedGraph {

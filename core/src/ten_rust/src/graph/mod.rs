@@ -17,8 +17,7 @@ use connection::GraphConnection;
 use node::GraphNode;
 use serde::{Deserialize, Serialize};
 
-use super::PkgInfo;
-use crate::pkg_info::localhost;
+use crate::pkg_info::{localhost, PkgInfo};
 
 /// The state of the 'app' field declaration in all nodes in the graph.
 ///
@@ -300,12 +299,12 @@ pub fn is_app_default_loc_or_none(app_uri: &Option<String>) -> bool {
 mod tests {
     use std::str::FromStr;
 
-    use crate::pkg_info::{
+    use crate::{
         graph::constants::{
             ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED,
             ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED,
         },
-        property::Property,
+        pkg_info::property::Property,
     };
 
     use super::*;

@@ -21,7 +21,7 @@ use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
     utils::read_file_to_string,
 };
-use crate::pkg_info::graph::is_app_default_loc_or_none;
+use crate::graph::is_app_default_loc_or_none;
 use crate::{json_schema, pkg_info::localhost};
 use predefined_graph::PredefinedGraph;
 
@@ -275,9 +275,7 @@ pub fn parse_property_in_folder(
 
 #[cfg(test)]
 mod tests {
-    use crate::pkg_info::graph::msg_conversion::{
-        MsgConversionMode, MsgConversionType,
-    };
+    use crate::graph::msg_conversion::{MsgConversionMode, MsgConversionType};
 
     use super::*;
     use std::fs::{self};
