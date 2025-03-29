@@ -20,7 +20,7 @@ mod tests {
             DesignerState,
         },
         output::TmanOutputCli,
-        package_info::get_all_pkgs::get_all_pkgs,
+        pkg_info::get_all_pkgs::get_all_pkgs,
     };
 
     #[actix_web::test]

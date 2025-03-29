@@ -21,7 +21,7 @@ use crate::{
         DesignerState,
     },
     fs::check_is_valid_dir,
-    package_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs,
 };
 
 use ten_rust::pkg_info::pkg_type::PkgType;

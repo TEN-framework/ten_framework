@@ -89,6 +89,7 @@ pub fn configure_routes(
                 "/graphs",
                 web::put().to(graphs::update::update_graph_endpoint),
             )
+            // Graph nodes endpoints.
             .route(
                 "/graphs/nodes",
                 web::post().to(graphs::nodes::get::get_graph_nodes_endpoint),
@@ -97,6 +98,11 @@ pub fn configure_routes(
                 "/graphs/nodes/add",
                 web::post().to(graphs::nodes::add::add_graph_node_endpoint),
             )
+            .route(
+                "/graphs/nodes/delete",
+                web::post().to(graphs::nodes::delete::delete_graph_node_endpoint),
+            )
+            // Graph connections endpoints.
             .route(
                 "/graphs/connections",
                 web::post()

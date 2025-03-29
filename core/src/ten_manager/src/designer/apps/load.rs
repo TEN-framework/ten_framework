@@ -20,7 +20,7 @@ use crate::{
         DesignerState,
     },
     fs::check_is_app_folder,
-    package_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs,
 };
 
 #[derive(Deserialize, Serialize, Debug)]

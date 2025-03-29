@@ -11,7 +11,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    package_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs,
 };
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};

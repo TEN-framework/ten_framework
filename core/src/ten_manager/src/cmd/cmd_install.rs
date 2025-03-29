@@ -46,7 +46,7 @@ use crate::{
     },
     manifest_lock::parse_manifest_lock_in_folder,
     output::TmanOutput,
-    package_info::tman_get_all_installed_pkgs_info_of_app,
+    pkg_info::tman_get_all_installed_pkgs_info_of_app,
     solver::{
         introducer::extract_introducer_relations_from_raw_solver_results,
         solve::{solve_all, DependencyRelationship},

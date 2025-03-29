@@ -11,7 +11,7 @@ use ten_rust::pkg_info::PkgInfo;
 
 use crate::{
     config::TmanConfig, output::TmanOutput,
-    package_info::tman_get_all_installed_pkgs_info_of_app,
+    pkg_info::tman_get_all_installed_pkgs_info_of_app,
 };
 
 /// Retrieves and caches all installed packages for the given app.
