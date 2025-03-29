@@ -38,11 +38,13 @@ pub struct GraphNodesSingleResponseData {
     pub addon: String,
     pub name: String,
 
-    // The extension group which this extension belongs.
-    pub extension_group: String,
-
     // The app which this extension belongs.
-    pub app: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+
+    // The extension group which this extension belongs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extension_group: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api: Option<DesignerApi>,
@@ -68,10 +70,8 @@ impl TryFrom<GraphNode> for GraphNodesSingleResponseData {
         Ok(GraphNodesSingleResponseData {
             addon: node.addon,
             name: node.type_and_name.name,
-            extension_group: node
-                .extension_group
-                .unwrap_or_else(|| "default_extension_group".to_string()),
-            app: node.app.unwrap_or_else(|| "localhost".to_string()),
+            extension_group: node.extension_group,
+            app: node.app,
             api: None,
             property: node.property,
             is_installed: false,
@@ -87,8 +87,8 @@ impl From<GraphNodesSingleResponseData> for GraphNode {
                 name: designer_extension.name,
             },
             addon: designer_extension.addon,
-            extension_group: Some(designer_extension.extension_group.clone()),
-            app: Some(designer_extension.app),
+            extension_group: designer_extension.extension_group,
+            app: designer_extension.app,
             property: designer_extension.property,
         }
     }
@@ -137,9 +137,8 @@ pub async fn get_graph_nodes_endpoint(
                     name: extension_graph_node.type_and_name.name.clone(),
                     extension_group: extension_graph_node
                         .extension_group
-                        .clone()
-                        .unwrap(),
-                    app: extension_graph_node.app.as_ref().unwrap().clone(),
+                        .clone(),
+                    app: extension_graph_node.app.clone(),
                     api: pkg_info
                         .manifest
                         .as_ref()
@@ -295,7 +294,6 @@ mod tests {
         },
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
     async fn test_get_extensions_success() {
@@ -376,8 +374,8 @@ mod tests {
             GraphNodesSingleResponseData {
                 addon: "extension_addon_1".to_string(),
                 name: "extension_1".to_string(),
-                extension_group: "extension_group_1".to_string(),
-                app: localhost(),
+                extension_group: Some("extension_group_1".to_string()),
+                app: None,
                 api: Some(DesignerApi {
                     property: None,
                     cmd_in: None,
@@ -441,8 +439,8 @@ mod tests {
             GraphNodesSingleResponseData {
                 addon: "extension_addon_2".to_string(),
                 name: "extension_2".to_string(),
-                extension_group: "extension_group_1".to_string(),
-                app: localhost(),
+                extension_group: Some("extension_group_1".to_string()),
+                app: None,
                 api: Some(DesignerApi {
                     property: None,
                     cmd_in: Some(vec![
@@ -536,8 +534,8 @@ mod tests {
             GraphNodesSingleResponseData {
                 addon: "extension_addon_3".to_string(),
                 name: "extension_3".to_string(),
-                extension_group: "extension_group_1".to_string(),
-                app: localhost(),
+                extension_group: Some("extension_group_1".to_string()),
+                app: None,
                 api: Some(DesignerApi {
                     property: None,
                     cmd_in: Some(vec![DesignerApiCmdLike {

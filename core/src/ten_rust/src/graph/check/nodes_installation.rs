@@ -16,22 +16,6 @@ use crate::{
 impl Graph {
     /// Verifies that all nodes in the graph have corresponding installed
     /// packages.
-    ///
-    /// This function checks if each node in the graph has a matching installed
-    /// package in the provided app packages map. It builds a list of missing
-    /// packages and returns an error if any required packages are not
-    /// installed.
-    ///
-    /// # Parameters
-    /// * `installed_pkgs_of_all_apps` - Map of app URIs to their installed
-    ///   packages
-    /// * `ignore_missing_apps` - If true, nodes from non-existent apps won't be
-    ///   reported as missing
-    ///
-    /// # Returns
-    /// * `Ok(())` - If all required packages are installed
-    /// * `Err(...)` - If any required packages are missing, with details in the
-    ///   error message
     pub fn check_nodes_installation(
         &self,
         installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
@@ -44,15 +28,17 @@ impl Graph {
         // Iterate through all nodes in the graph to verify their installation
         // status.
         for node in &self.nodes {
-            let node_app_uri = node.get_app_uri();
+            // Get app URI or empty string if None.
+            let app_key = node.get_app_uri().unwrap_or("");
 
             // Verify if the node's app exists in our app mapping.
-            if !installed_pkgs_of_all_apps.contains_key(node_app_uri) {
+            if !installed_pkgs_of_all_apps.contains_key(app_key) {
                 // If app doesn't exist and we're not skipping such cases, add
                 // it to missing packages.
                 if !ignore_missing_apps {
+                    let uri_for_error = app_key.to_string();
                     not_installed_pkgs.push((
-                        node_app_uri.to_string(),
+                        uri_for_error,
                         node.type_and_name.pkg_type,
                         node.addon.clone(),
                     ));
@@ -63,7 +49,7 @@ impl Graph {
 
             // Get the list of installed packages for this app.
             let installed_pkgs_of_app =
-                installed_pkgs_of_all_apps.get(node_app_uri).unwrap();
+                installed_pkgs_of_all_apps.get(app_key).unwrap();
 
             // Check if this specific node exists as an installed package in the
             // app.
@@ -81,8 +67,9 @@ impl Graph {
 
             // If the node is not found, add it to the missing packages list.
             if found.is_none() {
+                let uri_for_error = app_key.to_string();
                 not_installed_pkgs.push((
-                    node_app_uri.to_string(),
+                    uri_for_error,
                     node.type_and_name.pkg_type,
                     node.addon.clone(),
                 ));

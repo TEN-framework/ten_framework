@@ -61,20 +61,12 @@ impl GraphNode {
 
                 return Err(anyhow::anyhow!(err_msg));
             }
-        } else {
-            // If app URI is not provided, set it to localhost.
-            // Note: This might be problematic if the graph has mixed app
-            // declarations but that case should be caught by
-            // Graph::analyze_app_uri_declaration_state.
-            self.app = Some(localhost().to_string());
         }
 
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> &str {
-        // The 'app' should be assigned after 'validate_and_complete' is called,
-        // so it should not be None.
-        self.app.as_ref().unwrap().as_str()
+    pub fn get_app_uri(&self) -> Option<&str> {
+        self.app.as_deref()
     }
 }

@@ -27,7 +27,9 @@ pub struct GetGraphConnectionsRequestPayload {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct GraphConnectionsSingleResponseData {
-    pub app: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+
     pub extension: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,7 +48,7 @@ pub struct GraphConnectionsSingleResponseData {
 impl From<GraphConnection> for GraphConnectionsSingleResponseData {
     fn from(conn: GraphConnection) -> Self {
         GraphConnectionsSingleResponseData {
-            app: conn.get_app_uri().to_string(),
+            app: conn.app,
             extension: conn.extension,
 
             cmd: conn.cmd.map(get_designer_msg_flow_from_property),
@@ -67,7 +69,7 @@ impl From<GraphConnection> for GraphConnectionsSingleResponseData {
 impl From<GraphConnectionsSingleResponseData> for GraphConnection {
     fn from(designer_connection: GraphConnectionsSingleResponseData) -> Self {
         GraphConnection {
-            app: Some(designer_connection.app),
+            app: designer_connection.app,
             extension: designer_connection.extension,
 
             cmd: designer_connection
@@ -108,7 +110,7 @@ impl From<DesignerMessageFlow> for GraphMessageFlow {
 impl From<DesignerDestination> for GraphDestination {
     fn from(designer_destination: DesignerDestination) -> Self {
         GraphDestination {
-            app: Some(designer_destination.app),
+            app: designer_destination.app,
             extension: designer_destination.extension,
             msg_conversion: designer_destination.msg_conversion,
         }
@@ -142,7 +144,9 @@ fn get_designer_msg_flow_from_property(
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerDestination {
-    pub app: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+
     pub extension: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -152,7 +156,7 @@ pub struct DesignerDestination {
 impl From<GraphDestination> for DesignerDestination {
     fn from(destination: GraphDestination) -> Self {
         DesignerDestination {
-            app: destination.get_app_uri().to_string(),
+            app: destination.app,
             extension: destination.extension,
             msg_conversion: destination.msg_conversion,
         }
@@ -228,7 +232,6 @@ mod tests {
         config::TmanConfig, constants::TEST_DIR,
         designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
     async fn test_get_connections_success() {
@@ -297,12 +300,12 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_connections = vec![GraphConnectionsSingleResponseData {
-            app: localhost(),
+            app: None,
             extension: "extension_1".to_string(),
             cmd: Some(vec![DesignerMessageFlow {
                 name: "hello_world".to_string(),
                 dest: vec![DesignerDestination {
-                    app: localhost(),
+                    app: None,
                     extension: "extension_2".to_string(),
                     msg_conversion: None,
                 }],
@@ -386,12 +389,12 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         let expected_connections = vec![GraphConnectionsSingleResponseData {
-            app: localhost(),
+            app: None,
             extension: "extension_1".to_string(),
             cmd: Some(vec![DesignerMessageFlow {
                 name: "hello_world".to_string(),
                 dest: vec![DesignerDestination {
-                    app: localhost(),
+                    app: None,
                     extension: "extension_2".to_string(),
                     msg_conversion: None,
                 }],
@@ -399,7 +402,7 @@ mod tests {
             data: Some(vec![DesignerMessageFlow {
                 name: "data".to_string(),
                 dest: vec![DesignerDestination {
-                    app: localhost(),
+                    app: None,
                     extension: "extension_2".to_string(),
                     msg_conversion: None,
                 }],
@@ -407,7 +410,7 @@ mod tests {
             audio_frame: Some(vec![DesignerMessageFlow {
                 name: "pcm".to_string(),
                 dest: vec![DesignerDestination {
-                    app: localhost(),
+                    app: None,
                     extension: "extension_2".to_string(),
                     msg_conversion: None,
                 }],
@@ -415,7 +418,7 @@ mod tests {
             video_frame: Some(vec![DesignerMessageFlow {
                 name: "image".to_string(),
                 dest: vec![DesignerDestination {
-                    app: localhost(),
+                    app: None,
                     extension: "extension_2".to_string(),
                     msg_conversion: None,
                 }],
