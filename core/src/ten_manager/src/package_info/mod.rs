@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod get_all_pkgs;
+pub mod manifest;
 
 use std::{path::Path, sync::Arc};
 
