@@ -84,7 +84,7 @@ pub fn configure_routes(
                 web::post().to(template_pkgs::get_template_endpoint),
             )
             // Graphs endpoints.
-            .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
+            .route("/graphs", web::post().to(graphs::get::get_graphs_endpoint))
             .route(
                 "/graphs",
                 web::put().to(graphs::update::update_graph_endpoint),
