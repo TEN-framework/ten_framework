@@ -8,8 +8,8 @@ use anyhow::Result;
 
 use super::pkg_predefined_graphs_find;
 use crate::{
+    graph::node::GraphNode,
     pkg_info::{
-        graph::node::GraphNode,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,

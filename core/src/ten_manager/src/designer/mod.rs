@@ -20,6 +20,7 @@ pub mod mock;
 pub mod preferences;
 pub mod registry;
 pub mod response;
+mod template_pkgs;
 pub mod terminal;
 mod version;
 
@@ -56,7 +57,7 @@ pub fn configure_routes(
             )
             // Apps endpoints.
             .route("/apps", web::get().to(apps::get::get_apps_endpoint))
-            .route("/apps", web::post().to(apps::load::load_app_endpoint))
+            .route("/apps/load", web::post().to(apps::load::load_app_endpoint))
             .route(
                 "/apps/unload",
                 web::post().to(apps::unload::unload_app_endpoint),
@@ -66,12 +67,21 @@ pub fn configure_routes(
                 web::post().to(apps::reload::reload_app_endpoint),
             )
             .route(
+                "/apps/create",
+                web::post().to(apps::create::create_app_endpoint),
+            )
+            .route(
                 "/apps/addons",
                 web::post().to(apps::addons::get_app_addons_endpoint),
             )
             .route(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
+            )
+            // Template packages endpoint.
+            .route(
+                "/template-pkgs",
+                web::post().to(template_pkgs::get_template_endpoint),
             )
             // Graphs endpoints.
             .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
@@ -81,7 +91,11 @@ pub fn configure_routes(
             )
             .route(
                 "/graphs/nodes",
-                web::post().to(graphs::nodes::get_graph_nodes_endpoint),
+                web::post().to(graphs::nodes::get::get_graph_nodes_endpoint),
+            )
+            .route(
+                "/graphs/nodes/add",
+                web::post().to(graphs::nodes::add::add_graph_node_endpoint),
             )
             .route(
                 "/graphs/connections",

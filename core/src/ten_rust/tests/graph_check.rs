@@ -6,9 +6,12 @@
 //
 use std::{collections::HashMap, path::Path, str::FromStr};
 
-use ten_rust::pkg_info::{
-    get_app_installed_pkgs, graph::Graph, localhost, pkg_type::PkgType,
-    property::predefined_graph::PredefinedGraph, PkgInfo,
+use ten_rust::{
+    graph::Graph,
+    pkg_info::{
+        get_app_installed_pkgs, localhost, pkg_type::PkgType,
+        property::predefined_graph::PredefinedGraph, PkgInfo,
+    },
 };
 
 #[test]

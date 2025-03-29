@@ -7,7 +7,8 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{graph::is_app_default_loc_or_none, localhost};
+use crate::graph::is_app_default_loc_or_none;
+use crate::pkg_info::localhost;
 
 use super::{
     constants, msg_conversion::MsgAndResultConversion, GraphNodeAppDeclaration,

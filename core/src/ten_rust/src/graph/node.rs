@@ -7,10 +7,10 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{localhost, pkg_type_and_name::PkgTypeAndName};
-
 use super::{constants, GraphNodeAppDeclaration};
-use crate::pkg_info::graph::is_app_default_loc_or_none;
+
+use crate::graph::is_app_default_loc_or_none;
+use crate::pkg_info::{localhost, pkg_type_and_name::PkgTypeAndName};
 
 /// Represents a node in a graph. This struct is completely equivalent to the
 /// node element in the graph JSON.

@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use anyhow::{Ok, Result};
 
-use crate::pkg_info::graph::Graph;
+use crate::graph::Graph;
 
 impl Graph {
     /// Check that extension identifiers are unique across all connections in

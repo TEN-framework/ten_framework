@@ -8,6 +8,7 @@ mod bindings;
 pub mod constants;
 pub mod crypto;
 pub mod env;
+pub mod graph;
 pub mod interface;
 pub mod json;
 pub mod json_schema;

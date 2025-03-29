@@ -40,8 +40,8 @@ export const useApps = () => {
   };
 };
 
-export const postBaseDir = async (baseDir: string) => {
-  const template = ENDPOINT_APPS.apps[ENDPOINT_METHOD.POST];
+export const postLoadDir = async (baseDir: string) => {
+  const template = ENDPOINT_APPS.loadApps[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: { base_dir: baseDir },
   });

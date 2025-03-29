@@ -4,23 +4,15 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::{
-    graph::node::GraphNode,
-    manifest::api::{ManifestApiCmdLike, ManifestApiDataLike},
-};
-use ten_rust::pkg_info::{
-    manifest::api::{ManifestCmdResult, ManifestPropertyAttributes},
-    predefined_graphs::extension::get_pkg_info_for_extension,
-};
+use ten_rust::graph::node::GraphNode;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
+use ten_rust::pkg_info::predefined_graphs::extension::get_pkg_info_for_extension;
 use ten_rust::pkg_info::{
     pkg_type::PkgType,
     predefined_graphs::extension::get_extension_nodes_in_graph,
@@ -32,6 +24,8 @@ use crate::designer::common::{
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
+
+use super::DesignerApi;
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphNodesRequestPayload {
@@ -85,140 +79,17 @@ impl TryFrom<GraphNode> for GraphNodesSingleResponseData {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerApi {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cmd_in: Option<Vec<DesignerApiCmdLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cmd_out: Option<Vec<DesignerApiCmdLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data_in: Option<Vec<DesignerApiDataLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data_out: Option<Vec<DesignerApiDataLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_frame_in: Option<Vec<DesignerApiDataLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_frame_out: Option<Vec<DesignerApiDataLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub video_frame_in: Option<Vec<DesignerApiDataLike>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub video_frame_out: Option<Vec<DesignerApiDataLike>>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct DesignerPropertyAttributes {
-    #[serde(rename = "type")]
-    pub prop_type: String,
-}
-
-impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
-    fn from(api_property: ManifestPropertyAttributes) -> Self {
-        DesignerPropertyAttributes {
-            prop_type: api_property.prop_type.to_string(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct DesignerCmdResult {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required: Option<Vec<String>>,
-}
-
-impl From<ManifestCmdResult> for DesignerCmdResult {
-    fn from(cmd_result: ManifestCmdResult) -> Self {
-        DesignerCmdResult {
-            property: cmd_result.property.map(|prop| {
-                prop.into_iter().map(|(k, v)| (k, v.into())).collect()
-            }),
-            required: cmd_result
-                .required
-                .as_ref()
-                .filter(|req| !req.is_empty())
-                .cloned(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerApiCmdLike {
-    pub name: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required: Option<Vec<String>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<DesignerCmdResult>,
-}
-
-impl From<ManifestApiCmdLike> for DesignerApiCmdLike {
-    fn from(api_cmd_like: ManifestApiCmdLike) -> Self {
-        DesignerApiCmdLike {
-            name: api_cmd_like.name,
-            property: api_cmd_like
-                .property
-                .as_ref()
-                .filter(|p| !p.is_empty())
-                .map(|p| {
-                    p.iter()
-                        .map(|(k, v)| (k.clone(), v.clone().into()))
-                        .collect()
-                }),
-            required: api_cmd_like
-                .required
-                .as_ref()
-                .filter(|req| !req.is_empty())
-                .cloned(),
-            result: api_cmd_like.result.as_ref().cloned().map(Into::into),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerApiDataLike {
-    pub name: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required: Option<Vec<String>>,
-}
-
-impl From<ManifestApiDataLike> for DesignerApiDataLike {
-    fn from(api_data_like: ManifestApiDataLike) -> Self {
-        DesignerApiDataLike {
-            name: api_data_like.name,
-            property: api_data_like
-                .property
-                .as_ref()
-                .filter(|p| !p.is_empty())
-                .map(|p| {
-                    p.iter()
-                        .map(|(k, v)| (k.clone(), v.clone().into()))
-                        .collect()
-                }),
-            required: api_data_like
-                .required
-                .as_ref()
-                .filter(|req| !req.is_empty())
-                .cloned(),
+impl From<GraphNodesSingleResponseData> for GraphNode {
+    fn from(designer_extension: GraphNodesSingleResponseData) -> Self {
+        GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: designer_extension.name,
+            },
+            addon: designer_extension.addon,
+            extension_group: Some(designer_extension.extension_group.clone()),
+            app: Some(designer_extension.app),
+            property: designer_extension.property,
         }
     }
 }
@@ -406,13 +277,23 @@ pub async fn get_graph_nodes_endpoint(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use actix_web::{test, App};
     use serde_json::json;
 
     use super::*;
     use crate::{
-        config::TmanConfig, constants::TEST_DIR,
-        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
+        config::TmanConfig,
+        constants::TEST_DIR,
+        designer::{
+            graphs::nodes::{
+                DesignerApiCmdLike, DesignerApiDataLike,
+                DesignerPropertyAttributes,
+            },
+            mock::inject_all_pkgs_for_mock,
+        },
+        output::TmanOutputCli,
     };
     use ten_rust::pkg_info::localhost;
 
@@ -426,22 +307,30 @@ mod tests {
 
         let all_pkgs_json = vec![
             (
-                include_str!("test_data_embed/app_manifest.json").to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../test_data_embed/app_manifest.json")
+                    .to_string(),
+                include_str!("../test_data_embed/app_property.json")
+                    .to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -748,22 +637,30 @@ mod tests {
 
         let all_pkgs_json = vec![
             (
-                include_str!("test_data_embed/app_manifest.json").to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../test_data_embed/app_manifest.json")
+                    .to_string(),
+                include_str!("../test_data_embed/app_property.json")
+                    .to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];

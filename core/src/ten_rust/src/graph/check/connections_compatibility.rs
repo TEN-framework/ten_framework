@@ -9,8 +9,11 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
+    graph::{
+        connection::{GraphConnection, GraphDestination},
+        Graph,
+    },
     pkg_info::{
-        graph::{connection::GraphDestination, Graph, GraphConnection},
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,

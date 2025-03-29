@@ -6,7 +6,7 @@
 //
 use anyhow::Result;
 
-use crate::pkg_info::{graph::Graph, pkg_type::PkgType};
+use crate::{graph::Graph, pkg_info::pkg_type::PkgType};
 
 impl Graph {
     /// Validates that at least one extension node exists in the graph.
