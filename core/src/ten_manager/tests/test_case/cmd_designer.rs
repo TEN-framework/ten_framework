@@ -20,8 +20,10 @@ use ten_manager::{
                 GetGraphConnectionsRequestPayload,
                 GraphConnectionsSingleResponseData,
             },
-            get_graphs_endpoint, GetGraphsRequestPayload,
-            GetGraphsResponseData,
+            get::{
+                get_graphs_endpoint, GetGraphsRequestPayload,
+                GetGraphsResponseData,
+            },
         },
         mock::inject_all_pkgs_for_mock,
         response::ApiResponse,

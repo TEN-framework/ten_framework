@@ -18,6 +18,8 @@ ten_package("default_app_cpp") {
     "manifest.json.tent",
     "property.json",
     "src/main.cc",
+    "tools/run_script.py",
+    "tools/run_script.py.tent",
   ]
 
   deps = []

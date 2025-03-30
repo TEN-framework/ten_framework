@@ -9,7 +9,7 @@ pub mod template;
 
 use std::{
     collections::HashMap,
-    fs::{self, OpenOptions},
+    fs,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -17,14 +17,13 @@ use std::{
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
 use semver::Version;
-use serde_json::Value;
 use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{
-    constants::MANIFEST_JSON_FILENAME, find_to_be_replaced_local_pkgs,
-    find_untracked_local_packages, get_pkg_info_from_path,
-    manifest::dependency::ManifestDependency, pkg_basic_info::PkgBasicInfo,
-    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
+    get_pkg_info_from_path, manifest::dependency::ManifestDependency,
+    pkg_basic_info::PkgBasicInfo, pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use super::{config::TmanConfig, registry::get_package};
@@ -36,6 +35,7 @@ use crate::{
     },
     output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
+    pkg_info::manifest::to_file::update_manifest_all_fields,
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
@@ -226,7 +226,7 @@ fn update_package_manifest(
 
         // Process the struct field dependencies first as a cache.
         if let Some(ref dependencies) = manifest.dependencies {
-            for (i, dep) in dependencies.iter().enumerate() {
+            for dep in dependencies.iter() {
                 match dep {
                     ManifestDependency::RegistryDependency {
                         pkg_type,
@@ -250,7 +250,7 @@ fn update_package_manifest(
                                 // dependency, but a local dependency is being
                                 // added. Therefore, remove the original
                                 // dependency item from `manifest.json`.
-                                deps_to_remove.push(i);
+                                deps_to_remove.push(dep.clone());
                             }
                         } else {
                             updated_dependencies.push(dep.clone());
@@ -303,14 +303,14 @@ fn update_package_manifest(
                                     // dependency is being added. Therefore,
                                     // remove the original dependency item from
                                     // `manifest.json`.
-                                    deps_to_remove.push(i);
+                                    deps_to_remove.push(dep.clone());
                                 }
                             } else {
                                 // The `manifest.json` specifies a local
                                 // dependency, but a registry dependency is
                                 // being added. Therefore, remove the original
                                 // dependency item from `manifest.json`.
-                                deps_to_remove.push(i);
+                                deps_to_remove.push(dep.clone());
                             }
                         } else {
                             updated_dependencies.push(dep.clone());
@@ -322,108 +322,40 @@ fn update_package_manifest(
 
         // If the added dependency does not exist in the `manifest.json`, add
         // it.
-        if !is_present {
+        let deps_to_add_option = if !is_present {
             // If `local_path_if_any` has a value, create a local dependency.
             if let Some(local_path) = &local_path_if_any {
-                updated_dependencies.push(
-                    ManifestDependency::LocalDependency {
-                        path: local_path.clone(),
-                        base_dir: "".to_string(),
-                    },
-                );
+                let local_dep = ManifestDependency::LocalDependency {
+                    path: local_path.clone(),
+                    base_dir: "".to_string(),
+                };
+                updated_dependencies.push(local_dep.clone());
+                Some(vec![local_dep])
             } else {
-                updated_dependencies
-                    .push(ManifestDependency::from(added_dependency));
+                let registry_dep = ManifestDependency::from(added_dependency);
+                updated_dependencies.push(registry_dep.clone());
+                Some(vec![registry_dep])
             }
-        }
+        } else {
+            None
+        };
 
         // Update the dependencies field in the manifest struct.
         manifest.dependencies = Some(updated_dependencies);
 
-        // Now update the all_fields map to preserve the order of existing
-        // dependencies and append new ones if needed.
-        if !is_present {
-            // We need to add a new dependency to all_fields.
-            if let Some(Value::Array(dependencies_array)) =
-                manifest.all_fields.get_mut("dependencies")
-            {
-                // all_fields already has a dependencies array, append new
-                // dependency.
-                let new_dep_value = if let Some(local_path) = &local_path_if_any
-                {
-                    // Create JSON for local dependency.
-                    let mut dep_obj = serde_json::Map::new();
-                    dep_obj.insert(
-                        "path".to_string(),
-                        Value::String(local_path.clone()),
-                    );
-                    Value::Object(dep_obj)
-                } else {
-                    // Create JSON for registry dependency using
-                    // ManifestDependency::from.
-                    serde_json::to_value(ManifestDependency::from(
-                        added_dependency,
-                    ))?
-                };
+        // Use the deps_to_remove for update_manifest_all_fields.
+        let deps_to_remove_option = if !deps_to_remove.is_empty() {
+            Some(&deps_to_remove)
+        } else {
+            None
+        };
 
-                // Append the new dependency to the existing array.
-                dependencies_array.push(new_dep_value);
-            } else {
-                // No dependencies array in all_fields yet, create a new one.
-                let mut dependencies_array = Vec::new();
-
-                // Add the new dependency to the array.
-                let new_dep_value = if let Some(local_path) = &local_path_if_any
-                {
-                    // Create JSON for local dependency.
-                    let mut dep_obj = serde_json::Map::new();
-                    dep_obj.insert(
-                        "path".to_string(),
-                        Value::String(local_path.clone()),
-                    );
-                    Value::Object(dep_obj)
-                } else {
-                    // Create JSON for registry dependency using
-                    // ManifestDependency::from.
-                    serde_json::to_value(ManifestDependency::from(
-                        added_dependency,
-                    ))?
-                };
-
-                dependencies_array.push(new_dep_value);
-                manifest.all_fields.insert(
-                    "dependencies".to_string(),
-                    Value::Array(dependencies_array),
-                );
-            }
-        } else if !deps_to_remove.is_empty() {
-            // We need to remove some dependencies from all_fields.
-            if let Some(Value::Array(dependencies_array)) =
-                manifest.all_fields.get_mut("dependencies")
-            {
-                // Create a new array with the dependencies to keep.
-                let mut new_deps_array = Vec::new();
-
-                // Get the updated dependencies as JSON values.
-                for dep in manifest.dependencies.as_ref().unwrap() {
-                    let dep_value = serde_json::to_value(dep)?;
-                    new_deps_array.push(dep_value);
-                }
-
-                // Replace the old array with the new one.
-                *dependencies_array = new_deps_array;
-            }
-        }
-
-        let manifest_path: PathBuf =
-            Path::new(&base_pkg_info.url).join(MANIFEST_JSON_FILENAME);
-        let manifest_file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(manifest_path)?;
-
-        // Serialize the all_fields map directly to preserve field order.
-        serde_json::to_writer_pretty(manifest_file, &manifest.all_fields)?;
+        update_manifest_all_fields(
+            &base_pkg_info.url,
+            &mut manifest.all_fields,
+            deps_to_add_option.as_ref(),
+            deps_to_remove_option,
+        )?;
     }
 
     Ok(())

@@ -20,8 +20,11 @@ impl Graph {
     ) -> Result<()> {
         for (flow_idx, flow) in flows.iter().enumerate() {
             for dest in &flow.dest {
-                let dest_extension =
-                    format!("{}:{}", dest.get_app_uri(), dest.extension);
+                let dest_extension = format!(
+                    "{}:{}",
+                    Graph::option_str_to_string(dest.get_app_uri()),
+                    dest.extension
+                );
 
                 if !all_extensions.contains(&dest_extension) {
                     return Err(anyhow::anyhow!(
@@ -63,7 +66,7 @@ impl Graph {
             if node.type_and_name.pkg_type == PkgType::Extension {
                 let unique_ext_name = format!(
                     "{}:{}",
-                    node.get_app_uri(),
+                    Graph::option_str_to_string(node.get_app_uri()),
                     node.type_and_name.name
                 );
                 all_extensions.push(unique_ext_name);
@@ -75,7 +78,7 @@ impl Graph {
             // First, verify the source extension exists.
             let src_extension = format!(
                 "{}:{}",
-                connection.get_app_uri(),
+                Graph::option_str_to_string(connection.get_app_uri()),
                 connection.extension
             );
             if !all_extensions.contains(&src_extension) {

@@ -7,9 +7,9 @@
 export interface IBackendNode {
   addon: string;
   name: string;
-  extension_group: string;
-  app: string;
-  property: unknown;
+  extension_group?: string;
+  app?: string;
+  property?: unknown;
   api?: unknown;
   is_installed: boolean;
 }
@@ -22,33 +22,33 @@ export enum EConnectionType {
 }
 
 export interface IBackendConnection {
-  app: string;
+  app?: string;
   extension: string;
   [EConnectionType.CMD]?: {
     name: string;
     dest: {
-      app: string;
+      app?: string;
       extension: string;
     }[];
   }[];
   [EConnectionType.DATA]?: {
     name: string;
     dest: {
-      app: string;
+      app?: string;
       extension: string;
     }[];
   }[];
   [EConnectionType.AUDIO_FRAME]?: {
     name: string;
     dest: {
-      app: string;
+      app?: string;
       extension: string;
     }[];
   }[];
   [EConnectionType.VIDEO_FRAME]?: {
     name: string;
     dest: {
-      app: string;
+      app?: string;
       extension: string;
     }[];
   }[];

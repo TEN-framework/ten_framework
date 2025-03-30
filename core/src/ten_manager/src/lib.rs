@@ -20,7 +20,6 @@
 // Because of the existence of this `lib.rs` file, the unit test will be
 // compiled with the `lib.rs`, but not `main.rs`, and some common settings such
 // as the allocator below should be added to the `lib.rs` file.
-
 pub mod cmd;
 pub mod cmd_line;
 pub mod config;
@@ -31,12 +30,13 @@ pub mod designer;
 mod error;
 mod file_type;
 mod fs;
+mod graph;
 pub mod http;
 mod install;
 mod manifest_lock;
 pub mod output;
 mod package_file;
-pub mod package_info;
+pub mod pkg_info;
 mod registry;
 pub mod runner;
 pub mod schema;

@@ -83,18 +83,18 @@ use crate::pkg_info::{localhost, PkgInfo};
 /// * Multi-app graph: the state is `MixedDeclared`.
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum GraphNodeAppDeclaration {
+pub enum AppUriDeclarationState {
     NoneDeclared,
     UniformDeclared,
     MixedDeclared,
 }
 
-impl GraphNodeAppDeclaration {
+impl AppUriDeclarationState {
     pub fn is_single_app_graph(&self) -> bool {
         match self {
-            GraphNodeAppDeclaration::NoneDeclared => true,
-            GraphNodeAppDeclaration::UniformDeclared => true,
-            GraphNodeAppDeclaration::MixedDeclared => false,
+            AppUriDeclarationState::NoneDeclared => true,
+            AppUriDeclarationState::UniformDeclared => true,
+            AppUriDeclarationState::MixedDeclared => false,
         }
     }
 }
@@ -135,24 +135,25 @@ impl Graph {
     ///   this is invalid.
     ///
     /// Graphs can be categorized based on the number of apps:
-    /// - A graph for a single app
-    /// - A graph spanning multiple apps
+    /// - A graph for a single app (NoneDeclared or UniformDeclared state)
+    /// - A graph spanning multiple apps (MixedDeclared state)
     ///
-    /// If none of the nodes have the app field defined, then it represents a
-    /// graph for a single app. If some nodes have the app field defined while
-    /// others do not, then it's not a valid graph, because TEN doesn't know
-    /// which app the nodes without the defined field belong to.
+    /// For a valid graph, either all nodes must have the app field defined or
+    /// none of them should. If some nodes have the app field defined while
+    /// others do not, it creates an invalid graph because TEN cannot
+    /// determine which app the nodes without the defined field belong to.
+    /// Therefore, the only valid case where nodes don't define the app
+    /// field is when all nodes in the graph lack this field.
     ///
-    /// So, the only valid case where nodes don't define the app field is when
-    /// all nodes in the graph lack the app field.
-    ///
-    /// # Returns
-    /// * `Ok(GraphNodeAppDeclaration)` - The determined app declaration state.
-    /// * `Err` - If any node has an empty app URI or if there's a mix of nodes
-    ///   with and without app declarations.
-    fn determine_graph_node_app_declaration(
+    /// For graphs spanning multiple apps, no node can have 'localhost' as its
+    /// app field value, as other apps would not know how to connect to the
+    /// app that node belongs to. For consistency, single app graphs also do
+    /// not allow 'localhost' as an explicit app field value. Instead,
+    /// 'localhost' is used as the internal default value when no app field is
+    /// specified.
+    fn analyze_app_uri_declaration_state(
         &self,
-    ) -> Result<GraphNodeAppDeclaration> {
+    ) -> Result<AppUriDeclarationState> {
         let mut nodes_have_declared_app = 0;
         let mut app_uris = std::collections::HashSet::new();
 
@@ -171,8 +172,9 @@ impl Graph {
             }
         }
 
-        // Case 4: Some nodes have 'app' declared and some don't - this is
-        // invalid.
+        // Some nodes have 'app' declared and some don't - this is invalid.
+        // Because TEN can not determine which app the nodes without the defined
+        // field belong to.
         if nodes_have_declared_app != 0
             && nodes_have_declared_app != self.nodes.len()
         {
@@ -182,39 +184,27 @@ impl Graph {
         }
 
         match app_uris.len() {
-            // Case 1: No nodes have 'app' declared.
-            0 => Ok(GraphNodeAppDeclaration::NoneDeclared),
+            // No nodes have 'app' declared.
+            0 => Ok(AppUriDeclarationState::NoneDeclared),
 
-            // Case 2: All nodes have the same 'app' URI declared.
-            1 => Ok(GraphNodeAppDeclaration::UniformDeclared),
+            // All nodes have the same 'app' URI declared.
+            1 => Ok(AppUriDeclarationState::UniformDeclared),
 
-            // Case 3: All nodes have 'app' declared but with different URIs.
-            _ => Ok(GraphNodeAppDeclaration::MixedDeclared),
+            // All nodes have 'app' declared but with different URIs.
+            _ => Ok(AppUriDeclarationState::MixedDeclared),
         }
     }
 
     /// Validates and completes the graph structure by ensuring all nodes and
     /// connections are properly configured.
-    ///
-    /// This method performs the following steps:
-    /// 1. Determines how app URIs are declared across nodes (none, uniform, or
-    ///    mixed).
-    /// 2. Validates and completes each node with the app declaration context.
-    /// 3. Validates and completes each connection with the app declaration
-    ///    context.
-    ///
-    /// # Returns
-    /// * `Ok(())` if validation succeeds and the graph is properly completed.
-    /// * `Err` with a descriptive error message if validation fails, including
-    ///   the index of the problematic node or connection
     pub fn validate_and_complete(&mut self) -> Result<()> {
         // First determine how app URIs are declared across all nodes.
-        let graph_node_app_declaration =
-            self.determine_graph_node_app_declaration()?;
+        let app_uri_declaration_state =
+            self.analyze_app_uri_declaration_state()?;
 
         // Validate and complete each node.
         for (idx, node) in self.nodes.iter_mut().enumerate() {
-            node.validate_and_complete(&graph_node_app_declaration)
+            node.validate_and_complete(&app_uri_declaration_state)
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
         }
 
@@ -222,7 +212,7 @@ impl Graph {
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
                 connection
-                    .validate_and_complete(&graph_node_app_declaration)
+                    .validate_and_complete(&app_uri_declaration_state)
                     .map_err(|e| {
                         anyhow::anyhow!("connections[{}]: {}", idx, e)
                     })?;
@@ -272,6 +262,12 @@ impl Graph {
 
         Ok(())
     }
+
+    /// Helper function to convert Option<&str> to String for HashMap keys and
+    /// string formatting.
+    pub(crate) fn option_str_to_string(app_uri: Option<&str>) -> String {
+        app_uri.map_or_else(String::new, |s| s.to_string())
+    }
 }
 
 /// Checks if the application URI is either not specified (None) or set to the
@@ -280,18 +276,10 @@ impl Graph {
 /// This function is used to determine if an application's URI is using the
 /// default location, which helps decide whether the URI field should be
 /// included when serializing property data.
-///
-/// # Arguments
-/// * `app_uri` - An Option containing the application's URI string, or None if
-///   not specified.
-///
-/// # Returns
-/// * `true` if the URI is None or matches the default localhost value.
-/// * `false` if the URI is specified and different from the default localhost.
 pub fn is_app_default_loc_or_none(app_uri: &Option<String>) -> bool {
     match app_uri {
         None => true,
-        Some(uri) => uri == &localhost(),
+        Some(uri) => uri == localhost(),
     }
 }
 
@@ -614,5 +602,89 @@ mod tests {
         assert_eq!(rules.len(), 4);
         assert_eq!(rules[1].value.as_ref().unwrap().as_str().unwrap(), "hello");
         assert!(rules[2].value.as_ref().unwrap().as_bool().unwrap());
+    }
+
+    #[test]
+    fn test_add_extension_node() {
+        // Create an empty graph.
+        let mut graph = Graph {
+            nodes: Vec::new(),
+            connections: None,
+        };
+
+        // Test case 1: Add a valid node.
+        let result = graph.add_extension_node(
+            "test_extension".to_string(),
+            "test_addon".to_string(),
+            Some("http://test-app-uri.com".to_string()),
+            None,
+            None,
+        );
+        assert!(result.is_ok());
+        assert_eq!(graph.nodes.len(), 1);
+        assert_eq!(graph.nodes[0].type_and_name.name, "test_extension");
+        assert_eq!(graph.nodes[0].addon, "test_addon");
+        assert_eq!(
+            graph.nodes[0].app,
+            Some("http://test-app-uri.com".to_string())
+        );
+
+        // Test case 2: Add a second node.
+        let result = graph.add_extension_node(
+            "test_extension2".to_string(),
+            "test_addon2".to_string(),
+            Some("http://test-app-uri.com".to_string()), // Same app URI.
+            Some("custom_group".to_string()),
+            None,
+        );
+        assert!(result.is_ok());
+        assert_eq!(graph.nodes.len(), 2);
+        assert_eq!(graph.nodes[1].type_and_name.name, "test_extension2");
+        assert_eq!(
+            graph.nodes[1].extension_group,
+            Some("custom_group".to_string())
+        );
+
+        // Test case 3: Adding a node with localhost app URI should fail.
+        let original_len = graph.nodes.len();
+        let result = graph.add_extension_node(
+            "test_extension3".to_string(),
+            "test_addon3".to_string(),
+            Some(localhost().to_string()), // This is not allowed.
+            None,
+            None,
+        );
+        assert!(result.is_err());
+        // Verify rollback worked.
+        assert_eq!(graph.nodes.len(), original_len);
+
+        // Test case 4: Adding a node with different app URI.
+        let original_len = graph.nodes.len();
+        let result = graph.add_extension_node(
+            "test_extension4".to_string(),
+            "test_addon4".to_string(),
+            Some("http://different-uri.com".to_string()), // Different URI.
+            None,
+            None,
+        );
+        // This should be ok as mixed URIs are valid.
+        assert!(result.is_ok());
+        // Node should be added.
+        assert_eq!(graph.nodes.len(), original_len + 1);
+
+        // Test case 5: Adding a node with no app URI to a graph with declared
+        // app URIs. This should fail because we would have mixed app
+        // declarations (some with URI, some without).
+        let original_len = graph.nodes.len();
+        let result = graph.add_extension_node(
+            "test_extension5".to_string(),
+            "test_addon5".to_string(),
+            None, // No app URI.
+            None,
+            None,
+        );
+        assert!(result.is_err());
+        // Verify rollback worked.
+        assert_eq!(graph.nodes.len(), original_len);
     }
 }

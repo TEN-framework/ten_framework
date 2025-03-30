@@ -30,7 +30,7 @@ impl Graph {
                 // name
                 let unique_ext_name = format!(
                     "{}:{}",
-                    node.get_app_uri(),
+                    Graph::option_str_to_string(node.get_app_uri()),
                     node.type_and_name.name
                 );
 

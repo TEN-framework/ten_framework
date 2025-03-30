@@ -66,7 +66,7 @@ def __collect_manifest_tent_files(directory) -> list[str]:
 
 
 def update_c_preserved_metadata_version_of_ten_runtime_binary(
-    log_level, year, year_month, git_version
+    log_level, year, year_month, git_version, repo_base_dir
 ):
     # Update the version in the C preserved metadata files.
     c_preserved_metadata_file_src_file = os.path.join(
@@ -258,6 +258,60 @@ def collect_and_update_version_of_core_packages(
     return pkg_infos
 
 
+def collect_and_update_version_of_example_packages(
+    log_level, repo_base_dir, git_version
+) -> list[PkgInfo]:
+    # Collect manifest files for all example packages.
+    example_apps_dir_path = os.path.join(
+        repo_base_dir,
+        "packages",
+        "example_apps",
+    )
+    example_extensions_dir_path = os.path.join(
+        repo_base_dir,
+        "packages",
+        "example_extensions",
+    )
+
+    manifest_files = __collect_manifest_files(
+        example_apps_dir_path
+    ) + __collect_manifest_files(example_extensions_dir_path)
+
+    manifest_template_files = __collect_manifest_tent_files(
+        example_apps_dir_path
+    ) + __collect_manifest_tent_files(example_extensions_dir_path)
+
+    pkg_infos = []
+
+    for manifest_file in manifest_files:
+        update_version_in_manifest_json_file(
+            log_level, git_version, manifest_file
+        )
+        pkg_infos.append(__get_pkg_info_from_manifest_file(manifest_file))
+
+    for manifest_template_file in manifest_template_files:
+        update_version_in_manifest_json_file(
+            log_level, git_version, manifest_template_file
+        )
+
+    # Some example packages are used and overwritten in tests. Update them as
+    # well.
+    manifests_in_tests = []
+
+    test_dir_path = os.path.join(repo_base_dir, "tests")
+    for root, _, files in os.walk(test_dir_path, followlinks=True):
+        for file in files:
+            if file == MANIFEST_JSON_FILE:
+                manifests_in_tests.append(os.path.join(root, file))
+
+    for manifest in manifests_in_tests:
+        update_version_in_manifest_json_file_for_pkgs(
+            log_level, git_version, manifest, pkg_infos
+        )
+
+    return pkg_infos
+
+
 def update_dependencies_version(
     log_level, repo_base_dir, git_version, dependencies
 ):
@@ -343,7 +397,7 @@ if __name__ == "__main__":
     log_level = 1
 
     update_c_preserved_metadata_version_of_ten_runtime_binary(
-        log_level, year, year_month, git_version
+        log_level, year, year_month, git_version, repo_base_dir
     )
 
     update_version_of_tman(
@@ -358,6 +412,13 @@ if __name__ == "__main__":
         log_level, repo_base_dir, git_version
     )
 
+    example_pkgs = collect_and_update_version_of_example_packages(
+        log_level, repo_base_dir, git_version
+    )
+
     update_dependencies_version(
-        log_level, repo_base_dir, git_version, system_pkgs + core_pkgs
+        log_level,
+        repo_base_dir,
+        git_version,
+        system_pkgs + core_pkgs + example_pkgs,
     )

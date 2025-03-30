@@ -23,6 +23,7 @@ use crate::{
 #[derive(Debug)]
 pub struct PackageCommand {
     pub output_path: Option<String>,
+    pub get_identity: bool,
 }
 
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
@@ -32,6 +33,15 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
             Arg::new("OUTPUT_PATH")
                 .long("output-path")
                 .help("Specify the output file path for the package")
+                .required(false),
+        )
+        // Hidden argments.
+        .arg(
+            Arg::new("GET_IDENTITY")
+                .long("get-identity")
+                .help("Output the package identity (type, name, version, hash) to stdout and exit")
+                .action(clap::ArgAction::SetTrue)
+                .hide(true)
                 .required(false),
         )
         .after_help(
@@ -44,7 +54,11 @@ pub fn parse_sub_cmd(
     sub_cmd_args: &ArgMatches,
 ) -> Result<crate::cmd::cmd_package::PackageCommand> {
     let output_path = sub_cmd_args.get_one::<String>("OUTPUT_PATH").cloned();
-    Ok(crate::cmd::cmd_package::PackageCommand { output_path })
+    let get_identity = sub_cmd_args.get_flag("GET_IDENTITY");
+    Ok(crate::cmd::cmd_package::PackageCommand {
+        output_path,
+        get_identity,
+    })
 }
 
 pub async fn execute_cmd(
@@ -57,9 +71,25 @@ pub async fn execute_cmd(
         out.normal_line(&format!("{:?}", command_data));
     }
 
-    let started = Instant::now();
-
     let cwd = crate::fs::get_cwd()?;
+
+    if command_data.get_identity {
+        // Get the package info and output identity information.
+        let pkg_info = get_pkg_info_from_path(&cwd, true)?;
+        let hash = pkg_info.gen_hash_hex();
+
+        if let Some(manifest) = &pkg_info.manifest {
+            let pkg_type = &manifest.type_and_name.pkg_type;
+            let name = &manifest.type_and_name.name;
+            let version = &manifest.version;
+
+            println!("{} {} {} {}", pkg_type, name, version, hash);
+        }
+
+        return Ok(());
+    }
+
+    let started = Instant::now();
 
     let output_path: PathBuf;
     if let Some(command_data_output_path) = &command_data.output_path {
