@@ -426,7 +426,7 @@
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/tman",
-      "cwd": "/home/wei/MyData/MyProject/ten_framework/out/linux/x64/tests/ten_runtime/integration/cpp/ffmpeg_basic/ffmpeg_basic_app",
+      "cwd": "/home/wei/MyData/MyProject/ten_framework/out/linux/x64/aaa",
       "args": [
         "--config-file=${workspaceFolder}/out/linux/x64/tests/local_registry/config.json",
         "designer",

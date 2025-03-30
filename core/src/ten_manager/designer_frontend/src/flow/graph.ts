@@ -166,7 +166,7 @@ export const processConnections = (
         (
           c[type as keyof IBackendConnection] as Array<{
             name: string;
-            dest: Array<{ extension: string; app: string }>;
+            dest: Array<{ extension: string; app?: string }>;
           }>
         ).forEach((item) => {
           item.dest.forEach((d) => {
@@ -204,8 +204,8 @@ export const processConnections = (
             }
             sourceMap[sourceNodeId].add({
               name: itemName,
-              srcApp: c.app,
-              destApp: d.app,
+              srcApp: c.app ?? "",
+              destApp: d.app ?? "",
             });
 
             // Record the item name in the appropriate target map
@@ -214,8 +214,8 @@ export const processConnections = (
             }
             targetMap[targetNodeId].add({
               name: itemName,
-              srcApp: c.app,
-              destApp: d.app,
+              srcApp: c.app ?? "",
+              destApp: d.app ?? "",
             });
 
             initialEdges.push({
@@ -225,8 +225,8 @@ export const processConnections = (
               data: {
                 connectionType: type,
                 name: itemName,
-                srcApp: c.app,
-                destApp: d.app,
+                srcApp: c.app ?? "",
+                destApp: d.app ?? "",
                 labelOffsetX: 0,
                 labelOffsetY: 0,
               },

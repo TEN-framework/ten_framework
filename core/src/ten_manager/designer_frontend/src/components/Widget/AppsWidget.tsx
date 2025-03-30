@@ -144,6 +144,9 @@ export const AppsManagerWidget = (props: { className?: string }) => {
           disableSearch: true,
           title: t("popup.logViewer.appInstall"),
         },
+        postActions: () => {
+          postReloadApps(baseDir);
+        },
       },
     });
   };

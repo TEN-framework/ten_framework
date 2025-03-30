@@ -34,6 +34,7 @@ import {
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
 import { useListTenCloudStorePackages } from "@/api/services/extension";
+import { postReloadApps } from "@/api/services/apps";
 
 export const ExtensionTooltipContent = (props: {
   item: IListTenCloudStorePackage;
@@ -193,6 +194,9 @@ export const ExtensionDetails = (props: {
         },
         postActions: () => {
           mutate();
+          if (currentWorkspace.baseDir) {
+            postReloadApps(currentWorkspace.baseDir);
+          }
         },
       },
     });
