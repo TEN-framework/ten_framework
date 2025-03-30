@@ -200,6 +200,9 @@ jobs:
           for item in "${ARRAY[@]}"; do
             echo $item
             cd $item
+            identity=$(${TMAN_BIN} package --get-identity)
+            echo $identity
+            ${TMAN_BIN} --verbose --admin-token ${{ secrets.TEN_CLOUD_STORE_ADMIN_TOKEN }} delete $identity
             ${TMAN_BIN} --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
             cd -
           done
@@ -231,6 +234,7 @@ jobs:
           done
 
           df -h .
+        shell: bash
 
   test-standalone:
     needs: build
