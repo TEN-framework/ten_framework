@@ -10,7 +10,7 @@
     }
   ],
   "scripts": {
-    "start": "bin/{{package_name}}",
-    "build": "tgn gen linux x64 debug && tgn build linux x64 debug"
+    "start": "python3 tools/run_script.py start",
+    "build": "python3 tools/run_script.py build"
   }
 }
