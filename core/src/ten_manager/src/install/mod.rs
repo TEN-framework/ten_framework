@@ -35,7 +35,7 @@ use crate::{
     },
     output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
-    package_info::manifest::to_file::update_manifest_all_fields,
+    pkg_info::manifest::to_file::update_manifest_all_fields,
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
@@ -226,7 +226,7 @@ fn update_package_manifest(
 
         // Process the struct field dependencies first as a cache.
         if let Some(ref dependencies) = manifest.dependencies {
-            for (i, dep) in dependencies.iter().enumerate() {
+            for dep in dependencies.iter() {
                 match dep {
                     ManifestDependency::RegistryDependency {
                         pkg_type,
@@ -250,7 +250,7 @@ fn update_package_manifest(
                                 // dependency, but a local dependency is being
                                 // added. Therefore, remove the original
                                 // dependency item from `manifest.json`.
-                                deps_to_remove.push(i);
+                                deps_to_remove.push(dep.clone());
                             }
                         } else {
                             updated_dependencies.push(dep.clone());
@@ -303,14 +303,14 @@ fn update_package_manifest(
                                     // dependency is being added. Therefore,
                                     // remove the original dependency item from
                                     // `manifest.json`.
-                                    deps_to_remove.push(i);
+                                    deps_to_remove.push(dep.clone());
                                 }
                             } else {
                                 // The `manifest.json` specifies a local
                                 // dependency, but a registry dependency is
                                 // being added. Therefore, remove the original
                                 // dependency item from `manifest.json`.
-                                deps_to_remove.push(i);
+                                deps_to_remove.push(dep.clone());
                             }
                         } else {
                             updated_dependencies.push(dep.clone());
@@ -322,7 +322,7 @@ fn update_package_manifest(
 
         // If the added dependency does not exist in the `manifest.json`, add
         // it.
-        let new_dependency = if !is_present {
+        let deps_to_add_option = if !is_present {
             // If `local_path_if_any` has a value, create a local dependency.
             if let Some(local_path) = &local_path_if_any {
                 let local_dep = ManifestDependency::LocalDependency {
@@ -330,11 +330,11 @@ fn update_package_manifest(
                     base_dir: "".to_string(),
                 };
                 updated_dependencies.push(local_dep.clone());
-                Some(local_dep)
+                Some(vec![local_dep])
             } else {
                 let registry_dep = ManifestDependency::from(added_dependency);
                 updated_dependencies.push(registry_dep.clone());
-                Some(registry_dep)
+                Some(vec![registry_dep])
             }
         } else {
             None
@@ -343,15 +343,18 @@ fn update_package_manifest(
         // Update the dependencies field in the manifest struct.
         manifest.dependencies = Some(updated_dependencies);
 
-        let local_path_ref = local_path_if_any.as_ref();
+        // Use the deps_to_remove for update_manifest_all_fields.
+        let deps_to_remove_option = if !deps_to_remove.is_empty() {
+            Some(&deps_to_remove)
+        } else {
+            None
+        };
+
         update_manifest_all_fields(
             &base_pkg_info.url,
             &mut manifest.all_fields,
-            new_dependency,
-            is_present,
-            &deps_to_remove,
-            manifest.dependencies.as_ref(),
-            local_path_ref,
+            deps_to_add_option.as_ref(),
+            deps_to_remove_option,
         )?;
     }
 

@@ -23,7 +23,7 @@ use crate::{
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     output::{TmanOutput, TmanOutputCli},
-    package_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs,
 };
 
 #[derive(Clone, Debug)]

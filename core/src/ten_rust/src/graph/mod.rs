@@ -17,9 +17,7 @@ use connection::GraphConnection;
 use node::GraphNode;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{
-    localhost, pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
-};
+use crate::pkg_info::{localhost, PkgInfo};
 
 /// The state of the 'app' field declaration in all nodes in the graph.
 ///
@@ -263,45 +261,6 @@ impl Graph {
         self.check_message_names()?;
 
         Ok(())
-    }
-
-    /// Adds a new extension node to the graph and validates the graph after
-    /// adding it.
-    pub fn add_extension_node(
-        &mut self,
-        pkg_name: String,
-        addon: String,
-        app: Option<String>,
-        extension_group: Option<String>,
-        property: Option<serde_json::Value>,
-    ) -> Result<()> {
-        // Store the original state in case validation fails.
-        let original_graph = self.clone();
-
-        // Create new GraphNode.
-        let node = GraphNode {
-            type_and_name: PkgTypeAndName {
-                pkg_type: PkgType::Extension,
-                name: pkg_name,
-            },
-            addon,
-            extension_group,
-            app,
-            property,
-        };
-
-        // Add the node to the graph.
-        self.nodes.push(node);
-
-        // Validate the graph.
-        match self.validate_and_complete() {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                // Restore the original graph if validation fails.
-                *self = original_graph;
-                Err(e)
-            }
-        }
     }
 
     /// Helper function to convert Option<&str> to String for HashMap keys and
