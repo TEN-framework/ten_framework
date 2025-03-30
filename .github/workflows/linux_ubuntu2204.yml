@@ -202,7 +202,7 @@ jobs:
             cd $item
             identity=$(${TMAN_BIN} package --get-identity)
             echo $identity
-            ${TMAN_BIN} --verbose --admin-token ${{ secrets.TEN_CLOUD_STORE_ADMIN_TOKEN }} delete $identity
+            ${TMAN_BIN} --verbose --admin-token ${{ secrets.TEN_CLOUD_STORE_ADMIN_TOKEN }} delete $identity || true
             ${TMAN_BIN} --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
             cd -
           done
