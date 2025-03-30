@@ -66,7 +66,7 @@ def __collect_manifest_tent_files(directory) -> list[str]:
 
 
 def update_c_preserved_metadata_version_of_ten_runtime_binary(
-    log_level, year, year_month, git_version
+    log_level, year, year_month, git_version, repo_base_dir
 ):
     # Update the version in the C preserved metadata files.
     c_preserved_metadata_file_src_file = os.path.join(
@@ -397,7 +397,7 @@ if __name__ == "__main__":
     log_level = 1
 
     update_c_preserved_metadata_version_of_ten_runtime_binary(
-        log_level, year, year_month, git_version
+        log_level, year, year_month, git_version, repo_base_dir
     )
 
     update_version_of_tman(
@@ -412,6 +412,13 @@ if __name__ == "__main__":
         log_level, repo_base_dir, git_version
     )
 
+    example_pkgs = collect_and_update_version_of_example_packages(
+        log_level, repo_base_dir, git_version
+    )
+
     update_dependencies_version(
-        log_level, repo_base_dir, git_version, system_pkgs + core_pkgs
+        log_level,
+        repo_base_dir,
+        git_version,
+        system_pkgs + core_pkgs + example_pkgs,
     )
