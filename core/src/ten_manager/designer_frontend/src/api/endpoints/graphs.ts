@@ -24,10 +24,10 @@ export const ENDPOINT_GRAPHS = {
           z.object({
             addon: z.string(),
             name: z.string(),
-            extension_group: z.string(),
-            app: z.string(),
-            property: z.unknown(), // Required property
-            api: z.unknown().optional(), // Optional property
+            extension_group: z.string().optional(),
+            app: z.string().optional(),
+            property: z.unknown().optional(),
+            api: z.unknown().optional(),
             is_installed: z.boolean(),
           })
         ) as z.ZodType<IBackendNode[]>
@@ -45,7 +45,7 @@ export const ENDPOINT_GRAPHS = {
       responseSchema: genResSchema<IBackendConnection[]>(
         z.array(
           z.object({
-            app: z.string(),
+            app: z.string().optional(),
             extension: z.string(),
             cmd: z
               .array(
@@ -53,7 +53,7 @@ export const ENDPOINT_GRAPHS = {
                   name: z.string(),
                   dest: z.array(
                     z.object({
-                      app: z.string(),
+                      app: z.string().optional(),
                       extension: z.string(),
                     })
                   ),
@@ -66,7 +66,7 @@ export const ENDPOINT_GRAPHS = {
                   name: z.string(),
                   dest: z.array(
                     z.object({
-                      app: z.string(),
+                      app: z.string().optional(),
                       extension: z.string(),
                     })
                   ),
@@ -79,7 +79,7 @@ export const ENDPOINT_GRAPHS = {
                   name: z.string(),
                   dest: z.array(
                     z.object({
-                      app: z.string(),
+                      app: z.string().optional(),
                       extension: z.string(),
                     })
                   ),
@@ -92,7 +92,7 @@ export const ENDPOINT_GRAPHS = {
                   name: z.string(),
                   dest: z.array(
                     z.object({
-                      app: z.string(),
+                      app: z.string().optional(),
                       extension: z.string(),
                     })
                   ),

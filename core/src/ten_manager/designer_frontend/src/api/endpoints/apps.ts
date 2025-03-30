@@ -10,36 +10,11 @@ import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
 import type {
   ISetBaseDirResponse,
-  IGetBaseDirResponse,
   IExtensionAddon,
   IGetAppsResponse,
 } from "@/types/apps";
 
 export const ENDPOINT_APPS = {
-  /** @deprecated */
-  baseDir: {
-    [ENDPOINT_METHOD.PUT]: {
-      url: `${API_DESIGNER_V1}/app/base-dir`,
-      method: ENDPOINT_METHOD.PUT,
-      requestSchema: z.object({
-        base_dir: z.string(),
-      }),
-      responseSchema: genResSchema<ISetBaseDirResponse>(
-        z.object({
-          app_uri: z.string(),
-        })
-      ),
-    },
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/app/base-dir`,
-      method: ENDPOINT_METHOD.GET,
-      responseSchema: genResSchema<IGetBaseDirResponse>(
-        z.object({
-          base_dir: z.string().nullable(),
-        })
-      ),
-    },
-  },
   apps: {
     [ENDPOINT_METHOD.GET]: {
       url: `${API_DESIGNER_V1}/apps`,
@@ -65,7 +40,7 @@ export const ENDPOINT_APPS = {
       }),
       responseSchema: genResSchema<ISetBaseDirResponse>(
         z.object({
-          app_uri: z.string(),
+          app_uri: z.string().nullable(),
         })
       ),
     },

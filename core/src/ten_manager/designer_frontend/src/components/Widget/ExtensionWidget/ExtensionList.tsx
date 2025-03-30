@@ -40,6 +40,7 @@ import {
 } from "@/constants";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
+import { postReloadApps } from "@/api/services/apps";
 
 export const ExtensionList = (props: {
   items: (ITenPackage | ITenPackageLocal)[];
@@ -148,6 +149,7 @@ export const ExtensionBaseItem = React.forwardRef<
           },
           postActions: () => {
             mutate();
+            postReloadApps(baseDir);
           },
         },
       });

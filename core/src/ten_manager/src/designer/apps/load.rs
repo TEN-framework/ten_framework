@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
+    collections::HashMap,
     path::Path,
     sync::{Arc, RwLock},
 };
@@ -12,7 +13,7 @@ use std::{
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::{
     designer::{
@@ -43,11 +44,13 @@ pub async fn load_app_endpoint(
         .pkgs_cache
         .contains_key(&request_payload.base_dir)
     {
-        let error_response = ErrorResponse::from_error(
-            &anyhow::anyhow!("Base dir already exists"),
-            "Base dir already exists",
-        );
-        return Ok(HttpResponse::NotFound().json(error_response));
+        let app_uri =
+            extract_app_uri(&state_write.pkgs_cache, &request_payload.base_dir);
+        return Ok(HttpResponse::Ok().json(ApiResponse {
+            status: Status::Ok,
+            data: LoadAppResponseData { app_uri },
+            meta: None,
+        }));
     }
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
@@ -69,30 +72,13 @@ pub async fn load_app_endpoint(
                 return Ok(HttpResponse::NotFound().json(error_response));
             }
 
-            // Extract app_uri from the pkgs_cache.
-            let app_uri = pkgs_cache.get(&request_payload.base_dir).and_then(
-                |pkg_infos| {
-                    pkg_infos
-                        .iter()
-                        .find(|pkg_info| {
-                            pkg_info.manifest.as_ref().is_some_and(|m| {
-                                m.type_and_name.pkg_type == PkgType::App
-                            })
-                        })
-                        .and_then(|pkg_info| pkg_info.property.as_ref())
-                        .and_then(|property| property._ten.as_ref())
-                        .and_then(|ten| ten.uri.as_ref())
-                        .map(|uri| uri.to_string())
-                },
-            );
-
-            let response = ApiResponse {
+            let app_uri =
+                extract_app_uri(pkgs_cache, &request_payload.base_dir);
+            Ok(HttpResponse::Ok().json(ApiResponse {
                 status: Status::Ok,
                 data: LoadAppResponseData { app_uri },
                 meta: None,
-            };
-
-            Ok(HttpResponse::Ok().json(response))
+            }))
         }
         Err(err) => {
             let error_response = ErrorResponse::from_error(
@@ -103,6 +89,26 @@ pub async fn load_app_endpoint(
             Ok(HttpResponse::NotFound().json(error_response))
         }
     }
+}
+
+fn extract_app_uri(
+    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
+    base_dir: &str,
+) -> Option<String> {
+    pkgs_cache.get(base_dir).and_then(|pkg_infos| {
+        pkg_infos
+            .iter()
+            .find(|pkg_info| {
+                pkg_info
+                    .manifest
+                    .as_ref()
+                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
+            })
+            .and_then(|pkg_info| pkg_info.property.as_ref())
+            .and_then(|property| property._ten.as_ref())
+            .and_then(|ten| ten.uri.as_ref())
+            .map(|uri| uri.to_string())
+    })
 }
 
 #[cfg(test)]
