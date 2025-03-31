@@ -18,9 +18,10 @@
 
 typedef struct ten_schema_keyword_type_t ten_schema_keyword_type_t;
 
-// A schema definition is something that describes the structure of a TEN value.
+// A schema definition describes the structure and validation rules for a TEN
+// value.
 //
-// The followings are some schema examples:
+// Examples of schema definitions:
 //
 // {
 //   "type": "object",
@@ -41,83 +42,97 @@ typedef struct ten_schema_keyword_type_t ten_schema_keyword_type_t;
 //   }
 // }
 //
-// It mainly consists of the following three parts:
+// A schema consists of three main components:
 //
-// - The type of the schema, which is corresponding to the type of the value.
-// And it is represented by a ten_schema_keyword_type_t.
+// 1. Type - Corresponds to the value type and is represented by
+//    ten_schema_keyword_type_t. This defines the basic structure of the schema
+//    (object, array, primitive).
 //
-// - The children of the schema, ex: the properties of an object, the items of
-// an array. There is no children for a primitive type.
+// 2. Children - For complex types like objects (properties) and arrays (items).
+//    Primitive types don't have children.
 //
-// - The validation rules, which are represented by the ten_schema_keyword_t.
-// Ex: the minimum and maximum value of an integer, the length of a string.
+// 3. Validation rules - Represented by ten_schema_keyword_t instances.
+//    Examples include minimum/maximum values for integers, string length
+//    constraints, etc.
 //
-// The schema structure for each type of value is different, so we prefer to
-// define different schema types. The ten_schema_t is the base class of all the
-// schema types. The relationship between the schema types is shown below:
+// The schema structure varies by value type, so we define different schema
+// types. The ten_schema_t serves as the base class for all schema types, with
+// the following inheritance hierarchy:
 //
-//                         ten_schema_t
-//                               ^
-//                               |
-//                ---------------+----------------
-//                |              |               |
-// ten_schema_primitive_t ten_schema_object_t ten_schema_array_t
+//                         ┌─────────────────┐
+//                         │   ten_schema_t  │
+//                         └────────┬────────┘
+//                                  │
+//                  ┌───────────────┼───────────────┐
+//                  │               │               │
+//    ┌─────────────┴────────┐ ┌────┴─────────┐ ┌───┴────────────┐
+//    │       primitive_t    │ │   object_t   │ │    array_t     │
+//    └──────────────────────┘ └──────────────┘ └────────────────┘
 typedef struct ten_schema_t {
   ten_signature_t signature;
 
-  // Key is TEN_SCHEMA_KEYWORD, the type of the value is ten_schema_keyword_t.
-  // All keywords bound to the schema are stored in the 'keywords' map, and all
-  // of them will be destroyed when the map is destroyed.
-  ten_hashtable_t keywords;  // TEN_SCHEMA_KEYWORD -> ten_schema_keyword_t
+  // Maps keyword identifiers to ten_schema_keyword_t instances.
+  // Key is TEN_SCHEMA_KEYWORD, value is ten_schema_keyword_t*.
+  ten_hashtable_t keywords;  // TEN_SCHEMA_KEYWORD -> ten_schema_keyword_t*
 
-  // This 'keyword_type' field is a caching mechanism, and the
-  // ten_schema_keyword_type_t it points to is a ten_schema_keyword_t, which
-  // exists in the above 'keywords' field. By directly accessing the
-  // corresponding schema_keyword_t through this keyword_type field, it avoids
-  // searching the 'keywords' field above, thus improving efficiency. A similar
-  // mechanism can also be seen in other derivative schema_t of ten_schema_t,
-  // such as ten_schema_object_t and ten_schema_array_t. Essentially, the
-  // 'keywords' above play the role of resource management, while the individual
-  // fields below serve as caches.
+  // Cache field for quick access to the type keyword.
+  // This points to a `ten_schema_keyword_t` that exists in the `keywords` map
+  // above. By directly accessing this field instead of searching the `keywords`
+  // map, we improve performance. Similar caching mechanisms are used in derived
+  // schema types like `ten_schema_object_t` and `ten_schema_array_t`. The
+  // `keywords` map handles resource management, while this field provides
+  // efficient access.
   ten_schema_keyword_type_t *keyword_type;
 } ten_schema_t;
 
-// Internal use.
-//
-// The error context to be used during the schema validation process. An example
-// of schema is as follows:
-//
-// {
-//   "type": "object",
-//   "properties": {
-//     "a": {
-//       "type": "array",
-//       "items": {
-//         "type": "int32"
-//       }
-//     }
-//   }
-// }
-//
-// And the value to be validated is as follows:
-//
-// {
-//   "a": [1, "2", 3]
-// }
-//
-// Verify each value according to its corresponding schema in DFS order, until
-// an error is encountered. After the validation, the error message should
-// display which value is invalid, ex: it will be `a[1]` in this case. We need
-// to record the path of the schema during the process, besides the error
-// message. We can not use ten_error_t to record the path, because there is no
-// space to achieve this. Neither can we use the `ten_schema_t` to record the
-// path, because we need to know the index, if the value is an array; but there
-// is no index information in the ten_schema_array_t because each item in the
-// array shares the same schema.
+/**
+ * @brief Error context structure used during schema validation.
+ *
+ * This structure is designed for internal use to track validation errors and
+ * maintain path information during schema validation. It allows for precise
+ * error reporting by recording the exact location where validation failed
+ * within nested data structures.
+ *
+ * Example schema:
+ * ```json
+ * {
+ *   "type": "object",
+ *   "properties": {
+ *     "a": {
+ *       "type": "array",
+ *       "items": {
+ *         "type": "int32"
+ *       }
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * Example value to validate:
+ * ```json
+ * {
+ *   "a": [1, "2", 3]
+ * }
+ * ```
+ *
+ * During validation, each value is verified against its corresponding schema
+ * in depth-first search order until an error is encountered. In this example,
+ * the error would occur at `a[1]` because "2" is a string, not an int32.
+ *
+ * The path tracking is necessary because:
+ * 1. The standard `ten_error_t` structure doesn't have space to store path
+ *    information.
+ * 2. The schema structure itself (`ten_schema_t`) cannot record the path
+ *    because it lacks index information for array elements (all items in an
+ *    array share the same schema definition).
+ *
+ * This structure bridges that gap by maintaining both the error details and the
+ * path to the error location.
+ */
 typedef struct ten_schema_error_t {
-  ten_signature_t signature;
-  ten_error_t *err;
-  ten_string_t path;
+  ten_signature_t signature;  // Integrity verification signature.
+  ten_error_t *err;           // Pointer to the error object containing details.
+  ten_string_t path;          // Path to the location where validation failed.
 } ten_schema_error_t;
 
 TEN_UTILS_PRIVATE_API bool ten_schema_error_check_integrity(

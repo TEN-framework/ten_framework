@@ -26,20 +26,36 @@ use crate::designer::{
     DesignerState,
 };
 
+/// Represents the request payload for retrieving compatible messages.
+///
+/// This struct contains all necessary information to identify a specific
+/// message within a graph and find other messages that are compatible with it.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
+    /// Base directory path where the project files are located.
     pub base_dir: String,
+
+    /// Name of the graph to search for compatible messages.
     pub graph: String,
 
+    /// Optional application name that contains the extension.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub app: Option<String>,
 
+    /// Optional extension group that the extension belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extension_group: Option<String>,
 
+    /// Name of the extension to find compatible messages for.
     pub extension: String,
+
+    /// Type of the message (e.g., "command", "data").
     pub msg_type: String,
+
+    /// Direction of the message (e.g., "input", "output").
     pub msg_direction: String,
+
+    /// Name of the specific message to find compatibility with.
     pub msg_name: String,
 }
 

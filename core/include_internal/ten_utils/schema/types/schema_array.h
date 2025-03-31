@@ -15,9 +15,17 @@
 
 typedef struct ten_schema_keyword_items_t ten_schema_keyword_items_t;
 
+/**
+ * @brief Structure representing a JSON Schema array type.
+ *
+ * This structure extends the base schema type to handle array-specific
+ * validation.
+ */
 typedef struct ten_schema_array_t {
-  ten_schema_t hdr;
-  ten_signature_t signature;
+  ten_schema_t hdr;           // Base schema header.
+  ten_signature_t signature;  // Signature for integrity validation.
+
+  // Pointer to the "items" keyword definition.
   ten_schema_keyword_items_t *keyword_items;
 } ten_schema_array_t;
 

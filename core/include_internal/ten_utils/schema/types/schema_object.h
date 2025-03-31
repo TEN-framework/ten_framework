@@ -16,10 +16,20 @@
 typedef struct ten_schema_keyword_properties_t ten_schema_keyword_properties_t;
 typedef struct ten_schema_keyword_required_t ten_schema_keyword_required_t;
 
+/**
+ * @brief Represents a schema object type in the schema validation system.
+ *
+ * This structure extends the base schema type to handle objects with specific
+ * properties and requirements.
+ */
 typedef struct ten_schema_object_t {
-  ten_schema_t hdr;
-  ten_signature_t signature;
+  ten_schema_t hdr;           // Base schema header.
+  ten_signature_t signature;  // Integrity signature for validation.
+
+  // Properties defined in this object schema.
   ten_schema_keyword_properties_t *keyword_properties;
+
+  // Required properties for this object schema.
   ten_schema_keyword_required_t *keyword_required;
 } ten_schema_object_t;
 
