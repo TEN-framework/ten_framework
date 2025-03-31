@@ -4,10 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    str::FromStr,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -50,10 +47,10 @@ pub struct GetCompatibleMsgsRequestPayload {
     pub extension: String,
 
     /// Type of the message (e.g., "command", "data").
-    pub msg_type: String,
+    pub msg_type: MsgType,
 
     /// Direction of the message (e.g., "input", "output").
-    pub msg_direction: String,
+    pub msg_direction: MsgDirection,
 
     /// Name of the specific message to find compatibility with.
     pub msg_name: String,
@@ -135,39 +132,8 @@ pub async fn get_compatible_messages_endpoint(
             }
         };
 
-        let msg_ty = match MsgType::from_str(&request_payload.msg_type) {
-            Ok(msg_ty) => msg_ty,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Unsupported message type: {}",
-                        request_payload.msg_type
-                    )
-                    .as_str(),
-                );
-                return Ok(
-                    HttpResponse::InternalServerError().json(error_response)
-                );
-            }
-        };
-
-        let msg_dir =
-            match MsgDirection::from_str(&request_payload.msg_direction) {
-                Ok(msg_dir) => msg_dir,
-                Err(err) => {
-                    let error_response = ErrorResponse::from_error(
-                        &err,
-                        format!(
-                            "Unsupported message direction: {}",
-                            request_payload.msg_direction
-                        )
-                        .as_str(),
-                    );
-                    return Ok(HttpResponse::InternalServerError()
-                        .json(error_response));
-                }
-            };
+        let msg_ty = request_payload.msg_type.clone();
+        let msg_dir = request_payload.msg_direction.clone();
 
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
