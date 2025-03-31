@@ -17,30 +17,51 @@ use crate::pkg_info::manifest::{
     Manifest,
 };
 
+/// Represents the schema for a command and its result.
+///
+/// This structure holds two optional schemas:
+/// - `cmd`: The schema that defines the structure of the command.
+/// - `result`: The schema that defines the structure of the command's result.
 #[derive(Debug, Clone, Default)]
 pub struct CmdSchema {
+    /// Schema for the command structure.
     pub cmd: Option<TenSchema>,
+    /// Schema for the command's result structure.
     pub result: Option<TenSchema>,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct SchemaStore {
+    /// Schema for property definitions.
     property: Option<TenSchema>,
 
-    // Key is cmd name.
+    /// Command schemas for incoming commands.
     pub cmd_in: HashMap<String, CmdSchema>,
+    /// Command schemas for outgoing commands.
     pub cmd_out: HashMap<String, CmdSchema>,
 
-    // Key is data name.
+    /// Data schemas for incoming data.
     pub data_in: HashMap<String, TenSchema>,
+    /// Data schemas for outgoing data.
     pub data_out: HashMap<String, TenSchema>,
+
+    /// Schema for incoming video frames.
     pub video_frame_in: HashMap<String, TenSchema>,
+    /// Schema for outgoing video frames.
     pub video_frame_out: HashMap<String, TenSchema>,
+
+    /// Schema for incoming audio frames.
     pub audio_frame_in: HashMap<String, TenSchema>,
+    /// Schema for outgoing audio frames.
     pub audio_frame_out: HashMap<String, TenSchema>,
 }
 
 impl SchemaStore {
+    /// Creates a SchemaStore from a Manifest.
+    ///
+    /// This function extracts API schemas from the manifest and constructs a
+    /// SchemaStore containing all the command, data, and frame schemas
+    /// defined in the manifest.
     pub fn from_manifest(manifest: &Manifest) -> Result<Option<Self>> {
         if let Some(api) = &manifest.api {
             let mut schema_store = SchemaStore::default();
@@ -51,10 +72,22 @@ impl SchemaStore {
         }
     }
 
-    pub fn parse_schemas_from_manifest(
+    /// Parses schemas from a ManifestApi and populates the SchemaStore.
+    ///
+    /// This method processes all schema types defined in the manifest API:
+    /// - Property schemas
+    /// - Command schemas (both incoming and outgoing)
+    /// - Data schemas (both incoming and outgoing)
+    /// - Video frame schemas (both incoming and outgoing)
+    /// - Audio frame schemas (both incoming and outgoing)
+    ///
+    /// Each schema type is parsed and stored in the appropriate collection
+    /// within the SchemaStore.
+    fn parse_schemas_from_manifest(
         &mut self,
         manifest_api: &ManifestApi,
     ) -> Result<()> {
+        // Parse property schema if defined.
         if let Some(property) = &manifest_api.property {
             let mut property_schema_value: serde_json::Value =
                 serde_json::json!({"type": "object"});
@@ -73,26 +106,31 @@ impl SchemaStore {
             self.property = Some(schema);
         }
 
+        // Parse incoming command schemas.
         if let Some(cmd_in_schema) = &manifest_api.cmd_in {
             parse_cmds_schema_from_manifest(cmd_in_schema, &mut self.cmd_in)
                 .with_context(|| "Failed to parse cmd_in schema")?;
         }
 
+        // Parse outgoing command schemas.
         if let Some(cmd_out_schema) = &manifest_api.cmd_out {
             parse_cmds_schema_from_manifest(cmd_out_schema, &mut self.cmd_out)
                 .with_context(|| "Failed to parse cmd_out schema")?;
         }
 
+        // Parse incoming data schemas.
         if let Some(data_in_schema) = &manifest_api.data_in {
             parse_msg_schema_from_manifest(data_in_schema, &mut self.data_in)
                 .with_context(|| "Failed to parse data_in schema")?;
         }
 
+        // Parse outgoing data schemas.
         if let Some(data_out_schema) = &manifest_api.data_out {
             parse_msg_schema_from_manifest(data_out_schema, &mut self.data_out)
                 .with_context(|| "Failed to parse data_out schema")?;
         }
 
+        // Parse incoming video frame schemas.
         if let Some(video_frame_in_schema) = &manifest_api.video_frame_in {
             parse_msg_schema_from_manifest(
                 video_frame_in_schema,
@@ -101,6 +139,7 @@ impl SchemaStore {
             .with_context(|| "Failed to parse video_frame_in schema")?;
         }
 
+        // Parse outgoing video frame schemas.
         if let Some(video_frame_out_schema) = &manifest_api.video_frame_out {
             parse_msg_schema_from_manifest(
                 video_frame_out_schema,
@@ -109,6 +148,7 @@ impl SchemaStore {
             .with_context(|| "Failed to parse video_frame_out schema")?;
         }
 
+        // Parse incoming audio frame schemas.
         if let Some(audio_frame_in_schema) = &manifest_api.audio_frame_in {
             parse_msg_schema_from_manifest(
                 audio_frame_in_schema,
@@ -117,6 +157,7 @@ impl SchemaStore {
             .with_context(|| "Failed to parse audio_frame_in schema")?;
         }
 
+        // Parse outgoing audio frame schemas.
         if let Some(audio_frame_out_schema) = &manifest_api.audio_frame_out {
             parse_msg_schema_from_manifest(
                 audio_frame_out_schema,
