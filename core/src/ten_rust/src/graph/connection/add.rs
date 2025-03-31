@@ -17,6 +17,9 @@ use crate::schema::store::{
     are_cmd_schemas_compatible, are_ten_schemas_compatible,
 };
 
+/// Type alias for package info tuple returned by find_pkg_infos.
+type PkgInfoTuple<'a> = (Option<&'a PkgInfo>, Option<&'a PkgInfo>);
+
 impl Graph {
     /// Adds a new connection between two extension nodes in the graph.
     #[allow(clippy::too_many_arguments)]
@@ -33,9 +36,117 @@ impl Graph {
         // Store the original state in case validation fails.
         let original_graph = self.clone();
 
+        // Check if nodes exist.
+        Self::check_nodes_exist(
+            self,
+            &src_app,
+            &src_extension,
+            &dest_app,
+            &dest_extension,
+        )?;
+
+        // Check if connection already exists.
+        Self::check_connection_exists(
+            self,
+            &src_app,
+            &src_extension,
+            &msg_type,
+            &msg_name,
+            &dest_app,
+            &dest_extension,
+        )?;
+
+        // Find source and destination package info.
+        let (src_extension_pkg_info, dest_extension_pkg_info) =
+            Self::find_pkg_infos(
+                installed_pkgs_of_all_apps,
+                &src_app,
+                &src_extension,
+                &dest_app,
+                &dest_extension,
+            )?;
+
+        // Check schema compatibility.
+        Self::check_schema_compatibility(
+            &msg_type,
+            &msg_name,
+            &src_extension_pkg_info,
+            &dest_extension_pkg_info,
+        )?;
+
+        // Create destination object.
+        let destination = GraphDestination {
+            app: dest_app,
+            extension: dest_extension,
+            msg_conversion: None,
+        };
+
+        // Initialize connections if None.
+        if self.connections.is_none() {
+            self.connections = Some(Vec::new());
+        }
+
+        // Create a message flow.
+        let message_flow = GraphMessageFlow {
+            name: msg_name,
+            dest: vec![destination],
+        };
+
+        // Get or create a connection for the source node and add the message
+        // flow.
+        {
+            let connections = self.connections.as_mut().unwrap();
+
+            // Find or create connection.
+            let connection_idx = if let Some((idx, _)) =
+                connections.iter().enumerate().find(|(_, conn)| {
+                    conn.extension == src_extension && conn.app == src_app
+                }) {
+                idx
+            } else {
+                // Create a new connection for the source node.
+                connections.push(GraphConnection {
+                    app: src_app.clone(),
+                    extension: src_extension,
+                    cmd: None,
+                    data: None,
+                    audio_frame: None,
+                    video_frame: None,
+                });
+                connections.len() - 1
+            };
+
+            // Add the message flow to the appropriate collection.
+            let connection = &mut connections[connection_idx];
+            Self::add_message_flow_to_connection(
+                connection,
+                &msg_type,
+                message_flow,
+            )?;
+        }
+
+        // Validate the updated graph.
+        match self.validate_and_complete() {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                // Restore the original graph if validation fails.
+                *self = original_graph;
+                Err(e)
+            }
+        }
+    }
+
+    /// Checks if source and destination nodes exist in the graph.
+    fn check_nodes_exist(
+        graph: &Graph,
+        src_app: &Option<String>,
+        src_extension: &str,
+        dest_app: &Option<String>,
+        dest_extension: &str,
+    ) -> Result<()> {
         // Validate that source node exists.
-        let src_node_exists = self.nodes.iter().any(|node| {
-            node.type_and_name.name == src_extension && node.app == src_app
+        let src_node_exists = graph.nodes.iter().any(|node| {
+            node.type_and_name.name == src_extension && node.app == *src_app
         });
 
         if !src_node_exists {
@@ -47,8 +158,8 @@ impl Graph {
         }
 
         // Validate that destination node exists.
-        let dest_node_exists = self.nodes.iter().any(|node| {
-            node.type_and_name.name == dest_extension && node.app == dest_app
+        let dest_node_exists = graph.nodes.iter().any(|node| {
+            node.type_and_name.name == dest_extension && node.app == *dest_app
         });
 
         if !dest_node_exists {
@@ -59,11 +170,23 @@ impl Graph {
             ));
         }
 
-        // Check if this connection already exists.
-        if let Some(connections) = &self.connections {
+        Ok(())
+    }
+
+    /// Checks if the connection already exists.
+    fn check_connection_exists(
+        graph: &Graph,
+        src_app: &Option<String>,
+        src_extension: &str,
+        msg_type: &MsgType,
+        msg_name: &str,
+        dest_app: &Option<String>,
+        dest_extension: &str,
+    ) -> Result<()> {
+        if let Some(connections) = &graph.connections {
             for conn in connections.iter() {
-                // Check if source matches
-                if conn.extension == src_extension && conn.app == src_app {
+                // Check if source matches.
+                if conn.extension == src_extension && conn.app == *src_app {
                     // Check for duplicate message flows based on message type.
                     let msg_flows = match msg_type {
                         MsgType::Cmd => conn.cmd.as_ref(),
@@ -79,7 +202,7 @@ impl Graph {
                                 // Check if destination already exists.
                                 for dest in &flow.dest {
                                     if dest.extension == dest_extension
-                                        && dest.app == dest_app
+                                        && dest.app == *dest_app
                                     {
                                         return Err(anyhow::anyhow!(
                                             "Connection already exists: src:({:?}, {}), msg_type:{:?}, msg_name:{}, dest:({:?}, {})",
@@ -93,12 +216,21 @@ impl Graph {
                 }
             }
         }
+        Ok(())
+    }
 
-        // Find source app PkgInfo.
+    /// Finds package info for source and destination apps and extensions.
+    fn find_pkg_infos<'a>(
+        installed_pkgs_of_all_apps: &'a HashMap<String, Vec<PkgInfo>>,
+        src_app: &Option<String>,
+        src_extension: &str,
+        dest_app: &Option<String>,
+        dest_extension: &str,
+    ) -> Result<PkgInfoTuple<'a>> {
+        // Find source app/extension PkgInfo.
         let mut src_app_pkg_info = None;
         let mut src_extension_pkg_info = None;
 
-        // Find src app/extension PkgInfo.
         for pkgs in installed_pkgs_of_all_apps.values() {
             // Find source app PkgInfo.
             let app_pkg = pkgs.iter().find(|pkg| {
@@ -203,22 +335,31 @@ impl Graph {
             ));
         }
 
-        // Get source and destination schemas based on message type.
-        let src_extension_pkg = src_extension_pkg_info.unwrap();
-        let dest_extension_pkg = dest_extension_pkg_info.unwrap();
+        Ok((src_extension_pkg_info, dest_extension_pkg_info))
+    }
 
-        // Check schema compatibility based on message type.
+    /// Checks schema compatibility between source and destination based on
+    /// message type.
+    fn check_schema_compatibility(
+        msg_type: &MsgType,
+        msg_name: &str,
+        src_extension_pkg: &Option<&PkgInfo>,
+        dest_extension_pkg: &Option<&PkgInfo>,
+    ) -> Result<()> {
+        let src_extension_pkg = src_extension_pkg.unwrap();
+        let dest_extension_pkg = dest_extension_pkg.unwrap();
+
         match msg_type {
             MsgType::Cmd => {
                 let src_schema = src_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.cmd_out.get(&msg_name));
+                    .and_then(|store| store.cmd_out.get(msg_name));
 
                 let dest_schema = dest_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.cmd_in.get(&msg_name));
+                    .and_then(|store| store.cmd_in.get(msg_name));
 
                 if let Err(err) =
                     are_cmd_schemas_compatible(src_schema, dest_schema)
@@ -233,12 +374,12 @@ impl Graph {
                 let src_schema = src_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.data_out.get(&msg_name));
+                    .and_then(|store| store.data_out.get(msg_name));
 
                 let dest_schema = dest_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.data_in.get(&msg_name));
+                    .and_then(|store| store.data_in.get(msg_name));
 
                 if let Err(err) =
                     are_ten_schemas_compatible(src_schema, dest_schema)
@@ -253,12 +394,12 @@ impl Graph {
                 let src_schema = src_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.audio_frame_out.get(&msg_name));
+                    .and_then(|store| store.audio_frame_out.get(msg_name));
 
                 let dest_schema = dest_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.audio_frame_in.get(&msg_name));
+                    .and_then(|store| store.audio_frame_in.get(msg_name));
 
                 if let Err(err) =
                     are_ten_schemas_compatible(src_schema, dest_schema)
@@ -273,12 +414,12 @@ impl Graph {
                 let src_schema = src_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.video_frame_out.get(&msg_name));
+                    .and_then(|store| store.video_frame_out.get(msg_name));
 
                 let dest_schema = dest_extension_pkg
                     .schema_store
                     .as_ref()
-                    .and_then(|store| store.video_frame_in.get(&msg_name));
+                    .and_then(|store| store.video_frame_in.get(msg_name));
 
                 if let Err(err) =
                     are_ten_schemas_compatible(src_schema, dest_schema)
@@ -290,155 +431,58 @@ impl Graph {
                 }
             }
         }
+        Ok(())
+    }
 
-        // Create destination object.
-        let destination = GraphDestination {
-            app: dest_app,
-            extension: dest_extension,
-            msg_conversion: None,
-        };
-
-        // Initialize connections if None.
-        if self.connections.is_none() {
-            self.connections = Some(Vec::new());
-        }
-
-        // Get or create a connection for the source node.
-        let connections = self.connections.as_mut().unwrap();
-        let connection = match connections
-            .iter_mut()
-            .find(|conn| conn.extension == src_extension && conn.app == src_app)
-        {
-            Some(conn) => conn,
-            None => {
-                // Create a new connection for the source node.
-                let new_connection = GraphConnection {
-                    app: src_app.clone(),
-                    extension: src_extension.clone(),
-                    cmd: None,
-                    data: None,
-                    audio_frame: None,
-                    video_frame: None,
-                };
-                connections.push(new_connection);
-                connections.last_mut().unwrap()
-            }
-        };
-
-        // Create a message flow.
-        let message_flow = GraphMessageFlow {
-            name: msg_name,
-            dest: vec![destination],
-        };
-
+    /// Adds a message flow to a connection based on message type.
+    fn add_message_flow_to_connection(
+        connection: &mut GraphConnection,
+        msg_type: &MsgType,
+        message_flow: GraphMessageFlow,
+    ) -> Result<()> {
         // Add the message flow to the appropriate vector based on message type.
         match msg_type {
             MsgType::Cmd => {
-                if connection.cmd.is_none() {
-                    connection.cmd = Some(Vec::new());
-                }
-
-                // Check if a message flow with the same name already exists.
-                let cmd_flows = connection.cmd.as_mut().unwrap();
-                if let Some(existing_flow) = cmd_flows
-                    .iter_mut()
-                    .find(|flow| flow.name == message_flow.name)
-                {
-                    // Add the destination to the existing flow if it doesn't
-                    // already exist.
-                    if !existing_flow.dest.iter().any(|dest| {
-                        dest.extension == message_flow.dest[0].extension
-                            && dest.app == message_flow.dest[0].app
-                    }) {
-                        existing_flow.dest.push(message_flow.dest[0].clone());
-                    }
-                } else {
-                    // Add the new message flow.
-                    cmd_flows.push(message_flow);
-                }
+                Self::add_to_flow(&mut connection.cmd, message_flow)
             }
             MsgType::Data => {
-                if connection.data.is_none() {
-                    connection.data = Some(Vec::new());
-                }
-
-                // Check if a message flow with the same name already exists.
-                let data_flows = connection.data.as_mut().unwrap();
-                if let Some(existing_flow) = data_flows
-                    .iter_mut()
-                    .find(|flow| flow.name == message_flow.name)
-                {
-                    // Add the destination to the existing flow if it doesn't
-                    // already exist.
-                    if !existing_flow.dest.iter().any(|dest| {
-                        dest.extension == message_flow.dest[0].extension
-                            && dest.app == message_flow.dest[0].app
-                    }) {
-                        existing_flow.dest.push(message_flow.dest[0].clone());
-                    }
-                } else {
-                    // Add the new message flow.
-                    data_flows.push(message_flow);
-                }
+                Self::add_to_flow(&mut connection.data, message_flow)
             }
             MsgType::AudioFrame => {
-                if connection.audio_frame.is_none() {
-                    connection.audio_frame = Some(Vec::new());
-                }
-
-                // Check if a message flow with the same name already exists.
-                let audio_flows = connection.audio_frame.as_mut().unwrap();
-                if let Some(existing_flow) = audio_flows
-                    .iter_mut()
-                    .find(|flow| flow.name == message_flow.name)
-                {
-                    // Add the destination to the existing flow if it doesn't
-                    // already exist.
-                    if !existing_flow.dest.iter().any(|dest| {
-                        dest.extension == message_flow.dest[0].extension
-                            && dest.app == message_flow.dest[0].app
-                    }) {
-                        existing_flow.dest.push(message_flow.dest[0].clone());
-                    }
-                } else {
-                    // Add the new message flow.
-                    audio_flows.push(message_flow);
-                }
+                Self::add_to_flow(&mut connection.audio_frame, message_flow)
             }
             MsgType::VideoFrame => {
-                if connection.video_frame.is_none() {
-                    connection.video_frame = Some(Vec::new());
-                }
-
-                // Check if a message flow with the same name already exists.
-                let video_flows = connection.video_frame.as_mut().unwrap();
-                if let Some(existing_flow) = video_flows
-                    .iter_mut()
-                    .find(|flow| flow.name == message_flow.name)
-                {
-                    // Add the destination to the existing flow if it doesn't
-                    // already exist.
-                    if !existing_flow.dest.iter().any(|dest| {
-                        dest.extension == message_flow.dest[0].extension
-                            && dest.app == message_flow.dest[0].app
-                    }) {
-                        existing_flow.dest.push(message_flow.dest[0].clone());
-                    }
-                } else {
-                    // Add the new message flow.
-                    video_flows.push(message_flow);
-                }
+                Self::add_to_flow(&mut connection.video_frame, message_flow)
             }
         }
+        Ok(())
+    }
 
-        // Validate the updated graph.
-        match self.validate_and_complete() {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                // Restore the original graph if validation fails.
-                *self = original_graph;
-                Err(e)
+    /// Helper function to add a message flow to a specific flow collection.
+    fn add_to_flow(
+        flow_collection: &mut Option<Vec<GraphMessageFlow>>,
+        message_flow: GraphMessageFlow,
+    ) {
+        if flow_collection.is_none() {
+            *flow_collection = Some(Vec::new());
+        }
+
+        // Check if a message flow with the same name already exists.
+        let flows = flow_collection.as_mut().unwrap();
+        if let Some(existing_flow) =
+            flows.iter_mut().find(|flow| flow.name == message_flow.name)
+        {
+            // Add the destination to the existing flow if it doesn't already
+            // exist.
+            if !existing_flow.dest.iter().any(|dest| {
+                dest.extension == message_flow.dest[0].extension
+                    && dest.app == message_flow.dest[0].app
+            }) {
+                existing_flow.dest.push(message_flow.dest[0].clone());
             }
+        } else {
+            // Add the new message flow.
+            flows.push(message_flow);
         }
     }
 }
@@ -496,32 +540,208 @@ mod tests {
         "#;
         let app_property = Property::from_str(prop_str).unwrap();
 
-        // Create ext1 PkgInfo.
+        // Create ext1 PkgInfo with valid API schema for message communication
         let ext1_manifest_str = r#"
         {
             "type": "extension",
             "name": "ext1",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "api": {
+                "property": {
+                    "app_id": {
+                        "type": "string"
+                    },
+                    "app_version": {
+                        "type": "uint8"
+                    }
+                },
+                "cmd_out": [
+                    {
+                        "name": "cmd1",
+                        "property": {
+                            "param1": {
+                                "type": "int8"
+                            }
+                        },
+                        "result": {
+                            "property": {
+                                "detail": {
+                                    "type": "bool"
+                                }
+                            },
+                            "required": [
+                                "detail"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "cmd_incompatible",
+                        "property": {
+                            "param1": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "data_out": [
+                    {
+                        "name": "data1",
+                        "property": {
+                            "text_data": {
+                                "type": "buf"
+                            }
+                        }
+                    },
+                    {
+                        "name": "data_incompatible",
+                        "property": {
+                            "value": {
+                                "type": "float32"
+                            }
+                        }
+                    }
+                ],
+                "video_frame_out": [
+                    {
+                        "name": "video1",
+                        "property": {
+                            "width": {
+                                "type": "uint64"
+                            }
+                        }
+                    }
+                ],
+                "audio_frame_out": [
+                    {
+                        "name": "audio1",
+                        "property": {
+                            "format": {
+                                "type": "uint8"
+                            }
+                        }
+                    }
+                ]
+            }
         }
         "#;
         let ext1_manifest = Manifest::from_str(ext1_manifest_str).unwrap();
 
-        // Create ext2 PkgInfo.
+        // Create ext2 PkgInfo with compatible API schemas
         let ext2_manifest_str = r#"
         {
             "type": "extension",
             "name": "ext2",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "api": {
+                "cmd_in": [
+                    {
+                        "name": "cmd1",
+                        "property": {
+                            "param1": {
+                                "type": "int8"
+                            }
+                        },
+                        "result": {
+                            "property": {
+                                "detail": {
+                                    "type": "bool"
+                                }
+                            },
+                            "required": [
+                                "detail"
+                            ]
+                        }
+                    }
+                ],
+                "data_in": [
+                    {
+                        "name": "data1",
+                        "property": {
+                            "text_data": {
+                                "type": "buf"
+                            }
+                        }
+                    }
+                ],
+                "video_frame_in": [
+                    {
+                        "name": "video1",
+                        "property": {
+                            "width": {
+                                "type": "uint64"
+                            }
+                        }
+                    }
+                ],
+                "audio_frame_in": [
+                    {
+                        "name": "audio1",
+                        "property": {
+                            "format": {
+                                "type": "uint8"
+                            }
+                        }
+                    }
+                ]
+            }
         }
         "#;
         let ext2_manifest = Manifest::from_str(ext2_manifest_str).unwrap();
 
-        // Create ext3 PkgInfo.
+        // Create ext3 PkgInfo with incompatible API schemas
         let ext3_manifest_str = r#"
         {
             "type": "extension",
             "name": "ext3",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "api": {
+                "cmd_in": [
+                    {
+                        "name": "cmd_incompatible",
+                        "property": {
+                            "param1": {
+                                "type": "int32"
+                            }
+                        }
+                    },
+                    {
+                        "name": "cmd1",
+                        "property": {
+                            "param1": {
+                                "type": "int8"
+                            }
+                        },
+                        "result": {
+                            "property": {
+                                "detail": {
+                                    "type": "bool"
+                                }
+                            },
+                            "required": [
+                                "detail"
+                            ]
+                        }
+                    }
+                ],
+                "data_in": [
+                    {
+                        "name": "data_incompatible",
+                        "property": {
+                            "value": {
+                                "type": "int64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "data1",
+                        "property": {
+                            "text_data": {
+                                "type": "buf"
+                            }
+                        }
+                    }
+                ]
+            }
         }
         "#;
         let ext3_manifest = Manifest::from_str(ext3_manifest_str).unwrap();
@@ -541,9 +761,12 @@ mod tests {
         };
 
         // Create schema stores for extensions.
-        let ext1_schema_store = SchemaStore::default();
-        let ext2_schema_store = SchemaStore::default();
-        let ext3_schema_store = SchemaStore::default();
+        let ext1_schema_store =
+            SchemaStore::from_manifest(&ext1_manifest).unwrap().unwrap();
+        let ext2_schema_store =
+            SchemaStore::from_manifest(&ext2_manifest).unwrap().unwrap();
+        let ext3_schema_store =
+            SchemaStore::from_manifest(&ext3_manifest).unwrap().unwrap();
 
         // Create extension PkgInfos.
         let ext1_pkg_info = PkgInfo {
@@ -866,5 +1089,77 @@ mod tests {
 
         let flow = &cmd_flows[0];
         assert_eq!(flow.dest.len(), 1);
+    }
+
+    #[test]
+    fn test_schema_compatibility_check() {
+        // Create a graph with three nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node("ext1", "addon1", Some("app1")),
+                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node("ext3", "addon3", Some("app1")),
+            ],
+            connections: None,
+        };
+
+        let pkg_info_map = create_test_pkg_info_map();
+
+        // Test connecting ext1 to ext2 with compatible schema - should succeed.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd1".to_string(),
+            Some("app1".to_string()),
+            "ext2".to_string(),
+            &pkg_info_map,
+        );
+        assert!(result.is_ok());
+
+        // Test connecting ext1 to ext3 with compatible schema - should succeed.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MsgType::Data,
+            "data1".to_string(),
+            Some("app1".to_string()),
+            "ext3".to_string(),
+            &pkg_info_map,
+        );
+        assert!(result.is_ok());
+
+        // Test connecting ext1 to ext3 with incompatible schema - should fail.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd_incompatible".to_string(),
+            Some("app1".to_string()),
+            "ext3".to_string(),
+            &pkg_info_map,
+        );
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("schema incompatibility"));
+
+        // Test connecting ext1 to ext3 with incompatible schema for data -
+        // should fail.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MsgType::Data,
+            "data_incompatible".to_string(),
+            Some("app1".to_string()),
+            "ext3".to_string(),
+            &pkg_info_map,
+        );
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("schema incompatibility"));
     }
 }
