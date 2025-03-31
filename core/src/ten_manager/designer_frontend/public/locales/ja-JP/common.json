@@ -25,7 +25,6 @@
     "menuGraph": {
       "title": "グラフ",
       "loadGraph": "グラフを読み込む",
-      "openExtensionStore": "拡張機能ストアを開く",
       "autoLayout": "自動レイアウト",
       "selectLoadedApp": "読み込まれたアプリを選択"
     },
@@ -37,6 +36,10 @@
       "title": "デザイナー",
       "about": "TEN Manager Designerについて",
       "preferences": "設定"
+    },
+    "menuExtension": {
+      "title": "拡張機能",
+      "openExtensionStore": "拡張機能ストアを開く"
     },
     "language": {
       "title": "言語",

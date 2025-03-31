@@ -25,7 +25,6 @@
     "menuGraph": {
       "title": "Graph",
       "loadGraph": "Load Graph",
-      "openExtensionStore": "Open Extension Store",
       "autoLayout": "Auto Layout",
       "selectLoadedApp": "Select a Loaded App"
     },
@@ -37,6 +36,10 @@
       "title": "Designer",
       "about": "About TEN Manager Designer",
       "preferences": "Preferences"
+    },
+    "menuExtension": {
+      "title": "Extensions",
+      "openExtensionStore": "Open Extension Store"
     },
     "language": {
       "title": "Language",

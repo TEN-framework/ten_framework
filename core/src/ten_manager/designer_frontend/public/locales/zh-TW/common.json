@@ -25,7 +25,6 @@
     "menuGraph": {
       "title": "圖譜",
       "loadGraph": "載入圖譜",
-      "openExtensionStore": "開啟擴充功能商店",
       "autoLayout": "自動佈局",
       "selectLoadedApp": "選擇已載入的應用程式"
     },
@@ -37,6 +36,10 @@
       "title": "設計器",
       "about": "關於 TEN Manager Designer",
       "preferences": "偏好設定"
+    },
+    "menuExtension": {
+      "title": "擴充功能",
+      "openExtensionStore": "開啟擴充功能商店"
     },
     "language": {
       "title": "語言",

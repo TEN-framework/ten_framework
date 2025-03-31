@@ -25,7 +25,6 @@
     "menuGraph": {
       "title": "图谱",
       "loadGraph": "加载图谱",
-      "openExtensionStore": "打开扩展商店",
       "autoLayout": "自动布局",
       "selectLoadedApp": "选择已加载应用"
     },
@@ -37,6 +36,10 @@
       "title": "设计器",
       "about": "关于 TEN Manager Designer",
       "preferences": "偏好设置"
+    },
+    "menuExtension": {
+      "title": "扩展",
+      "openExtensionStore": "打开扩展商店"
     },
     "language": {
       "title": "语言",
