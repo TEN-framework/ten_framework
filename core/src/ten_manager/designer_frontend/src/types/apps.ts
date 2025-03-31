@@ -42,8 +42,14 @@ export enum EPreferencesTabs {
 export const PREFERENCES_SCHEMA_LOG = z.object({
   logviewer_line_size: z.number().min(1).default(1000),
 });
+export enum EPreferencesLocale {
+  EN_US = "en-US",
+  ZH_CN = "zh-CN",
+  ZH_TW = "zh-TW",
+  JA_JP = "ja-JP",
+}
 // tmp, need to move to scripts and retrieve from the backend.
 export const PREFERENCES_SCHEMA = z.object({
-  locale: z.enum(["en-US", "zh-CN", "zh-TW", "ja-JP"]).default("en-US"),
+  locale: z.nativeEnum(EPreferencesLocale).default(EPreferencesLocale.EN_US),
   ...PREFERENCES_SCHEMA_LOG.shape,
 });

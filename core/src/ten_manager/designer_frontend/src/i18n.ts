@@ -9,6 +9,8 @@ import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
 
+import { EPreferencesLocale } from "@/types/apps";
+
 i18n
   // Use backend plugin to load translation files.
   .use(HttpBackend)
@@ -17,7 +19,7 @@ i18n
   // Pass the i18n instance to react-i18next.
   .use(initReactI18next)
   .init({
-    fallbackLng: "en-US", // Default language.
+    fallbackLng: EPreferencesLocale.EN_US, // Default language.
     debug: true, // Enable debug mode, can be turned off in production.
 
     ns: ["common"], // Define namespace.

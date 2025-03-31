@@ -12,11 +12,12 @@ import {
 } from "@/api/services/utils";
 import { ENDPOINT_HELP_TEXT, EHelpTextKey } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
+import { EPreferencesLocale } from "@/types/apps";
 
 export const retrieveHelpText = async (key: string, locale?: string) => {
   const template = ENDPOINT_HELP_TEXT.helpText[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    body: { key, locale: locale || "en-US" },
+    body: { key, locale: localeStringToEnum(locale) },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
@@ -25,7 +26,7 @@ export const retrieveHelpText = async (key: string, locale?: string) => {
 // TODO: refine this hook(post should not be used)
 export const useHelpText = (key: EHelpTextKey, locale?: string) => {
   const template = ENDPOINT_HELP_TEXT.helpText[ENDPOINT_METHOD.POST];
-  const url = prepareReqUrl(template) + `${key}/${locale || "en-US"}`;
+  const url = prepareReqUrl(template) + `${key}/${localeStringToEnum(locale)}`;
   const queryHookCache = getQueryHookCache();
 
   const [data, setData] = React.useState<string | null>(() => {
@@ -64,4 +65,18 @@ export const useHelpText = (key: EHelpTextKey, locale?: string) => {
     isLoading,
     mutate: fetchData,
   };
+};
+
+const localeStringToEnum = (locale?: string) => {
+  switch (locale) {
+    case "zh-CN":
+      return EPreferencesLocale.ZH_CN;
+    case "zh-TW":
+      return EPreferencesLocale.ZH_TW;
+    case "ja-JP":
+      return EPreferencesLocale.JA_JP;
+    case "en-US":
+    default:
+      return EPreferencesLocale.EN_US;
+  }
 };
