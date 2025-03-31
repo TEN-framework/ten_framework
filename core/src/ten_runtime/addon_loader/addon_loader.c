@@ -310,7 +310,7 @@ ten_addon_loader_on_all_singleton_instances_destroyed_ctx_create(
     void *cb_data) {
   ten_addon_loader_on_all_singleton_instances_destroyed_ctx_t *ctx = TEN_MALLOC(
       sizeof(ten_addon_loader_on_all_singleton_instances_destroyed_ctx_t));
-  TEN_ASSERT(ctx, "Should not happen.");
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->ten_env = ten_env;
   ctx->cb = cb;
@@ -421,10 +421,16 @@ static void ten_addon_loader_deinit_done(ten_env_t *ten_env, void *cb_data) {
   }
 }
 
-void ten_addon_loader_addons_destroy_singleton_instance(
+void ten_addon_loader_destroy_all_singleton_instances(
     ten_env_t *ten_env,
     ten_addon_loader_on_all_singleton_instances_destroyed_cb_t cb,
     void *cb_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,
+             "Should not happen.");
+
   bool need_to_wait_all_addon_loaders_destroyed = true;
 
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
@@ -461,7 +467,7 @@ done:
 }
 
 // Destroy all addon loader instances in the system.
-void ten_addon_loader_addons_destroy_singleton_instance_immediately(void) {
+void ten_addon_loader_destroy_all_singleton_instances_immediately(void) {
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 

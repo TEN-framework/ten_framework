@@ -341,11 +341,14 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
+    // There’s no need to perform the _unregister_all_addons_ action when the
+    // app closes, so we can directly proceed with the actions after
+    // _unregister_all_addons_.
     ten_app_on_all_addons_unregistered(self->ten_env, NULL);
     return;
   }
 
-  ten_unregister_all_addons_and_cleanup_after_app_close(
+  ten_addon_unregister_all_and_cleanup_after_app_close(
       self->ten_env, ten_app_on_all_addons_unregistered, NULL);
 }
 

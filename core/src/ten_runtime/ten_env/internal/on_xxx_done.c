@@ -122,6 +122,7 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
 
   case TEN_ENV_ATTACH_TO_ADDON_LOADER:
     return ten_addon_loader_on_deinit_done(self);
+
   default:
     TEN_ASSERT(0, "Should not happen.");
     return false;

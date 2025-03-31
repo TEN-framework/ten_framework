@@ -32,7 +32,7 @@
 #include "ten_utils/macro/check.h"
 
 typedef struct ten_on_all_addons_unregistered_ctx_t {
-  ten_on_all_addons_unregistered_cb_t cb;
+  ten_env_on_all_addons_unregistered_cb_t cb;
   void *cb_data;
 } ten_on_all_addons_unregistered_ctx_t;
 
@@ -360,7 +360,7 @@ static void ten_addon_unregister_all_except_addon_loader_addon(void) {
   ten_addon_unregister_all_protocol();
 }
 
-void ten_unregister_all_addons_and_cleanup(void) {
+void ten_addon_unregister_all_and_cleanup(void) {
   // Since Python addons (e.g., Python extension addons) require access to the
   // Python VM when performing `addon_t` deinitialization, and the Python addon
   // loader will destroy the Python VM during its own destruction, the Python
@@ -371,7 +371,7 @@ void ten_unregister_all_addons_and_cleanup(void) {
   ten_addon_unregister_all_except_addon_loader_addon();
 
   // Destroy all addon loaders' singleton to avoid memory leak.
-  ten_addon_loader_addons_destroy_singleton_instance_immediately();
+  ten_addon_loader_destroy_all_singleton_instances_immediately();
 
   ten_addon_unregister_all_addon_loader();
 }
@@ -391,8 +391,9 @@ static void ten_on_all_addons_unregistered_cb(ten_env_t *ten_env,
   TEN_FREE(ctx);
 }
 
-TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup_after_app_close(
-    ten_env_t *ten_env, ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
+TEN_RUNTIME_API void ten_addon_unregister_all_and_cleanup_after_app_close(
+    ten_env_t *ten_env, ten_env_on_all_addons_unregistered_cb_t cb,
+    void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
@@ -411,6 +412,6 @@ TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup_after_app_close(
 
   ten_addon_unregister_all_except_addon_loader_addon();
 
-  ten_addon_loader_addons_destroy_singleton_instance(
+  ten_addon_loader_destroy_all_singleton_instances(
       ten_env, ten_on_all_addons_unregistered_cb, ctx);
 }

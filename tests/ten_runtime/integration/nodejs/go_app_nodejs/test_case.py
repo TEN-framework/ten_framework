@@ -38,7 +38,7 @@ def test_go_app_nodejs():
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
         fs_utils.remove_tree(app_root_path)
-        
+
         print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
