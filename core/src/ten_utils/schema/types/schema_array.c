@@ -39,8 +39,8 @@ ten_schema_array_t *ten_schema_array_create(void) {
 }
 
 void ten_schema_array_destroy(ten_schema_array_t *self) {
-  TEN_ASSERT(self && ten_schema_array_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_array_check_integrity(self), "Invalid argument.");
 
   ten_signature_set(&self->signature, 0);
 

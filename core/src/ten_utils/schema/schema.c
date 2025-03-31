@@ -87,7 +87,8 @@ void ten_schema_init(ten_schema_t *self) {
 }
 
 void ten_schema_deinit(ten_schema_t *self) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
 
   ten_signature_set(&self->signature, 0);
   ten_hashtable_deinit(&self->keywords);
@@ -198,7 +199,8 @@ ten_schema_t *ten_schema_create_from_value(ten_value_t *value) {
     }
 
     ten_schema_keyword_t *keyword = keyword_info->from_value(self, field_value);
-    TEN_ASSERT(keyword && ten_schema_keyword_check_integrity(keyword),
+    TEN_ASSERT(keyword, "Should not happen.");
+    TEN_ASSERT(ten_schema_keyword_check_integrity(keyword),
                "Should not happen.");
 
     ten_schema_append_keyword(self, keyword);
@@ -208,12 +210,13 @@ ten_schema_t *ten_schema_create_from_value(ten_value_t *value) {
 }
 
 void ten_schema_destroy(ten_schema_t *self) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
 
   ten_schema_keyword_type_t *keyword_type = self->keyword_type;
-  TEN_ASSERT(
-      keyword_type && ten_schema_keyword_type_check_integrity(keyword_type),
-      "Invalid argument.");
+  TEN_ASSERT(keyword_type, "Invalid argument.");
+  TEN_ASSERT(ten_schema_keyword_type_check_integrity(keyword_type),
+             "Invalid argument.");
 
   switch (keyword_type->type) {
   case TEN_TYPE_OBJECT: {
@@ -247,7 +250,8 @@ void ten_schema_destroy(ten_schema_t *self) {
 
 bool ten_schema_validate_value_with_schema_error(
     ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
   TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
@@ -255,7 +259,8 @@ bool ten_schema_validate_value_with_schema_error(
   ten_hashtable_foreach(&self->keywords, iter) {
     ten_schema_keyword_t *keyword = CONTAINER_OF_FROM_OFFSET(
         iter.node, offsetof(ten_schema_keyword_t, hh_in_keyword_map));
-    TEN_ASSERT(keyword && ten_schema_keyword_check_integrity(keyword),
+    TEN_ASSERT(keyword, "Should not happen.");
+    TEN_ASSERT(ten_schema_keyword_check_integrity(keyword),
                "Should not happen.");
 
     bool success = keyword->validate_value(keyword, value, schema_err);
@@ -267,10 +272,26 @@ bool ten_schema_validate_value_with_schema_error(
   return true;
 }
 
+/**
+ * Validates a value against a schema.
+ *
+ * This function checks if the provided value conforms to the schema's
+ * requirements. It handles error reporting and provides detailed error
+ * messages including the path to the problematic element in case of validation
+ * failure.
+ *
+ * @param self The schema to validate against.
+ * @param value The value to be validated.
+ * @param err Error context to store validation errors. If NULL, a temporary
+ *            error context will be created.
+ * @return true if the value is valid according to the schema, false otherwise.
+ */
 bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
                                ten_error_t *err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
 
+  // Create a temporary error context if none was provided.
   bool new_err = false;
   if (!err) {
     err = ten_error_create();
@@ -285,9 +306,14 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
     goto done;
   }
 
+  // Initialize schema error context for path tracking during validation.
   ten_schema_error_t err_ctx;
   ten_schema_error_init(&err_ctx, err);
+
+  // Perform the actual validation with path tracking.
   result = ten_schema_validate_value_with_schema_error(self, value, &err_ctx);
+
+  // If validation failed and we have a path, prepend it to the error message.
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_error_message(
         err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
@@ -296,6 +322,7 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
   ten_schema_error_deinit(&err_ctx);
 
 done:
+  // Clean up temporary error context if we created one.
   if (new_err) {
     ten_error_destroy(err);
   }
@@ -303,32 +330,70 @@ done:
   return result;
 }
 
+/**
+ * Adjusts a value's type according to the schema with detailed error reporting.
+ *
+ * This function iterates through all schema keywords and applies their type
+ * adjustment logic to the provided value. It uses a schema_err context to
+ * provide detailed error information including the path to the problematic
+ * element in case of failure.
+ *
+ * @param self The schema to use for type adjustment.
+ * @param value The value to be adjusted according to schema requirements.
+ * @param schema_err Error context that tracks the path and detailed error
+ * information.
+ * @return true if all adjustments succeeded or no adjustment was needed, false
+ * otherwise.
+ */
 bool ten_schema_adjust_value_type_with_schema_error(
     ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
   TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
+  // Iterate through all keywords in the schema.
   ten_hashtable_foreach(&self->keywords, iter) {
+    // Extract the keyword from the hash table node.
     ten_schema_keyword_t *keyword = CONTAINER_OF_FROM_OFFSET(
         iter.node, offsetof(ten_schema_keyword_t, hh_in_keyword_map));
-    TEN_ASSERT(keyword && ten_schema_keyword_check_integrity(keyword),
+    TEN_ASSERT(keyword, "Should not happen.");
+    TEN_ASSERT(ten_schema_keyword_check_integrity(keyword),
                "Should not happen.");
 
+    // Apply the keyword's adjustment logic to the value.
     bool success = keyword->adjust_value(keyword, value, schema_err);
     if (!success) {
+      // Stop processing if any adjustment fails.
       return false;
     }
   }
 
+  // All adjustments succeeded.
   return true;
 }
 
+/**
+ * Adjusts a value's type according to the schema.
+ *
+ * This function attempts to adjust the provided value to conform to the type
+ * requirements specified in the schema. For example, it might convert a string
+ * representation of a number into an actual number value if the schema expects
+ * a numeric type.
+ *
+ * @param self The schema to use for type adjustment.
+ * @param value The value to be adjusted.
+ * @param err Error context to report any issues (can be NULL).
+ * @return true if adjustment succeeded or no adjustment was needed, false
+ * otherwise.
+ */
 bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
                                   ten_error_t *err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
 
+  // Create a new error context if none was provided.
   bool new_err = false;
   if (!err) {
     err = ten_error_create();
@@ -339,24 +404,32 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
 
   bool result = false;
 
+  // Validate that we have a value to adjust.
   if (!value) {
     ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Value is required.");
     goto done;
   }
 
+  // Initialize schema error context for detailed error reporting.
   ten_schema_error_t err_ctx;
   ten_schema_error_init(&err_ctx, err);
+
+  // Perform the actual type adjustment using the schema.
   result =
       ten_schema_adjust_value_type_with_schema_error(self, value, &err_ctx);
 
+  // If adjustment failed, prepend the path to the error message for better
+  // context.
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_error_message(
         err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
+  // Clean up the schema error context.
   ten_schema_error_deinit(&err_ctx);
 
 done:
+  // Clean up the error context if we created it.
   if (new_err) {
     ten_error_destroy(err);
   }
@@ -366,7 +439,8 @@ done:
 
 static ten_schema_keyword_t *ten_schema_peek_keyword_by_type(
     ten_schema_t *self, TEN_SCHEMA_KEYWORD keyword_type) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(keyword_type > TEN_SCHEMA_KEYWORD_INVALID &&
                  keyword_type < TEN_SCHEMA_KEYWORD_LAST,
              "Invalid argument.");
@@ -382,7 +456,8 @@ static ten_schema_keyword_t *ten_schema_peek_keyword_by_type(
 
 bool ten_schema_is_compatible_with_schema_error(
     ten_schema_t *self, ten_schema_t *target, ten_schema_error_t *schema_err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_schema_check_integrity(target), "Invalid argument.");
   TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
@@ -420,7 +495,8 @@ bool ten_schema_is_compatible_with_schema_error(
 
 bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
                               ten_error_t *err) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_schema_check_integrity(target), "Invalid argument.");
 
   bool new_err = false;
@@ -486,37 +562,57 @@ ten_schema_t *ten_schema_create_from_json_str(const char *json_string,
   return schema;
 }
 
+/**
+ * Adjusts and validates a JSON string against a schema.
+ *
+ * This function performs two operations:
+ * 1. Adjusts the value types to match the schema requirements.
+ * 2. Validates the adjusted value against the schema.
+ *
+ * @param self The schema to validate against.
+ * @param json_string The JSON string to validate.
+ * @param err_msg Pointer to store error message if validation fails.
+ * @return true if the JSON is valid according to the schema, false otherwise.
+ */
 bool ten_schema_adjust_and_validate_json_str(ten_schema_t *self,
                                              const char *json_string,
                                              const char **err_msg) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(json_string, "Invalid argument.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
+  // Parse the JSON string into a ten_json_t structure.
   ten_json_t *json = ten_json_from_string(json_string, &err);
+
   ten_value_t *value = NULL;
   do {
+    // Break if JSON parsing failed.
     if (!json) {
       break;
     }
 
+    // Convert the JSON to a TEN value.
     value = ten_value_from_json(json);
     if (!value) {
       ten_error_set(&err, TEN_ERROR_CODE_GENERIC, "Failed to parse JSON.");
       break;
     }
 
+    // Adjust the value types to match schema requirements.
     if (!ten_schema_adjust_value_type(self, value, &err)) {
       break;
     }
 
+    // Validate the adjusted value against the schema.
     if (!ten_schema_validate_value(self, value, &err)) {
       break;
     }
   } while (0);
 
+  // Clean up resources.
   if (json) {
     ten_json_destroy(json);
   }
@@ -525,6 +621,7 @@ bool ten_schema_adjust_and_validate_json_str(ten_schema_t *self,
     ten_value_destroy(value);
   }
 
+  // Set error message if validation failed.
   bool result = ten_error_is_success(&err);
   if (!result) {
     *err_msg = TEN_STRDUP(ten_error_message(&err));

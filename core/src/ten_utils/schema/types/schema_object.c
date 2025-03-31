@@ -37,8 +37,8 @@ ten_schema_object_t *ten_schema_object_create(void) {
 }
 
 void ten_schema_object_destroy(ten_schema_object_t *self) {
-  TEN_ASSERT(self && ten_schema_object_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_object_check_integrity(self), "Invalid argument.");
 
   ten_signature_set(&self->signature, 0);
 
@@ -51,7 +51,8 @@ void ten_schema_object_destroy(ten_schema_object_t *self) {
 
 ten_schema_t *ten_schema_object_peek_property_schema(ten_schema_t *self,
                                                      const char *prop_name) {
-  TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(prop_name, "Invalid argument.");
 
   ten_schema_object_t *object_schema = (ten_schema_object_t *)self;

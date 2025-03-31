@@ -13,14 +13,22 @@
 
 #define TEN_SCHEMA_PRIMITIVE_SIGNATURE 0x368E9692BBD7548DU
 
-// The definition of the schema of a primitive type (i.e.,
-// int/uint/float/double/string/bool).
-//
-// Note that we only support `type` keyword now, so the type `buf` and `ptr` are
-// treated as primitive.
+/**
+ * @brief Definition of the schema for primitive data types.
+ *
+ * This structure represents schemas for primitive types in the TEN framework,
+ * including int, uint, float, double, string, and bool.
+ *
+ * Currently, only the 'type' keyword is supported in the schema definition.
+ * Special types like 'buf' and 'ptr' are also handled as primitives in the
+ * current implementation, though they represent more complex data structures.
+ *
+ * The structure inherits from ten_schema_t and includes a signature field
+ * for integrity verification.
+ */
 typedef struct ten_schema_primitive_t {
-  ten_schema_t hdr;
-  ten_signature_t signature;
+  ten_schema_t hdr;           // Base schema header.
+  ten_signature_t signature;  // Integrity verification signature.
 } ten_schema_primitive_t;
 
 TEN_UTILS_PRIVATE_API bool ten_schema_primitive_check_integrity(
