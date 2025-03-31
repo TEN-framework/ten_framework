@@ -5,22 +5,12 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
 
 use crate::graph::{
     connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     Graph,
 };
-
-/// Message type enum representing the different types of message flows in a
-/// connection
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum MessageType {
-    Command,
-    Data,
-    AudioFrame,
-    VideoFrame,
-}
+use crate::pkg_info::message::MsgType;
 
 impl Graph {
     /// Adds a new connection between two extension nodes in the graph.
@@ -28,7 +18,7 @@ impl Graph {
         &mut self,
         src_app: Option<String>,
         src_extension: String,
-        msg_type: MessageType,
+        msg_type: MsgType,
         msg_name: String,
         dest_app: Option<String>,
         dest_extension: String,
@@ -69,10 +59,10 @@ impl Graph {
                 if conn.extension == src_extension && conn.app == src_app {
                     // Check for duplicate message flows based on message type.
                     let msg_flows = match msg_type {
-                        MessageType::Command => conn.cmd.as_ref(),
-                        MessageType::Data => conn.data.as_ref(),
-                        MessageType::AudioFrame => conn.audio_frame.as_ref(),
-                        MessageType::VideoFrame => conn.video_frame.as_ref(),
+                        MsgType::Cmd => conn.cmd.as_ref(),
+                        MsgType::Data => conn.data.as_ref(),
+                        MsgType::AudioFrame => conn.audio_frame.as_ref(),
+                        MsgType::VideoFrame => conn.video_frame.as_ref(),
                     };
 
                     if let Some(flows) = msg_flows {
@@ -139,7 +129,7 @@ impl Graph {
 
         // Add the message flow to the appropriate vector based on message type.
         match msg_type {
-            MessageType::Command => {
+            MsgType::Cmd => {
                 if connection.cmd.is_none() {
                     connection.cmd = Some(Vec::new());
                 }
@@ -163,7 +153,7 @@ impl Graph {
                     cmd_flows.push(message_flow);
                 }
             }
-            MessageType::Data => {
+            MsgType::Data => {
                 if connection.data.is_none() {
                     connection.data = Some(Vec::new());
                 }
@@ -187,7 +177,7 @@ impl Graph {
                     data_flows.push(message_flow);
                 }
             }
-            MessageType::AudioFrame => {
+            MsgType::AudioFrame => {
                 if connection.audio_frame.is_none() {
                     connection.audio_frame = Some(Vec::new());
                 }
@@ -211,7 +201,7 @@ impl Graph {
                     audio_flows.push(message_flow);
                 }
             }
-            MessageType::VideoFrame => {
+            MsgType::VideoFrame => {
                 if connection.video_frame.is_none() {
                     connection.video_frame = Some(Vec::new());
                 }
@@ -253,6 +243,7 @@ impl Graph {
 mod tests {
     use super::*;
     use crate::graph::node::GraphNode;
+    use crate::pkg_info::message::MsgType;
     use crate::pkg_info::pkg_type::PkgType;
     use crate::pkg_info::pkg_type_and_name::PkgTypeAndName;
 
@@ -288,7 +279,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -328,7 +319,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(), // This node doesn't exist.
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -350,7 +341,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(), // This node doesn't exist.
@@ -376,7 +367,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -388,7 +379,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext3".to_string(),
@@ -428,7 +419,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "cmd1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -438,7 +429,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Data,
+            MsgType::Data,
             "data1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -448,7 +439,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::AudioFrame,
+            MsgType::AudioFrame,
             "audio1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -458,7 +449,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::VideoFrame,
+            MsgType::VideoFrame,
             "video1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -494,7 +485,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
@@ -505,7 +496,7 @@ mod tests {
         let result = graph.add_connection(
             Some("app1".to_string()),
             "ext1".to_string(),
-            MessageType::Command,
+            MsgType::Cmd,
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
