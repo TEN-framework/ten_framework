@@ -45,7 +45,6 @@ export function LogViewerPopup(props: {
     removeWidget(id);
     removeBackstageWidget(id);
     removeLogViewerHistory(id);
-    data?.postActions?.();
   };
 
   React.useEffect(() => {
