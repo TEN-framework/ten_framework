@@ -5,15 +5,21 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use anyhow::Result;
+use std::collections::HashMap;
 
 use crate::graph::{
     connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     Graph,
 };
-use crate::pkg_info::message::MsgType;
+use crate::pkg_info::pkg_type::PkgType;
+use crate::pkg_info::{message::MsgType, PkgInfo};
+use crate::schema::store::{
+    are_cmd_schemas_compatible, are_ten_schemas_compatible,
+};
 
 impl Graph {
     /// Adds a new connection between two extension nodes in the graph.
+    #[allow(clippy::too_many_arguments)]
     pub fn add_connection(
         &mut self,
         src_app: Option<String>,
@@ -22,6 +28,7 @@ impl Graph {
         msg_name: String,
         dest_app: Option<String>,
         dest_extension: String,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
     ) -> Result<()> {
         // Store the original state in case validation fails.
         let original_graph = self.clone();
@@ -83,6 +90,203 @@ impl Graph {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Find source app PkgInfo.
+        let mut src_app_pkg_info = None;
+        let mut src_extension_pkg_info = None;
+
+        // Find src app/extension PkgInfo.
+        for pkgs in installed_pkgs_of_all_apps.values() {
+            // Find source app PkgInfo.
+            let app_pkg = pkgs.iter().find(|pkg| {
+                if let Some(app_uri) = src_app.as_ref() {
+                    if let Some(property) = &pkg.property {
+                        if let Some(ten) = &property._ten {
+                            if let Some(uri) = &ten.uri {
+                                return pkg.manifest.as_ref().is_some_and(
+                                    |m| {
+                                        m.type_and_name.pkg_type == PkgType::App
+                                    },
+                                ) && uri == app_uri;
+                            }
+                        }
+                    }
+                }
+                false
+            });
+
+            if let Some(app_pkg) = app_pkg {
+                src_app_pkg_info = Some(app_pkg);
+
+                // Find source extension PkgInfo in the same app.
+                src_extension_pkg_info = pkgs.iter().find(|pkg| {
+                    pkg.manifest.as_ref().is_some_and(|m| {
+                        m.type_and_name.pkg_type == PkgType::Extension
+                            && m.type_and_name.name == src_extension
+                    })
+                });
+
+                if src_extension_pkg_info.is_some() {
+                    break;
+                }
+            }
+        }
+
+        if src_app_pkg_info.is_none() {
+            return Err(anyhow::anyhow!(
+                "Source app '{:?}' not found in the installed packages",
+                src_app
+            ));
+        }
+
+        if src_extension_pkg_info.is_none() {
+            return Err(anyhow::anyhow!(
+                "Source extension '{}' not found in the installed packages for app '{:?}'",
+                src_extension, src_app
+            ));
+        }
+
+        // Find dest app/extension PkgInfo.
+        let mut dest_app_pkg_info = None;
+        let mut dest_extension_pkg_info = None;
+
+        for pkgs in installed_pkgs_of_all_apps.values() {
+            // Find destination app PkgInfo.
+            let app_pkg = pkgs.iter().find(|pkg| {
+                if let Some(app_uri) = dest_app.as_ref() {
+                    if let Some(property) = &pkg.property {
+                        if let Some(ten) = &property._ten {
+                            if let Some(uri) = &ten.uri {
+                                return pkg.manifest.as_ref().is_some_and(
+                                    |m| {
+                                        m.type_and_name.pkg_type == PkgType::App
+                                    },
+                                ) && uri == app_uri;
+                            }
+                        }
+                    }
+                }
+                false
+            });
+
+            if let Some(app_pkg) = app_pkg {
+                dest_app_pkg_info = Some(app_pkg);
+
+                // Find destination extension PkgInfo in the same app.
+                dest_extension_pkg_info = pkgs.iter().find(|pkg| {
+                    pkg.manifest.as_ref().is_some_and(|m| {
+                        m.type_and_name.pkg_type == PkgType::Extension
+                            && m.type_and_name.name == dest_extension
+                    })
+                });
+
+                if dest_extension_pkg_info.is_some() {
+                    break;
+                }
+            }
+        }
+
+        if dest_app_pkg_info.is_none() {
+            return Err(anyhow::anyhow!(
+                "Destination app '{:?}' not found in the installed packages",
+                dest_app
+            ));
+        }
+
+        if dest_extension_pkg_info.is_none() {
+            return Err(anyhow::anyhow!(
+                "Destination extension '{}' not found in the installed packages for app '{:?}'",
+                dest_extension, dest_app
+            ));
+        }
+
+        // Get source and destination schemas based on message type.
+        let src_extension_pkg = src_extension_pkg_info.unwrap();
+        let dest_extension_pkg = dest_extension_pkg_info.unwrap();
+
+        // Check schema compatibility based on message type.
+        match msg_type {
+            MsgType::Cmd => {
+                let src_schema = src_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.cmd_out.get(&msg_name));
+
+                let dest_schema = dest_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.cmd_in.get(&msg_name));
+
+                if let Err(err) =
+                    are_cmd_schemas_compatible(src_schema, dest_schema)
+                {
+                    return Err(anyhow::anyhow!(
+                        "Command schema incompatibility between source and destination: {}",
+                        err
+                    ));
+                }
+            }
+            MsgType::Data => {
+                let src_schema = src_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.data_out.get(&msg_name));
+
+                let dest_schema = dest_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.data_in.get(&msg_name));
+
+                if let Err(err) =
+                    are_ten_schemas_compatible(src_schema, dest_schema)
+                {
+                    return Err(anyhow::anyhow!(
+                        "Data schema incompatibility between source and destination: {}",
+                        err
+                    ));
+                }
+            }
+            MsgType::AudioFrame => {
+                let src_schema = src_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.audio_frame_out.get(&msg_name));
+
+                let dest_schema = dest_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.audio_frame_in.get(&msg_name));
+
+                if let Err(err) =
+                    are_ten_schemas_compatible(src_schema, dest_schema)
+                {
+                    return Err(anyhow::anyhow!(
+                        "Audio frame schema incompatibility between source and destination: {}",
+                        err
+                    ));
+                }
+            }
+            MsgType::VideoFrame => {
+                let src_schema = src_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.video_frame_out.get(&msg_name));
+
+                let dest_schema = dest_extension_pkg
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| store.video_frame_in.get(&msg_name));
+
+                if let Err(err) =
+                    are_ten_schemas_compatible(src_schema, dest_schema)
+                {
+                    return Err(anyhow::anyhow!(
+                        "Video frame schema incompatibility between source and destination: {}",
+                        err
+                    ));
                 }
             }
         }
@@ -243,9 +447,14 @@ impl Graph {
 mod tests {
     use super::*;
     use crate::graph::node::GraphNode;
+    use crate::pkg_info::manifest::Manifest;
     use crate::pkg_info::message::MsgType;
     use crate::pkg_info::pkg_type::PkgType;
     use crate::pkg_info::pkg_type_and_name::PkgTypeAndName;
+    use crate::pkg_info::property::Property;
+    use crate::schema::store::SchemaStore;
+    use std::collections::HashMap;
+    use std::str::FromStr;
 
     fn create_test_node(
         name: &str,
@@ -262,6 +471,127 @@ mod tests {
             app: app.map(|s| s.to_string()),
             property: None,
         }
+    }
+
+    fn create_test_pkg_info_map() -> HashMap<String, Vec<PkgInfo>> {
+        let mut map = HashMap::new();
+
+        // Create app PkgInfo.
+        let app_manifest_str = r#"
+        {
+            "type": "app",
+            "name": "app1",
+            "version": "1.0.0"
+        }
+        "#;
+        let app_manifest = Manifest::from_str(app_manifest_str).unwrap();
+
+        // Create property with URI for the app.
+        let prop_str = r#"
+        {
+            "_ten": {
+                "uri": "app1"
+            }
+        }
+        "#;
+        let app_property = Property::from_str(prop_str).unwrap();
+
+        // Create ext1 PkgInfo.
+        let ext1_manifest_str = r#"
+        {
+            "type": "extension",
+            "name": "ext1",
+            "version": "1.0.0"
+        }
+        "#;
+        let ext1_manifest = Manifest::from_str(ext1_manifest_str).unwrap();
+
+        // Create ext2 PkgInfo.
+        let ext2_manifest_str = r#"
+        {
+            "type": "extension",
+            "name": "ext2",
+            "version": "1.0.0"
+        }
+        "#;
+        let ext2_manifest = Manifest::from_str(ext2_manifest_str).unwrap();
+
+        // Create ext3 PkgInfo.
+        let ext3_manifest_str = r#"
+        {
+            "type": "extension",
+            "name": "ext3",
+            "version": "1.0.0"
+        }
+        "#;
+        let ext3_manifest = Manifest::from_str(ext3_manifest_str).unwrap();
+
+        // Create app PkgInfo.
+        let app_pkg_info = PkgInfo {
+            manifest: Some(app_manifest),
+            property: Some(app_property),
+            compatible_score: 0,
+            is_installed: true,
+            url: String::new(),
+            hash: String::new(),
+            schema_store: None,
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
+        };
+
+        // Create schema stores for extensions.
+        let ext1_schema_store = SchemaStore::default();
+        let ext2_schema_store = SchemaStore::default();
+        let ext3_schema_store = SchemaStore::default();
+
+        // Create extension PkgInfos.
+        let ext1_pkg_info = PkgInfo {
+            manifest: Some(ext1_manifest),
+            property: None,
+            compatible_score: 0,
+            is_installed: true,
+            url: String::new(),
+            hash: String::new(),
+            schema_store: Some(ext1_schema_store),
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
+        };
+
+        let ext2_pkg_info = PkgInfo {
+            manifest: Some(ext2_manifest),
+            property: None,
+            compatible_score: 0,
+            is_installed: true,
+            url: String::new(),
+            hash: String::new(),
+            schema_store: Some(ext2_schema_store),
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
+        };
+
+        let ext3_pkg_info = PkgInfo {
+            manifest: Some(ext3_manifest),
+            property: None,
+            compatible_score: 0,
+            is_installed: true,
+            url: String::new(),
+            hash: String::new(),
+            schema_store: Some(ext3_schema_store),
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
+        };
+
+        // Add to map.
+        map.insert(
+            "/path/to/app1".to_string(),
+            vec![app_pkg_info, ext1_pkg_info, ext2_pkg_info, ext3_pkg_info],
+        );
+
+        map
     }
 
     #[test]
@@ -283,6 +613,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &create_test_pkg_info_map(),
         );
 
         assert!(result.is_ok());
@@ -323,6 +654,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &create_test_pkg_info_map(),
         );
 
         assert!(result.is_err());
@@ -345,6 +677,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(), // This node doesn't exist.
+            &create_test_pkg_info_map(),
         );
 
         assert!(result.is_err());
@@ -363,6 +696,8 @@ mod tests {
             connections: None,
         };
 
+        let pkg_info_map = create_test_pkg_info_map();
+
         // Add first connection.
         let result = graph.add_connection(
             Some("app1".to_string()),
@@ -371,6 +706,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -383,6 +719,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext3".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -415,6 +752,8 @@ mod tests {
             connections: None,
         };
 
+        let pkg_info_map = create_test_pkg_info_map();
+
         // Add different message types.
         let result = graph.add_connection(
             Some("app1".to_string()),
@@ -423,6 +762,7 @@ mod tests {
             "cmd1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -433,6 +773,7 @@ mod tests {
             "data1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -443,6 +784,7 @@ mod tests {
             "audio1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -453,6 +795,7 @@ mod tests {
             "video1".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -481,6 +824,8 @@ mod tests {
             connections: None,
         };
 
+        let pkg_info_map = create_test_pkg_info_map();
+
         // Add a connection.
         let result = graph.add_connection(
             Some("app1".to_string()),
@@ -489,6 +834,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
         assert!(result.is_ok());
 
@@ -500,6 +846,7 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
+            &pkg_info_map,
         );
 
         // This should fail because the connection already exists.
