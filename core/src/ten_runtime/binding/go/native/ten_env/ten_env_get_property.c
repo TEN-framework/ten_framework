@@ -126,7 +126,6 @@ static ten_go_error_t ten_go_ten_env_peek_property(
     uintptr_t *size, uintptr_t *value_addr, uintptr_t callback_handle) {
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -164,7 +163,6 @@ ten_go_error_t ten_go_ten_env_get_property_type_and_size(
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
   TEN_ASSERT(type && size, "Should not happen.");
 
   ten_go_error_t cgo_error;
