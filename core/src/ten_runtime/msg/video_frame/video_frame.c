@@ -56,7 +56,7 @@ int32_t ten_raw_video_frame_get_height(ten_video_frame_t *self) {
 
 static ten_buf_t *ten_raw_video_frame_peek_buf(ten_video_frame_t *self) {
   TEN_ASSERT(self, "Should not happen.");
-  return ten_value_peek_buf(&self->data);
+  return ten_value_peek_buf(&self->data, NULL);
 }
 
 ten_buf_t *ten_video_frame_peek_buf(ten_shared_ptr_t *self) {
@@ -194,18 +194,18 @@ bool ten_video_frame_set_height(ten_shared_ptr_t *self, int32_t height) {
 
 static uint8_t *ten_raw_video_frame_alloc_data(ten_video_frame_t *self,
                                                size_t size) {
-  uint8_t *data = ten_value_peek_buf(&self->data)->data;
+  uint8_t *data = ten_value_peek_buf(&self->data, NULL)->data;
   if (data) {
     TEN_ASSERT(0, "Should not happen.");
     return NULL;
   }
 
-  if (!ten_buf_init_with_owned_data(ten_value_peek_buf(&self->data), size)) {
+  if (!ten_buf_init_with_owned_data(ten_value_peek_buf(&self->data, NULL), size)) {
     TEN_ASSERT(0, "Should not happen.");
     return NULL;
   }
 
-  return ten_value_peek_buf(&self->data)->data;
+  return ten_value_peek_buf(&self->data, NULL)->data;
 }
 
 uint8_t *ten_video_frame_alloc_data(ten_shared_ptr_t *self, size_t size) {

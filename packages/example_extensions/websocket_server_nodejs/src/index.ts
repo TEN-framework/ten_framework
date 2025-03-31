@@ -35,10 +35,8 @@ class WebsocketServerExtension extends Extension {
     console.log("WebsocketServerExtension onStart");
 
     const hostname = "127.0.0.1";
-    var port: number;
-    try {
-      port = await tenEnv.getPropertyNumber("server_port");
-    } catch (e) {
+    let [port, err] = await tenEnv.getPropertyNumber("server_port");
+    if (err != null) {
       // Use default port.
       port = 8001;
     }

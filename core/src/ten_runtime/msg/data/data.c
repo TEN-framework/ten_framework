@@ -90,12 +90,12 @@ ten_shared_ptr_t *ten_data_create_with_name_len(const char *name,
 
 static void ten_raw_data_set_buf_with_move(ten_data_t *self, ten_buf_t *buf) {
   TEN_ASSERT(self && ten_raw_data_check_integrity(self), "Should not happen.");
-  ten_buf_move(ten_value_peek_buf(&self->buf), buf);
+  ten_buf_move(ten_value_peek_buf(&self->buf, NULL), buf);
 }
 
 static ten_buf_t *ten_raw_data_peek_buf(ten_data_t *self) {
   TEN_ASSERT(self && ten_raw_data_check_integrity(self), "Should not happen.");
-  return ten_value_peek_buf(&self->buf);
+  return ten_value_peek_buf(&self->buf, NULL);
 }
 
 ten_buf_t *ten_data_peek_buf(ten_shared_ptr_t *self_) {
@@ -119,10 +119,10 @@ void ten_raw_data_buf_copy(ten_msg_t *self, ten_msg_t *src,
   ten_data_t *src_data = (ten_data_t *)src;
   ten_data_t *self_data = (ten_data_t *)self;
 
-  if (ten_buf_get_size(ten_value_peek_buf(&src_data->buf))) {
-    ten_buf_init_with_copying_data(ten_value_peek_buf(&self_data->buf),
-                                   ten_value_peek_buf(&src_data->buf)->data,
-                                   ten_value_peek_buf(&src_data->buf)->size);
+  if (ten_buf_get_size(ten_value_peek_buf(&src_data->buf, NULL))) {
+    ten_buf_init_with_copying_data(ten_value_peek_buf(&self_data->buf, NULL),
+                                   ten_value_peek_buf(&src_data->buf, NULL)->data,
+                                   ten_value_peek_buf(&src_data->buf, NULL)->size);
   }
 }
 
@@ -179,7 +179,7 @@ bool ten_raw_data_loop_all_fields(ten_msg_t *self,
 }
 
 static uint8_t *ten_raw_data_alloc_buf(ten_data_t *self, size_t size) {
-  uint8_t *data = ten_value_peek_buf(&self->buf)->data;
+  uint8_t *data = ten_value_peek_buf(&self->buf, NULL)->data;
   if (data) {
     TEN_ASSERT(0, "Should not happen.");
     return NULL;
@@ -189,7 +189,7 @@ static uint8_t *ten_raw_data_alloc_buf(ten_data_t *self, size_t size) {
     return NULL;
   }
 
-  return ten_value_peek_buf(&self->buf)->data;
+  return ten_value_peek_buf(&self->buf, NULL)->data;
 }
 
 uint8_t *ten_data_alloc_buf(ten_shared_ptr_t *self, size_t size) {

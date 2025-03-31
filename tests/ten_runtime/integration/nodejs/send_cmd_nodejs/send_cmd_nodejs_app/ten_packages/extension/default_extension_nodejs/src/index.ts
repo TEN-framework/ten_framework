@@ -82,7 +82,7 @@ class DefaultExtension extends Extension {
       JSON.stringify({ key1: "value1", key2: 2 })
     );
 
-    const detailJson = cmdResult.getPropertyToJson("detail");
+    const [detailJson, err] = cmdResult.getPropertyToJson("detail");
     tenEnv.logInfo("detailJson:" + detailJson);
 
     tenEnv.returnResult(cmdResult);

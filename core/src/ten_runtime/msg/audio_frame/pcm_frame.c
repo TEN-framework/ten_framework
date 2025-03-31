@@ -43,7 +43,7 @@ int32_t ten_raw_audio_frame_get_samples_per_channel(ten_audio_frame_t *self) {
 
 ten_buf_t *ten_raw_audio_frame_peek_buf(ten_audio_frame_t *self) {
   TEN_ASSERT(self, "Should not happen.");
-  return ten_value_peek_buf(&self->buf);
+  return ten_value_peek_buf(&self->buf, NULL);
 }
 
 int32_t ten_raw_audio_frame_get_sample_rate(ten_audio_frame_t *self) {
@@ -149,7 +149,7 @@ static uint8_t *ten_raw_audio_frame_alloc_buf(ten_audio_frame_t *self,
 
   ten_value_init_buf(&self->buf, size);
 
-  return ten_value_peek_buf(&self->buf)->data;
+  return ten_value_peek_buf(&self->buf, NULL)->data;
 }
 
 static void ten_raw_audio_frame_init(ten_audio_frame_t *self) {

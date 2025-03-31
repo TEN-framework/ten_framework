@@ -18,7 +18,7 @@ export class TenEnv {
       ten_addon.ten_nodejs_ten_env_send_cmd(
         this,
         cmd,
-        async (cmdResult: CmdResult, error: Error) => {
+        async (cmdResult: CmdResult | null, error: Error | null) => {
           resolve([cmdResult, error]);
         }
       );
@@ -30,7 +30,7 @@ export class TenEnv {
       ten_addon.ten_nodejs_ten_env_send_data(
         this,
         data,
-        async (error: Error) => {
+        async (error: Error | null) => {
           resolve(error);
         }
       );
@@ -42,7 +42,7 @@ export class TenEnv {
       ten_addon.ten_nodejs_ten_env_send_video_frame(
         this,
         videoFrame,
-        async (error: Error) => {
+        async (error: Error | null) => {
           resolve(error);
         }
       );
@@ -54,7 +54,7 @@ export class TenEnv {
       ten_addon.ten_nodejs_ten_env_send_audio_frame(
         this,
         audioFrame,
-        async (error: Error) => {
+        async (error: Error | null) => {
           resolve(error);
         }
       );
@@ -66,7 +66,7 @@ export class TenEnv {
       ten_addon.ten_nodejs_ten_env_return_result(
         this,
         cmdResult,
-        async (error: Error) => {
+        async (error: Error | null) => {
           resolve(error);
         }
       );
@@ -85,116 +85,88 @@ export class TenEnv {
     });
   }
 
-  async getPropertyToJson(path: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  async getPropertyToJson(path: string): Promise<[string, Error | null]> {
+    return new Promise<[string, Error | null]>((resolve) => {
       ten_addon.ten_nodejs_ten_env_get_property_to_json(
         this,
         path,
-        async (result: string, error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+        async (result: string, error: Error | null) => {
+          resolve([result, error]);
         }
       );
     });
   }
 
-  async setPropertyFromJson(path: string, jsonStr: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  async setPropertyFromJson(path: string, jsonStr: string): Promise<Error | null> {
+    return new Promise<Error | null>((resolve) => {
       ten_addon.ten_nodejs_ten_env_set_property_from_json(
         this,
         path,
         jsonStr,
-        async (error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
+        async (error: Error | null) => {
+          resolve(error);
         }
       );
     });
   }
 
-  async getPropertyNumber(path: string): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
+  async getPropertyNumber(path: string): Promise<[number, Error | null]> {
+    return new Promise<[number, Error | null]>((resolve) => {
       ten_addon.ten_nodejs_ten_env_get_property_number(
         this,
         path,
-        async (result: number, error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+        async (result: number, error: Error | null) => {
+          resolve([result, error]);
         }
       );
     });
   }
 
-  async setPropertyNumber(path: string, value: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  async setPropertyNumber(path: string, value: number): Promise<Error | null> {
+    return new Promise<Error | null>((resolve) => {
       ten_addon.ten_nodejs_ten_env_set_property_number(
         this,
         path,
         value,
-        async (error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
+        async (error: Error | null) => {
+          resolve(error);
         }
       );
     });
   }
 
-  async getPropertyString(path: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  async getPropertyString(path: string): Promise<[string, Error | null]> {
+    return new Promise<[string, Error | null]>((resolve) => {
       ten_addon.ten_nodejs_ten_env_get_property_string(
         this,
         path,
-        async (result: string, error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+        async (result: string, error: Error | null) => {
+          resolve([result, error]);
         }
       );
     });
   }
 
-  async setPropertyString(path: string, value: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  async setPropertyString(path: string, value: string): Promise<Error | null> {
+    return new Promise<Error | null>((resolve) => {
       ten_addon.ten_nodejs_ten_env_set_property_string(
         this,
         path,
         value,
-        async (error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
+        async (error: Error | null) => {
+          resolve(error);
         }
       );
     });
   }
 
-  async initPropertyFromJson(jsonStr: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  async initPropertyFromJson(jsonStr: string): Promise<Error | null> {
+    return new Promise<Error | null>((resolve) => {
       ten_addon.ten_nodejs_ten_env_init_property_from_json(
         this,
         jsonStr,
-        async (error: Error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
+        async (error: Error | null) => {
+          resolve(error);
         }
       );
     });

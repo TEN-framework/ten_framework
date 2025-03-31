@@ -174,7 +174,7 @@ bool ten_msgpack_value_deserialize(ten_value_t *value,
         msgpack_unpack_return rc = msgpack_unpacker_next(unpacker, unpacked);
         if (rc == MSGPACK_UNPACK_SUCCESS) {
           if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
-            ten_buf_t *buf = ten_value_peek_buf(value);
+            ten_buf_t *buf = ten_value_peek_buf(value, NULL);
             TEN_ASSERT(buf && ten_buf_check_integrity(buf),
                        "Invalid argument.");
 
@@ -425,7 +425,7 @@ bool ten_msgpack_value_deserialize_inplace(ten_value_t *value,
           if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
             ten_value_init_buf(value, 0);
 
-            ten_buf_t *buf = ten_value_peek_buf(value);
+            ten_buf_t *buf = ten_value_peek_buf(value, NULL);
             TEN_ASSERT(buf && ten_buf_check_integrity(buf),
                        "Invalid argument.");
 
@@ -617,8 +617,8 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
     TEN_ASSERT(rc == 0, "Should not happen.");
     break;
   case TEN_TYPE_BUF:
-    rc = msgpack_pack_bin_with_body(pck, ten_value_peek_buf(value)->data,
-                                    ten_value_peek_buf(value)->size);
+    rc = msgpack_pack_bin_with_body(pck, ten_value_peek_buf(value, NULL)->data,
+                                    ten_value_peek_buf(value, NULL)->size);
     TEN_ASSERT(rc == 0, "Should not happen.");
     break;
   case TEN_TYPE_ARRAY:

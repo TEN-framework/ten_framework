@@ -26,6 +26,35 @@ napi_value js_undefined(napi_env env) {
   return js_undefined_value;
 }
 
+napi_value js_null(napi_env env) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  napi_value js_null_value = NULL;
+  napi_status status = napi_get_null(env, &js_null_value);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to get type JS null value: %d",
+                      status);
+
+  return js_null_value;
+}
+
+napi_value ten_nodejs_create_result_tuple(napi_env env, napi_value res,
+                                          napi_value err) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  napi_value tuple = NULL;
+  napi_status status = napi_create_array(env, &tuple);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok && tuple != NULL,
+                      "Failed to create JS array: %d", status);
+
+  status = napi_set_element(env, tuple, 0, res);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to set element", NULL);
+
+  status = napi_set_element(env, tuple, 1, err);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to set element", NULL);
+
+  return tuple;
+}
+
 bool is_js_undefined(napi_env env, napi_value value) {
   TEN_ASSERT(env, "Should not happen.");
 

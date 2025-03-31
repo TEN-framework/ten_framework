@@ -544,17 +544,19 @@ void *ten_value_get_ptr(ten_value_t *self, ten_error_t *err) {
   }
 }
 
-ten_buf_t *ten_value_peek_buf(ten_value_t *self) {
-  if (!self) {
-    return NULL;
-  }
-
-  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
+ten_buf_t *ten_value_peek_buf(ten_value_t *self, ten_error_t *err) {
+  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
 
   if (ten_value_is_buf(self)) {
     return &self->content.buf;
+  } else {
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Not buffer value, actual type: %s",
+                    ten_type_to_string(self->type));
+    }
+    return NULL;
   }
-  return NULL;
 }
 
 ten_list_t *ten_value_peek_array(ten_value_t *self) {

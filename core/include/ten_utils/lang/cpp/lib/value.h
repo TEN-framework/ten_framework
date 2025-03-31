@@ -416,8 +416,7 @@ class value_t {
     void *orig_data = nullptr;
     size_t orig_size = 0;
 
-    // TODO(Liu): pass `err` to the underlying function.
-    ten_buf_t *result = ten_value_peek_buf(c_value_);
+    ten_buf_t *result = ten_value_peek_buf(c_value_, err);
     if (result != nullptr) {
       orig_size = result->content_size;
       orig_data = result->data;
