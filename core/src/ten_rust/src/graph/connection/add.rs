@@ -62,6 +62,41 @@ impl Graph {
             ));
         }
 
+        // Check if this connection already exists.
+        if let Some(connections) = &self.connections {
+            for conn in connections.iter() {
+                // Check if source matches
+                if conn.extension == src_extension && conn.app == src_app {
+                    // Check for duplicate message flows based on message type.
+                    let msg_flows = match msg_type {
+                        MessageType::Command => conn.cmd.as_ref(),
+                        MessageType::Data => conn.data.as_ref(),
+                        MessageType::AudioFrame => conn.audio_frame.as_ref(),
+                        MessageType::VideoFrame => conn.video_frame.as_ref(),
+                    };
+
+                    if let Some(flows) = msg_flows {
+                        for flow in flows {
+                            // Check if message name matches.
+                            if flow.name == msg_name {
+                                // Check if destination already exists.
+                                for dest in &flow.dest {
+                                    if dest.extension == dest_extension
+                                        && dest.app == dest_app
+                                    {
+                                        return Err(anyhow::anyhow!(
+                                            "Connection already exists: src:({:?}, {}), msg_type:{:?}, msg_name:{}, dest:({:?}, {})",
+                                            src_app, src_extension, msg_type, msg_name, dest_app, dest_extension
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Create destination object.
         let destination = GraphDestination {
             app: dest_app,
@@ -442,5 +477,56 @@ mod tests {
         assert_eq!(connection.data.as_ref().unwrap()[0].name, "data1");
         assert_eq!(connection.audio_frame.as_ref().unwrap()[0].name, "audio1");
         assert_eq!(connection.video_frame.as_ref().unwrap()[0].name, "video1");
+    }
+
+    #[test]
+    fn test_add_duplicate_connection() {
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node("ext1", "addon1", Some("app1")),
+                create_test_node("ext2", "addon2", Some("app1")),
+            ],
+            connections: None,
+        };
+
+        // Add a connection.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MessageType::Command,
+            "test_cmd".to_string(),
+            Some("app1".to_string()),
+            "ext2".to_string(),
+        );
+        assert!(result.is_ok());
+
+        // Try to add the same connection again.
+        let result = graph.add_connection(
+            Some("app1".to_string()),
+            "ext1".to_string(),
+            MessageType::Command,
+            "test_cmd".to_string(),
+            Some("app1".to_string()),
+            "ext2".to_string(),
+        );
+
+        // This should fail because the connection already exists.
+        assert!(result.is_err());
+
+        // The error message should indicate that the connection already exists.
+        let error_msg = result.unwrap_err().to_string();
+        assert!(error_msg.contains("Connection already exists"));
+
+        // Verify that the graph wasn't changed by the second add attempt.
+        let connections = graph.connections.as_ref().unwrap();
+        assert_eq!(connections.len(), 1);
+
+        let connection = &connections[0];
+        let cmd_flows = connection.cmd.as_ref().unwrap();
+        assert_eq!(cmd_flows.len(), 1);
+
+        let flow = &cmd_flows[0];
+        assert_eq!(flow.dest.len(), 1);
     }
 }
