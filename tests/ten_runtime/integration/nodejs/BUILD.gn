@@ -19,4 +19,11 @@ group("nodejs") {
     "send_video_frame_nodejs",
     "websocket_server_nodejs",
   ]
+
+  if (ten_enable_go_binding) {
+    deps += [
+      "go_app_nodejs",
+      "go_app_websocket_server_nodejs",
+    ]
+  }
 }
