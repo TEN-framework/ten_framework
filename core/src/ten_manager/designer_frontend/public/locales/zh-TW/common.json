@@ -24,7 +24,7 @@
     },
     "menuGraph": {
       "title": "圖譜",
-      "openExistingGraph": "開啟現有圖譜",
+      "loadGraph": "載入圖譜",
       "openExtensionStore": "開啟擴充功能商店",
       "autoLayout": "自動佈局",
       "selectLoadedApp": "選擇已載入的應用程式"

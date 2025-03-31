@@ -86,7 +86,7 @@ export function GraphMenu(props: {
             onClick={onOpenExistingGraph}
           >
             <FolderOpenIcon />
-            {t("header.menuGraph.openExistingGraph")}
+            {t("header.menuGraph.loadGraph")}
           </Button>
         </NavigationMenuLink>
         <NavigationMenuLink asChild>
