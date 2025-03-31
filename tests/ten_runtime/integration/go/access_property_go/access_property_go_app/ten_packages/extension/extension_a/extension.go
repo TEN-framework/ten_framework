@@ -109,7 +109,9 @@ func (ext *baseExtension) OnInit(tenEnv ten.TenEnv) {
 		panic("predefined_object should be a map with prop_key and prop_value.")
 	}
 
-	if len(predefinedProperty.PredefinedArray) != 2 || predefinedProperty.PredefinedArray[0] != "item1" || predefinedProperty.PredefinedArray[1] != "item2" {
+	if len(predefinedProperty.PredefinedArray) != 2 ||
+		predefinedProperty.PredefinedArray[0] != "item1" ||
+		predefinedProperty.PredefinedArray[1] != "item2" {
 		panic("predefined_array should be an array with two items.")
 	}
 
