@@ -6,7 +6,7 @@
 //
 mod check;
 pub mod connection;
-mod constants;
+pub mod constants;
 pub mod msg_conversion;
 pub mod node;
 
@@ -14,7 +14,6 @@ use std::{collections::HashMap, str::FromStr};
 
 use anyhow::Result;
 use connection::GraphConnection;
-use node::GraphNode;
 use serde::{Deserialize, Serialize};
 
 use crate::pkg_info::{localhost, PkgInfo};
@@ -81,31 +80,35 @@ use crate::pkg_info::{localhost, PkgInfo};
 ///
 /// * Single-app graph: the state is `NoneDeclared` or `UniformDeclared`.
 /// * Multi-app graph: the state is `MixedDeclared`.
-
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum AppUriDeclarationState {
+    /// No node has declared an app URI.
     NoneDeclared,
+    /// All nodes have declared the same app URI.
     UniformDeclared,
+    /// Nodes have declared different app URIs.
     MixedDeclared,
 }
 
 impl AppUriDeclarationState {
+    /// Returns true if the graph can be considered a single-app graph.
     pub fn is_single_app_graph(&self) -> bool {
-        match self {
-            AppUriDeclarationState::NoneDeclared => true,
-            AppUriDeclarationState::UniformDeclared => true,
-            AppUriDeclarationState::MixedDeclared => false,
-        }
+        matches!(
+            self,
+            AppUriDeclarationState::NoneDeclared
+                | AppUriDeclarationState::UniformDeclared
+        )
     }
 }
 
+/// Represents a connection graph that defines how extensions connect to each
+/// other.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
-    // It's invalid that a graph does not contain any nodes.
-    pub nodes: Vec<GraphNode>,
+    pub nodes: Vec<node::GraphNode>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub connections: Option<Vec<GraphConnection>>,
+    pub connections: Option<Vec<connection::GraphConnection>>,
 }
 
 impl FromStr for Graph {
@@ -195,20 +198,20 @@ impl Graph {
         }
     }
 
-    /// Validates and completes the graph structure by ensuring all nodes and
-    /// connections are properly configured.
+    /// Validates and completes the graph by ensuring all nodes and connections
+    /// follow the app declaration rules and other validation requirements.
     pub fn validate_and_complete(&mut self) -> Result<()> {
-        // First determine how app URIs are declared across all nodes.
+        // Determine the app URI declaration state by examining all nodes.
         let app_uri_declaration_state =
             self.analyze_app_uri_declaration_state()?;
 
-        // Validate and complete each node.
+        // Validate all nodes.
         for (idx, node) in self.nodes.iter_mut().enumerate() {
             node.validate_and_complete(&app_uri_declaration_state)
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
         }
 
-        // Validate and complete connections if they exist.
+        // Validate all connections if they exist.
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
                 connection
