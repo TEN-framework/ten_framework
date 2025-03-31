@@ -799,7 +799,10 @@
       "request": "launch",
       "program": "/usr/bin/python3",
       "args": [
-        "tests/test_recv_msg_during_starting.py"
+        "-m",
+        "pytest",
+        "-s",
+        "tests/"
       ],
       "environment": [
         {
