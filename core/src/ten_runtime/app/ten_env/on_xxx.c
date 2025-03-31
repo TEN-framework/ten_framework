@@ -316,6 +316,24 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
   ten_app_on_init_done_internal(self);
 }
 
+static void ten_app_on_all_addons_unregistered(ten_env_t *ten_env,
+                                               void *cb_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true),
+             "Invalid use of ten_env %p.", ten_env);
+
+  ten_app_t *self = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+
+  if (self->on_deinit) {
+    // Call the registered on_deinit callback if exists.
+    self->on_deinit(self, self->ten_env);
+  } else {
+    ten_env_on_deinit_done(self->ten_env, NULL);
+  }
+}
+
 static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
@@ -323,10 +341,15 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
+    // There’s no need to perform the _unregister_all_addons_ action when the
+    // app closes, so we can directly proceed with the actions after
+    // _unregister_all_addons_.
+    ten_app_on_all_addons_unregistered(self->ten_env, NULL);
     return;
   }
 
-  ten_unregister_all_addons_and_cleanup();
+  ten_addon_unregister_all_and_cleanup_after_app_close(
+      self->ten_env, ten_app_on_all_addons_unregistered, NULL);
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
@@ -360,13 +383,6 @@ void ten_app_on_deinit(ten_app_t *self) {
   // ends.
   ten_app_unregister_addons_after_app_close(self);
   // @}
-
-  if (self->on_deinit) {
-    // Call the registered on_deinit callback if exists.
-    self->on_deinit(self, self->ten_env);
-  } else {
-    ten_env_on_deinit_done(self->ten_env, NULL);
-  }
 }
 
 bool ten_app_on_deinit_done(ten_env_t *ten_env) {
