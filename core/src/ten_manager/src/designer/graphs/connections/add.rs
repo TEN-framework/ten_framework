@@ -206,6 +206,7 @@ mod tests {
     use std::collections::HashMap;
 
     use actix_web::{test, App};
+    use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
     use super::*;
     use crate::{
@@ -635,6 +636,269 @@ mod tests {
         } else {
             panic!("No property found for app_pkg");
         }
+    }
+
+    #[actix_web::test]
+    async fn test_add_graph_connection_file_comparison() {
+        let mut designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        };
+
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
+        // Load both the app package JSON and extension addon package JSONs.
+        let app_manifest =
+            include_str!("../test_data_embed/app_manifest.json").to_string();
+        let app_property =
+            include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
+
+        // Create extension addon manifest strings.
+        let ext1_manifest = r#"{
+            "type": "extension",
+            "name": "extension_1",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        let ext2_manifest = r#"{
+            "type": "extension",
+            "name": "extension_2",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        let ext3_manifest = r#"{
+            "type": "extension",
+            "name": "extension_3",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        // The empty property for addons.
+        let empty_property = r#"{"_ten":{}}"#.to_string();
+
+        let all_pkgs_json = vec![
+            (app_manifest, app_property),
+            (ext1_manifest, empty_property.clone()),
+            (ext2_manifest, empty_property.clone()),
+            (ext3_manifest, empty_property.clone()),
+        ];
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &test_dir,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
+        assert!(inject_ret.is_ok());
+
+        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state_arc.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections/add",
+                    web::post().to(add_graph_connection_endpoint),
+                ),
+        )
+        .await;
+
+        // Add first connection.
+        let request_payload1 = AddGraphConnectionRequestPayload {
+            base_dir: test_dir.clone(),
+            graph_name: "default_with_app_uri".to_string(),
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd1".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+        };
+
+        let req1 = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections/add")
+            .set_json(request_payload1)
+            .to_request();
+        let resp1 = test::call_service(&app, req1).await;
+
+        assert!(resp1.status().is_success());
+
+        // Add second connection to create a sequence.
+        let request_payload2 = AddGraphConnectionRequestPayload {
+            base_dir: test_dir.clone(),
+            graph_name: "default_with_app_uri".to_string(),
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd2".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_3".to_string(),
+        };
+
+        let req2 = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections/add")
+            .set_json(request_payload2)
+            .to_request();
+        let resp2 = test::call_service(&app, req2).await;
+
+        assert!(resp2.status().is_success());
+
+        // Define expected property.json content after adding both connections.
+        let expected_property = r#"{
+  "_ten": {
+    "uri": "http://example.com:8000",
+    "predefined_graphs": [
+      {
+        "name": "default",
+        "auto_start": true,
+        "nodes": [
+          {
+            "type": "extension",
+            "name": "extension_1",
+            "addon": "extension_addon_1",
+            "extension_group": "extension_group_1"
+          },
+          {
+            "type": "extension",
+            "name": "extension_2",
+            "addon": "extension_addon_2",
+            "extension_group": "extension_group_1",
+            "property": {
+              "a": 1
+            }
+          },
+          {
+            "type": "extension",
+            "name": "extension_3",
+            "addon": "extension_addon_3",
+            "extension_group": "extension_group_1"
+          }
+        ],
+        "connections": [
+          {
+            "extension": "extension_1",
+            "cmd": [
+              {
+                "name": "hello_world",
+                "dest": [
+                  {
+                    "extension": "extension_2"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "default_with_app_uri",
+        "auto_start": true,
+        "nodes": [
+          {
+            "app": "http://example.com:8000",
+            "extension_group": "extension_group_1",
+            "type": "extension",
+            "addon": "extension_addon_1",
+            "name": "extension_1"
+          },
+          {
+            "app": "http://example.com:8000",
+            "extension_group": "extension_group_1",
+            "type": "extension",
+            "addon": "extension_addon_2",
+            "name": "extension_2",
+            "property": {
+              "a": 1
+            }
+          },
+          {
+            "app": "http://example.com:8000",
+            "extension_group": "extension_group_1",
+            "type": "extension",
+            "addon": "extension_addon_3",
+            "name": "extension_3"
+          }
+        ],
+        "connections": [
+          {
+            "app": "http://example.com:8000",
+            "extension": "extension_1",
+            "cmd": [
+              {
+                "name": "hello_world",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "test_cmd1",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "test_cmd2",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_3"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "addon_not_found",
+        "auto_start": false,
+        "nodes": [
+          {
+            "type": "extension",
+            "name": "extension_1",
+            "addon": "extension_addon_1_not_found",
+            "extension_group": "default"
+          }
+        ]
+      }
+    ]
+  }
+}"#;
+
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
+
+        // Normalize both JSON strings to handle formatting differences
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
+
+        // Compare the normalized JSON values
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
