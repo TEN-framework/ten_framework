@@ -42,7 +42,7 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Clone the pkgs_cache for this base_dir
+    // Clone the pkgs_cache for this base_dir.
     let pkgs_cache_clone = state_write.pkgs_cache.clone();
 
     // Get the packages for this base_dir.
