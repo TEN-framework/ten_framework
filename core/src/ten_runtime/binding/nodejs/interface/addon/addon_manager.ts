@@ -93,6 +93,8 @@ export class AddonManager {
       const packageJsonFile = `${extension_folder}/${entry.name}/package.json`;
 
       if (entry.isDirectory() && fs.existsSync(packageJsonFile)) {
+        // Log the extension name
+        console.log(`_load_all_addons Loading extension ${entry.name}`);
         loadPromises.push(import(`${extension_folder}/${entry.name}/build/index.js`));
       }
     }
