@@ -15,7 +15,7 @@ use ten_manager::{
     config::TmanConfig,
     designer::{
         graphs::{
-            connections::{
+            connections::get::{
                 get_graph_connections_endpoint,
                 GetGraphConnectionsRequestPayload,
                 GraphConnectionsSingleResponseData,

@@ -19,10 +19,10 @@ mod test_case {
     mod common;
 
     mod cmd_check_graph;
-    mod cmd_designer;
     mod designer_builtin_function_install;
     mod designer_builtin_function_install_all;
     mod designer_get_apps;
+    mod designer_get_graphs;
     mod designer_get_packages_scripts;
     mod designer_get_registry_packages;
     mod designer_load_apps;

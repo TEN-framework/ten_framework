@@ -14,10 +14,8 @@ use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::get_pkg_predefined_graph_from_nodes_and_connections;
 
-use super::{
-    connections::GraphConnectionsSingleResponseData,
-    nodes::get::GraphNodesSingleResponseData,
-};
+use super::connections::get::GraphConnectionsSingleResponseData;
+use super::nodes::get::GraphNodesSingleResponseData;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
