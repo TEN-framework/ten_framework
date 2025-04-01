@@ -195,11 +195,10 @@ pub async fn add_graph_node_endpoint(
 mod tests {
     use std::collections::HashMap;
     use std::fs;
-    use std::io::Read;
     use std::path::Path;
 
     use actix_web::{test, App};
-    use serde_json::{json, Value};
+    use serde_json::Value;
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
     use super::*;
@@ -453,61 +452,23 @@ mod tests {
         let temp_dir = tempfile::tempdir().unwrap();
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
-        // Create a property.json with fields in a specific order.
-        let mut property_fields = serde_json::Map::new();
-        property_fields.insert("name".to_string(), json!("test-app"));
-        property_fields.insert("version".to_string(), json!("1.0.0"));
-        property_fields.insert("description".to_string(), json!("Test App"));
+        // Read test data from embedded JSON files
+        let input_property = include_str!(
+            "test_data_embed/input_property_with_ordered_fields.json"
+        );
+        let input_manifest =
+            include_str!("test_data_embed/test_app_manifest.json");
+        let expected_property = include_str!(
+            "test_data_embed/expected_property_with_new_node.json"
+        );
 
-        // Create _ten field with predefined_graphs.
-        let mut ten_obj = serde_json::Map::new();
-        let mut graphs = Vec::new();
-
-        // Create a graph with nodes.
-        let mut graph1 = serde_json::Map::new();
-        graph1.insert("name".to_string(), json!("test-graph"));
-        graph1.insert("auto_start".to_string(), json!(true));
-
-        // Initial nodes.
-        let mut nodes = Vec::new();
-        nodes.push(json!({
-            "type": "extension",
-            "name": "first-node",
-            "addon": "first-addon"
-        }));
-        graph1.insert("nodes".to_string(), Value::Array(nodes));
-
-        // Add empty connections array.
-        graph1.insert("connections".to_string(), json!([]));
-
-        graphs.push(Value::Object(graph1));
-        ten_obj.insert("predefined_graphs".to_string(), Value::Array(graphs));
-        property_fields.insert("_ten".to_string(), Value::Object(ten_obj));
-
-        // Add more fields after _ten.
-        property_fields.insert("license".to_string(), json!("Apache-2.0"));
-        property_fields.insert("author".to_string(), json!("Test Author"));
-
-        // Write the property.json file.
+        // Write input files to temp directory.
         let property_path =
             Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
-        let property_file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&property_path)
-            .unwrap();
-        serde_json::to_writer_pretty(property_file, &property_fields).unwrap();
+        fs::write(&property_path, input_property).unwrap();
 
-        // Create manifest.json for the mock app.
-        let manifest_json = r#"{
-            "type": "app",
-            "name": "test-app",
-            "version": "1.0.0",
-            "language": "rust"
-        }"#;
         let manifest_path = Path::new(&temp_dir_path).join("manifest.json");
-        fs::write(&manifest_path, manifest_json).unwrap();
+        fs::write(&manifest_path, input_manifest).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
@@ -560,108 +521,20 @@ mod tests {
         // Should succeed with a 200 OK.
         assert_eq!(resp.status(), 200);
 
-        // Now manually update property.json to test field order preservation.
-        let mut updated_property_fields = property_fields.clone();
-
-        // Get the updated _ten field.
-        if let Some(Value::Object(ten_obj)) =
-            updated_property_fields.get_mut("_ten")
-        {
-            if let Some(Value::Array(graphs)) =
-                ten_obj.get_mut("predefined_graphs")
-            {
-                if let Some(Value::Object(graph)) = graphs.get_mut(0) {
-                    if let Some(Value::Array(nodes)) = graph.get_mut("nodes") {
-                        // Add the new node
-                        nodes.push(json!({
-                            "type": "extension",
-                            "name": "new-node",
-                            "addon": "new-addon"
-                        }));
-                    }
-                }
-            }
-        }
-
-        // Write the updated property.json file.
-        let updated_property_file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&property_path)
-            .unwrap();
-        serde_json::to_writer_pretty(
-            updated_property_file,
-            &updated_property_fields,
-        )
-        .unwrap();
-
         // Read the updated property.json file.
-        let mut updated_property_content = String::new();
-        let mut file = fs::File::open(&property_path).unwrap();
-        file.read_to_string(&mut updated_property_content).unwrap();
+        let updated_property_content =
+            fs::read_to_string(&property_path).unwrap();
 
-        // Parse the updated property.
-        let updated_property: serde_json::Value =
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: Value =
             serde_json::from_str(&updated_property_content).unwrap();
+        let expected_property: Value =
+            serde_json::from_str(expected_property).unwrap();
 
-        // Verify the field order is preserved.
-        if let Value::Object(map) = updated_property {
-            let keys: Vec<&String> = map.keys().collect();
-
-            // Check that the order of fields matches our original order.
-            let expected_order = [
-                "name",
-                "version",
-                "description",
-                "_ten",
-                "license",
-                "author",
-            ];
-
-            for (i, expected_key) in expected_order.iter().enumerate() {
-                assert_eq!(
-                    keys[i], expected_key,
-                    "Field order not preserved at position {}",
-                    i
-                );
-            }
-
-            // Verify the new node was added to the graph.
-            if let Value::Object(ten) = &map["_ten"] {
-                if let Value::Array(graphs) = &ten["predefined_graphs"] {
-                    if let Value::Object(graph) = &graphs[0] {
-                        if let Value::Array(nodes) = &graph["nodes"] {
-                            // Should have 2 nodes now (original + new)
-                            assert_eq!(nodes.len(), 2, "Should have 2 nodes");
-
-                            // The new node should be at the end
-                            if let Value::Object(second_node) = &nodes[1] {
-                                assert_eq!(
-                                    second_node["name"], "new-node",
-                                    "New node should be at the end"
-                                );
-                                assert_eq!(
-                                    second_node["addon"], "new-addon",
-                                    "New node should have correct addon"
-                                );
-                            } else {
-                                panic!("Second node is not an object");
-                            }
-                        } else {
-                            panic!("Nodes is not an array");
-                        }
-                    } else {
-                        panic!("Graph is not an object");
-                    }
-                } else {
-                    panic!("Predefined_graphs is not an array");
-                }
-            } else {
-                panic!("_ten is not an object");
-            }
-        } else {
-            panic!("Updated property is not an object");
-        }
+        // Compare the updated property with the expected property.
+        assert_eq!(
+            updated_property, expected_property,
+            "Updated property does not match expected property"
+        );
     }
 }
