@@ -34,7 +34,7 @@ export class Msg {
     return ten_addon.ten_nodejs_msg_get_property_to_json(this, path);
   }
 
-  setPropertyNumber(path: string, value: number): [Error | null] {
+  setPropertyNumber(path: string, value: number): Error | null {
     return ten_addon.ten_nodejs_msg_set_property_number(this, path, value);
   }
 
@@ -42,7 +42,7 @@ export class Msg {
     return ten_addon.ten_nodejs_msg_get_property_number(this, path);
   }
 
-  setPropertyString(path: string, value: string): [Error | null] {
+  setPropertyString(path: string, value: string): Error | null {
     return ten_addon.ten_nodejs_msg_set_property_string(this, path, value);
   }
 
@@ -50,7 +50,7 @@ export class Msg {
     return ten_addon.ten_nodejs_msg_get_property_string(this, path);
   }
 
-  setPropertyBool(path: string, value: boolean): [Error | null] {
+  setPropertyBool(path: string, value: boolean): Error | null {
     return ten_addon.ten_nodejs_msg_set_property_bool(this, path, value);
   }
 
@@ -58,7 +58,7 @@ export class Msg {
     return ten_addon.ten_nodejs_msg_get_property_bool(this, path);
   }
 
-  setPropertyBuf(path: string, value: ArrayBuffer): [Error | null] {
+  setPropertyBuf(path: string, value: ArrayBuffer): Error | null {
     return ten_addon.ten_nodejs_msg_set_property_buf(this, path, value);
   }
 
