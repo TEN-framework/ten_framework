@@ -9,8 +9,12 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::{
-    pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
+use ten_rust::{
+    graph::node::GraphNode,
+    pkg_info::{
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+        predefined_graphs::pkg_predefined_graphs_find,
+    },
 };
 
 use crate::{
@@ -76,13 +80,15 @@ pub async fn delete_graph_node_endpoint(
                         // Update property.json file to remove the graph node.
                         if let Some(property) = &mut app_pkg.property {
                             // Create the GraphNode we want to remove.
-                            let node_to_remove = ten_rust::graph::node::GraphNode {
-                                type_and_name: ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName {
-                                    pkg_type: ten_rust::pkg_info::pkg_type::PkgType::Extension,
+                            let node_to_remove = GraphNode {
+                                type_and_name: PkgTypeAndName {
+                                    pkg_type: PkgType::Extension,
                                     name: request_payload.node_name.clone(),
                                 },
                                 addon: request_payload.addon_name.clone(),
-                                extension_group: request_payload.extension_group_name.clone(),
+                                extension_group: request_payload
+                                    .extension_group_name
+                                    .clone(),
                                 app: request_payload.app_uri.clone(),
                                 property: None,
                             };
