@@ -210,8 +210,8 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig, constants::TEST_DIR,
-        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
+        config::TmanConfig, designer::mock::inject_all_pkgs_for_mock,
+        output::TmanOutputCli,
     };
 
     #[actix_web::test]
@@ -222,11 +222,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest =
             include_str!("../test_data_embed/app_manifest.json").to_string();
         let app_property =
             include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -261,7 +271,7 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -280,7 +290,7 @@ mod tests {
         // Add a connection between existing nodes in the default graph.
         // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -309,6 +319,28 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         assert!(response.data.success);
+
+        // Define expected property.json content after adding the connection.
+        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_success.json");
+
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
+
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
+
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
@@ -319,13 +351,27 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         let all_pkgs_json = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(
+            &property_path,
+            include_str!("../test_data_embed/app_property.json"),
+        )
+        .unwrap();
+
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -343,7 +389,7 @@ mod tests {
 
         // Try to add a connection to a non-existent graph.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.to_string(),
             graph_name: "non_existent_graph".to_string(),
             src_app: None,
             src_extension: "extension_1".to_string(),
@@ -370,11 +416,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest =
             include_str!("../test_data_embed/app_manifest.json").to_string();
         let app_property =
             include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -409,7 +465,7 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -429,7 +485,7 @@ mod tests {
 
         // Add first connection.
         let request_payload1 = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -449,7 +505,7 @@ mod tests {
 
         // Add second connection to create a sequence.
         let request_payload2 = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -467,175 +523,27 @@ mod tests {
 
         assert!(resp2.status().is_success());
 
-        let state = designer_state_arc.read().unwrap();
-        let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
+        // Define expected property.json content after adding both connections.
+        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_preserves_order.json");
 
-        // Find the app package.
-        let app_pkg = pkgs
-            .iter()
-            .find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            })
-            .unwrap();
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
 
-        // Get the predefined graph from app_pkg to check if connections were
-        // added correctly.
-        let predefined_graph =
-            pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-                g.name == "default_with_app_uri"
-            })
-            .unwrap();
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
 
-        // Now check the connections in memory.
-        if let Some(connections) = &predefined_graph.graph.connections {
-            // Find the connection for extension_1.
-            let ext1_connection = connections
-                .iter()
-                .find(|conn| {
-                    conn.extension == "extension_1"
-                        && conn.app
-                            == Some("http://example.com:8000".to_string())
-                })
-                .unwrap();
-
-            // Check that we have both commands and they are in order.
-            if let Some(cmd_flows) = &ext1_connection.cmd {
-                // Find both commands.
-                let cmd1_position = cmd_flows
-                    .iter()
-                    .position(|flow| flow.name == "test_cmd1")
-                    .unwrap();
-                let cmd2_position = cmd_flows
-                    .iter()
-                    .position(|flow| flow.name == "test_cmd2")
-                    .unwrap();
-
-                // First command should appear before second command (preserving
-                // order).
-                assert!(cmd1_position < cmd2_position,
-                         "test_cmd1 should come before test_cmd2, but found at positions {} and {}",
-                         cmd1_position, cmd2_position);
-
-                // Verify that test_cmd1 points to extension_2.
-                let cmd1 = &cmd_flows[cmd1_position];
-                assert_eq!(cmd1.dest[0].extension, "extension_2");
-
-                // Verify that test_cmd2 points to extension_3.
-                let cmd2 = &cmd_flows[cmd2_position];
-                assert_eq!(cmd2.dest[0].extension, "extension_3");
-            } else {
-                panic!("No cmd flows found in connection");
-            }
-        } else {
-            panic!("No connections found in graph");
-        }
-
-        // Now check the property.all_fields to verify that the connections are
-        // in the correct order and the new connections are appended to the end.
-        if let Some(property) = &app_pkg.property {
-            // Check if we have the graph in property.all_fields.
-            if let Some(ten_value) = property.all_fields.get("_ten") {
-                if let Some(predefined_graphs) = ten_value
-                    .get("predefined_graphs")
-                    .and_then(|v| v.as_array())
-                {
-                    // Find our graph.
-                    let graph_value = predefined_graphs
-                        .iter()
-                        .find(|g| {
-                            g.get("name").and_then(|n| n.as_str())
-                                == Some("default_with_app_uri")
-                        })
-                        .unwrap();
-
-                    // Check the connections array.
-                    if let Some(connections) = graph_value
-                        .get("connections")
-                        .and_then(|c| c.as_array())
-                    {
-                        // Find the connection with the matching extension and
-                        // app.
-                        let ext1_connection = connections
-                            .iter()
-                            .find(|conn| {
-                                conn.get("extension").and_then(|e| e.as_str())
-                                    == Some("extension_1")
-                                    && conn.get("app").and_then(|a| a.as_str())
-                                        == Some("http://example.com:8000")
-                            })
-                            .unwrap();
-
-                        // Check the cmd array to verify our new connections are
-                        // at the end.
-                        if let Some(cmd_array) = ext1_connection
-                            .get("cmd")
-                            .and_then(|c| c.as_array())
-                        {
-                            // The last two entries should be our new test_cmd1
-                            // and test_cmd2.
-                            let last_entries = cmd_array
-                                .iter()
-                                .rev()
-                                .take(2)
-                                .collect::<Vec<_>>();
-
-                            // The last entry should be test_cmd2.
-                            assert_eq!(
-                                last_entries[0]
-                                    .get("name")
-                                    .and_then(|n| n.as_str()),
-                                Some("test_cmd2"),
-                                "Last entry in cmd array should be test_cmd2"
-                            );
-
-                            // The second-to-last entry should be test_cmd1.
-                            assert_eq!(
-                                    last_entries[1].get("name").and_then(|n| n.as_str()),
-                                    Some("test_cmd1"),
-                                    "Second-to-last entry in cmd array should be test_cmd1"
-                                );
-
-                            // Verify destinations.
-                            let test_cmd1_dest = last_entries[1]
-                                .get("dest")
-                                .and_then(|d| d.as_array())
-                                .unwrap();
-                            assert_eq!(
-                                test_cmd1_dest[0]
-                                    .get("extension")
-                                    .and_then(|e| e.as_str()),
-                                Some("extension_2"),
-                                "test_cmd1 should point to extension_2"
-                            );
-
-                            let test_cmd2_dest = last_entries[0]
-                                .get("dest")
-                                .and_then(|d| d.as_array())
-                                .unwrap();
-                            assert_eq!(
-                                test_cmd2_dest[0]
-                                    .get("extension")
-                                    .and_then(|e| e.as_str()),
-                                Some("extension_3"),
-                                "test_cmd2 should point to extension_3"
-                            );
-                        } else {
-                            panic!("No cmd array found in the connection in property.all_fields");
-                        }
-                    } else {
-                        panic!("No connections array found in property.all_fields for the graph");
-                    }
-                } else {
-                    panic!("No predefined_graphs array found in property.all_fields");
-                }
-            } else {
-                panic!("No _ten object found in property.all_fields");
-            }
-        } else {
-            panic!("No property found for app_pkg");
-        }
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
@@ -784,11 +692,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest =
             include_str!("../test_data_embed/app_manifest.json").to_string();
         let app_property =
             include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -815,7 +733,7 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -835,7 +753,7 @@ mod tests {
 
         // Add a DATA type connection between extensions.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -859,135 +777,27 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
         assert!(response.data.success);
 
-        // Verify the connection was added correctly in memory.
-        let state = designer_state_arc.read().unwrap();
-        let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
-        let app_pkg = pkgs
-            .iter()
-            .find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            })
-            .unwrap();
+        // Define expected property.json content after adding the connection.
+        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_data_type.json");
 
-        // Get the predefined graph.
-        let predefined_graph =
-            pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-                g.name == "default_with_app_uri"
-            })
-            .unwrap();
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
 
-        // Check the data field in the graph's connections.
-        if let Some(connections) = &predefined_graph.graph.connections {
-            // Find the connection for extension_1.
-            let ext1_connection = connections
-                .iter()
-                .find(|conn| {
-                    conn.extension == "extension_1"
-                        && conn.app
-                            == Some("http://example.com:8000".to_string())
-                })
-                .unwrap();
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
 
-            // Check that we have the data message field.
-            assert!(
-                ext1_connection.data.is_some(),
-                "Data field should be present in connection"
-            );
-
-            // Verify the data field contains our message.
-            if let Some(data_flows) = &ext1_connection.data {
-                let data_msg = data_flows
-                    .iter()
-                    .find(|flow| flow.name == "test_data")
-                    .unwrap();
-
-                // Verify destination is correct.
-                assert_eq!(data_msg.dest[0].extension, "extension_2");
-                assert_eq!(
-                    data_msg.dest[0].app,
-                    Some("http://example.com:8000".to_string())
-                );
-            } else {
-                panic!("Data flows not found in connection");
-            }
-        } else {
-            panic!("No connections found in graph");
-        }
-
-        // Verify the property.all_fields.
-        if let Some(property) = &app_pkg.property {
-            if let Some(ten_value) = property.all_fields.get("_ten") {
-                if let Some(predefined_graphs) = ten_value
-                    .get("predefined_graphs")
-                    .and_then(|v| v.as_array())
-                {
-                    // Find our graph.
-                    let graph_value = predefined_graphs
-                        .iter()
-                        .find(|g| {
-                            g.get("name").and_then(|n| n.as_str())
-                                == Some("default_with_app_uri")
-                        })
-                        .unwrap();
-
-                    // Check the connections array.
-                    if let Some(connections) = graph_value
-                        .get("connections")
-                        .and_then(|c| c.as_array())
-                    {
-                        // Find the connection with the matching extension and
-                        // app.
-                        let ext1_connection = connections
-                            .iter()
-                            .find(|conn| {
-                                conn.get("extension").and_then(|e| e.as_str())
-                                    == Some("extension_1")
-                                    && conn.get("app").and_then(|a| a.as_str())
-                                        == Some("http://example.com:8000")
-                            })
-                            .unwrap();
-
-                        // Check the data array.
-                        let data_array = ext1_connection
-                            .get("data")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-
-                        // Find our data message.
-                        let data_msg = data_array
-                            .iter()
-                            .find(|d| {
-                                d.get("name").and_then(|n| n.as_str())
-                                    == Some("test_data")
-                            })
-                            .unwrap();
-
-                        // Verify destination.
-                        let dest_array = data_msg
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            dest_array[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_2"),
-                            "test_data should point to extension_2"
-                        );
-                    } else {
-                        panic!("No connections array found in property.all_fields for the graph");
-                    }
-                } else {
-                    panic!("No predefined_graphs array found in property.all_fields");
-                }
-            } else {
-                panic!("No _ten object found in property.all_fields");
-            }
-        } else {
-            panic!("No property found for app_pkg");
-        }
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
@@ -998,11 +808,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest =
             include_str!("../test_data_embed/app_manifest.json").to_string();
         let app_property =
             include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -1029,7 +849,7 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -1049,7 +869,7 @@ mod tests {
 
         // First add an AUDIO_FRAME type connection.
         let audio_request = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1069,7 +889,7 @@ mod tests {
 
         // Then add a VIDEO_FRAME type connection.
         let video_request = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1087,186 +907,27 @@ mod tests {
 
         assert!(resp.status().is_success());
 
-        // Verify both connections were added correctly in memory.
-        let state = designer_state_arc.read().unwrap();
-        let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
-        let app_pkg = pkgs
-            .iter()
-            .find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            })
-            .unwrap();
+        // Define expected property.json content after adding both connections.
+        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_frame_types.json");
 
-        // Get the predefined graph.
-        let predefined_graph =
-            pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-                g.name == "default_with_app_uri"
-            })
-            .unwrap();
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
 
-        // Check the connections.
-        if let Some(connections) = &predefined_graph.graph.connections {
-            // Find the connection for extension_1.
-            let ext1_connection = connections
-                .iter()
-                .find(|conn| {
-                    conn.extension == "extension_1"
-                        && conn.app
-                            == Some("http://example.com:8000".to_string())
-                })
-                .unwrap();
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
 
-            // Check that we have the audio_frame message field.
-            assert!(
-                ext1_connection.audio_frame.is_some(),
-                "audio_frame field should be present in connection"
-            );
-
-            // Verify the audio_frame field contains our message.
-            if let Some(audio_flows) = &ext1_connection.audio_frame {
-                let audio_msg = audio_flows
-                    .iter()
-                    .find(|flow| flow.name == "audio_stream")
-                    .unwrap();
-
-                // Verify destination is correct.
-                assert_eq!(audio_msg.dest[0].extension, "extension_2");
-                assert_eq!(
-                    audio_msg.dest[0].app,
-                    Some("http://example.com:8000".to_string())
-                );
-            } else {
-                panic!("Audio flows not found in connection");
-            }
-
-            // Check that we have the video_frame message field.
-            assert!(
-                ext1_connection.video_frame.is_some(),
-                "video_frame field should be present in connection"
-            );
-
-            // Verify the video_frame field contains our message.
-            if let Some(video_flows) = &ext1_connection.video_frame {
-                let video_msg = video_flows
-                    .iter()
-                    .find(|flow| flow.name == "video_stream")
-                    .unwrap();
-
-                // Verify destination is correct.
-                assert_eq!(video_msg.dest[0].extension, "extension_2");
-                assert_eq!(
-                    video_msg.dest[0].app,
-                    Some("http://example.com:8000".to_string())
-                );
-            } else {
-                panic!("Video flows not found in connection");
-            }
-        } else {
-            panic!("No connections found in graph");
-        }
-
-        // Verify the property.all_fields.
-        if let Some(property) = &app_pkg.property {
-            if let Some(ten_value) = property.all_fields.get("_ten") {
-                if let Some(predefined_graphs) = ten_value
-                    .get("predefined_graphs")
-                    .and_then(|v| v.as_array())
-                {
-                    // Find our graph.
-                    let graph_value = predefined_graphs
-                        .iter()
-                        .find(|g| {
-                            g.get("name").and_then(|n| n.as_str())
-                                == Some("default_with_app_uri")
-                        })
-                        .unwrap();
-
-                    // Check the connections array.
-                    if let Some(connections) = graph_value
-                        .get("connections")
-                        .and_then(|c| c.as_array())
-                    {
-                        // Find the connection with the matching extension and
-                        // app.
-                        let ext1_connection = connections
-                            .iter()
-                            .find(|conn| {
-                                conn.get("extension").and_then(|e| e.as_str())
-                                    == Some("extension_1")
-                                    && conn.get("app").and_then(|a| a.as_str())
-                                        == Some("http://example.com:8000")
-                            })
-                            .unwrap();
-
-                        // Check the audio_frame array.
-                        let audio_array = ext1_connection
-                            .get("audio_frame")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-
-                        // Find our audio message.
-                        let audio_msg = audio_array
-                            .iter()
-                            .find(|d| {
-                                d.get("name").and_then(|n| n.as_str())
-                                    == Some("audio_stream")
-                            })
-                            .unwrap();
-
-                        // Verify destination.
-                        let audio_dest = audio_msg
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            audio_dest[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_2"),
-                            "audio_stream should point to extension_2"
-                        );
-
-                        // Check the video_frame array.
-                        let video_array = ext1_connection
-                            .get("video_frame")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-
-                        // Find our video message.
-                        let video_msg = video_array
-                            .iter()
-                            .find(|d| {
-                                d.get("name").and_then(|n| n.as_str())
-                                    == Some("video_stream")
-                            })
-                            .unwrap();
-
-                        // Verify destination.
-                        let video_dest = video_msg
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            video_dest[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_2"),
-                            "video_stream should point to extension_2"
-                        );
-                    } else {
-                        panic!("No connections array found in property.all_fields for the graph");
-                    }
-                } else {
-                    panic!("No predefined_graphs array found in property.all_fields");
-                }
-            } else {
-                panic!("No _ten object found in property.all_fields");
-            }
-        } else {
-            panic!("No property found for app_pkg");
-        }
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
@@ -1277,11 +938,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest =
             include_str!("../test_data_embed/app_manifest.json").to_string();
         let app_property =
             include_str!("../test_data_embed/app_property.json").to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property).unwrap();
 
         // Create three extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -1316,7 +987,7 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &test_dir,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -1336,7 +1007,7 @@ mod tests {
 
         // Add first command.
         let cmd1_request = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1356,7 +1027,7 @@ mod tests {
 
         // Add second command.
         let cmd2_request = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1376,7 +1047,7 @@ mod tests {
 
         // Add third command.
         let cmd3_request = AddGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: test_dir.clone(),
             graph_name: "default_with_app_uri".to_string(),
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1394,224 +1065,27 @@ mod tests {
 
         assert!(resp.status().is_success());
 
-        // Verify connections were added in the correct order in memory.
-        let state = designer_state_arc.read().unwrap();
-        let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
-        let app_pkg = pkgs
-            .iter()
-            .find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            })
-            .unwrap();
+        // Define expected property.json content after adding all three
+        // connections.
+        let expected_property = include_str!("test_data_embed/expected_json__test_add_multiple_connections_preservation_order.json");
 
-        // Get the predefined graph.
-        let predefined_graph =
-            pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-                g.name == "default_with_app_uri"
-            })
-            .unwrap();
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
 
-        // Check the connections.
-        if let Some(connections) = &predefined_graph.graph.connections {
-            // Find the connection for extension_1.
-            let ext1_connection = connections
-                .iter()
-                .find(|conn| {
-                    conn.extension == "extension_1"
-                        && conn.app
-                            == Some("http://example.com:8000".to_string())
-                })
-                .unwrap();
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
 
-            // Check the cmd array exists.
-            assert!(
-                ext1_connection.cmd.is_some(),
-                "cmd field should be present in connection"
-            );
-
-            if let Some(cmd_flows) = &ext1_connection.cmd {
-                // Find the command messages.
-                let cmd1_index = cmd_flows
-                    .iter()
-                    .position(|flow| flow.name == "cmd_1")
-                    .unwrap();
-                let cmd2_index = cmd_flows
-                    .iter()
-                    .position(|flow| flow.name == "cmd_2")
-                    .unwrap();
-                let cmd3_index = cmd_flows
-                    .iter()
-                    .position(|flow| flow.name == "cmd_3")
-                    .unwrap();
-
-                // Verify order (cmd1, cmd2, cmd3).
-                assert!(
-                    cmd1_index < cmd2_index,
-                    "cmd_1 should be before cmd_2"
-                );
-                assert!(
-                    cmd2_index < cmd3_index,
-                    "cmd_2 should be before cmd_3"
-                );
-
-                // Verify destinations.
-                assert_eq!(
-                    cmd_flows[cmd1_index].dest[0].extension,
-                    "extension_2"
-                );
-                assert_eq!(
-                    cmd_flows[cmd2_index].dest[0].extension,
-                    "extension_3"
-                );
-                assert_eq!(
-                    cmd_flows[cmd3_index].dest[0].extension,
-                    "extension_2"
-                );
-            } else {
-                panic!("Cmd flows not found in connection");
-            }
-        } else {
-            panic!("No connections found in graph");
-        }
-
-        // Verify the property.all_fields.
-        if let Some(property) = &app_pkg.property {
-            if let Some(ten_value) = property.all_fields.get("_ten") {
-                if let Some(predefined_graphs) = ten_value
-                    .get("predefined_graphs")
-                    .and_then(|v| v.as_array())
-                {
-                    // Find our graph.
-                    let graph_value = predefined_graphs
-                        .iter()
-                        .find(|g| {
-                            g.get("name").and_then(|n| n.as_str())
-                                == Some("default_with_app_uri")
-                        })
-                        .unwrap();
-
-                    // Check the connections array.
-                    if let Some(connections) = graph_value
-                        .get("connections")
-                        .and_then(|c| c.as_array())
-                    {
-                        // Find the connection with the matching extension and
-                        // app.
-                        let ext1_connection = connections
-                            .iter()
-                            .find(|conn| {
-                                conn.get("extension").and_then(|e| e.as_str())
-                                    == Some("extension_1")
-                                    && conn.get("app").and_then(|a| a.as_str())
-                                        == Some("http://example.com:8000")
-                            })
-                            .unwrap();
-
-                        // Check the cmd array.
-                        let cmd_array = ext1_connection
-                            .get("cmd")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-
-                        // Get the indexes of our commands by their names.
-                        let cmd1_index = cmd_array
-                            .iter()
-                            .position(|cmd| {
-                                cmd.get("name").and_then(|n| n.as_str())
-                                    == Some("cmd_1")
-                            })
-                            .unwrap();
-
-                        let cmd2_index = cmd_array
-                            .iter()
-                            .position(|cmd| {
-                                cmd.get("name").and_then(|n| n.as_str())
-                                    == Some("cmd_2")
-                            })
-                            .unwrap();
-
-                        let cmd3_index = cmd_array
-                            .iter()
-                            .position(|cmd| {
-                                cmd.get("name").and_then(|n| n.as_str())
-                                    == Some("cmd_3")
-                            })
-                            .unwrap();
-
-                        // Verify order (cmd1, cmd2, cmd3).
-                        assert!(cmd1_index < cmd2_index, "cmd_1 should be before cmd_2 in property.all_fields");
-                        assert!(cmd2_index < cmd3_index, "cmd_2 should be before cmd_3 in property.all_fields");
-
-                        // Verify cmd1 destination.
-                        let cmd1_dest = cmd_array[cmd1_index]
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            cmd1_dest[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_2"),
-                            "cmd_1 should point to extension_2"
-                        );
-
-                        // Verify cmd2 destination.
-                        let cmd2_dest = cmd_array[cmd2_index]
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            cmd2_dest[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_3"),
-                            "cmd_2 should point to extension_3"
-                        );
-
-                        // Verify cmd3 destination.
-                        let cmd3_dest = cmd_array[cmd3_index]
-                            .get("dest")
-                            .and_then(|d| d.as_array())
-                            .unwrap();
-                        assert_eq!(
-                            cmd3_dest[0]
-                                .get("extension")
-                                .and_then(|e| e.as_str()),
-                            Some("extension_2"),
-                            "cmd_3 should point to extension_2"
-                        );
-
-                        // Verify the commands appear at the end of the array
-                        // The three commands we added should be the last three
-                        // elements in the array.
-                        assert_eq!(
-                            cmd_array.len() - 3,
-                            cmd1_index,
-                            "cmd_1 should be the antepenultimate element in the cmd array"
-                        );
-                        assert_eq!(
-                            cmd_array.len() - 2,
-                            cmd2_index,
-                            "cmd_2 should be the penultimate element in the cmd array"
-                        );
-                        assert_eq!(
-                            cmd_array.len() - 1,
-                            cmd3_index,
-                            "cmd_3 should be the last element in the cmd array"
-                        );
-                    } else {
-                        panic!("No connections array found in property.all_fields for the graph");
-                    }
-                } else {
-                    panic!("No predefined_graphs array found in property.all_fields");
-                }
-            } else {
-                panic!("No _ten object found in property.all_fields");
-            }
-        } else {
-            panic!("No property found for app_pkg");
-        }
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 }
