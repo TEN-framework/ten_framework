@@ -26,43 +26,43 @@ export class Msg {
     );
   }
 
-  setPropertyFromJson(path: string, jsonStr: string): void {
-    ten_addon.ten_nodejs_msg_set_property_from_json(this, path, jsonStr);
+  setPropertyFromJson(path: string, jsonStr: string): Error | null {
+    return ten_addon.ten_nodejs_msg_set_property_from_json(this, path, jsonStr);
   }
 
-  getPropertyToJson(path: string): string {
+  getPropertyToJson(path: string): [string, Error | null] {
     return ten_addon.ten_nodejs_msg_get_property_to_json(this, path);
   }
 
-  setPropertyNumber(path: string, value: number): void {
-    ten_addon.ten_nodejs_msg_set_property_number(this, path, value);
+  setPropertyNumber(path: string, value: number): Error | null {
+    return ten_addon.ten_nodejs_msg_set_property_number(this, path, value);
   }
 
-  getPropertyNumber(path: string): number {
+  getPropertyNumber(path: string): [number, Error | null] {
     return ten_addon.ten_nodejs_msg_get_property_number(this, path);
   }
 
-  setPropertyString(path: string, value: string): void {
-    ten_addon.ten_nodejs_msg_set_property_string(this, path, value);
+  setPropertyString(path: string, value: string): Error | null {
+    return ten_addon.ten_nodejs_msg_set_property_string(this, path, value);
   }
 
-  getPropertyString(path: string): string {
+  getPropertyString(path: string): [string, Error | null] {
     return ten_addon.ten_nodejs_msg_get_property_string(this, path);
   }
 
-  setPropertyBool(path: string, value: boolean): void {
-    ten_addon.ten_nodejs_msg_set_property_bool(this, path, value);
+  setPropertyBool(path: string, value: boolean): Error | null {
+    return ten_addon.ten_nodejs_msg_set_property_bool(this, path, value);
   }
 
-  getPropertyBool(path: string): boolean {
+  getPropertyBool(path: string): [boolean, Error | null] {
     return ten_addon.ten_nodejs_msg_get_property_bool(this, path);
   }
 
-  setPropertyBuf(path: string, value: ArrayBuffer): void {
-    ten_addon.ten_nodejs_msg_set_property_buf(this, path, value);
+  setPropertyBuf(path: string, value: ArrayBuffer): Error | null {
+    return ten_addon.ten_nodejs_msg_set_property_buf(this, path, value);
   }
 
-  getPropertyBuf(path: string): ArrayBuffer {
+  getPropertyBuf(path: string): [ArrayBuffer, Error | null] {
     return ten_addon.ten_nodejs_msg_get_property_buf(this, path);
   }
 }

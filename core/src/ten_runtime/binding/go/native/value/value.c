@@ -119,7 +119,7 @@ void ten_go_ten_value_get_type_and_size(ten_value_t *self, uint8_t *type,
 
   switch (prop_type) {
   case TEN_TYPE_BUF: {
-    ten_buf_t *buf = ten_value_peek_buf(self);
+    ten_buf_t *buf = ten_value_peek_buf(self, NULL);
     *size = buf ? ten_buf_get_size(buf) : 0;
     break;
   }
@@ -174,7 +174,7 @@ void ten_go_ten_value_get_buf(ten_value_t *self, void *value,
     return;
   }
 
-  ten_buf_t *buf = ten_value_peek_buf(self);
+  ten_buf_t *buf = ten_value_peek_buf(self, NULL);
   if (buf) {
     memcpy(value, ten_buf_get_data(buf), ten_buf_get_size(buf));
   }

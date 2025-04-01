@@ -13,6 +13,8 @@ import {
   Data,
   CmdResult,
   StatusCode,
+  VideoFrame,
+  AudioFrame,
 } from "ten-runtime-nodejs";
 
 function assert(condition: boolean, message: string) {
@@ -58,7 +60,65 @@ class DefaultExtension extends Extension {
     console.log("DefaultExtension onStop");
   }
 
-  async onDeinit(_tenEnv: TenEnv): Promise<void> {
+  async onDeinit(tenEnv: TenEnv): Promise<void> {
+    // Create a new promise but not await it
+    const promise = new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        const err = tenEnv.logInfo("Promise done after on deinit done");
+        assert(err !== null, "logInfo() should return an error");
+
+        const newCmd = Cmd.Create("test");
+        const [_, err1] = await tenEnv.sendCmd(newCmd);
+        assert(err1 !== null, "sendCmd() should return an error");
+
+        const newData = Data.Create("testData");
+        const err2 = await tenEnv.sendData(newData);
+        assert(err2 !== null, "sendData() should return an error");
+
+        const newVideoFrame = VideoFrame.Create("testVideoFrame");
+        const err3 = await tenEnv.sendVideoFrame(newVideoFrame);
+        assert(err3 !== null, "sendVideoFrame() should return an error");
+
+        const newAudioFrame = AudioFrame.Create("testAudioFrame");
+        const err4 = await tenEnv.sendAudioFrame(newAudioFrame);
+        assert(err4 !== null, "sendAudioFrame() should return an error");
+
+        const newCmdResult = CmdResult.Create(StatusCode.OK, newCmd);
+        const err5 = await tenEnv.returnResult(newCmdResult);
+        assert(err5 !== null, "returnResult() should return an error");
+
+        const [propertyJson, err6] = await tenEnv.getPropertyToJson(
+          "testProperty"
+        );
+        assert(err6 !== null, "getPropertyToJson() should return an error");
+
+        const err7 = await tenEnv.setPropertyFromJson(
+          "testProperty",
+          propertyJson
+        );
+        assert(err7 !== null, "setPropertyFromJson() should return an error");
+
+        const [result2, err8] = await tenEnv.getPropertyNumber("testProperty");
+        assert(err8 !== null, "getPropertyNumber() should return an error");
+
+        const err9 = await tenEnv.setPropertyNumber("testProperty", result2);
+        assert(err9 !== null, "setPropertyNumber() should return an error");
+
+        const [result3, err10] = await tenEnv.getPropertyString("testProperty");
+        assert(err10 !== null, "getPropertyString() should return an error");
+
+        const err11 = await tenEnv.setPropertyString("testProperty", result3);
+        assert(err11 !== null, "setPropertyString() should return an error");
+
+        const err12 = await tenEnv.initPropertyFromJson("testProperty");
+        assert(err12 !== null, "initPropertyFromJson() should return an error");
+
+        console.log("promise done");
+
+        resolve("done");
+      }, 1000);
+    });
+
     console.log("DefaultExtension onDeinit");
   }
 

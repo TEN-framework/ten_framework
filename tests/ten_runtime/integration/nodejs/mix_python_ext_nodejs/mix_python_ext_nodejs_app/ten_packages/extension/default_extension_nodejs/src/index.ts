@@ -72,7 +72,7 @@ class DefaultExtension extends Extension {
     const [result, _] = await tenEnv.sendCmd(testCmd);
     assert(result !== null, "result is null");
 
-    const detailJson = result.getPropertyToJson("detail");
+    const [detailJson, err] = result.getPropertyToJson("detail");
 
     tenEnv.logInfo("received result detail:" + detailJson);
 

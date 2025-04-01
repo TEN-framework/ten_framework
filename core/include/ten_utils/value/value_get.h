@@ -52,7 +52,8 @@ TEN_UTILS_API const char *ten_value_peek_raw_str(ten_value_t *self,
 
 TEN_UTILS_API void *ten_value_get_ptr(ten_value_t *self, ten_error_t *err);
 
-TEN_UTILS_API ten_buf_t *ten_value_peek_buf(ten_value_t *self);
+TEN_UTILS_API ten_buf_t *ten_value_peek_buf(ten_value_t *self,
+                                            ten_error_t *err);
 
 TEN_UTILS_API ten_list_t *ten_value_peek_array(ten_value_t *self);
 

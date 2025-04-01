@@ -73,6 +73,10 @@ napi_value ten_nodejs_ten_env_on_deinit_done(napi_env env,
                                     ten_env_bridge->c_ten_env_proxy, &err);
   }
 
+  // Reset the c_ten_env_proxy and c_ten_env to NULL.
+  ten_env_bridge->c_ten_env_proxy = NULL;
+  ten_env_bridge->c_ten_env = NULL;
+
   if (!rc) {
     TEN_LOGD("TEN/JS failed to on_deinit_done.");
 

@@ -25,7 +25,8 @@
 
 static bool ten_value_array_to_string(ten_value_t *self, ten_string_t *str,
                                       ten_error_t *err) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(ten_value_is_array(self), "Invalid argument: %d",
              ten_value_get_type(self));
   TEN_ASSERT(str, "Invalid argument.");
@@ -58,7 +59,8 @@ static bool ten_value_array_to_string(ten_value_t *self, ten_string_t *str,
 
 static bool ten_value_object_to_string(ten_value_t *self, ten_string_t *str,
                                        ten_error_t *err) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(ten_value_is_object(self), "Invalid argument: %d",
              ten_value_get_type(self));
   TEN_ASSERT(str, "Invalid argument.");
@@ -89,7 +91,8 @@ static bool ten_value_object_to_string(ten_value_t *self, ten_string_t *str,
 
 bool ten_value_to_string(ten_value_t *self, ten_string_t *str,
                          ten_error_t *err) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(str, "Invalid argument.");
 
   switch (self->type) {

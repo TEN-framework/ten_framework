@@ -9,7 +9,6 @@
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_return_result_ctx_t {
@@ -175,6 +174,21 @@ napi_value ten_nodejs_ten_env_return_result(napi_env env,
                  ten_nodejs_ten_env_check_integrity(ten_env_bridge, true),
              "Should not happen.");
 
+  if (ten_env_bridge->c_ten_env_proxy == NULL) {
+    ten_error_t err;
+    TEN_ERROR_INIT(err);
+
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.return_result() failed because ten is closed.");
+
+    napi_value js_error = ten_nodejs_create_error(env, &err);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(js_error, "Failed to create JS error");
+
+    ten_error_deinit(&err);
+
+    return js_error;
+  }
+
   ten_nodejs_cmd_result_t *cmd_result_bridge = NULL;
   status = napi_unwrap(env, args[1], (void **)&cmd_result_bridge);
   RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && cmd_result_bridge != NULL,
@@ -196,22 +210,18 @@ napi_value ten_nodejs_ten_env_return_result(napi_env env,
                                  ten_env_proxy_notify_return_result,
                                  notify_info, false, &err);
   if (!rc) {
-    ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
-
-    status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_message(&err));
-    RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok, "Failed to throw error");
-
-    ten_string_deinit(&code_str);
+    napi_value js_error = ten_nodejs_create_error(env, &err);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(js_error, "Failed to create JS error");
 
     // The JS callback will not be called, so release the TSFN here.
     ten_nodejs_tsfn_release(cb_tsfn);
 
     ten_env_notify_return_result_ctx_destroy(notify_info);
+    ten_error_deinit(&err);
+    return js_error;
   }
 
   ten_error_deinit(&err);
 
-  return js_undefined(env);
+  return js_null(env);
 }

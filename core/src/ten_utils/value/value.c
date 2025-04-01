@@ -381,7 +381,8 @@ static bool ten_value_init_vastring(ten_value_t *self, const char *fmt,
 
 bool ten_value_init_string_with_size(ten_value_t *self, const char *str,
                                      size_t len) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(str, "Invalid argument.");
 
   ten_value_init_string(self);
@@ -579,14 +580,16 @@ bool ten_value_init_object_with_move(ten_value_t *self, ten_list_t *value) {
 
 void ten_value_reset_to_string_with_size(ten_value_t *self, const char *str,
                                          size_t len) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   ten_value_deinit(self);
   ten_value_init_string_with_size(self, str, len);
 }
 
 void ten_value_reset_to_null(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   ten_value_deinit(self);
   ten_value_init_null(self);
@@ -596,7 +599,8 @@ void ten_value_reset_to_ptr(ten_value_t *self, void *ptr,
                             ten_value_construct_func_t construct,
                             ten_value_copy_func_t copy,
                             ten_value_destruct_func_t destruct) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   ten_value_deinit(self);
   ten_value_init_ptr(self, ptr, construct, copy, destruct);
@@ -808,7 +812,8 @@ ten_value_t *ten_value_clone(ten_value_t *src) {
 }
 
 void ten_value_deinit(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   if (self->name) {
     ten_string_destroy(self->name);
@@ -821,19 +826,22 @@ void ten_value_deinit(ten_value_t *self) {
 }
 
 void ten_value_destroy(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   ten_value_deinit(self);
   TEN_FREE(self);
 }
 
 size_t ten_value_array_size(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   return ten_list_size(&self->content.array);
 }
 
 bool ten_value_is_valid(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   switch (self->type) {
   case TEN_TYPE_INVALID:
@@ -844,7 +852,8 @@ bool ten_value_is_valid(ten_value_t *self) {
 }
 
 bool ten_value_is_equal(ten_value_t *self, ten_value_t *target) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_value_check_integrity(target), "Invalid argument.");
 
   if (self->type != target->type) {
