@@ -7,6 +7,7 @@
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
@@ -14,6 +15,7 @@ use ten_rust::{
     pkg_info::{
         message::MsgType, pkg_type::PkgType,
         predefined_graphs::pkg_predefined_graphs_find,
+        property::predefined_graph::PredefinedGraph, PkgInfo,
     },
 };
 
@@ -42,6 +44,91 @@ pub struct AddGraphConnectionResponsePayload {
     pub success: bool,
 }
 
+/// Find the app package in the packages list.
+fn find_app_package(pkgs: &mut [PkgInfo]) -> Option<&mut PkgInfo> {
+    pkgs.iter_mut().find(|pkg| {
+        pkg.manifest
+            .as_ref()
+            .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
+    })
+}
+
+/// Find the predefined graph by name.
+fn find_predefined_graph<'a>(
+    app_pkg: &'a mut PkgInfo,
+    graph_name: &str,
+) -> Option<&'a PredefinedGraph> {
+    pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
+        g.name == graph_name
+    })
+}
+
+/// Create a new GraphConnection from request params.
+fn create_graph_connection(
+    request_payload: &AddGraphConnectionRequestPayload,
+) -> GraphConnection {
+    // Create the destination.
+    let destination = GraphDestination {
+        app: request_payload.dest_app.clone(),
+        extension: request_payload.dest_extension.clone(),
+        msg_conversion: None,
+    };
+
+    // Create the message flow.
+    let message_flow = GraphMessageFlow {
+        name: request_payload.msg_name.clone(),
+        dest: vec![destination],
+    };
+
+    // Create the connection object.
+    let mut connection = GraphConnection {
+        app: request_payload.src_app.clone(),
+        extension: request_payload.src_extension.clone(),
+        cmd: None,
+        data: None,
+        audio_frame: None,
+        video_frame: None,
+    };
+
+    // Add the message flow to the appropriate field.
+    match request_payload.msg_type {
+        MsgType::Cmd => {
+            connection.cmd = Some(vec![message_flow]);
+        }
+        MsgType::Data => {
+            connection.data = Some(vec![message_flow]);
+        }
+        MsgType::AudioFrame => {
+            connection.audio_frame = Some(vec![message_flow]);
+        }
+        MsgType::VideoFrame => {
+            connection.video_frame = Some(vec![message_flow]);
+        }
+    }
+
+    connection
+}
+
+/// Update the property.json file with the new connection.
+fn update_property_file(
+    base_dir: &str,
+    property: &mut ten_rust::pkg_info::property::Property,
+    graph_name: &str,
+    connection: &GraphConnection,
+) -> Result<()> {
+    // Update only with the new connection.
+    let connections_to_add = vec![connection.clone()];
+
+    // Update the property_all_fields map and write to property.json.
+    update_graph_connections_all_fields(
+        base_dir,
+        &mut property.all_fields,
+        graph_name,
+        Some(&connections_to_add),
+        None,
+    )
+}
+
 pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -56,16 +143,11 @@ pub async fn add_graph_connection_endpoint(
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+        if let Some(app_pkg) = find_app_package(pkgs) {
             // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == request_payload.graph_name,
-            ) {
+            if let Some(predefined_graph) =
+                find_predefined_graph(app_pkg, &request_payload.graph_name)
+            {
                 let mut graph = predefined_graph.graph.clone();
 
                 // Add the connection.
@@ -86,66 +168,16 @@ pub async fn add_graph_connection_endpoint(
 
                         // Update property.json file with the updated graph.
                         if let Some(property) = &mut app_pkg.property {
-                            // Create a new connection object with the same
-                            // parameters used in add_connection.
+                            // Create a new connection object.
+                            let connection =
+                                create_graph_connection(&request_payload);
 
-                            // Create the destination.
-                            let destination = GraphDestination {
-                                app: request_payload.dest_app.clone(),
-                                extension: request_payload
-                                    .dest_extension
-                                    .clone(),
-                                msg_conversion: None,
-                            };
-
-                            // Create the message flow based on the message
-                            // type.
-                            let message_flow = GraphMessageFlow {
-                                name: request_payload.msg_name.clone(),
-                                dest: vec![destination],
-                            };
-
-                            // Create the connection object
-                            let mut connection = GraphConnection {
-                                app: request_payload.src_app.clone(),
-                                extension: request_payload
-                                    .src_extension
-                                    .clone(),
-                                cmd: None,
-                                data: None,
-                                audio_frame: None,
-                                video_frame: None,
-                            };
-
-                            // Add the message flow to the appropriate field.
-                            match request_payload.msg_type {
-                                MsgType::Cmd => {
-                                    connection.cmd = Some(vec![message_flow]);
-                                }
-                                MsgType::Data => {
-                                    connection.data = Some(vec![message_flow]);
-                                }
-                                MsgType::AudioFrame => {
-                                    connection.audio_frame =
-                                        Some(vec![message_flow]);
-                                }
-                                MsgType::VideoFrame => {
-                                    connection.video_frame =
-                                        Some(vec![message_flow]);
-                                }
-                            }
-
-                            // Update only with the new connection.
-                            let connections_to_add = vec![connection];
-
-                            // Update the property_all_fields map and write to
-                            // property.json.
-                            if let Err(e) = update_graph_connections_all_fields(
+                            // Update the property.json file.
+                            if let Err(e) = update_property_file(
                                 &request_payload.base_dir,
-                                &mut property.all_fields,
+                                property,
                                 &request_payload.graph_name,
-                                Some(&connections_to_add),
-                                None,
+                                &connection,
                             ) {
                                 eprintln!("Warning: Failed to update property.json file: {}", e);
                             }
