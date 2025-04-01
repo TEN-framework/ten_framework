@@ -8,17 +8,18 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-
-use ten_rust::pkg_info::{
-    pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
+use ten_rust::{
+    graph::{node::GraphNode, Graph},
+    pkg_info::{
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+        property::predefined_graph::PredefinedGraph,
+    },
 };
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    graph::update_graph_node_all_fields,
+use crate::designer::{
+    graphs::util,
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -35,6 +36,64 @@ pub struct AddGraphNodeResponsePayload {
     pub success: bool,
 }
 
+/// Adds a new extension node to a graph.
+fn add_extension_node_to_graph(
+    predefined_graph: &PredefinedGraph,
+    node_name: &str,
+    addon_name: &str,
+    app_uri: &Option<String>,
+) -> Result<Graph, String> {
+    let mut graph = predefined_graph.graph.clone();
+
+    // Add the extension node.
+    match graph.add_extension_node(
+        node_name.to_string(),
+        addon_name.to_string(),
+        app_uri.clone(),
+        None,
+        None,
+    ) {
+        Ok(_) => Ok(graph),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Creates a new GraphNode for an extension.
+fn create_extension_node(
+    node_name: &str,
+    addon_name: &str,
+    app_uri: &Option<String>,
+) -> GraphNode {
+    GraphNode {
+        type_and_name: PkgTypeAndName {
+            pkg_type: PkgType::Extension,
+            name: node_name.to_string(),
+        },
+        addon: addon_name.to_string(),
+        extension_group: None,
+        app: app_uri.clone(),
+        property: None,
+    }
+}
+
+/// Updates the property.json file with the new graph node.
+fn update_node_property_file(
+    base_dir: &str,
+    property: &mut ten_rust::pkg_info::property::Property,
+    graph_name: &str,
+    node: &GraphNode,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let nodes_to_add = vec![node.clone()];
+    crate::graph::update_graph_node_all_fields(
+        base_dir,
+        &mut property.all_fields,
+        graph_name,
+        Some(&nodes_to_add),
+        None,
+    )?;
+    Ok(())
+}
+
 pub async fn add_graph_node_endpoint(
     request_payload: web::Json<AddGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -47,55 +106,41 @@ pub async fn add_graph_node_endpoint(
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+        if let Some(app_pkg) = util::find_app_package(pkgs) {
             // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == request_payload.graph_name,
+            if let Some(predefined_graph) = util::find_predefined_graph(
+                app_pkg,
+                &request_payload.graph_name,
             ) {
-                let mut graph = predefined_graph.graph.clone();
-
-                // Add the extension node.
-                match graph.add_extension_node(
-                    request_payload.node_name.clone(),
-                    request_payload.addon_name.clone(),
-                    request_payload.app_uri.clone(),
-                    None,
-                    None,
+                // Add the node to the graph
+                match add_extension_node_to_graph(
+                    predefined_graph,
+                    &request_payload.node_name,
+                    &request_payload.addon_name,
+                    &request_payload.app_uri,
                 ) {
-                    Ok(_) => {
+                    Ok(graph) => {
                         // Update the predefined_graph in the app_pkg.
                         let mut new_graph = predefined_graph.clone();
                         new_graph.graph = graph;
                         app_pkg.update_predefined_graph(&new_graph);
 
+                        // Create the graph node.
+                        let new_node = create_extension_node(
+                            &request_payload.node_name,
+                            &request_payload.addon_name,
+                            &request_payload.app_uri,
+                        );
+
                         // Update property.json file with the new graph node.
                         if let Some(property) = &mut app_pkg.property {
-                            // Create the GraphNode we just added.
-                            let new_node = ten_rust::graph::node::GraphNode {
-                                type_and_name: ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName {
-                                    pkg_type: ten_rust::pkg_info::pkg_type::PkgType::Extension,
-                                    name: request_payload.node_name.clone(),
-                                },
-                                addon: request_payload.addon_name.clone(),
-                                extension_group: None,
-                                app: request_payload.app_uri.clone(),
-                                property: None,
-                            };
-                            let nodes_to_add = vec![new_node];
-
                             // Write the updated property_all_fields map to
                             // property.json.
-                            if let Err(e) = update_graph_node_all_fields(
+                            if let Err(e) = update_node_property_file(
                                 &request_payload.base_dir,
-                                &mut property.all_fields,
+                                property,
                                 &request_payload.graph_name,
-                                Some(&nodes_to_add),
-                                None,
+                                &new_node,
                             ) {
                                 eprintln!("Warning: Failed to update property.json file: {}", e);
                             }
