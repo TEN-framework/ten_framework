@@ -16,13 +16,23 @@ use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 /// Update the connections of a graph in the property.json file.
 ///
 /// This function updates the connections in the property.json file for a
-/// specified graph. It replaces all existing connections with the provided new
-/// connections.
+/// specified graph. It adds or removes connections from the existing list,
+/// preserving the original order.
+///
+/// Both `connections_to_add` and `connections_to_remove` are optional, allowing
+/// for:
+///   - Adding new connections without removing any.
+///   - Removing connections without adding any new ones.
+///   - Both adding and removing connections in a single call.
+///
+/// In all cases, the original order of connections in the property.json file is
+/// preserved.
 pub fn update_graph_connections_all_fields(
     pkg_url: &str,
     property_all_fields: &mut serde_json::Map<String, Value>,
     graph_name: &str,
-    new_connections: &Option<Vec<GraphConnection>>,
+    connections_to_add: Option<&[GraphConnection]>,
+    connections_to_remove: Option<&[GraphConnection]>,
 ) -> Result<()> {
     // Process _ten.predefined_graphs array.
     if let Some(Value::Object(ten_obj)) = property_all_fields.get_mut("_ten") {
@@ -36,23 +46,87 @@ pub fn update_graph_connections_all_fields(
                         if name == graph_name {
                             // Found the matching graph, now update its
                             // connections.
-
-                            // If there are no new connections, remove the
-                            // connections array if it exists
-                            if new_connections.is_none()
-                                || new_connections.as_ref().unwrap().is_empty()
+                            if let Some(Value::Array(connections_array)) =
+                                graph_obj.get_mut("connections")
                             {
-                                graph_obj.remove("connections");
-                            } else {
-                                // Convert the connections to JSON Value
-                                if let Ok(connections_value) =
-                                    serde_json::to_value(new_connections)
+                                // Remove connections if requested.
+                                if let Some(remove_connections) =
+                                    connections_to_remove
                                 {
-                                    // Update or create the connections array
-                                    graph_obj.insert(
-                                        "connections".to_string(),
-                                        connections_value,
-                                    );
+                                    if !remove_connections.is_empty() {
+                                        // Convert connections to remove into
+                                        // comparable form.
+                                        let connections_to_remove_serialized: Vec<String> = remove_connections
+                                            .iter()
+                                            .filter_map(|conn| {
+                                                let conn_value = serde_json::to_value(conn).ok()?;
+                                                serde_json::to_string(&conn_value).ok()
+                                            })
+                                            .collect();
+
+                                        // Filter out connections to remove.
+                                        connections_array.retain(|item| {
+                                            if let Ok(item_str) = serde_json::to_string(item) {
+                                                !connections_to_remove_serialized.contains(&item_str)
+                                            } else {
+                                                // Keep items that can't be serialized.
+                                                true
+                                            }
+                                        });
+                                    }
+                                }
+
+                                // Add new connections if provided.
+                                if let Some(add_connections) =
+                                    connections_to_add
+                                {
+                                    if !add_connections.is_empty() {
+                                        // Append new connections to the
+                                        // existing array.
+                                        for new_connection in add_connections {
+                                            if let Ok(new_connection_value) =
+                                                serde_json::to_value(
+                                                    new_connection,
+                                                )
+                                            {
+                                                connections_array
+                                                    .push(new_connection_value);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // If all connections are removed, remove the
+                                // connections array.
+                                if connections_array.is_empty() {
+                                    graph_obj.remove("connections");
+                                }
+                            } else {
+                                // No connections array in the graph yet, create
+                                // one if we have connections to add.
+                                if let Some(add_connections) =
+                                    connections_to_add
+                                {
+                                    if !add_connections.is_empty() {
+                                        let mut connections_array = Vec::new();
+
+                                        // Add all new connections to the array.
+                                        for new_connection in add_connections {
+                                            if let Ok(new_connection_value) =
+                                                serde_json::to_value(
+                                                    new_connection,
+                                                )
+                                            {
+                                                connections_array
+                                                    .push(new_connection_value);
+                                            }
+                                        }
+
+                                        graph_obj.insert(
+                                            "connections".to_string(),
+                                            Value::Array(connections_array),
+                                        );
+                                    }
                                 }
                             }
 

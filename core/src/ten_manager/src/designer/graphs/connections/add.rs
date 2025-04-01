@@ -80,13 +80,22 @@ pub async fn add_graph_connection_endpoint(
 
                         // Update property.json file with the updated graph.
                         if let Some(property) = &mut app_pkg.property {
+                            // Get connections from the newly updated graph
+                            let empty_vec = vec![];
+                            let connections_ref = new_graph
+                                .graph
+                                .connections
+                                .as_ref()
+                                .unwrap_or(&empty_vec);
+
                             // Update the property_all_fields map and write to
                             // property.json.
                             if let Err(e) = crate::graph::update_graph_connections_all_fields(
                                 &request_payload.base_dir,
                                 &mut property.all_fields,
                                 &request_payload.graph_name,
-                                &new_graph.graph.connections,
+                                Some(connections_ref),
+                                None,
                             ) {
                                 eprintln!("Warning: Failed to update property.json file: {}", e);
                             }
