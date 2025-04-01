@@ -37,18 +37,30 @@ napi_value js_null(napi_env env) {
   return js_null_value;
 }
 
+/**
+ * @brief Creates a result tuple in the form of a JavaScript array with two
+ * elements.
+ *
+ * This function creates a JavaScript array where:
+ * - The first element (index 0) contains the result value.
+ * - The second element (index 1) contains the error value (or null if no
+ * error).
+ */
 napi_value ten_nodejs_create_result_tuple(napi_env env, napi_value res,
                                           napi_value err) {
   TEN_ASSERT(env, "Should not happen.");
 
+  // Create a JavaScript array to hold the result and error.
   napi_value tuple = NULL;
   napi_status status = napi_create_array(env, &tuple);
   ASSERT_IF_NAPI_FAIL(status == napi_ok && tuple != NULL,
                       "Failed to create JS array: %d", status);
 
+  // Set the result value at index 0.
   status = napi_set_element(env, tuple, 0, res);
   ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to set element", NULL);
 
+  // Set the error value at index 1.
   status = napi_set_element(env, tuple, 1, err);
   ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to set element", NULL);
 

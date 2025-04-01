@@ -122,7 +122,8 @@ bool ten_value_set_string(ten_value_t *self, const char *str) {
 
 bool ten_value_set_string_with_size(ten_value_t *self, const char *str,
                                     size_t len) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(ten_value_is_string(self), "Invalid argument.");
   TEN_ASSERT(str, "Invalid argument.");
 

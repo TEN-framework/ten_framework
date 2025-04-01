@@ -553,7 +553,8 @@ static bool ten_value_uint32_to_json(ten_value_t *self, ten_json_t *json) {
 }
 
 static bool ten_value_uint64_to_json(ten_value_t *self, ten_json_t *json) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(ten_value_is_uint64(self), "Invalid argument.");
 
   if (json == NULL) {

@@ -623,7 +623,7 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  TEN_ASSERT(buf && ten_buf_check_integrity(buf), "Invalid buf.");
+  TEN_ASSERT(ten_buf_check_integrity(buf), "Invalid buf.");
 
   PyObject *py_value = PyByteArray_FromStringAndSize((const char *)buf->data,
                                                      (Py_ssize_t)buf->size);

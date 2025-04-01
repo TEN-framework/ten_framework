@@ -120,9 +120,10 @@ void ten_raw_data_buf_copy(ten_msg_t *self, ten_msg_t *src,
   ten_data_t *self_data = (ten_data_t *)self;
 
   if (ten_buf_get_size(ten_value_peek_buf(&src_data->buf, NULL))) {
-    ten_buf_init_with_copying_data(ten_value_peek_buf(&self_data->buf, NULL),
-                                   ten_value_peek_buf(&src_data->buf, NULL)->data,
-                                   ten_value_peek_buf(&src_data->buf, NULL)->size);
+    ten_buf_init_with_copying_data(
+        ten_value_peek_buf(&self_data->buf, NULL),
+        ten_value_peek_buf(&src_data->buf, NULL)->data,
+        ten_value_peek_buf(&src_data->buf, NULL)->size);
   }
 }
 

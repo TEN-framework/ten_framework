@@ -9,7 +9,6 @@
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_return_result_ctx_t {
