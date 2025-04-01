@@ -66,7 +66,7 @@ class DefaultExtension extends Extension {
     assert(propertyJson.key1 === "value1", "propertyJson incorrect");
     assert(propertyJson.key2 === 2, "propertyJson incorrect");
 
-    [,err] = await tenEnv.getPropertyToJson("nonExistObjectKey");
+    [, err] = await tenEnv.getPropertyToJson("nonExistObjectKey");
     assert(err != null, "err is null");
 
     err = await tenEnv.setPropertyNumber("setKeyInt", 12345);

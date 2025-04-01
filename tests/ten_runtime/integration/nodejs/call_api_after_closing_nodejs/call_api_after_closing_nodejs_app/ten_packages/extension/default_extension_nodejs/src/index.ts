@@ -87,10 +87,15 @@ class DefaultExtension extends Extension {
         const err5 = await tenEnv.returnResult(newCmdResult);
         assert(err5 !== null, "returnResult() should return an error");
 
-        const [propertyJson, err6] = await tenEnv.getPropertyToJson("testProperty");
+        const [propertyJson, err6] = await tenEnv.getPropertyToJson(
+          "testProperty"
+        );
         assert(err6 !== null, "getPropertyToJson() should return an error");
 
-        const err7 = await tenEnv.setPropertyFromJson("testProperty", propertyJson);
+        const err7 = await tenEnv.setPropertyFromJson(
+          "testProperty",
+          propertyJson
+        );
         assert(err7 !== null, "setPropertyFromJson() should return an error");
 
         const [result2, err8] = await tenEnv.getPropertyNumber("testProperty");
@@ -113,7 +118,6 @@ class DefaultExtension extends Extension {
         resolve("done");
       }, 1000);
     });
-
 
     console.log("DefaultExtension onDeinit");
   }
