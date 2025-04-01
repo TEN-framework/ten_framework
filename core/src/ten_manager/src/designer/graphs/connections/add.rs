@@ -17,9 +17,12 @@ use ten_rust::{
     },
 };
 
-use crate::designer::{
-    response::{ApiResponse, ErrorResponse, Status},
-    DesignerState,
+use crate::{
+    designer::{
+        response::{ApiResponse, ErrorResponse, Status},
+        DesignerState,
+    },
+    graph::update_graph_connections_all_fields,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -137,7 +140,7 @@ pub async fn add_graph_connection_endpoint(
 
                             // Update the property_all_fields map and write to
                             // property.json.
-                            if let Err(e) = crate::graph::update_graph_connections_all_fields(
+                            if let Err(e) = update_graph_connections_all_fields(
                                 &request_payload.base_dir,
                                 &mut property.all_fields,
                                 &request_payload.graph_name,
@@ -463,72 +466,122 @@ mod tests {
 
         assert!(resp2.status().is_success());
 
-        // Verify the graph data in memory rather than from property.all_fields.
-        {
-            let state = designer_state_arc.read().unwrap();
-            let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
+        let state = designer_state_arc.read().unwrap();
+        let pkgs = state.pkgs_cache.get(TEST_DIR).unwrap();
 
-            // Find the app package.
-            let app_pkg = pkgs
-                .iter()
-                .find(|pkg| {
-                    pkg.manifest.as_ref().is_some_and(|m| {
-                        m.type_and_name.pkg_type == PkgType::App
-                    })
-                })
-                .unwrap();
-
-            // Get the predefined graph from app_pkg to check if connections
-            // were added correctly.
-            let predefined_graph = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == "default_with_app_uri",
-            )
+        // Find the app package.
+        let app_pkg = pkgs
+            .iter()
+            .find(|pkg| {
+                pkg.manifest
+                    .as_ref()
+                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
+            })
             .unwrap();
 
-            // Now check the connections in memory.
-            if let Some(connections) = &predefined_graph.graph.connections {
-                // Find the connection for extension_1.
-                let ext1_connection = connections
-                    .iter()
-                    .find(|conn| {
-                        conn.extension == "extension_1"
-                            && conn.app
-                                == Some("http://example.com:8000".to_string())
-                    })
-                    .unwrap();
-
-                // Check that we have both commands and they are in order.
-                if let Some(cmd_flows) = &ext1_connection.cmd {
-                    // Find both commands
-                    let cmd1_position = cmd_flows
+        // Now check the property.all_fields to verify that the connections are
+        // in the correct order and the new connections are appended to the end.
+        if let Some(property) = &app_pkg.property {
+            // Check if we have the graph in property.all_fields.
+            if let Some(ten_value) = property.all_fields.get("_ten") {
+                if let Some(predefined_graphs) = ten_value
+                    .get("predefined_graphs")
+                    .and_then(|v| v.as_array())
+                {
+                    // Find our graph.
+                    let graph_value = predefined_graphs
                         .iter()
-                        .position(|flow| flow.name == "test_cmd1")
-                        .unwrap();
-                    let cmd2_position = cmd_flows
-                        .iter()
-                        .position(|flow| flow.name == "test_cmd2")
+                        .find(|g| {
+                            g.get("name").and_then(|n| n.as_str())
+                                == Some("default_with_app_uri")
+                        })
                         .unwrap();
 
-                    // First command should appear before second command
-                    // (preserving order)
-                    assert!(cmd1_position < cmd2_position,
-                           "test_cmd1 should come before test_cmd2, but found at positions {} and {}",
-                           cmd1_position, cmd2_position);
+                    // Check the connections array.
+                    if let Some(connections) = graph_value
+                        .get("connections")
+                        .and_then(|c| c.as_array())
+                    {
+                        // Find the connection with the matching extension and
+                        // app.
+                        let ext1_connection = connections
+                            .iter()
+                            .find(|conn| {
+                                conn.get("extension").and_then(|e| e.as_str())
+                                    == Some("extension_1")
+                                    && conn.get("app").and_then(|a| a.as_str())
+                                        == Some("http://example.com:8000")
+                            })
+                            .unwrap();
 
-                    // Verify that test_cmd1 points to extension_2
-                    let cmd1 = &cmd_flows[cmd1_position];
-                    assert_eq!(cmd1.dest[0].extension, "extension_2");
+                        // Check the cmd array to verify our new connections are
+                        // at the end.
+                        if let Some(cmd_array) = ext1_connection
+                            .get("cmd")
+                            .and_then(|c| c.as_array())
+                        {
+                            // The last two entries should be our new test_cmd1
+                            // and test_cmd2.
+                            let last_entries = cmd_array
+                                .iter()
+                                .rev()
+                                .take(2)
+                                .collect::<Vec<_>>();
 
-                    // Verify that test_cmd2 points to extension_3
-                    let cmd2 = &cmd_flows[cmd2_position];
-                    assert_eq!(cmd2.dest[0].extension, "extension_3");
+                            // The last entry should be test_cmd2.
+                            assert_eq!(
+                                last_entries[0]
+                                    .get("name")
+                                    .and_then(|n| n.as_str()),
+                                Some("test_cmd2"),
+                                "Last entry in cmd array should be test_cmd2"
+                            );
+
+                            // The second-to-last entry should be test_cmd1.
+                            assert_eq!(
+                                    last_entries[1].get("name").and_then(|n| n.as_str()),
+                                    Some("test_cmd1"),
+                                    "Second-to-last entry in cmd array should be test_cmd1"
+                                );
+
+                            // Verify destinations.
+                            let test_cmd1_dest = last_entries[1]
+                                .get("dest")
+                                .and_then(|d| d.as_array())
+                                .unwrap();
+                            assert_eq!(
+                                test_cmd1_dest[0]
+                                    .get("extension")
+                                    .and_then(|e| e.as_str()),
+                                Some("extension_2"),
+                                "test_cmd1 should point to extension_2"
+                            );
+
+                            let test_cmd2_dest = last_entries[0]
+                                .get("dest")
+                                .and_then(|d| d.as_array())
+                                .unwrap();
+                            assert_eq!(
+                                test_cmd2_dest[0]
+                                    .get("extension")
+                                    .and_then(|e| e.as_str()),
+                                Some("extension_3"),
+                                "test_cmd2 should point to extension_3"
+                            );
+                        } else {
+                            panic!("No cmd array found in the connection in property.all_fields");
+                        }
+                    } else {
+                        panic!("No connections array found in property.all_fields for the graph");
+                    }
                 } else {
-                    panic!("No cmd flows found in connection");
+                    panic!("No predefined_graphs array found in property.all_fields");
                 }
             } else {
-                panic!("No connections found in graph");
+                panic!("No _ten object found in property.all_fields");
             }
+        } else {
+            panic!("No property found for app_pkg");
         }
     }
 }
