@@ -6,4 +6,5 @@
 //
 pub mod to_file;
 
+pub use to_file::update_graph_connections_all_fields;
 pub use to_file::update_graph_node_all_fields;
