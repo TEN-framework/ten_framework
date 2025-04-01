@@ -4,10 +4,15 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use anyhow::Result;
+use std::{fs::OpenOptions, path::Path};
+
+use anyhow::{Context, Result};
 use serde_json::Value;
 
-use ten_rust::graph::connection::GraphConnection;
+use ten_rust::{
+    graph::connection::GraphConnection,
+    pkg_info::constants::PROPERTY_JSON_FILENAME,
+};
 
 /// Update the connections of a graph in the property.json file.
 ///
@@ -24,7 +29,7 @@ use ten_rust::graph::connection::GraphConnection;
 /// In all cases, the original order of connections in the property.json file is
 /// preserved.
 pub fn update_graph_connections_all_fields(
-    _pkg_url: &str,
+    pkg_url: &str,
     property_all_fields: &mut serde_json::Map<String, Value>,
     graph_name: &str,
     connections_to_add: Option<&[GraphConnection]>,
@@ -277,18 +282,17 @@ pub fn update_graph_connections_all_fields(
         }
     }
 
-    // // Write the updated property back to the file.
-    // let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
-    // let property_file = OpenOptions::new()
-    //     .write(true)
-    //     .truncate(true)
-    //     .open(property_path)
-    //     .context("Failed to open property.json file")?;
+    // Write the updated property back to the file.
+    let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
+    let property_file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(property_path)
+        .context("Failed to open property.json file")?;
 
-    // // Serialize the property_all_fields map directly to preserve field
-    // order. serde_json::to_writer_pretty(property_file,
-    // &property_all_fields)     .context("Failed to write to property.json
-    // file")?;
+    // Serialize the property_all_fields map directly to preserve field order.
+    serde_json::to_writer_pretty(property_file, &property_all_fields)
+        .context("Failed to write to property.json file")?;
 
     Ok(())
 }
