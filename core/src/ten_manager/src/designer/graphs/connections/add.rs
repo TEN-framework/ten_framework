@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
@@ -12,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use ten_rust::pkg_info::{
     message::MsgType, pkg_type::PkgType,
-    predefined_graphs::pkg_predefined_graphs_find, PkgInfo,
+    predefined_graphs::pkg_predefined_graphs_find,
 };
 
 use crate::designer::{
@@ -41,16 +40,15 @@ pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().unwrap();
+
+    // Clone the pkgs_cache for this base_dir
+    let pkgs_cache_clone = state_write.pkgs_cache.clone();
 
     // Get the packages for this base_dir.
     if let Some(pkgs) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
-        // Clone the packages for the installed_pkgs map.
-        let pkgs_for_validation = pkgs.clone();
-
         // Find the app package.
         if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
             pkg.manifest
@@ -64,14 +62,6 @@ pub async fn add_graph_connection_endpoint(
             ) {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Create a map of installed packages for schema validation.
-                let mut installed_pkgs: HashMap<String, Vec<PkgInfo>> =
-                    HashMap::new();
-                installed_pkgs.insert(
-                    request_payload.base_dir.clone(),
-                    pkgs_for_validation,
-                );
-
                 // Add the connection.
                 match graph.add_connection(
                     request_payload.src_app.clone(),
@@ -80,7 +70,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &installed_pkgs,
+                    &pkgs_cache_clone,
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.
