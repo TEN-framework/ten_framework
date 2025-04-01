@@ -479,6 +479,58 @@ mod tests {
             })
             .unwrap();
 
+        // Get the predefined graph from app_pkg to check if connections were
+        // added correctly.
+        let predefined_graph =
+            pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
+                g.name == "default_with_app_uri"
+            })
+            .unwrap();
+
+        // Now check the connections in memory.
+        if let Some(connections) = &predefined_graph.graph.connections {
+            // Find the connection for extension_1.
+            let ext1_connection = connections
+                .iter()
+                .find(|conn| {
+                    conn.extension == "extension_1"
+                        && conn.app
+                            == Some("http://example.com:8000".to_string())
+                })
+                .unwrap();
+
+            // Check that we have both commands and they are in order.
+            if let Some(cmd_flows) = &ext1_connection.cmd {
+                // Find both commands.
+                let cmd1_position = cmd_flows
+                    .iter()
+                    .position(|flow| flow.name == "test_cmd1")
+                    .unwrap();
+                let cmd2_position = cmd_flows
+                    .iter()
+                    .position(|flow| flow.name == "test_cmd2")
+                    .unwrap();
+
+                // First command should appear before second command (preserving
+                // order).
+                assert!(cmd1_position < cmd2_position,
+                         "test_cmd1 should come before test_cmd2, but found at positions {} and {}",
+                         cmd1_position, cmd2_position);
+
+                // Verify that test_cmd1 points to extension_2.
+                let cmd1 = &cmd_flows[cmd1_position];
+                assert_eq!(cmd1.dest[0].extension, "extension_2");
+
+                // Verify that test_cmd2 points to extension_3.
+                let cmd2 = &cmd_flows[cmd2_position];
+                assert_eq!(cmd2.dest[0].extension, "extension_3");
+            } else {
+                panic!("No cmd flows found in connection");
+            }
+        } else {
+            panic!("No connections found in graph");
+        }
+
         // Now check the property.all_fields to verify that the connections are
         // in the correct order and the new connections are appended to the end.
         if let Some(property) = &app_pkg.property {
