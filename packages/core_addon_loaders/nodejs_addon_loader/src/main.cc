@@ -115,11 +115,22 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // to keep running continuously.
       MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
           env,
-          "js_require = require('module').createRequire(process.cwd() + "
-          "'/');"
-          "global.ten_runtime_nodejs = "
-          "js_require('./ten_packages/system/ten_runtime_nodejs');"
-          "setInterval(() => {}, 1000);");
+          "const { pathToFileURL } = require('url');\n"
+          "(async () => {\n"
+          "  try {\n"
+          "    global.ten_runtime_nodejs = await import(\n"
+          "      pathToFileURL(process.cwd() + "
+          "'/ten_packages/system/ten_runtime_nodejs/build/index.js')\n"
+          "    );\n"
+          "    console.log('ESM module loaded successfully');\n"
+          "    await "
+          "global.ten_runtime_nodejs.AddonManager._load_all_addons();\n"
+          "  } catch(err) {\n"
+          "    console.error('ESM module loading failed:', err);\n"
+          "    process.exit(1);\n"
+          "  }\n"
+          "})();\n"
+          "setInterval(() => {}, 1000);\n");
 
       if (loadenv_ret.IsEmpty()) {
         // There has been a JS exception.
@@ -367,12 +378,9 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
             Context::Scope context_scope(this_ptr->setup_->context());
 
             std::string js_code =
-                "if "
-                "(global.ten_runtime_nodejs.AddonManager._load_single_addon('" +
-                addon_name + "')) {" +
                 "global.ten_runtime_nodejs.AddonManager._register_single_addon("
                 "'" +
-                addon_name + "', null);" + "}";
+                addon_name + "', null);";
 
             // Convert the JavaScript code into a `v8::String`.
             v8::Local<v8::String> source =
