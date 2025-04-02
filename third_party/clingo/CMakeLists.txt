@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.1)
 
 file(READ "libclingo/clingo.h" clingoh)
 string(REGEX MATCH "#define CLINGO_VERSION \"([^\"]*)\"" clingov ${clingoh})

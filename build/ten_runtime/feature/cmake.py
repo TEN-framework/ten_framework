@@ -254,6 +254,15 @@ cmake.py will consider it as its own command line option."
             else:
                 self.defines.append(f"-D{opt}")
 
+        # CMake 3.5 was released in 2018, and newer versions of CMake no longer
+        # support compatibility with versions earlier than 3.5. If
+        # `CMakeLists.txt` contains a line like
+        # `cmake_minimum_required(VERSION x.x)` and `x.x` is less than 3.5,
+        # newer versions of CMake will throw an error. We don’t want to modify
+        # this line across numerous third-party libraries, we use a trick here
+        # by overriding it directly in the CMake command line.
+        self.defines.append("-DCMAKE_POLICY_VERSION_MINIMUM=3.5")
+
         if self.args.target_os == "linux":
             self.sharedlinkerflags.extend(
                 [
