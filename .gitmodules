@@ -1,3 +1,6 @@
 [submodule "core/ten_gn"]
   path = core/ten_gn
   url = https://github.com/TEN-framework/ten_gn.git
+[submodule "portal"]
+	path = portal
+	url = https://github.com/TEN-framework/portal.git
