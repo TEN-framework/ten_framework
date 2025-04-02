@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 file(READ "libclingo/clingo.h" clingoh)
 string(REGEX MATCH "#define CLINGO_VERSION \"([^\"]*)\"" clingov ${clingoh})
@@ -317,4 +317,3 @@ if (NOT CLINGO_BUILD_STATIC AND (CLINGO_BUILD_SHARED OR Python_Development_FOUND
         set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endforeach()
 endif()
-
