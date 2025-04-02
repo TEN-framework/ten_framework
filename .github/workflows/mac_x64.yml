@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize, reopened]
     paths-ignore:
       - "tools/**"
-      - "docs/**"
+      - "portal/**"
       - ".vscode/**"
       - ".devcontainer/**"
       - ".github/**"
@@ -34,10 +34,10 @@ jobs:
       - name: Trust working directory
         run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
-      - name: Initialize and update submodules except docs/
+      - name: Initialize and update submodules except portal/
         run: |
-          # Retrieve all submodule paths, excluding `docs/`.
-          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+          # Retrieve all submodule paths, excluding `portal/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "portal" { print $2 }')
 
           git submodule init
 
@@ -161,10 +161,10 @@ jobs:
       - name: Trust working directory
         run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
-      - name: Initialize and update submodules except docs/
+      - name: Initialize and update submodules except portal/
         run: |
-          # Retrieve all submodule paths, excluding `docs/`.
-          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+          # Retrieve all submodule paths, excluding `portal/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "portal" { print $2 }')
           git submodule init
           for submodule in $submodules; do
             echo "Initializing submodule: $submodule"
@@ -312,10 +312,10 @@ jobs:
       - name: Trust working directory
         run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
-      - name: Initialize and update submodules except docs/
+      - name: Initialize and update submodules except portal/
         run: |
-          # Retrieve all submodule paths, excluding `docs/`.
-          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+          # Retrieve all submodule paths, excluding `portal/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "portal" { print $2 }')
 
           git submodule init
 

@@ -8,17 +8,18 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-
-use ten_rust::pkg_info::{
-    pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
+use ten_rust::{
+    graph::{node::GraphNode, Graph},
+    pkg_info::{
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+        property::predefined_graph::PredefinedGraph,
+    },
 };
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    graph::update_graph_node_all_fields,
+use crate::designer::{
+    graphs::util,
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -35,6 +36,64 @@ pub struct AddGraphNodeResponsePayload {
     pub success: bool,
 }
 
+/// Adds a new extension node to a graph.
+fn add_extension_node_to_graph(
+    predefined_graph: &PredefinedGraph,
+    node_name: &str,
+    addon_name: &str,
+    app_uri: &Option<String>,
+) -> Result<Graph, String> {
+    let mut graph = predefined_graph.graph.clone();
+
+    // Add the extension node.
+    match graph.add_extension_node(
+        node_name.to_string(),
+        addon_name.to_string(),
+        app_uri.clone(),
+        None,
+        None,
+    ) {
+        Ok(_) => Ok(graph),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Creates a new GraphNode for an extension.
+fn create_extension_node(
+    node_name: &str,
+    addon_name: &str,
+    app_uri: &Option<String>,
+) -> GraphNode {
+    GraphNode {
+        type_and_name: PkgTypeAndName {
+            pkg_type: PkgType::Extension,
+            name: node_name.to_string(),
+        },
+        addon: addon_name.to_string(),
+        extension_group: None,
+        app: app_uri.clone(),
+        property: None,
+    }
+}
+
+/// Updates the property.json file with the new graph node.
+fn update_node_property_file(
+    base_dir: &str,
+    property: &mut ten_rust::pkg_info::property::Property,
+    graph_name: &str,
+    node: &GraphNode,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let nodes_to_add = vec![node.clone()];
+    crate::graph::update_graph_node_all_fields(
+        base_dir,
+        &mut property.all_fields,
+        graph_name,
+        Some(&nodes_to_add),
+        None,
+    )?;
+    Ok(())
+}
+
 pub async fn add_graph_node_endpoint(
     request_payload: web::Json<AddGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -47,55 +106,41 @@ pub async fn add_graph_node_endpoint(
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+        if let Some(app_pkg) = util::find_app_package(pkgs) {
             // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == request_payload.graph_name,
+            if let Some(predefined_graph) = util::find_predefined_graph(
+                app_pkg,
+                &request_payload.graph_name,
             ) {
-                let mut graph = predefined_graph.graph.clone();
-
-                // Add the extension node.
-                match graph.add_extension_node(
-                    request_payload.node_name.clone(),
-                    request_payload.addon_name.clone(),
-                    request_payload.app_uri.clone(),
-                    None,
-                    None,
+                // Add the node to the graph
+                match add_extension_node_to_graph(
+                    predefined_graph,
+                    &request_payload.node_name,
+                    &request_payload.addon_name,
+                    &request_payload.app_uri,
                 ) {
-                    Ok(_) => {
+                    Ok(graph) => {
                         // Update the predefined_graph in the app_pkg.
                         let mut new_graph = predefined_graph.clone();
                         new_graph.graph = graph;
                         app_pkg.update_predefined_graph(&new_graph);
 
+                        // Create the graph node.
+                        let new_node = create_extension_node(
+                            &request_payload.node_name,
+                            &request_payload.addon_name,
+                            &request_payload.app_uri,
+                        );
+
                         // Update property.json file with the new graph node.
                         if let Some(property) = &mut app_pkg.property {
-                            // Create the GraphNode we just added.
-                            let new_node = ten_rust::graph::node::GraphNode {
-                                type_and_name: ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName {
-                                    pkg_type: ten_rust::pkg_info::pkg_type::PkgType::Extension,
-                                    name: request_payload.node_name.clone(),
-                                },
-                                addon: request_payload.addon_name.clone(),
-                                extension_group: None,
-                                app: request_payload.app_uri.clone(),
-                                property: None,
-                            };
-                            let nodes_to_add = vec![new_node];
-
                             // Write the updated property_all_fields map to
                             // property.json.
-                            if let Err(e) = update_graph_node_all_fields(
+                            if let Err(e) = update_node_property_file(
                                 &request_payload.base_dir,
-                                &mut property.all_fields,
+                                property,
                                 &request_payload.graph_name,
-                                Some(&nodes_to_add),
-                                None,
+                                &new_node,
                             ) {
                                 eprintln!("Warning: Failed to update property.json file: {}", e);
                             }
@@ -150,11 +195,10 @@ pub async fn add_graph_node_endpoint(
 mod tests {
     use std::collections::HashMap;
     use std::fs;
-    use std::io::Read;
     use std::path::Path;
 
     use actix_web::{test, App};
-    use serde_json::{json, Value};
+    use serde_json::Value;
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
     use super::*;
@@ -408,61 +452,23 @@ mod tests {
         let temp_dir = tempfile::tempdir().unwrap();
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
-        // Create a property.json with fields in a specific order.
-        let mut property_fields = serde_json::Map::new();
-        property_fields.insert("name".to_string(), json!("test-app"));
-        property_fields.insert("version".to_string(), json!("1.0.0"));
-        property_fields.insert("description".to_string(), json!("Test App"));
+        // Read test data from embedded JSON files
+        let input_property = include_str!(
+            "test_data_embed/input_property_with_ordered_fields.json"
+        );
+        let input_manifest =
+            include_str!("test_data_embed/test_app_manifest.json");
+        let expected_property = include_str!(
+            "test_data_embed/expected_property_with_new_node.json"
+        );
 
-        // Create _ten field with predefined_graphs.
-        let mut ten_obj = serde_json::Map::new();
-        let mut graphs = Vec::new();
-
-        // Create a graph with nodes.
-        let mut graph1 = serde_json::Map::new();
-        graph1.insert("name".to_string(), json!("test-graph"));
-        graph1.insert("auto_start".to_string(), json!(true));
-
-        // Initial nodes.
-        let mut nodes = Vec::new();
-        nodes.push(json!({
-            "type": "extension",
-            "name": "first-node",
-            "addon": "first-addon"
-        }));
-        graph1.insert("nodes".to_string(), Value::Array(nodes));
-
-        // Add empty connections array.
-        graph1.insert("connections".to_string(), json!([]));
-
-        graphs.push(Value::Object(graph1));
-        ten_obj.insert("predefined_graphs".to_string(), Value::Array(graphs));
-        property_fields.insert("_ten".to_string(), Value::Object(ten_obj));
-
-        // Add more fields after _ten.
-        property_fields.insert("license".to_string(), json!("Apache-2.0"));
-        property_fields.insert("author".to_string(), json!("Test Author"));
-
-        // Write the property.json file.
+        // Write input files to temp directory.
         let property_path =
             Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
-        let property_file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&property_path)
-            .unwrap();
-        serde_json::to_writer_pretty(property_file, &property_fields).unwrap();
+        fs::write(&property_path, input_property).unwrap();
 
-        // Create manifest.json for the mock app.
-        let manifest_json = r#"{
-            "type": "app",
-            "name": "test-app",
-            "version": "1.0.0",
-            "language": "rust"
-        }"#;
         let manifest_path = Path::new(&temp_dir_path).join("manifest.json");
-        fs::write(&manifest_path, manifest_json).unwrap();
+        fs::write(&manifest_path, input_manifest).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
@@ -515,108 +521,20 @@ mod tests {
         // Should succeed with a 200 OK.
         assert_eq!(resp.status(), 200);
 
-        // Now manually update property.json to test field order preservation.
-        let mut updated_property_fields = property_fields.clone();
-
-        // Get the updated _ten field.
-        if let Some(Value::Object(ten_obj)) =
-            updated_property_fields.get_mut("_ten")
-        {
-            if let Some(Value::Array(graphs)) =
-                ten_obj.get_mut("predefined_graphs")
-            {
-                if let Some(Value::Object(graph)) = graphs.get_mut(0) {
-                    if let Some(Value::Array(nodes)) = graph.get_mut("nodes") {
-                        // Add the new node
-                        nodes.push(json!({
-                            "type": "extension",
-                            "name": "new-node",
-                            "addon": "new-addon"
-                        }));
-                    }
-                }
-            }
-        }
-
-        // Write the updated property.json file.
-        let updated_property_file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&property_path)
-            .unwrap();
-        serde_json::to_writer_pretty(
-            updated_property_file,
-            &updated_property_fields,
-        )
-        .unwrap();
-
         // Read the updated property.json file.
-        let mut updated_property_content = String::new();
-        let mut file = fs::File::open(&property_path).unwrap();
-        file.read_to_string(&mut updated_property_content).unwrap();
+        let updated_property_content =
+            fs::read_to_string(&property_path).unwrap();
 
-        // Parse the updated property.
-        let updated_property: serde_json::Value =
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: Value =
             serde_json::from_str(&updated_property_content).unwrap();
+        let expected_property: Value =
+            serde_json::from_str(expected_property).unwrap();
 
-        // Verify the field order is preserved.
-        if let Value::Object(map) = updated_property {
-            let keys: Vec<&String> = map.keys().collect();
-
-            // Check that the order of fields matches our original order.
-            let expected_order = [
-                "name",
-                "version",
-                "description",
-                "_ten",
-                "license",
-                "author",
-            ];
-
-            for (i, expected_key) in expected_order.iter().enumerate() {
-                assert_eq!(
-                    keys[i], expected_key,
-                    "Field order not preserved at position {}",
-                    i
-                );
-            }
-
-            // Verify the new node was added to the graph.
-            if let Value::Object(ten) = &map["_ten"] {
-                if let Value::Array(graphs) = &ten["predefined_graphs"] {
-                    if let Value::Object(graph) = &graphs[0] {
-                        if let Value::Array(nodes) = &graph["nodes"] {
-                            // Should have 2 nodes now (original + new)
-                            assert_eq!(nodes.len(), 2, "Should have 2 nodes");
-
-                            // The new node should be at the end
-                            if let Value::Object(second_node) = &nodes[1] {
-                                assert_eq!(
-                                    second_node["name"], "new-node",
-                                    "New node should be at the end"
-                                );
-                                assert_eq!(
-                                    second_node["addon"], "new-addon",
-                                    "New node should have correct addon"
-                                );
-                            } else {
-                                panic!("Second node is not an object");
-                            }
-                        } else {
-                            panic!("Nodes is not an array");
-                        }
-                    } else {
-                        panic!("Graph is not an object");
-                    }
-                } else {
-                    panic!("Predefined_graphs is not an array");
-                }
-            } else {
-                panic!("_ten is not an object");
-            }
-        } else {
-            panic!("Updated property is not an object");
-        }
+        // Compare the updated property with the expected property.
+        assert_eq!(
+            updated_property, expected_property,
+            "Updated property does not match expected property"
+        );
     }
 }
