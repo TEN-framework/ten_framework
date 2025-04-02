@@ -81,9 +81,12 @@ jobs:
 
           cargo install --force cbindgen
 
+      - name: Dump version info
+        run: |
+          cmake --version
+
       - name: Build
         run: |
-          export CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
           if [ ${{ matrix.build_type }} == "debug" ]; then
             export PATH="/usr/local/opt/llvm@18/bin:$PATH"
           fi

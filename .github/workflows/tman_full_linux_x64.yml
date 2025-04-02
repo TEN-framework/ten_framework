@@ -16,7 +16,7 @@ concurrency:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         build_type: [debug, release]
@@ -68,10 +68,12 @@ jobs:
           cd core/src/ten_manager/designer_frontend
           bun install
 
-      - name: Build (tman)
+      - name: Dump version info
         run: |
           cmake --version
-          export CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+
+      - name: Build (tman)
+        run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
 
