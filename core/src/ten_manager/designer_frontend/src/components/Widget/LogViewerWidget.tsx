@@ -17,7 +17,8 @@ import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 import { EWSMessageType } from "@/types/apps";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
-  const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
+  const { id, metadata: { wsUrl, scriptType, script, postActions } = {} } =
+    props;
 
   const { appendLogViewerHistory } = useWidgetStore();
 
@@ -77,6 +78,7 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
 
     wsRef.current.onclose = () => {
       console.log("[LogViewerWidget] WebSocket closed!");
+      postActions?.();
     };
 
     return () => {

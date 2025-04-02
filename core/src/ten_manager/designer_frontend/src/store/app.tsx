@@ -11,7 +11,11 @@ import { z } from "zod";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
 import { type IFMItem } from "@/components/FileManager/utils";
-import { type IExtensionAddon, PREFERENCES_SCHEMA } from "@/types/apps";
+import {
+  type IExtensionAddon,
+  PREFERENCES_SCHEMA,
+  EPreferencesLocale,
+} from "@/types/apps";
 
 export interface IAppStore {
   currentWorkspace: {
@@ -89,7 +93,7 @@ export const useAppStore = create<IAppStore>()(
       set({ defaultOsArch: osArch }),
     preferences: {
       logviewer_line_size: 1000,
-      locale: "en-US", // TODO: get from the backend
+      locale: EPreferencesLocale.EN_US, // TODO: get from the backend
     },
     setPreferences: (
       key: keyof z.infer<typeof PREFERENCES_SCHEMA>,

@@ -8,10 +8,12 @@ import z from "zod";
 
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
-import type {
-  ISetBaseDirResponse,
-  IExtensionAddon,
-  IGetAppsResponse,
+import {
+  type ISetBaseDirResponse,
+  type IExtensionAddon,
+  type IGetAppsResponse,
+  TemplatePkgsReqSchema,
+  AppCreateReqSchema,
 } from "@/types/apps";
 
 export const ENDPOINT_APPS = {
@@ -77,6 +79,35 @@ export const ENDPOINT_APPS = {
       }>(
         z.object({
           scripts: z.array(z.string()).optional().nullable(),
+        })
+      ),
+    },
+  },
+  createApp: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/apps/create`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AppCreateReqSchema,
+      responseSchema: genResSchema(
+        z.object({
+          app_path: z.string().nullable(),
+        })
+      ),
+    },
+  },
+};
+
+export const ENDPOINT_TEMPLATES = {
+  templatePkgs: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/template-pkgs`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: TemplatePkgsReqSchema,
+      responseSchema: genResSchema<{
+        template_name: string[];
+      }>(
+        z.object({
+          template_name: z.array(z.string()),
         })
       ),
     },

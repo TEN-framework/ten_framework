@@ -13,6 +13,9 @@ export const GRAPH_SELECT_POPUP_ID = GRAPH_SELECT_WIDGET_ID + "-popup";
 export const APP_FOLDER_WIDGET_ID = "app-folder";
 export const APP_FOLDER_POPUP_ID = APP_FOLDER_WIDGET_ID + "-popup";
 
+export const APP_CREATE_WIDGET_ID = "app-create";
+export const APP_CREATE_POPUP_ID = APP_CREATE_WIDGET_ID + "-popup";
+
 export const APPS_WIDGET_ID = "apps";
 export const APPS_MANAGER_POPUP_ID = APPS_WIDGET_ID + "-manager-popup";
 

@@ -20,12 +20,12 @@
       "installAll": "安装所有",
       "manageLoadedApps": "管理已加载应用",
       "runApp": "运行应用",
-      "openAppFolder": "打开应用文件夹"
+      "openAppFolder": "打开应用文件夹",
+      "createApp": "创建应用"
     },
     "menuGraph": {
       "title": "图谱",
-      "openExistingGraph": "打开现有图谱",
-      "openExtensionStore": "打开扩展商店",
+      "loadGraph": "加载图谱",
       "autoLayout": "自动布局",
       "selectLoadedApp": "选择已加载应用"
     },
@@ -37,6 +37,10 @@
       "title": "设计器",
       "about": "关于 TEN Manager Designer",
       "preferences": "偏好设置"
+    },
+    "menuExtension": {
+      "title": "扩展",
+      "openExtensionStore": "打开扩展商店"
     },
     "language": {
       "title": "语言",
@@ -86,7 +90,9 @@
     "search": "搜索",
     "current": "当前",
     "run": "运行",
-    "viewDetails": "查看详情"
+    "viewDetails": "查看详情",
+    "reset": "重置",
+    "chooseBaseDir": "选择基础目录"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -130,7 +136,19 @@
       "baseDir": "基础目录",
       "run": "运行应用",
       "runScript": "运行脚本",
-      "runScriptPlaceholder": "输入要运行的脚本"
+      "runScriptPlaceholder": "输入要运行的脚本",
+      "create": "创建应用",
+      "createAppSuccess": "应用创建成功",
+      "createAppFailed": "应用创建失败",
+      "templateType": "模板类型",
+      "templateTypeDescription": "选择应用的模板类型。",
+      "templateLanguage": "模板语言",
+      "templateLanguageDescription": "选择应用的模板语言。",
+      "templateName": "模板名称",
+      "templateNameDescription": "选择应用的模板名称。",
+      "appName": "应用名称",
+      "appNameDescription": "输入应用的名称。",
+      "baseDirDescription": "选择应用的基础目录。"
     }
   },
   "dock": {

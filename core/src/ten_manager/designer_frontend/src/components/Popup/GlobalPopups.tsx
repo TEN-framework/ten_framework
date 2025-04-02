@@ -23,6 +23,7 @@ import {
   AppFolderPopup,
   LoadedAppsPopup,
   AppRunPopup,
+  AppCreatePopup,
 } from "@/components/Popup/AppPopup";
 import {
   ExtensionStorePopup,
@@ -118,6 +119,8 @@ export function GlobalPopups() {
             return <AboutPopup key={`AboutPopup-${widget.id}`} />;
           case EDefaultWidgetType.AppFolder:
             return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
+          case EDefaultWidgetType.AppCreate:
+            return <AppCreatePopup key={`AppCreatePopup-${widget.id}`} />;
           case EDefaultWidgetType.AppsManager:
             return <LoadedAppsPopup key={`AppsManagerPopup-${widget.id}`} />;
           case EDefaultWidgetType.AppRun:

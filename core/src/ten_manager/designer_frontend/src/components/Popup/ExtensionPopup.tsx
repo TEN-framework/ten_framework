@@ -37,6 +37,7 @@ export const ExtensionStorePopup = () => {
       height={windowSize?.height ? windowSize?.height - 100 : 400}
       contentClassName="p-0"
       resizable
+      initialPosition="top-left"
       customActions={[
         {
           id: "pin-to-dock",
