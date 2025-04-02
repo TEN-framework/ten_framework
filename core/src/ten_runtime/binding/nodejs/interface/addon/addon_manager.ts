@@ -101,6 +101,7 @@ export class AddonManager {
 
     // Wait for all modules to be loaded
     await Promise.all(loadPromises);
+    console.log(`_load_all_addons Loaded ${loadPromises.length} extensions`);
   }
 
   static async _load_single_addon(name: string): Promise<boolean> {
@@ -179,6 +180,8 @@ export function RegisterAddonAsExtension(
     }
 
     AddonManager._set_register_handler(name, registerHandler);
+
+    console.log(`RegisterAddonAsExtension ${name} registered`);
 
     return klass;
   };
