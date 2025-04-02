@@ -20,7 +20,8 @@
       "installAll": "Install All",
       "manageLoadedApps": "Manage Loaded App(s)",
       "runApp": "Run App",
-      "openAppFolder": "Open App Folder"
+      "openAppFolder": "Open App Folder",
+      "createApp": "Create App"
     },
     "menuGraph": {
       "title": "Graph",
@@ -89,7 +90,9 @@
     "search": "Search",
     "current": "Current",
     "run": "Run",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "reset": "Reset",
+    "chooseBaseDir": "Choose Base Dir"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -133,7 +136,19 @@
       "baseDir": "Base Dir",
       "run": "Run App",
       "runScript": "Run Script",
-      "runScriptPlaceholder": "Enter the script to run"
+      "runScriptPlaceholder": "Enter the script to run",
+      "create": "Create App",
+      "createAppSuccess": "App created successfully",
+      "createAppFailed": "Failed to create app",
+      "templateType": "Template Type",
+      "templateTypeDescription": "Select the template type for the app.",
+      "templateLanguage": "Template Language",
+      "templateLanguageDescription": "Select the language for the app.",
+      "templateName": "Template Name",
+      "templateNameDescription": "Select the template name for the app.",
+      "appName": "App Name",
+      "appNameDescription": "Enter the name for the app.",
+      "baseDirDescription": "Select the base directory for the app."
     }
   },
   "dock": {

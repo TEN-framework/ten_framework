@@ -20,7 +20,8 @@
       "installAll": "安裝所有",
       "manageLoadedApps": "管理已載入的應用程式",
       "runApp": "執行應用程式",
-      "openAppFolder": "開啟應用程式資料夾"
+      "openAppFolder": "開啟應用程式資料夾",
+      "createApp": "建立應用程式"
     },
     "menuGraph": {
       "title": "圖譜",
@@ -89,7 +90,9 @@
     "search": "搜尋",
     "current": "目前",
     "run": "執行",
-    "viewDetails": "查看詳情"
+    "viewDetails": "查看詳情",
+    "reset": "重置",
+    "chooseBaseDir": "選擇基礎目錄"
   },
   "toast": {
     "saveFileSuccess": "檔案儲存成功",
@@ -133,7 +136,19 @@
       "baseDir": "基礎目錄",
       "run": "執行應用程式",
       "runScript": "執行腳本",
-      "runScriptPlaceholder": "輸入要執行的腳本"
+      "runScriptPlaceholder": "輸入要執行的腳本",
+      "create": "建立應用程式",
+      "createAppSuccess": "應用程式建立成功",
+      "createAppFailed": "應用程式建立失敗",
+      "templateType": "模板類型",
+      "templateTypeDescription": "選擇應用程式的模板類型。",
+      "templateLanguage": "模板語言",
+      "templateLanguageDescription": "選擇應用程式的模板語言。",
+      "templateName": "模板名稱",
+      "templateNameDescription": "選擇應用程式的模板名稱。",
+      "appName": "應用程式名稱",
+      "appNameDescription": "輸入應用程式的名稱。",
+      "baseDirDescription": "選擇應用程式的基礎目錄。"
     }
   },
   "dock": {

@@ -639,6 +639,7 @@ export const AppTemplateWidget = (props: {
         />
         <Button
           type="submit"
+          size="sm"
           disabled={!form.formState.isValid || isCreating}
           className="w-full"
         >

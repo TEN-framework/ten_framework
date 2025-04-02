@@ -210,8 +210,11 @@ export const AppCreatePopup = (props: { id?: string }) => {
   };
 
   return (
-    <Popup id={APP_CREATE_POPUP_ID} title={t("popup.apps.create")} resizable>
-      <AppTemplateWidget onCreated={handleCreated} />
+    <Popup id={APP_CREATE_POPUP_ID} title={t("popup.apps.create")} width={384}>
+      <AppTemplateWidget
+        onCreated={handleCreated}
+        className="w-full max-w-sm"
+      />
     </Popup>
   );
 };
