@@ -369,7 +369,7 @@ mod tests {
         )
         .await;
 
-        // Delete a connection from the default_with_app_uri graph
+        // Delete a connection from the default_with_app_uri graph.
         let request_payload = DeleteGraphConnectionRequestPayload {
             base_dir: temp_dir_path.clone(),
             graph_name: "default_with_app_uri".to_string(),
@@ -411,18 +411,18 @@ mod tests {
                     app_pkg.get_predefined_graphs(),
                     |g| g.name == "default_with_app_uri",
                 ) {
-                    // Check if the connection is gone
+                    // Check if the connection is gone.
                     let connection_exists = predefined_graph
                         .graph
                         .connections
                         .as_ref()
-                        .map_or(false, |connections| {
+                        .is_some_and(|connections| {
                             connections.iter().any(|conn| {
                                 conn.extension == "extension_1"
-                                    && conn.app.as_ref().map_or(false, |app| {
+                                    && conn.app.as_ref().is_some_and(|app| {
                                         app == "http://example.com:8000"
                                     })
-                                    && conn.cmd.as_ref().map_or(false, |cmds| {
+                                    && conn.cmd.as_ref().is_some_and(|cmds| {
                                         cmds.iter().any(|cmd| {
                                             cmd.name == "hello_world"
                                         })
@@ -443,17 +443,17 @@ mod tests {
             panic!("Base directory not found");
         }
 
-        // Read the updated property.json file
+        // Read the updated property.json file.
         let updated_property_content =
             std::fs::read_to_string(&property_path).unwrap();
 
-        // Parse the contents as JSON for proper comparison
+        // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
             serde_json::from_str(&updated_property_content).unwrap();
         let expected_property: serde_json::Value =
             serde_json::from_str(&expected_property_str).unwrap();
 
-        // Compare the updated property with the expected property
+        // Compare the updated property with the expected property.
         assert_eq!(
             updated_property, expected_property,
             "Updated property does not match expected property"
