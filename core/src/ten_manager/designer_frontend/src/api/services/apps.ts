@@ -13,8 +13,9 @@ import {
   prepareReqUrl,
   getQueryHookCache,
 } from "@/api/services/utils";
-import { ENDPOINT_APPS } from "@/api/endpoints";
+import { ENDPOINT_APPS, ENDPOINT_TEMPLATES } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
+import { ETemplateLanguage, ETemplateType } from "@/types/apps";
 
 export const getApps = async () => {
   const template = ENDPOINT_APPS.apps[ENDPOINT_METHOD.GET];
@@ -119,4 +120,30 @@ export const useAppScripts = (baseDir: string) => {
   }, [fetchScripts]);
 
   return { data: scripts, isLoading, error, mutate };
+};
+
+// TODO: refine this hook(post should not be used)
+export const retrieveTemplatePkgs = async (
+  pkgType: ETemplateType,
+  language: ETemplateLanguage
+) => {
+  const template = ENDPOINT_TEMPLATES.templatePkgs[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { pkg_type: pkgType, language: language },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postCreateApp = async (
+  baseDir: string,
+  templateName: string,
+  appName: string
+) => {
+  const template = ENDPOINT_APPS.createApp[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { base_dir: baseDir, template_name: templateName, app_name: appName },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
 };

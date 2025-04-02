@@ -53,3 +53,30 @@ export const PREFERENCES_SCHEMA = z.object({
   locale: z.nativeEnum(EPreferencesLocale).default(EPreferencesLocale.EN_US),
   ...PREFERENCES_SCHEMA_LOG.shape,
 });
+
+export enum ETemplateLanguage {
+  CPP = "cpp",
+  GOLANG = "golang",
+  PYTHON = "python",
+  TYPESCRIPT = "typescript",
+}
+
+export enum ETemplateType {
+  // INVALID = "invalid",
+  // SYSTEM = "system",
+  APP = "app",
+  // EXTENSION = "extension",
+  // PROTOCOL = "protocol",
+  // ADDON_LOADER = "addon_loader",
+}
+
+export const TemplatePkgsReqSchema = z.object({
+  pkg_type: z.nativeEnum(ETemplateType),
+  language: z.nativeEnum(ETemplateLanguage),
+});
+
+export const AppCreateReqSchema = z.object({
+  base_dir: z.string().min(1),
+  app_name: z.string().min(1),
+  template_name: z.string().min(1),
+});

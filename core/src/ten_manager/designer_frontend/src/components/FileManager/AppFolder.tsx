@@ -27,7 +27,15 @@ import { Input } from "@/components/ui/Input";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
 import type { IFMItem } from "@/components/FileManager/utils";
-import { EFMItemType, calculateDirDepth } from "@/components/FileManager/utils";
+import {
+  EFMItemType,
+  calculateDirDepth,
+  baseDirEntriesToIFMItems,
+  fmItemsToFMArray,
+} from "@/components/FileManager/utils";
+import { useRetrieveDirList } from "@/api/services/fileSystem";
+import { useAppStore } from "@/store/app";
+import type { TBaseDirEntry } from "@/types/fileSystem";
 
 const DEFAULT_SELECTED_PATH = "/";
 
@@ -122,6 +130,7 @@ export function FileManager(props: {
   className?: string;
   isLoading?: boolean;
   colWidth?: number;
+  disableInput?: boolean;
 }) {
   const {
     onSelect,
@@ -131,11 +140,24 @@ export function FileManager(props: {
     className,
     isLoading,
     colWidth,
+    disableInput = false,
   } = props;
 
   const [sortType, setSortType] = React.useState<"default" | "asc" | "desc">(
     "default"
   );
+  const [mode, setMode] = React.useState<"select" | "input">("select");
+  const [inputPathDepth, setInputPathDepth] = React.useState<number>(0);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (mode === "select") {
+      setMode("input");
+    }
+    const rawValue = e.target.value;
+    const value = rawValue.trim() || DEFAULT_SELECTED_PATH;
+    setInputPathDepth(calculateDirDepth(value));
+    onSelect?.(value);
+  };
 
   const { t } = useTranslation();
 
@@ -219,7 +241,12 @@ export function FileManager(props: {
   return (
     <div className={cn("w-full h-full space-y-2", className)}>
       <div className="flex items-center gap-2 justify-between">
-        <Input className="h-10" value={selectedPath} readOnly />
+        <Input
+          className="h-10"
+          value={selectedPath}
+          onChange={handleInputChange}
+          disabled={disableInput}
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -257,7 +284,21 @@ export function FileManager(props: {
         )}
       >
         <div className="flex w-fit">
-          {colsMemo?.map((item, idx) => (
+          {(mode === "select"
+            ? colsMemo.reduce(
+                (prev, cur) => {
+                  if (prev.length === 0 && cur.length === 0) {
+                    return prev;
+                  }
+                  prev.push(cur);
+                  return prev;
+                },
+                [] as (IFMItem & {
+                  selectedStatus?: EFMItemSelectedStatus;
+                })[][]
+              )
+            : colsMemo.slice(inputPathDepth > 0 ? inputPathDepth : 0)
+          )?.map((item, idx) => (
             <FileManagerColumn
               key={idx}
               className="border-r border-gray-300"
@@ -291,3 +332,101 @@ export function FileManager(props: {
     </div>
   );
 }
+
+export const AppFileManager = (props: {
+  className?: string;
+  isSaveLoading?: boolean;
+  onSave?: (path?: string) => void;
+  onCancel?: () => void;
+  onReset?: () => void;
+}) => {
+  const { isSaveLoading, onSave, onCancel, onReset, className } = props;
+  const [fmId, setFmId] = React.useState<string>(`fm-${Date.now()}`);
+
+  const { t } = useTranslation();
+  const { folderPath, setFolderPath, fmItems, setFmItems } = useAppStore();
+  const {
+    data,
+    error,
+    isLoading,
+    mutate: mutateDirList,
+  } = useRetrieveDirList(folderPath);
+
+  const handleReset = () => {
+    setFolderPath("/");
+    mutateDirList();
+    onReset?.();
+    setFmId(`fm-${Date.now()}`);
+  };
+
+  const updateFmItems = (newFmItems: TBaseDirEntry[]) => {
+    const currentFmItems = baseDirEntriesToIFMItems(newFmItems);
+    const fmArray = fmItemsToFMArray(currentFmItems, fmItems);
+    setFmItems(fmArray);
+  };
+
+  const handleSave = (path?: string) => {
+    onSave?.(path);
+    setFmItems([]);
+  };
+
+  React.useEffect(() => {
+    if (error) {
+      // toast.error(t("popup.default.errorGetBaseDir"));
+      console.error(error);
+      setFmItems([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
+  React.useEffect(() => {
+    if (!data?.entries) {
+      return;
+    }
+    updateFmItems(data.entries);
+    // Suppress the warning about the dependency array.
+    // <fmItems> should not be a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, folderPath]);
+
+  return (
+    <div className={cn("flex flex-col gap-2 w-full h-full", className)}>
+      <FileManager
+        key={fmId}
+        data={fmItems}
+        allowSelectTypes={[EFMItemType.FOLDER]}
+        className="w-full h-[calc(100%-3rem)]"
+        onSelect={(path) => setFolderPath(path)}
+        selectedPath={folderPath}
+        isLoading={isLoading}
+        colWidth={200}
+      />
+      <div className="flex justify-end h-fit gap-2">
+        <Button
+          variant="destructive"
+          onClick={handleReset}
+          disabled={isSaveLoading}
+          className="mr-auto"
+        >
+          {t("action.reset")}
+        </Button>
+        {onCancel && (
+          <Button variant="outline" onClick={onCancel} disabled={isSaveLoading}>
+            {t("action.cancel")}
+          </Button>
+        )}
+        {onSave && (
+          <Button
+            onClick={() => handleSave(folderPath)}
+            disabled={isSaveLoading || !folderPath.trim()}
+          >
+            <>
+              {isSaveLoading && <SpinnerLoading className="w-4 h-4 mr-2" />}
+              {t("action.ok")}
+            </>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
