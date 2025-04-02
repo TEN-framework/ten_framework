@@ -42,10 +42,18 @@ jobs:
             git submodule update --init --recursive --depth 1 "$submodule"
           done
 
+      - name: Dump version info
+        run: |
+          cmake --version
+
       - name: Install Clang and libc++
         run: |
           sudo apt-get update
           sudo apt-get install -y clang libc++-dev libc++abi-dev
+
+      - name: Dump version info
+        run: |
+          cmake --version
 
       - uses: actions/setup-node@v4
         with:
