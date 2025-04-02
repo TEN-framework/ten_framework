@@ -125,6 +125,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
           "    console.log('ESM module loaded successfully');\n"
           "    await "
           "global.ten_runtime_nodejs.AddonManager._load_all_addons();\n"
+          "    console.log('nodejs_addon_loader: all addons loaded');\n"
           "  } catch(err) {\n"
           "    console.error('ESM module loading failed:', err);\n"
           "    process.exit(1);\n"
