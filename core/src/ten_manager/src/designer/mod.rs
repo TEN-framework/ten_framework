@@ -111,6 +111,10 @@ pub fn configure_routes(
                 "/graphs/connections/add",
                 web::post().to(graphs::connections::add::add_graph_connection_endpoint),
             )
+            .route(
+                "/graphs/connections/delete",
+                web::post().to(graphs::connections::delete::delete_graph_connection_endpoint),
+            )
             // Preferences endpoints.
             .route(
                 "/preferences/schema",
