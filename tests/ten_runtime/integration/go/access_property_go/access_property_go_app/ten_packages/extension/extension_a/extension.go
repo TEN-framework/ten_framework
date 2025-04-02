@@ -9,6 +9,7 @@
 package default_extension_go
 
 import (
+	"encoding/json"
 	"ten_framework/ten"
 )
 
@@ -16,15 +17,105 @@ type baseExtension struct {
 	ten.DefaultExtension
 }
 
-func (ext *baseExtension) OnStart(tenEnv ten.TenEnv) {
-	tenEnv.LogDebug("OnStart")
+type PredefinedProperty struct {
+	PredefinedInt8    int8              `json:"predefined_int8"`
+	PredefinedInt16   int16             `json:"predefined_int16"`
+	PredefinedInt32   int32             `json:"predefined_int32"`
+	PredefinedInt64   int64             `json:"predefined_int64"`
+	PredefinedUint8   uint8             `json:"predefined_uint8"`
+	PredefinedUint16  uint16            `json:"predefined_uint16"`
+	PredefinedUint32  uint32            `json:"predefined_uint32"`
+	PredefinedUint64  uint64            `json:"predefined_uint64"`
+	PredefinedFloat32 float32           `json:"predefined_float32"`
+	PredefinedFloat64 float64           `json:"predefined_float64"`
+	PredefinedBool    bool              `json:"predefined_bool"`
+	PredefinedString  string            `json:"predefined_string"`
+	PredefinedObject  map[string]string `json:"predefined_object"`
+	PredefinedArray   []string          `json:"predefined_array"`
+}
+
+func (ext *baseExtension) OnInit(tenEnv ten.TenEnv) {
+	tenEnv.LogDebug("OnInit")
 
 	if prop, err := tenEnv.GetPropertyString("env_not_set_has_default"); err != nil &&
 		prop != "" {
 		panic("The default value should be used.")
 	}
 
-	tenEnv.OnStartDone()
+	propJsonBytes, err := tenEnv.GetPropertyToJSONBytes("")
+	if err != nil {
+		panic("GetPropertyToJSONBytes with empty path should not fail.")
+	}
+
+	// Print the json bytes.
+	tenEnv.LogInfo("propJsonBytes: " + string(propJsonBytes))
+
+	// Parse the json bytes to a map.
+	var predefinedProperty PredefinedProperty
+	if err := json.Unmarshal(propJsonBytes, &predefinedProperty); err != nil {
+		panic("Failed to unmarshal json bytes.")
+	}
+
+	// Check the predefined properties.
+	if predefinedProperty.PredefinedInt8 != 123 {
+		panic("predefined_int8 should be 123.")
+	}
+
+	if predefinedProperty.PredefinedInt16 != 12345 {
+		panic("predefined_int16 should be 12345.")
+	}
+
+	if predefinedProperty.PredefinedInt32 != 1234567890 {
+		panic("predefined_int32 should be 1234567890.")
+	}
+
+	if predefinedProperty.PredefinedInt64 != 1234567890 {
+		panic("predefined_int64 should be 1234567890.")
+	}
+
+	if predefinedProperty.PredefinedUint8 != 123 {
+		panic("predefined_uint8 should be 123.")
+	}
+
+	if predefinedProperty.PredefinedUint16 != 12345 {
+		panic("predefined_uint16 should be 12345.")
+	}
+
+	if predefinedProperty.PredefinedUint32 != 1234567890 {
+		panic("predefined_uint32 should be 1234567890.")
+	}
+
+	if predefinedProperty.PredefinedUint64 != 1234567890 {
+		panic("predefined_uint64 should be 1234567890.")
+	}
+
+	if predefinedProperty.PredefinedFloat32 != 123.456 {
+		panic("predefined_float32 should be 123.456.")
+	}
+
+	if predefinedProperty.PredefinedFloat64 != 1234567890.123 {
+		panic("predefined_float64 should be 1234567890.123.")
+	}
+
+	if predefinedProperty.PredefinedBool != true {
+		panic("predefined_bool should be true.")
+	}
+
+	if predefinedProperty.PredefinedString != "hello" {
+		panic("predefined_string should be hello.")
+	}
+
+	if predefinedProperty.PredefinedObject["prop_key"] != "prop_value" {
+		panic("predefined_object should be a map with prop_key and prop_value.")
+	}
+
+	if len(predefinedProperty.PredefinedArray) != 2 ||
+		predefinedProperty.PredefinedArray[0] != "item1" ||
+		predefinedProperty.PredefinedArray[1] != "item2" {
+		panic("predefined_array should be an array with two items.")
+	}
+
+	tenEnv.OnInitDone()
 }
 
 func (ext *baseExtension) OnStop(tenEnv ten.TenEnv) {

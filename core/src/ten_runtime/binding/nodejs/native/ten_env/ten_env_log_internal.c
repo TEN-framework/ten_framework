@@ -75,6 +75,25 @@ napi_value ten_nodejs_ten_env_log_internal(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && ten_env_bridge != NULL,
                                 "Failed to get ten_env bridge: %d", status);
 
+  TEN_ASSERT(ten_env_bridge &&
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, true),
+             "Should not happen.");
+
+  if (ten_env_bridge->c_ten_env_proxy == NULL) {
+    ten_error_t err;
+    TEN_ERROR_INIT(err);
+
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.log_internal() failed because ten is closed.");
+
+    napi_value js_error = ten_nodejs_create_error(env, &err);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(js_error, "Failed to create JS error");
+
+    ten_error_deinit(&err);
+
+    return js_error;
+  }
+
   ten_env_notify_log_ctx_t *notify_info = ten_env_notify_log_ctx_create();
   TEN_ASSERT(notify_info, "Failed to create log notify_info.");
 
@@ -99,14 +118,13 @@ napi_value ten_nodejs_ten_env_log_internal(napi_env env,
   rc = ten_env_proxy_notify(ten_env_bridge->c_ten_env_proxy,
                             ten_env_proxy_notify_log, notify_info, false, &err);
   if (!rc) {
-    ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
+    napi_value js_error = ten_nodejs_create_error(env, &err);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(js_error, "Failed to create JS error");
 
-    status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_message(&err));
-    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to throw error: %d", status);
+    ten_error_deinit(&err);
+    ten_env_notify_log_ctx_destroy(notify_info);
 
-    ten_string_deinit(&code_str);
+    return js_error;
   } else {
     ten_event_wait(notify_info->completed, -1);
   }
@@ -114,5 +132,5 @@ napi_value ten_nodejs_ten_env_log_internal(napi_env env,
   ten_error_deinit(&err);
   ten_env_notify_log_ctx_destroy(notify_info);
 
-  return js_undefined(env);
+  return js_null(env);
 }

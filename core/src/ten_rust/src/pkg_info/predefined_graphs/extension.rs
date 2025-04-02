@@ -79,13 +79,6 @@ pub fn get_extension_nodes_in_graph(
 
 /// Searches through `all_pkgs` to find a package that matches the extension
 /// specified in the GraphNode.
-///
-/// # Arguments
-/// - `extension`: The extension node to search for.
-/// - `all_pkgs`: A slice of all package information.
-///
-/// # Returns
-/// A reference to the package information of the extension.
 pub fn get_pkg_info_for_extension<'a>(
     extension: &'a GraphNode,
     all_pkgs: &'a [PkgInfo],

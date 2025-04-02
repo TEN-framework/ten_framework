@@ -20,19 +20,39 @@ use bindings::ten_schema_t;
 /// in C. When the Rust object bound to this pointer is dropped, we need to
 /// ensure that the raw pointer is properly destroyed. However, the `Drop` trait
 /// cannot be directly implemented on a raw pointer.
+///
+/// This wrapper provides safe memory management for the C-allocated schema
+/// object, ensuring proper cleanup when the Rust object goes out of scope.
 #[derive(Debug)]
 struct TenSchemaRawPointer {
+    /// The raw pointer to the C-allocated schema object.
+    /// Protected by a Mutex to allow safe sharing between threads.
     raw_ptr: Mutex<*const ten_schema_t>,
 }
 
+// Explicitly mark this type as thread-safe since we're handling raw pointers.
+// While raw pointers are not automatically Send or Sync in Rust, we can
+// safely implement these traits because:
+//
+// 1. The raw_ptr is protected by a Mutex, ensuring exclusive access during
+//    operations.
+// 2. The pointer is effectively read-only after initialization.
+// 3. The actual mutation only happens during Drop, which has exclusive access.
+//
+// This allows TenSchema to be safely shared between threads in the application.
 unsafe impl Send for TenSchemaRawPointer {}
 unsafe impl Sync for TenSchemaRawPointer {}
 
 impl Drop for TenSchemaRawPointer {
     fn drop(&mut self) {
+        // Acquire lock on the pointer to ensure exclusive access during
+        // cleanup.
         let ptr = self.raw_ptr.lock().unwrap();
+
+        // Only attempt to free non-null pointers to avoid undefined behavior.
         if !ptr.is_null() {
             unsafe {
+                // Call the C function to properly free the schema resources.
                 bindings::ten_schema_destroy_proxy(*ptr);
             }
         }
@@ -41,22 +61,32 @@ impl Drop for TenSchemaRawPointer {
 
 #[derive(Debug, Clone)]
 pub struct TenSchema {
-    // The TenSchema needs to implement Clone, and it will be used in tman
-    // designer which will be shared between threads. So we use Arc to wrap the
-    // raw_ptr.
+    // TenSchema represents a schema definition that validates TEN values. It
+    // needs to implement Clone for use in various contexts, and must be
+    // thread-safe for use in the tman designer where it will be shared between
+    // threads. We use Arc to wrap the raw pointer to ensure safe concurrent
+    // access and proper reference counting.
     inner: Arc<TenSchemaRawPointer>,
 }
 
-// unsafe impl Send for TenSchema {}
-// unsafe impl Sync for TenSchema {}
-
 impl TenSchema {
+    /// Creates a new TenSchema instance from a raw C pointer to a ten_schema_t.
+    ///
+    /// This constructor takes ownership of the provided raw pointer and ensures
+    /// it will be properly cleaned up when the TenSchema is dropped.
+    ///
+    /// # Safety
+    /// The caller must ensure that:
+    /// - The raw_ptr is a valid pointer to a ten_schema_t structure.
+    /// - The raw_ptr was created by the C API
+    ///   (ten_schema_create_from_json_str_proxy).
+    /// - Ownership of the pointer is transferred to this TenSchema instance.
     pub fn new(raw_ptr: *const ten_schema_t) -> Self {
         Self {
-            // TEN_NOLINTNEXTLINE(clippy::arc_with_non_send_sync)
-            // The raw_ptr is not Send or Sync, but it is readonly once created,
-            // so it is safe to wrap it in an Arc.
-            // #[allow(clippy::arc_with_non_send_sync)]
+            // The raw_ptr is wrapped in a Mutex and Arc to ensure thread-safety
+            // and proper reference counting. While the raw_ptr itself is not
+            // inherently Send or Sync, our wrapper provides safe concurrent
+            // access.
             inner: Arc::new(TenSchemaRawPointer {
                 raw_ptr: Mutex::new(raw_ptr),
             }),
@@ -67,12 +97,19 @@ impl TenSchema {
         *self.inner.raw_ptr.lock().unwrap()
     }
 
+    /// Validates a JSON value against this schema.
+    ///
+    /// This method checks if the provided JSON value conforms to the schema.
     pub fn validate_json(&self, value: &serde_json::Value) -> Result<()> {
+        // Convert the JSON value to a string for passing to C.
         let value_str = serde_json::to_string(value)?;
         let mut err_msg: *mut c_char = std::ptr::null_mut();
 
         unsafe {
+            // Create a C-compatible string from the JSON string.
             let c_value_str = std::ffi::CString::new(value_str)?;
+
+            // Call the C function to validate the string against the schema.
             let success =
                 bindings::ten_schema_adjust_and_validate_json_str_proxy(
                     self.as_ptr(),
@@ -81,10 +118,12 @@ impl TenSchema {
                 );
 
             if !success {
+                // If validation failed, convert the C error message to a Rust
+                // string.
                 let rust_err_msg =
                     std::ffi::CStr::from_ptr(err_msg).to_str()?.to_owned();
                 // The err_msg is allocated by the C code, so we need to free
-                // it.
+                // it to avoid memory leaks.
                 libc::free(err_msg as *mut libc::c_void);
 
                 return Err(anyhow::anyhow!(rust_err_msg));
@@ -94,9 +133,16 @@ impl TenSchema {
         Ok(())
     }
 
+    /// Checks if this schema is compatible with the target schema.
+    ///
+    /// This method determines if data conforming to this schema can be safely
+    /// processed by a component expecting data conforming to the target schema.
+    /// Compatibility is directional - if A is compatible with B, it doesn't
+    /// mean B is compatible with A.
     pub fn is_compatible_with(&self, target: &TenSchema) -> Result<()> {
         let mut err_msg: *mut c_char = std::ptr::null_mut();
         unsafe {
+            // Call the C function to check schema compatibility.
             let success = bindings::ten_schema_is_compatible_proxy(
                 self.as_ptr(),
                 target.as_ptr(),
@@ -104,10 +150,12 @@ impl TenSchema {
             );
 
             if !success {
+                // If compatibility check failed, convert the C error message to
+                // a Rust string
                 let rust_err_msg =
                     std::ffi::CStr::from_ptr(err_msg).to_str()?.to_owned();
                 // The err_msg is allocated by the C code, so we need to free
-                // it.
+                // it to avoid memory leaks.
                 libc::free(err_msg as *mut libc::c_void);
 
                 return Err(anyhow::anyhow!(rust_err_msg));

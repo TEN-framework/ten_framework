@@ -618,13 +618,12 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  if (!ten_value_is_buf(c_value)) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Value is not buf.");
+  ten_buf_t *buf = ten_value_peek_buf(c_value, &err);
+  if (!buf) {
     goto error;
   }
 
-  ten_buf_t *buf = ten_value_peek_buf(c_value);
-  TEN_ASSERT(buf && ten_buf_check_integrity(buf), "Invalid buf.");
+  TEN_ASSERT(ten_buf_check_integrity(buf), "Invalid buf.");
 
   PyObject *py_value = PyByteArray_FromStringAndSize((const char *)buf->data,
                                                      (Py_ssize_t)buf->size);

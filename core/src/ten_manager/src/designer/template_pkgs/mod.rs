@@ -46,7 +46,7 @@ pub struct GetTemplateRequestPayload {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetTemplateResponseData {
-    pub template_name: String,
+    pub template_name: Vec<String>,
 }
 
 pub async fn get_template_endpoint(
@@ -91,7 +91,7 @@ pub async fn get_template_endpoint(
     let response = ApiResponse {
         status: Status::Ok,
         data: GetTemplateResponseData {
-            template_name: template_name.to_string(),
+            template_name: vec![template_name.to_string()],
         },
         meta: None,
     };
@@ -146,7 +146,10 @@ mod tests {
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data.template_name, DEFAULT_APP_NODEJS);
+        assert_eq!(
+            resp.data.template_name,
+            vec![DEFAULT_APP_NODEJS.to_string()]
+        );
     }
 
     #[actix_web::test]
@@ -182,7 +185,10 @@ mod tests {
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data.template_name, DEFAULT_EXTENSION_CPP);
+        assert_eq!(
+            resp.data.template_name,
+            vec![DEFAULT_EXTENSION_CPP.to_string()]
+        );
     }
 
     #[actix_web::test]

@@ -174,9 +174,9 @@ bool ten_msgpack_value_deserialize(ten_value_t *value,
         msgpack_unpack_return rc = msgpack_unpacker_next(unpacker, unpacked);
         if (rc == MSGPACK_UNPACK_SUCCESS) {
           if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
-            ten_buf_t *buf = ten_value_peek_buf(value);
-            TEN_ASSERT(buf && ten_buf_check_integrity(buf),
-                       "Invalid argument.");
+            ten_buf_t *buf = ten_value_peek_buf(value, NULL);
+            TEN_ASSERT(buf, "Invalid argument.");
+            TEN_ASSERT(ten_buf_check_integrity(buf), "Invalid argument.");
 
             // To overwrite the old buffer, we deinit it first.
             ten_buf_deinit(buf);
@@ -425,9 +425,9 @@ bool ten_msgpack_value_deserialize_inplace(ten_value_t *value,
           if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
             ten_value_init_buf(value, 0);
 
-            ten_buf_t *buf = ten_value_peek_buf(value);
-            TEN_ASSERT(buf && ten_buf_check_integrity(buf),
-                       "Invalid argument.");
+            ten_buf_t *buf = ten_value_peek_buf(value, NULL);
+            TEN_ASSERT(buf, "Invalid argument.");
+            TEN_ASSERT(ten_buf_check_integrity(buf), "Invalid argument.");
 
             ten_buf_init_with_copying_data(buf, (uint8_t *)MSGPACK_DATA_BIN_PTR,
                                            MSGPACK_DATA_BIN_SIZE);
@@ -554,8 +554,9 @@ ten_value_kv_t *ten_msgpack_create_value_kv_through_deserialization(
 }
 
 void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
-  TEN_ASSERT(value && ten_value_check_integrity(value) && pck,
-             "Invalid argument.");
+  TEN_ASSERT(value, "Invalid argument.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Invalid argument.");
+  TEN_ASSERT(pck, "Invalid argument.");
 
   // Pack the type of value first.
   int rc = msgpack_pack_int32(pck, ten_value_get_type(value));
@@ -617,8 +618,8 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
     TEN_ASSERT(rc == 0, "Should not happen.");
     break;
   case TEN_TYPE_BUF:
-    rc = msgpack_pack_bin_with_body(pck, ten_value_peek_buf(value)->data,
-                                    ten_value_peek_buf(value)->size);
+    rc = msgpack_pack_bin_with_body(pck, ten_value_peek_buf(value, NULL)->data,
+                                    ten_value_peek_buf(value, NULL)->size);
     TEN_ASSERT(rc == 0, "Should not happen.");
     break;
   case TEN_TYPE_ARRAY:
@@ -640,8 +641,9 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
     // Pack data second.
     ten_list_foreach (&value->content.array, iter) {
       ten_value_t *array_item = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(array_item && ten_value_check_integrity(array_item),
-                 "Invalid argument.");
+      TEN_ASSERT(array_item, "Invalid argument.");
+      TEN_ASSERT(ten_value_check_integrity(array_item), "Invalid argument.");
+
       ten_msgpack_value_serialize(array_item, pck);
     }
     break;
@@ -664,8 +666,10 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
     // Pack data second.
     ten_list_foreach (&value->content.object, iter) {
       ten_value_kv_t *object_item = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(object_item && ten_value_kv_check_integrity(object_item),
+      TEN_ASSERT(object_item, "Invalid argument.");
+      TEN_ASSERT(ten_value_kv_check_integrity(object_item),
                  "Invalid argument.");
+
       ten_msgpack_value_kv_serialize(object_item, pck);
     }
     break;
@@ -679,8 +683,9 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
 }
 
 void ten_msgpack_value_kv_serialize(ten_value_kv_t *kv, msgpack_packer *pck) {
-  TEN_ASSERT(kv && ten_value_kv_check_integrity(kv) && pck,
-             "Invalid argument.");
+  TEN_ASSERT(kv, "Invalid argument.");
+  TEN_ASSERT(ten_value_kv_check_integrity(kv), "Invalid argument.");
+  TEN_ASSERT(pck, "Invalid argument.");
 
   int rc = msgpack_pack_str_with_body(
       pck, ten_string_get_raw_str(ten_value_kv_get_key(kv)),

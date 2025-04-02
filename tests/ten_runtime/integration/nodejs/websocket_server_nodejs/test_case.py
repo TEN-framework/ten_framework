@@ -6,6 +6,7 @@ import subprocess
 import os
 import sys
 import time
+import websocket
 from sys import stdout
 from .utils import http, build_config, build_pkg, fs_utils
 
@@ -23,7 +24,6 @@ from .utils import http, build_config, build_pkg, fs_utils
 # mechanism is needed to make the process more robust.
 def ws_request():
     """Send websocket request with retry mechanism."""
-    import websocket
 
     max_retries = 3
     attempt = 0

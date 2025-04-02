@@ -92,7 +92,7 @@ class HttpServerExtension extends Extension {
                 res.end("Error: " + error.message);
               } else {
                 if (cmdResult?.getStatusCode() == StatusCode.OK) {
-                  const detail = cmdResult!.getPropertyToJson("detail");
+                  const [detail, err] = cmdResult!.getPropertyToJson("detail");
                   res.writeHead(200, { "Content-Type": "application/json" });
                   res.end(detail);
                 } else {
@@ -117,10 +117,8 @@ class HttpServerExtension extends Extension {
     console.log("HttpServerExtension onStart");
 
     const hostname = "127.0.0.1";
-    var port: number;
-    try {
-      port = await tenEnv.getPropertyNumber("server_port");
-    } catch (e) {
+    let [port, err] = await tenEnv.getPropertyNumber("server_port");
+    if (err != null) {
       // Use default port.
       port = 8001;
     }

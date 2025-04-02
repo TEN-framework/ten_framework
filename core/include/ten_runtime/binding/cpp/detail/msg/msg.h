@@ -217,7 +217,12 @@ class msg_t {
       return result;
     }
 
-    ten_buf_t *c_buf = ten_value_peek_buf(c_value);
+    ten_buf_t *c_buf = ten_value_peek_buf(
+        c_value, err != nullptr ? err->get_c_error() : nullptr);
+    if (c_buf == nullptr) {
+      return result;
+    }
+
     ten_buf_init_with_copying_data(&result.buf, c_buf->data, c_buf->size);
 
     return result;

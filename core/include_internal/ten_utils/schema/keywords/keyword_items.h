@@ -13,10 +13,18 @@
 
 #define TEN_SCHEMA_KEYWORD_ITEMS_SIGNATURE 0x8AD7BCDE1BA0ADE7U
 
+/**
+ * @brief Structure representing the "items" keyword in an array schema.
+ *
+ * This structure defines the validation rules for items within an array.
+ * In this implementation, all items in the array must conform to the same
+ * schema.
+ */
 typedef struct ten_schema_keyword_items_t {
-  ten_schema_keyword_t hdr;
-  ten_signature_t signature;
+  ten_schema_keyword_t hdr;   // Base keyword header
+  ten_signature_t signature;  // Signature for integrity validation
 
+  // The schema that all array items must validate against.
   // The type of the items must be same.
   ten_schema_t *item_schema;
 } ten_schema_keyword_items_t;

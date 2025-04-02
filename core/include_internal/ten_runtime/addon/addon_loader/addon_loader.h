@@ -21,6 +21,9 @@ typedef struct ten_addon_loader_t ten_addon_loader_t;
 typedef void (*ten_addon_loader_on_all_singleton_instances_created_cb_t)(
     ten_env_t *ten_env, void *cb_data);
 
+typedef void (*ten_addon_loader_on_all_singleton_instances_destroyed_cb_t)(
+    ten_env_t *ten_env, void *cb_data);
+
 typedef struct ten_addon_loader_on_all_singleton_instances_created_ctx_t {
   ten_env_t *ten_env;
   size_t desired_count;
@@ -28,10 +31,21 @@ typedef struct ten_addon_loader_on_all_singleton_instances_created_ctx_t {
   void *cb_data;
 } ten_addon_loader_on_all_singleton_instances_created_ctx_t;
 
+typedef struct ten_addon_loader_on_all_singleton_instances_destroyed_ctx_t {
+  ten_env_t *ten_env;
+  ten_addon_loader_on_all_singleton_instances_destroyed_cb_t cb;
+  void *cb_data;
+} ten_addon_loader_on_all_singleton_instances_destroyed_ctx_t;
+
 typedef struct ten_app_on_addon_loader_init_done_ctx_t {
   ten_addon_loader_t *addon_loader;
   void *cb_data;
 } ten_app_on_addon_loader_init_done_ctx_t;
+
+typedef struct ten_app_on_addon_loader_deinit_done_ctx_t {
+  ten_addon_loader_t *addon_loader;
+  void *cb_data;
+} ten_app_on_addon_loader_deinit_done_ctx_t;
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
     void);
@@ -54,5 +68,10 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_create_singleton_instance(
     ten_env_t *ten_env,
     ten_addon_loader_on_all_singleton_instances_created_cb_t cb, void *cb_data);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_destroy_singleton_instance(
-    void);
+TEN_RUNTIME_PRIVATE_API void ten_addon_loader_destroy_all_singleton_instances(
+    ten_env_t *ten_env,
+    ten_addon_loader_on_all_singleton_instances_destroyed_cb_t cb,
+    void *cb_data);
+
+TEN_RUNTIME_PRIVATE_API void
+ten_addon_loader_destroy_all_singleton_instances_immediately(void);

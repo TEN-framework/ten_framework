@@ -9,15 +9,14 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::graph::connection::{
-    GraphConnection, GraphDestination, GraphMessageFlow,
-};
-use ten_rust::graph::msg_conversion::MsgAndResultConversion;
+use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
+
+use super::DesignerMessageFlow;
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphConnectionsRequestPayload {
@@ -43,6 +42,22 @@ pub struct GraphConnectionsSingleResponseData {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_frame: Option<Vec<DesignerMessageFlow>>,
+}
+
+fn get_designer_msg_flow_from_property(
+    msg_flow: Vec<GraphMessageFlow>,
+) -> Vec<DesignerMessageFlow> {
+    if msg_flow.is_empty() {
+        return vec![];
+    }
+
+    msg_flow.into_iter().map(|v| v.into()).collect()
+}
+
+fn get_property_msg_flow_from_designer(
+    msg_flow: Vec<DesignerMessageFlow>,
+) -> Vec<GraphMessageFlow> {
+    msg_flow.into_iter().map(|v| v.into()).collect()
 }
 
 impl From<GraphConnection> for GraphConnectionsSingleResponseData {
@@ -86,87 +101,6 @@ impl From<GraphConnectionsSingleResponseData> for GraphConnection {
                 .map(get_property_msg_flow_from_designer),
         }
     }
-}
-
-fn get_property_msg_flow_from_designer(
-    msg_flow: Vec<DesignerMessageFlow>,
-) -> Vec<GraphMessageFlow> {
-    msg_flow.into_iter().map(|v| v.into()).collect()
-}
-
-impl From<DesignerMessageFlow> for GraphMessageFlow {
-    fn from(designer_msg_flow: DesignerMessageFlow) -> Self {
-        GraphMessageFlow {
-            name: designer_msg_flow.name,
-            dest: designer_msg_flow
-                .dest
-                .into_iter()
-                .map(|d| d.into())
-                .collect(),
-        }
-    }
-}
-
-impl From<DesignerDestination> for GraphDestination {
-    fn from(designer_destination: DesignerDestination) -> Self {
-        GraphDestination {
-            app: designer_destination.app,
-            extension: designer_destination.extension,
-            msg_conversion: designer_destination.msg_conversion,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerMessageFlow {
-    pub name: String,
-    pub dest: Vec<DesignerDestination>,
-}
-
-impl From<GraphMessageFlow> for DesignerMessageFlow {
-    fn from(msg_flow: GraphMessageFlow) -> Self {
-        DesignerMessageFlow {
-            name: msg_flow.name,
-            dest: get_designer_destination_from_property(msg_flow.dest),
-        }
-    }
-}
-
-fn get_designer_msg_flow_from_property(
-    msg_flow: Vec<GraphMessageFlow>,
-) -> Vec<DesignerMessageFlow> {
-    if msg_flow.is_empty() {
-        return vec![];
-    }
-
-    msg_flow.into_iter().map(|v| v.into()).collect()
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerDestination {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub app: Option<String>,
-
-    pub extension: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg_conversion: Option<MsgAndResultConversion>,
-}
-
-impl From<GraphDestination> for DesignerDestination {
-    fn from(destination: GraphDestination) -> Self {
-        DesignerDestination {
-            app: destination.app,
-            extension: destination.extension,
-            msg_conversion: destination.msg_conversion,
-        }
-    }
-}
-
-fn get_designer_destination_from_property(
-    destinations: Vec<GraphDestination>,
-) -> Vec<DesignerDestination> {
-    destinations.into_iter().map(|v| v.into()).collect()
 }
 
 pub async fn get_graph_connections_endpoint(
@@ -229,8 +163,13 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig, constants::TEST_DIR,
-        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
+        config::TmanConfig,
+        constants::TEST_DIR,
+        designer::{
+            graphs::connections::DesignerDestination,
+            mock::inject_all_pkgs_for_mock,
+        },
+        output::TmanOutputCli,
     };
 
     #[actix_web::test]
@@ -243,22 +182,30 @@ mod tests {
 
         let all_pkgs_json = vec![
             (
-                include_str!("test_data_embed/app_manifest.json").to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../test_data_embed/app_manifest.json")
+                    .to_string(),
+                include_str!("../test_data_embed/app_property.json")
+                    .to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -336,18 +283,18 @@ mod tests {
         // 'property.json'.
         let all_pkgs_json = vec![
             (
-                include_str!("test_data_embed/get_connections_have_all_data_type/app_manifest.json")
+                include_str!("../test_data_embed/get_connections_have_all_data_type/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/get_connections_have_all_data_type/app_property.json")
+                include_str!("../test_data_embed/get_connections_have_all_data_type/app_property.json")
                     .to_string(),
             ),
             (
-                include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_1_manifest.json")
+                include_str!("../test_data_embed/get_connections_have_all_data_type/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_2_manifest.json")
+                include_str!("../test_data_embed/get_connections_have_all_data_type/extension_addon_2_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),

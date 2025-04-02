@@ -994,14 +994,8 @@ func (p *tenEnv) SetPropertyFromJSONBytes(path string, value []byte) error {
 // GetPropertyToJSONBytes retrieves the property and parses it as a json data.
 // This function uses a bytes pool to improve the performance. ReleaseBytes is
 // recommended to be called after the []byte is no longer used.
+// The path can be empty, which means getting the full property as a json data.
 func (p *tenEnv) GetPropertyToJSONBytes(path string) ([]byte, error) {
-	if len(path) == 0 {
-		return nil, newTenError(
-			ErrorCodeInvalidArgument,
-			"the property path is required.",
-		)
-	}
-
 	var cValue C.uintptr_t = 0
 	var pSize propSizeInC = 0
 	var cJSONStr *C.char
