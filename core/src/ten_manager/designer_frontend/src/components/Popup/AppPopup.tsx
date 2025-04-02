@@ -22,21 +22,18 @@ import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useWidgetStore, useAppStore, useFlowStore } from "@/store";
-import {
-  baseDirEntriesToIFMItems,
-  EFMItemType,
-  fmItemsToFMArray,
-} from "@/components/FileManager/utils";
-import { FileManager } from "@/components/FileManager/AppFolder";
-import { useRetrieveDirList } from "@/api/services/fileSystem";
+import { AppFileManager } from "@/components/FileManager/AppFolder";
 import { postLoadDir, useApps } from "@/api/services/apps";
-import { SpinnerLoading } from "@/components/Status/Loading";
 import {
   APP_FOLDER_POPUP_ID,
   APPS_MANAGER_POPUP_ID,
+  APP_CREATE_POPUP_ID,
 } from "@/constants/widgets";
 import { TEN_DEFAULT_BACKEND_WS_ENDPOINT } from "@/constants";
-import { AppsManagerWidget } from "@/components/Widget/AppsWidget";
+import {
+  AppsManagerWidget,
+  AppTemplateWidget,
+} from "@/components/Widget/AppsWidget";
 import { TEN_PATH_WS_EXEC } from "@/constants";
 import {
   ELogViewerScriptType,
@@ -51,9 +48,8 @@ export const AppFolderPopup = () => {
 
   const { removeWidget } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
-  const { folderPath, setFolderPath, fmItems, setFmItems } = useAppStore();
+  const { folderPath } = useAppStore();
 
-  const { data, error, isLoading } = useRetrieveDirList(folderPath);
   const { mutate: mutateApps } = useApps();
 
   const handleSetBaseDir = async (folderPath: string) => {
@@ -96,26 +92,6 @@ export const AppFolderPopup = () => {
     }
   };
 
-  React.useEffect(() => {
-    if (error) {
-      toast.error(t("popup.default.errorGetBaseDir"));
-      console.error(error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
-
-  React.useEffect(() => {
-    if (!data?.entries) {
-      return;
-    }
-    const currentFmItems = baseDirEntriesToIFMItems(data.entries);
-    const fmArray = fmItemsToFMArray(currentFmItems, fmItems);
-    setFmItems(fmArray);
-    // Suppress the warning about the dependency array.
-    // <fmItems> should not be a dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, folderPath]);
-
   return (
     <Popup
       id={APP_FOLDER_POPUP_ID}
@@ -124,36 +100,11 @@ export const AppFolderPopup = () => {
       width={600}
       height={400}
     >
-      <div className="flex flex-col gap-2 w-full h-full">
-        <FileManager
-          data={fmItems}
-          allowSelectTypes={[EFMItemType.FOLDER]}
-          className="w-full h-[calc(100%-3rem)]"
-          onSelect={(path) => setFolderPath(path)}
-          selectedPath={folderPath}
-          isLoading={isLoading}
-          colWidth={200}
-        />
-        <div className="flex justify-end h-fit gap-2">
-          <Button
-            variant="outline"
-            onClick={() => removeWidget(APP_FOLDER_POPUP_ID)}
-            disabled={isSaving}
-          >
-            {t("action.cancel")}
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? (
-              <>
-                <SpinnerLoading className="w-4 h-4 mr-2" />
-                {t("action.ok")}
-              </>
-            ) : (
-              t("action.ok")
-            )}
-          </Button>
-        </div>
-      </div>
+      <AppFileManager
+        isSaveLoading={isSaving}
+        onSave={handleSave}
+        onCancel={() => removeWidget(APP_FOLDER_POPUP_ID)}
+      />
     </Popup>
   );
 };
@@ -244,6 +195,26 @@ export const AppRunPopup = (props: {
           </Button>
         </div>
       </div>
+    </Popup>
+  );
+};
+
+export const AppCreatePopup = (props: { id?: string }) => {
+  const { id } = props;
+
+  const { t } = useTranslation();
+  const { removeWidget } = useWidgetStore();
+
+  const handleCreated = () => {
+    removeWidget(id || APP_CREATE_POPUP_ID);
+  };
+
+  return (
+    <Popup id={APP_CREATE_POPUP_ID} title={t("popup.apps.create")} width={384}>
+      <AppTemplateWidget
+        onCreated={handleCreated}
+        className="w-full max-w-sm"
+      />
     </Popup>
   );
 };

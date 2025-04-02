@@ -15,6 +15,7 @@ import { LanguageToggle } from "@/components/LangSwitch";
 import { AppMenu } from "@/components/AppBar/Menu/AppMenu";
 import { GraphMenu } from "@/components/AppBar/Menu/GraphMenu";
 import { DesignerMenu } from "@/components/AppBar/Menu/DesignerMenu";
+import { ExtensionMenu } from "@/components/AppBar/Menu/ExtensionMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
 import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
 import { Version } from "@/components/AppBar/Version";
@@ -114,6 +115,11 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
             idx={2}
             triggerListRef={targetMenuListRef}
             onAutoLayout={onAutoLayout}
+          />
+          <ExtensionMenu
+            disableMenuClick={disableMenuClick}
+            idx={3}
+            triggerListRef={targetMenuListRef}
           />
         </NavigationMenuList>
       </NavigationMenu>

@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import { cn } from "@/lib/utils";
+import { EPreferencesLocale } from "@/types/apps";
 
 export function LanguageToggle(props: { buttonProps?: ButtonProps }) {
   const {
@@ -41,27 +42,35 @@ export function LanguageToggle(props: { buttonProps?: ButtonProps }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => i18n.changeLanguage("en-US")}>
+        <DropdownMenuItem
+          onClick={() => i18n.changeLanguage(EPreferencesLocale.EN_US)}
+        >
           <span>{t("header.language.enUS")}</span>
-          {i18n.language === "en-US" && (
+          {i18n.language === EPreferencesLocale.EN_US && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-CN")}>
+        <DropdownMenuItem
+          onClick={() => i18n.changeLanguage(EPreferencesLocale.ZH_CN)}
+        >
           <span>{t("header.language.zhCN")}</span>
-          {i18n.language === "zh-CN" && (
+          {i18n.language === EPreferencesLocale.ZH_CN && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>{" "}
-        <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-TW")}>
+        <DropdownMenuItem
+          onClick={() => i18n.changeLanguage(EPreferencesLocale.ZH_TW)}
+        >
           <span>{t("header.language.zhTW")}</span>
-          {i18n.language === "zh-TW" && (
+          {i18n.language === EPreferencesLocale.ZH_TW && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => i18n.changeLanguage("ja-JP")}>
+        <DropdownMenuItem
+          onClick={() => i18n.changeLanguage(EPreferencesLocale.JA_JP)}
+        >
           <span>{t("header.language.jaJP")}</span>
-          {i18n.language === "ja-JP" && (
+          {i18n.language === EPreferencesLocale.JA_JP && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>

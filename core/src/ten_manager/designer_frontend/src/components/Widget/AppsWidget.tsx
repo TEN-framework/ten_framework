@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -13,7 +14,11 @@ import {
   FolderSyncIcon,
   HardDriveDownloadIcon,
   PlayIcon,
+  FolderIcon,
 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
   Table,
@@ -31,9 +36,41 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/Form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { useApps, useAppScripts } from "@/api/services/apps";
+import {
+  useApps,
+  useAppScripts,
+  retrieveTemplatePkgs,
+  postReloadApps,
+  postUnloadApps,
+  postCreateApp,
+} from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import {
@@ -47,7 +84,13 @@ import {
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
   TEN_PATH_WS_BUILTIN_FUNCTION,
 } from "@/constants";
-import { postReloadApps, postUnloadApps } from "@/api/services/apps";
+import {
+  ETemplateLanguage,
+  ETemplateType,
+  TemplatePkgsReqSchema,
+  AppCreateReqSchema,
+} from "@/types/apps";
+import { AppFileManager } from "@/components/FileManager/AppFolder";
 
 export const AppsManagerWidget = (props: { className?: string }) => {
   const [isUnloading, setIsUnloading] = React.useState<boolean>(false);
@@ -172,7 +215,6 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     if (error) {
       toast.error(t("popup.apps.error"));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
   return (
@@ -280,7 +322,6 @@ const AppRowActions = (props: {
             : t("popup.apps.error"),
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scriptsError]);
 
   return (
@@ -366,5 +407,246 @@ const AppRowActions = (props: {
         </Tooltip>
       </TooltipProvider>
     </TableCell>
+  );
+};
+
+export const AppTemplateWidget = (props: {
+  className?: string;
+  onCreated?: (baseDir: string) => void;
+}) => {
+  const { className, onCreated } = props;
+  const [templatePkgs, setTemplatePkgs] = React.useState<
+    Record<string, string[]>
+  >({});
+  const [showAppFolder, setShowAppFolder] = React.useState<boolean>(false);
+  const [isCreating, setIsCreating] = React.useState<boolean>(false);
+
+  const { t } = useTranslation();
+  const { mutate: mutateApps } = useApps();
+
+  const formSchema = z.object({
+    ...TemplatePkgsReqSchema.shape,
+    ...AppCreateReqSchema.shape,
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      pkg_type: ETemplateType.APP,
+      language: ETemplateLanguage.CPP,
+      base_dir: undefined,
+      app_name: undefined,
+      template_name: undefined,
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values);
+    try {
+      setIsCreating(true);
+      const res = await postCreateApp(
+        values.base_dir,
+        values.template_name,
+        values.app_name
+      );
+      toast.success(t("popup.apps.createAppSuccess"), {
+        description: res?.app_path || values.base_dir,
+      });
+      mutateApps();
+      onCreated?.(res?.app_path || values.base_dir);
+    } catch (error) {
+      console.error(error);
+      toast.error(t("popup.apps.createAppFailed"), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t("popup.apps.createAppFailed"),
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const fetchTemplatePkgs = async () => {
+      const key = `${form.watch("pkg_type")}-${form.watch("language")}`;
+      const existingPkgs = templatePkgs[key];
+      if (!existingPkgs || existingPkgs.length === 0) {
+        const pkgs = await retrieveTemplatePkgs(
+          form.watch("pkg_type"),
+          form.watch("language")
+        );
+        setTemplatePkgs((prev) => ({ ...prev, [key]: pkgs.template_name }));
+      }
+    };
+    fetchTemplatePkgs();
+  }, [form.watch("pkg_type"), form.watch("language")]);
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn(
+          "space-y-4 px-2",
+          "max-h-[calc(90dvh-10rem)] overflow-y-auto",
+          className
+        )}
+      >
+        <FormField
+          control={form.control}
+          name="pkg_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.apps.templateType")}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full max-w-sm">
+                    <SelectValue placeholder={t("popup.apps.templateType")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="w-full max-w-sm">
+                  {Object.values(ETemplateType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                {t("popup.apps.templateTypeDescription")}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="language"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.apps.templateLanguage")}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full max-w-sm">
+                    <SelectValue
+                      placeholder={t("popup.apps.templateLanguage")}
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="w-full max-w-sm">
+                  {Object.values(ETemplateLanguage).map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                {t("popup.apps.templateLanguageDescription")}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="template_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.apps.templateName")}</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={
+                  !templatePkgs[
+                    `${form.watch("pkg_type")}-${form.watch("language")}`
+                  ]
+                }
+              >
+                <FormControl>
+                  <SelectTrigger className="w-full max-w-sm">
+                    <SelectValue
+                      placeholder={t("popup.apps.templateLanguage")}
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="w-full max-w-sm">
+                  {templatePkgs[
+                    `${form.watch("pkg_type")}-${form.watch("language")}`
+                  ]?.map((pkg) => (
+                    <SelectItem key={pkg} value={pkg}>
+                      {pkg}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                {t("popup.apps.templateLanguageDescription")}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="app_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.apps.appName")}</FormLabel>
+              <Input {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="base_dir"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.apps.baseDir")}</FormLabel>
+              <Dialog open={showAppFolder} onOpenChange={setShowAppFolder}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full max-w-sm"
+                  >
+                    <span className="text-ellipsis overflow-hidden">
+                      {field.value || t("action.chooseBaseDir")}
+                    </span>
+                    <FolderIcon className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="h-fit w-fit max-w-screen">
+                  <DialogHeader>
+                    <DialogTitle>{t("popup.apps.baseDir")}</DialogTitle>
+                    <DialogDescription>
+                      {t("popup.apps.baseDirDescription")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AppFileManager
+                    className="h-[400px] w-[600px]"
+                    onSave={(folderPath) => {
+                      field.onChange(folderPath);
+                      setShowAppFolder(false);
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!form.formState.isValid || isCreating}
+          className="w-full"
+        >
+          {isCreating && <SpinnerLoading className="size-4" />}
+          {t("action.create")}
+        </Button>
+      </form>
+    </Form>
   );
 };

@@ -49,6 +49,12 @@ export const Popup = (props: {
   maxHeight?: number;
   onClose?: () => Promise<void> | void;
   onCollapseToggle?: (isCollapsed: boolean) => void;
+  initialPosition?:
+    | "center"
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right";
 }) => {
   const {
     id,
@@ -66,6 +72,7 @@ export const Popup = (props: {
     maxHeight = Infinity,
     onClose,
     onCollapseToggle,
+    initialPosition = "center",
   } = props;
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -142,15 +149,29 @@ export const Popup = (props: {
     if (popupRef.current) {
       const { innerWidth, innerHeight } = window;
       const rect = popupRef.current.getBoundingClientRect();
-      popupRef.current.style.left = `${(innerWidth - rect.width) / 2}px`;
-      popupRef.current.style.top = `${(innerHeight - rect.height) / 2}px`;
+      if (initialPosition === "center") {
+        popupRef.current.style.left = `${(innerWidth - rect.width) / 2}px`;
+        popupRef.current.style.top = `${(innerHeight - rect.height) / 2}px`;
+      } else if (initialPosition === "top-left") {
+        popupRef.current.style.left = `40px`;
+        popupRef.current.style.top = `60px`;
+      } else if (initialPosition === "top-right") {
+        popupRef.current.style.left = `${innerWidth - rect.width - 40}px`;
+        popupRef.current.style.top = `60px`;
+      } else if (initialPosition === "bottom-left") {
+        popupRef.current.style.left = `40px`;
+        popupRef.current.style.top = `${innerHeight - rect.height - 40}px`;
+      } else if (initialPosition === "bottom-right") {
+        popupRef.current.style.left = `${innerWidth - rect.width - 40}px`;
+        popupRef.current.style.top = `${innerHeight - rect.height - 40}px`;
+      }
       handleBringToFront();
       if (autoFocus) {
         popupRef.current.focus();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFocus]);
+  }, [autoFocus, initialPosition]);
 
   React.useEffect(() => {
     const bringToFrontEvent = (event: CustomEvent) => {

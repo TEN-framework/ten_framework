@@ -27,7 +27,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/lib/utils";
 import { PREFERENCES_POPUP_ID } from "@/constants/widgets";
 import { useAppStore, useWidgetStore } from "@/store";
-import { PREFERENCES_SCHEMA_LOG, EPreferencesTabs } from "@/types/apps";
+import {
+  PREFERENCES_SCHEMA_LOG,
+  EPreferencesTabs,
+  EPreferencesLocale,
+} from "@/types/apps";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { ModeToggle } from "@/components/ModeToggle";
 import { useTheme } from "@/components/use-theme";
@@ -72,13 +76,13 @@ export const PreferencesGeneralTab = () => {
 
   const getLangLabel = (lang: string) => {
     switch (lang) {
-      case "en-US":
+      case EPreferencesLocale.EN_US:
         return t("header.language.enUS");
-      case "zh-CN":
+      case EPreferencesLocale.ZH_CN:
         return t("header.language.zhCN");
-      case "zh-TW":
+      case EPreferencesLocale.ZH_TW:
         return t("header.language.zhTW");
-      case "ja-JP":
+      case EPreferencesLocale.JA_JP:
         return t("header.language.jaJP");
       default:
         return t("preferences.general.language");

@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { FolderOpenIcon, MoveIcon } from "lucide-react";
+import { BlocksIcon } from "lucide-react";
 
 import {
   NavigationMenuContent,
@@ -15,32 +15,31 @@ import {
 } from "@/components/ui/NavigationMenu";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store/widget";
-import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 import {
   EDefaultWidgetType,
-  EWidgetCategory,
   EWidgetDisplayType,
+  EWidgetCategory,
 } from "@/types/widgets";
+import { useWidgetStore } from "@/store/widget";
+import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 
-export function GraphMenu(props: {
-  onAutoLayout: () => void;
+export const ExtensionMenu = (props: {
   disableMenuClick?: boolean;
   idx: number;
   triggerListRef?: React.RefObject<HTMLButtonElement[]>;
-}) {
-  const { onAutoLayout, disableMenuClick, idx, triggerListRef } = props;
+}) => {
+  const { disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
   const { appendWidgetIfNotExists } = useWidgetStore();
 
-  const onOpenExistingGraph = () => {
+  const onOpenExtensionStore = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      id: EXTENSION_STORE_POPUP_ID,
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
       metadata: {
-        type: EDefaultWidgetType.GraphSelect,
+        type: EDefaultWidgetType.ExtensionStore,
       },
     });
   };
@@ -60,7 +59,7 @@ export function GraphMenu(props: {
           }
         }}
       >
-        {t("header.menuGraph.title")}
+        {t("header.menuExtension.title")}
       </NavigationMenuTrigger>
       <NavigationMenuContent
         className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -69,23 +68,13 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            onClick={onOpenExistingGraph}
+            onClick={onOpenExtensionStore}
           >
-            <FolderOpenIcon />
-            {t("header.menuGraph.loadGraph")}
-          </Button>
-        </NavigationMenuLink>
-        <NavigationMenuLink asChild>
-          <Button
-            className="w-full justify-start"
-            variant="ghost"
-            onClick={onAutoLayout}
-          >
-            <MoveIcon />
-            {t("header.menuGraph.autoLayout")}
+            <BlocksIcon />
+            {t("header.menuExtension.openExtensionStore")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>
     </NavigationMenuItem>
   );
-}
+};

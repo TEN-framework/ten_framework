@@ -20,12 +20,12 @@
       "installAll": "すべてインストール",
       "manageLoadedApps": "読み込まれたアプリを管理",
       "runApp": "アプリを実行",
-      "openAppFolder": "アプリフォルダを開く"
+      "openAppFolder": "アプリフォルダを開く",
+      "createApp": "アプリを作成"
     },
     "menuGraph": {
       "title": "グラフ",
-      "openExistingGraph": "既存のグラフを開く",
-      "openExtensionStore": "拡張機能ストアを開く",
+      "loadGraph": "グラフを読み込む",
       "autoLayout": "自動レイアウト",
       "selectLoadedApp": "読み込まれたアプリを選択"
     },
@@ -37,6 +37,10 @@
       "title": "デザイナー",
       "about": "TEN Manager Designerについて",
       "preferences": "設定"
+    },
+    "menuExtension": {
+      "title": "拡張機能",
+      "openExtensionStore": "拡張機能ストアを開く"
     },
     "language": {
       "title": "言語",
@@ -86,7 +90,9 @@
     "search": "検索",
     "current": "現在",
     "run": "実行",
-    "viewDetails": "詳細を表示"
+    "viewDetails": "詳細を表示",
+    "reset": "リセット",
+    "chooseBaseDir": "ベースディレクトリを選択"
   },
   "toast": {
     "saveFileSuccess": "ファイルの保存に成功しました",
@@ -130,7 +136,19 @@
       "baseDir": "ベースディレクトリ",
       "run": "アプリを実行",
       "runScript": "スクリプトを実行",
-      "runScriptPlaceholder": "実行するスクリプトを入力"
+      "runScriptPlaceholder": "実行するスクリプトを入力してください",
+      "create": "アプリを作成",
+      "createAppSuccess": "アプリの作成に成功しました",
+      "createAppFailed": "アプリの作成に失敗しました",
+      "templateType": "テンプレートタイプ",
+      "templateTypeDescription": "アプリのテンプレートタイプを選択してください。",
+      "templateLanguage": "テンプレート言語",
+      "templateLanguageDescription": "アプリのテンプレート言語を選択してください。",
+      "templateName": "テンプレート名",
+      "templateNameDescription": "アプリのテンプレート名を選択してください。",
+      "appName": "アプリ名",
+      "appNameDescription": "アプリの名前を入力してください。",
+      "baseDirDescription": "アプリのベースディレクトリを選択してください。"
     }
   },
   "dock": {

@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { FolderPlusIcon, FolderCogIcon } from "lucide-react";
+import { FolderPlusIcon, FolderCogIcon, FolderOpenIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -24,6 +24,7 @@ import {
 import {
   APP_FOLDER_POPUP_ID,
   APPS_MANAGER_POPUP_ID,
+  APP_CREATE_POPUP_ID,
 } from "@/constants/widgets";
 
 export function AppMenu(props: {
@@ -59,6 +60,17 @@ export function AppMenu(props: {
     });
   };
 
+  const openAppCreatePopup = () => {
+    appendWidgetIfNotExists({
+      id: APP_CREATE_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.AppCreate,
+      },
+    });
+  };
+
   return (
     <>
       <NavigationMenuItem>
@@ -84,9 +96,19 @@ export function AppMenu(props: {
             <Button
               className="w-full justify-start"
               variant="ghost"
-              onClick={openAppFolderPopup}
+              onClick={openAppCreatePopup}
             >
               <FolderPlusIcon className="w-4 h-4 me-2" />
+              {t("header.menuApp.createApp")}
+            </Button>
+          </NavigationMenuLink>
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={openAppFolderPopup}
+            >
+              <FolderOpenIcon className="w-4 h-4 me-2" />
               {t("header.menuApp.loadApp")}
             </Button>
           </NavigationMenuLink>
