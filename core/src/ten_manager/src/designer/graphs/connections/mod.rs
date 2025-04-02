@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod add;
+pub mod delete;
 pub mod get;
 
 use serde::{Deserialize, Serialize};
