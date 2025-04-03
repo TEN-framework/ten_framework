@@ -62,9 +62,9 @@ pub fn get_extension_nodes_in_graph(
 /// specified in the GraphNode.
 pub fn get_pkg_info_for_extension<'a>(
     extension: &'a GraphNode,
-    all_pkgs: &'a [PkgInfo],
+    extension_pkgs_info: &'a [PkgInfo],
 ) -> Option<&'a PkgInfo> {
-    all_pkgs.iter().find(|pkg| {
+    extension_pkgs_info.iter().find(|pkg| {
         if let Some(manifest) = &pkg.manifest {
             manifest.type_and_name.pkg_type == PkgType::Extension
                 && manifest.type_and_name.name == extension.addon
@@ -106,7 +106,7 @@ pub struct CompatibleExtensionAndMsg<'a> {
 
 pub fn get_compatible_cmd_extension<'a>(
     extensions: &'a [GraphNode],
-    all_pkgs: &[PkgInfo],
+    extension_pkgs_info: &[PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&CmdSchema>,
     cmd_name: &str,
@@ -114,7 +114,7 @@ pub fn get_compatible_cmd_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+        let pkg_info = get_pkg_info_for_extension(ext, extension_pkgs_info)
             .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
 
         let target_cmd_schema =
@@ -149,7 +149,7 @@ pub fn get_compatible_cmd_extension<'a>(
 
 pub fn get_compatible_data_like_msg_extension<'a>(
     extensions: &'a [GraphNode],
-    all_pkgs: &'a [PkgInfo],
+    extension_pkgs_info: &'a [PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&TenSchema>,
     msg_type: &MsgType,
@@ -158,7 +158,7 @@ pub fn get_compatible_data_like_msg_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+        let pkg_info = get_pkg_info_for_extension(ext, extension_pkgs_info)
             .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
 
         let target_msg_schema =

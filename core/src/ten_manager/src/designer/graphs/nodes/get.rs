@@ -120,8 +120,8 @@ pub async fn get_graph_nodes_endpoint(
 
         // Get the app package directly for finding the graph.
         let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
-        // Still need all packages for extension lookups.
-        let all_pkgs = base_dir_pkg_info.to_vec();
+        // Get extension package information directly, if available
+        let extensions_slice = base_dir_pkg_info.get_extensions();
 
         let graph_name = &request_payload.graph_name;
 
@@ -144,8 +144,10 @@ pub async fn get_graph_nodes_endpoint(
         let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
         for extension_graph_node in &extension_graph_nodes {
-            let pkg_info =
-                get_pkg_info_for_extension(extension_graph_node, &all_pkgs);
+            let pkg_info = get_pkg_info_for_extension(
+                extension_graph_node,
+                extensions_slice,
+            );
             if let Some(pkg_info) = pkg_info {
                 resp_extensions.push(GraphNodesSingleResponseData {
                     addon: extension_graph_node.addon.clone(),
