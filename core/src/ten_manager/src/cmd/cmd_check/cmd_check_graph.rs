@@ -133,7 +133,16 @@ fn get_app_installed_pkgs_with_cmd_data(
         } else {
             app_uri.clone()
         };
-        let present_pkg = pkgs_info.insert(key, app_installed_pkgs);
+
+        // Combine all package types into a single vector.
+        let mut all_pkgs = Vec::new();
+        all_pkgs.push(app_installed_pkgs.app_pkg_info.clone());
+        all_pkgs.extend(app_installed_pkgs.extension_pkg_info.clone());
+        all_pkgs.extend(app_installed_pkgs.protocol_pkg_info.clone());
+        all_pkgs.extend(app_installed_pkgs.addon_loader_pkg_info.clone());
+        all_pkgs.extend(app_installed_pkgs.system_pkg_info.clone());
+
+        let present_pkg = pkgs_info.insert(key, all_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",
