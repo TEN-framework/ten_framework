@@ -115,15 +115,12 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Clone the pkgs_cache for this base_dir.
-    let pkgs_cache_clone = state_write.pkgs_cache.clone();
-
     // Create a hash map from app URIs to BaseDirPkgInfo for use with
     // add_connection.
     let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
 
     // Process all available apps to map URIs to BaseDirPkgInfo.
-    for base_dir_pkg_info in pkgs_cache_clone.values() {
+    for base_dir_pkg_info in state_write.pkgs_cache.values() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
