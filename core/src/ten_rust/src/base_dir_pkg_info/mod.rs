@@ -25,6 +25,27 @@ impl BaseDirPkgInfo {
         }
     }
 
+    /// Combines all package types into a single vector.
+    pub fn to_vec(&self) -> Vec<PkgInfo> {
+        let mut all_pkgs = Vec::new();
+        if let Some(app_info) = &self.app_pkg_info {
+            all_pkgs.push(app_info.clone());
+        }
+        if let Some(ext_info) = &self.extension_pkg_info {
+            all_pkgs.extend(ext_info.clone());
+        }
+        if let Some(proto_info) = &self.protocol_pkg_info {
+            all_pkgs.extend(proto_info.clone());
+        }
+        if let Some(addon_info) = &self.addon_loader_pkg_info {
+            all_pkgs.extend(addon_info.clone());
+        }
+        if let Some(sys_info) = &self.system_pkg_info {
+            all_pkgs.extend(sys_info.clone());
+        }
+        all_pkgs
+    }
+
     // Check if all fields are None or empty vectors.
     pub fn is_empty(&self) -> bool {
         self.app_pkg_info.is_none()
