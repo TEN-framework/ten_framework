@@ -37,6 +37,15 @@ impl BaseDirPkgInfo {
         all_pkgs
     }
 
+    // Get a reference to the extension packages or an empty slice if none.
+    pub fn get_extensions(&self) -> &[PkgInfo] {
+        if let Some(extensions) = &self.extension_pkg_info {
+            extensions.as_slice()
+        } else {
+            &[]
+        }
+    }
+
     // Check if all fields are None or empty vectors.
     pub fn is_empty(&self) -> bool {
         self.app_pkg_info.is_none()
