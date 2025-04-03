@@ -161,13 +161,45 @@ pub async fn get_app_addons_endpoint(
         return Ok(HttpResponse::NotFound().json(error_response));
     }
 
-    let mut all_addons: Vec<GetAppAddonsSingleResponseData> = state_read
-        .pkgs_cache
-        .get(&request_payload.base_dir)
-        .unwrap()
-        .iter()
-        .map(convert_pkg_info_to_addon)
-        .collect();
+    let mut all_addons: Vec<GetAppAddonsSingleResponseData> = Vec::new();
+
+    // Get the BaseDirPkgInfo and extract all packages from it.
+    if let Some(base_dir_pkg_info) =
+        state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
+        // Extract app package if it exists.
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            all_addons.push(convert_pkg_info_to_addon(app_pkg));
+        }
+
+        // Extract extension packages if they exist.
+        if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+            for ext in extensions {
+                all_addons.push(convert_pkg_info_to_addon(ext));
+            }
+        }
+
+        // Extract protocol packages if they exist.
+        if let Some(protocols) = &base_dir_pkg_info.protocol_pkg_info {
+            for protocol in protocols {
+                all_addons.push(convert_pkg_info_to_addon(protocol));
+            }
+        }
+
+        // Extract addon loader packages if they exist.
+        if let Some(addon_loaders) = &base_dir_pkg_info.addon_loader_pkg_info {
+            for loader in addon_loaders {
+                all_addons.push(convert_pkg_info_to_addon(loader));
+            }
+        }
+
+        // Extract system packages if they exist.
+        if let Some(systems) = &base_dir_pkg_info.system_pkg_info {
+            for system in systems {
+                all_addons.push(convert_pkg_info_to_addon(system));
+            }
+        }
+    }
 
     all_addons.retain(|addon| addon.addon_type != PkgType::App.to_string());
 

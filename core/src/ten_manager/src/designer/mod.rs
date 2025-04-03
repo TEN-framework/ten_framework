@@ -31,7 +31,7 @@ use std::{
 
 use actix_web::web;
 
-use ten_rust::pkg_info::PkgInfo;
+use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
 
 use crate::config::TmanConfig;
 use crate::output::TmanOutput;
@@ -39,7 +39,7 @@ use crate::output::TmanOutput;
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
-    pub pkgs_cache: HashMap<String, Vec<PkgInfo>>,
+    pub pkgs_cache: HashMap<String, BaseDirPkgInfo>,
 }
 
 pub fn configure_routes(

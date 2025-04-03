@@ -91,11 +91,16 @@ pub async fn get_compatible_messages_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) = state_read.pkgs_cache.get(&request_payload.base_dir)
+    if let Some(base_dir_pkg_info) =
+        state_read.pkgs_cache.get(&request_payload.base_dir)
     {
+        // Convert BaseDirPkgInfo to Vec<PkgInfo> for compatibility with
+        // existing functions.
+        let all_pkgs = base_dir_pkg_info.to_vec();
+
         let extensions = match get_extension_nodes_in_graph(
             &request_payload.graph,
-            all_pkgs,
+            &all_pkgs,
         ) {
             Ok(exts) => exts,
             Err(err) => {
@@ -138,7 +143,7 @@ pub async fn get_compatible_messages_endpoint(
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
 
-        let pkg_info = get_pkg_info_for_extension(extension, all_pkgs);
+        let pkg_info = get_pkg_info_for_extension(extension, &all_pkgs);
         if pkg_info.is_none() {
             let error_response = ErrorResponse::from_error(
                 &anyhow::anyhow!("Extension not found"),
@@ -169,7 +174,7 @@ pub async fn get_compatible_messages_endpoint(
 
                 let results = match get_compatible_cmd_extension(
                     &extensions,
-                    all_pkgs,
+                    &all_pkgs,
                     &desired_msg_dir,
                     src_cmd_schema,
                     request_payload.msg_name.as_str(),
@@ -226,7 +231,7 @@ pub async fn get_compatible_messages_endpoint(
 
                 let results = match get_compatible_data_like_msg_extension(
                     &extensions,
-                    all_pkgs,
+                    &all_pkgs,
                     &desired_msg_dir,
                     src_msg_schema,
                     &msg_ty,

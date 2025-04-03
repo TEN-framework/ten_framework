@@ -9,7 +9,6 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::designer::{
     response::{ApiResponse, Status},
@@ -41,16 +40,15 @@ pub async fn get_apps_endpoint(
                 state_read
                     .pkgs_cache
                     .iter()
-                    .map(|(base_dir, pkg_infos)| {
-                        // Find the App package in pkg_infos.
-                        let app_uri = pkg_infos
-                            .iter()
-                            .find(|pkg_info| {
-                                pkg_info.manifest.as_ref().is_some_and(|m| {
-                                    m.type_and_name.pkg_type == PkgType::App
-                                })
+                    .map(|(base_dir, base_dir_pkg_info)| {
+                        // Get the App package info directly from
+                        // BaseDirPkgInfo.
+                        let app_uri = base_dir_pkg_info
+                            .app_pkg_info
+                            .as_ref()
+                            .and_then(|app_pkg_info| {
+                                app_pkg_info.property.as_ref()
                             })
-                            .and_then(|pkg_info| pkg_info.property.as_ref())
                             .and_then(|property| property._ten.as_ref())
                             .and_then(|ten| ten.uri.as_ref())
                             .map(|uri| uri.to_string());
@@ -73,6 +71,7 @@ mod tests {
     use std::collections::HashMap;
 
     use actix_web::{test, App};
+    use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
 
     use super::*;
     use crate::{
@@ -99,11 +98,14 @@ mod tests {
         )
         .await;
 
+        // Create an empty BaseDirPkgInfo.
+        let empty_pkg_info = BaseDirPkgInfo::default();
+
         designer_state
             .write()
             .unwrap()
             .pkgs_cache
-            .insert(TEST_DIR.to_string(), vec![]);
+            .insert(TEST_DIR.to_string(), empty_pkg_info);
 
         let req = test::TestRequest::get()
             .uri("/api/designer/v1/apps")

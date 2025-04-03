@@ -19,21 +19,14 @@ use ten_rust::{
 
 use crate::{
     designer::{
+        graphs::util,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
     graph::update_graph_node_all_fields,
 };
 
-#[derive(Serialize, Deserialize)]
-pub struct AddGraphNodeRequestPayload {
-    pub base_dir: String,
-    pub graph_name: String,
-    pub node_name: String,
-    pub addon_name: String,
-    pub extension_group_name: Option<String>,
-    pub app_uri: Option<String>,
-}
+use super::add::AddGraphNodeRequestPayload;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphNodeResponsePayload {
@@ -48,15 +41,13 @@ pub async fn delete_graph_node_endpoint(
     let mut state_write = state.write().unwrap();
 
     // Get the packages for this base_dir.
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
-        // Find the app package.
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+        // Find the app package using the utility function.
+        if let Some(app_pkg) =
+            util::find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) = pkg_predefined_graphs_find(
                 app_pkg.get_predefined_graphs(),
@@ -69,7 +60,7 @@ pub async fn delete_graph_node_endpoint(
                     request_payload.node_name.clone(),
                     request_payload.addon_name.clone(),
                     request_payload.app_uri.clone(),
-                    request_payload.extension_group_name.clone(),
+                    None,
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.
@@ -86,9 +77,7 @@ pub async fn delete_graph_node_endpoint(
                                     name: request_payload.node_name.clone(),
                                 },
                                 addon: request_payload.addon_name.clone(),
-                                extension_group: request_payload
-                                    .extension_group_name
-                                    .clone(),
+                                extension_group: None,
                                 app: request_payload.app_uri.clone(),
                                 property: None,
                             };
@@ -200,7 +189,6 @@ mod tests {
             graph_name: "non_existent_graph".to_string(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
-            extension_group_name: None,
             app_uri: Some("http://test-app-uri.com".to_string()),
         };
 
@@ -260,7 +248,6 @@ mod tests {
             graph_name: "default_with_app_uri".to_string(),
             node_name: "non_existent_node".to_string(),
             addon_name: "test_addon".to_string(),
-            extension_group_name: None,
             app_uri: Some("http://example.com:8000".to_string()),
         };
 
@@ -391,7 +378,6 @@ mod tests {
             graph_name: "default_with_app_uri".to_string(),
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
-            extension_group_name: None,
             app_uri: Some("http://example.com:8000".to_string()),
         };
 
@@ -415,12 +401,10 @@ mod tests {
 
         // Verify the node was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(pkgs) = state_read.pkgs_cache.get(&temp_dir_path) {
-            if let Some(app_pkg) = pkgs.iter().find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            }) {
+        if let Some(base_dir_pkg_info) =
+            state_read.pkgs_cache.get(&temp_dir_path)
+        {
+            if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
                 if let Some(predefined_graph) = pkg_predefined_graphs_find(
                     app_pkg.get_predefined_graphs(),
                     |g| g.name == "default_with_app_uri",

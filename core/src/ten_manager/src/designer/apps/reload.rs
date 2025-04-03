@@ -106,6 +106,7 @@ mod tests {
     use std::collections::HashMap;
 
     use actix_web::{http::StatusCode, test, App};
+    use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
 
     use super::*;
     use crate::{
@@ -200,10 +201,13 @@ mod tests {
         // This is a bit of a hack but should work for testing purposes.
         let invalid_path = "/definitely/invalid/path/that/doesnt/exist";
 
+        // Create an empty BaseDirPkgInfo.
+        let empty_pkg_info = BaseDirPkgInfo::default();
+
         // Inject an entry with the invalid path.
         designer_state
             .pkgs_cache
-            .insert(invalid_path.to_string(), Vec::new());
+            .insert(invalid_path.to_string(), empty_pkg_info);
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 

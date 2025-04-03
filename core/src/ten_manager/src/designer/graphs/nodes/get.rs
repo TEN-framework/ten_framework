@@ -105,13 +105,17 @@ pub async fn get_graph_nodes_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) =
+    if let Some(base_dir_pkg_info) =
         &state_read.pkgs_cache.get(&request_payload.base_dir)
     {
+        // Convert BaseDirPkgInfo to Vec<PkgInfo> for compatibility with
+        // existing functions
+        let all_pkgs = base_dir_pkg_info.to_vec();
+
         let graph_name = &request_payload.graph_name;
 
         let extension_graph_nodes =
-            match get_extension_nodes_in_graph(graph_name, all_pkgs) {
+            match get_extension_nodes_in_graph(graph_name, &all_pkgs) {
                 Ok(exts) => exts,
                 Err(err) => {
                     let error_response = ErrorResponse::from_error(
@@ -130,7 +134,7 @@ pub async fn get_graph_nodes_endpoint(
 
         for extension_graph_node in &extension_graph_nodes {
             let pkg_info =
-                get_pkg_info_for_extension(extension_graph_node, all_pkgs);
+                get_pkg_info_for_extension(extension_graph_node, &all_pkgs);
             if let Some(pkg_info) = pkg_info {
                 resp_extensions.push(GraphNodesSingleResponseData {
                     addon: extension_graph_node.addon.clone(),

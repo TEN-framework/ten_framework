@@ -102,11 +102,13 @@ pub async fn add_graph_node_endpoint(
     let mut state_write = state.write().unwrap();
 
     // Get the packages for this base_dir.
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = util::find_app_package(pkgs) {
+        if let Some(app_pkg) =
+            util::find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) = util::find_predefined_graph(
                 app_pkg,

@@ -6,7 +6,7 @@
 //
 use crate::pkg_info::{pkg_type::PkgType, PkgInfo};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct BaseDirPkgInfo {
     pub app_pkg_info: Option<PkgInfo>,
     pub extension_pkg_info: Option<Vec<PkgInfo>>,
@@ -137,5 +137,26 @@ impl BaseDirPkgInfo {
             }
             PkgType::Invalid => None,
         }
+    }
+
+    /// Returns the total number of packages in this BaseDirPkgInfo.
+    pub fn len(&self) -> usize {
+        let mut count = 0;
+        if self.app_pkg_info.is_some() {
+            count += 1;
+        }
+        if let Some(extensions) = &self.extension_pkg_info {
+            count += extensions.len();
+        }
+        if let Some(protocols) = &self.protocol_pkg_info {
+            count += protocols.len();
+        }
+        if let Some(addon_loaders) = &self.addon_loader_pkg_info {
+            count += addon_loaders.len();
+        }
+        if let Some(systems) = &self.system_pkg_info {
+            count += systems.len();
+        }
+        count
     }
 }

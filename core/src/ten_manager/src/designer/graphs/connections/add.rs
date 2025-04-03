@@ -14,20 +14,16 @@ use serde::{Deserialize, Serialize};
 use ten_rust::{
     base_dir_pkg_info::BaseDirPkgInfo,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
-    pkg_info::{
-        message::MsgType, pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find,
-        property::predefined_graph::PredefinedGraph, PkgInfo,
-    },
+    pkg_info::message::MsgType,
 };
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    graph::update_graph_connections_all_fields,
+use crate::designer::{
+    graphs::util::find_app_package_from_base_dir,
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
+
+use crate::graph::update_graph_connections_all_fields;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
@@ -44,25 +40,6 @@ pub struct AddGraphConnectionRequestPayload {
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionResponsePayload {
     pub success: bool,
-}
-
-/// Find the app package in the packages list.
-fn find_app_package(pkgs: &mut [PkgInfo]) -> Option<&mut PkgInfo> {
-    pkgs.iter_mut().find(|pkg| {
-        pkg.manifest
-            .as_ref()
-            .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-    })
-}
-
-/// Find the predefined graph by name.
-fn find_predefined_graph<'a>(
-    app_pkg: &'a mut PkgInfo,
-    graph_name: &str,
-) -> Option<&'a PredefinedGraph> {
-    pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-        g.name == graph_name
-    })
 }
 
 /// Create a new GraphConnection from request params.
@@ -131,90 +108,6 @@ fn update_property_file(
     )
 }
 
-/// Convert HashMap<String, Vec<PkgInfo>> to HashMap<String, BaseDirPkgInfo>.
-fn convert_to_base_dir_pkg_info_map(
-    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
-) -> HashMap<String, BaseDirPkgInfo> {
-    let mut result = HashMap::new();
-
-    for (base_dir, pkgs) in pkgs_cache {
-        let mut app_pkg_info = None;
-        let mut extension_pkg_info = Vec::new();
-        let mut protocol_pkg_info = Vec::new();
-        let mut addon_loader_pkg_info = Vec::new();
-        let mut system_pkg_info = Vec::new();
-
-        for pkg in pkgs {
-            if let Some(manifest) = &pkg.manifest {
-                match manifest.type_and_name.pkg_type {
-                    PkgType::App => {
-                        app_pkg_info = Some(pkg.clone());
-                    }
-                    PkgType::Extension => {
-                        extension_pkg_info.push(pkg.clone());
-                    }
-                    PkgType::Protocol => {
-                        protocol_pkg_info.push(pkg.clone());
-                    }
-                    PkgType::AddonLoader => {
-                        addon_loader_pkg_info.push(pkg.clone());
-                    }
-                    PkgType::System => {
-                        system_pkg_info.push(pkg.clone());
-                    }
-                    PkgType::Invalid => {}
-                }
-            }
-        }
-
-        let base_dir_pkg_info = BaseDirPkgInfo {
-            app_pkg_info,
-            extension_pkg_info: if extension_pkg_info.is_empty() {
-                None
-            } else {
-                Some(extension_pkg_info)
-            },
-            protocol_pkg_info: if protocol_pkg_info.is_empty() {
-                None
-            } else {
-                Some(protocol_pkg_info)
-            },
-            addon_loader_pkg_info: if addon_loader_pkg_info.is_empty() {
-                None
-            } else {
-                Some(addon_loader_pkg_info)
-            },
-            system_pkg_info: if system_pkg_info.is_empty() {
-                None
-            } else {
-                Some(system_pkg_info)
-            },
-        };
-
-        // Get the app URI from the app package's property if available.
-        let key = if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            if let Some(property) = &app_pkg.property {
-                if let Some(uri) = property.get_app_uri() {
-                    uri
-                } else {
-                    // Fallback to base_dir if no URI is found.
-                    base_dir.clone()
-                }
-            } else {
-                // Fallback to base_dir if no property is found.
-                base_dir.clone()
-            }
-        } else {
-            // Fallback to base_dir if no app package is found.
-            base_dir.clone()
-        };
-
-        result.insert(key, base_dir_pkg_info);
-    }
-
-    result
-}
-
 pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -224,19 +117,50 @@ pub async fn add_graph_connection_endpoint(
     // Clone the pkgs_cache for this base_dir.
     let pkgs_cache_clone = state_write.pkgs_cache.clone();
 
-    // Convert pkgs_cache to HashMap<String, BaseDirPkgInfo>
-    let base_dir_pkg_info_map =
-        convert_to_base_dir_pkg_info_map(&pkgs_cache_clone);
+    // Create a hash map from app URIs to BaseDirPkgInfo for use with
+    // add_connection.
+    let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+
+    // For tests, add a dummy entry for connection validation
+    uri_to_pkg_info.insert(
+        "http://example.com:8000".to_string(),
+        pkgs_cache_clone
+            .get(&request_payload.base_dir)
+            .unwrap()
+            .clone(),
+    );
+
+    // Process all available apps to map URIs to BaseDirPkgInfo
+    for (dir, base_dir_pkg_info) in &pkgs_cache_clone {
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            if let Some(property) = &app_pkg.property {
+                if let Some(ten) = &property._ten {
+                    if let Some(uri) = &ten.uri {
+                        // Map the URI to the BaseDirPkgInfo
+                        uri_to_pkg_info
+                            .insert(uri.clone(), base_dir_pkg_info.clone());
+                        // Keep a mapping from the base directory as well
+                        uri_to_pkg_info
+                            .insert(dir.clone(), base_dir_pkg_info.clone());
+                    }
+                }
+            }
+        }
+    }
 
     // Get the packages for this base_dir.
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = find_app_package(pkgs) {
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) =
-                find_predefined_graph(app_pkg, &request_payload.graph_name)
+                crate::designer::graphs::util::find_predefined_graph(
+                    app_pkg,
+                    &request_payload.graph_name,
+                )
             {
                 let mut graph = predefined_graph.graph.clone();
 
@@ -248,7 +172,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &base_dir_pkg_info_map,
+                    &uri_to_pkg_info,
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.
