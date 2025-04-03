@@ -21,11 +21,12 @@ pub mod value_type;
 
 use std::{collections::HashMap, path::Path};
 
-use crate::graph::Graph;
 use anyhow::{anyhow, Result};
 
-use crate::base_dir_pkg_info::BaseDirPkgInfo;
-use crate::schema::store::SchemaStore;
+use crate::{
+    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph, schema::store::SchemaStore,
+};
+
 use constants::{
     ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
     SYSTEM_DIR, TEN_PACKAGES_DIR,
@@ -436,28 +437,11 @@ pub fn ten_rust_check_graph_for_app(
     let pkgs_info = get_app_installed_pkgs(app_path)?;
 
     // Create a map of all installed packages across all apps.
-    let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> =
+    let mut installed_pkgs_of_all_apps: HashMap<String, BaseDirPkgInfo> =
         HashMap::new();
 
-    // Insert packages for this app - collect all types into a single vector.
-    let mut all_pkgs = Vec::new();
-    if let Some(app_info) = &pkgs_info.app_pkg_info {
-        all_pkgs.push(app_info.clone());
-    }
-    if let Some(ext_info) = &pkgs_info.extension_pkg_info {
-        all_pkgs.extend(ext_info.clone());
-    }
-    if let Some(proto_info) = &pkgs_info.protocol_pkg_info {
-        all_pkgs.extend(proto_info.clone());
-    }
-    if let Some(addon_info) = &pkgs_info.addon_loader_pkg_info {
-        all_pkgs.extend(addon_info.clone());
-    }
-    if let Some(sys_info) = &pkgs_info.system_pkg_info {
-        all_pkgs.extend(sys_info.clone());
-    }
-
-    installed_pkgs_of_all_apps.insert(app_uri.to_string(), all_pkgs);
+    // Insert packages for this app
+    installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 
     // Parse the graph JSON.
     // let graph = Graph::from_str(graph_json)?;
