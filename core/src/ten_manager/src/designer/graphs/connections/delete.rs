@@ -18,6 +18,7 @@ use ten_rust::{
 
 use crate::{
     designer::{
+        graphs::util::find_app_package_from_base_dir,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
@@ -52,11 +53,8 @@ pub async fn delete_graph_connection_endpoint(
     if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
-        // Find the app package using the utility function.
-        if let Some(app_pkg) =
-            crate::designer::graphs::util::find_app_package_from_base_dir(
-                base_dir_pkg_info,
-            )
+        // Find the app package.
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) = pkg_predefined_graphs_find(

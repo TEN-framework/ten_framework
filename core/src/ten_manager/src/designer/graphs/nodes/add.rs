@@ -17,7 +17,7 @@ use ten_rust::{
 };
 
 use crate::designer::{
-    graphs::util,
+    graphs::util::{find_app_package_from_base_dir, find_predefined_graph},
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
@@ -106,14 +106,12 @@ pub async fn add_graph_node_endpoint(
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) =
-            util::find_app_package_from_base_dir(base_dir_pkg_info)
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = util::find_predefined_graph(
-                app_pkg,
-                &request_payload.graph_name,
-            ) {
+            if let Some(predefined_graph) =
+                find_predefined_graph(app_pkg, &request_payload.graph_name)
+            {
                 // Add the node to the graph
                 match add_extension_node_to_graph(
                     predefined_graph,

@@ -17,6 +17,7 @@ use ten_rust::{
     pkg_info::message::MsgType,
 };
 
+use crate::designer::graphs::util::find_predefined_graph;
 use crate::designer::{
     graphs::util::find_app_package_from_base_dir,
     response::{ApiResponse, ErrorResponse, Status},
@@ -121,27 +122,15 @@ pub async fn add_graph_connection_endpoint(
     // add_connection.
     let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
 
-    // For tests, add a dummy entry for connection validation
-    uri_to_pkg_info.insert(
-        "http://example.com:8000".to_string(),
-        pkgs_cache_clone
-            .get(&request_payload.base_dir)
-            .unwrap()
-            .clone(),
-    );
-
-    // Process all available apps to map URIs to BaseDirPkgInfo
-    for (dir, base_dir_pkg_info) in &pkgs_cache_clone {
+    // Process all available apps to map URIs to BaseDirPkgInfo.
+    for base_dir_pkg_info in pkgs_cache_clone.values() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
                     if let Some(uri) = &ten.uri {
-                        // Map the URI to the BaseDirPkgInfo
+                        // Map the URI to the BaseDirPkgInfo.
                         uri_to_pkg_info
                             .insert(uri.clone(), base_dir_pkg_info.clone());
-                        // Keep a mapping from the base directory as well
-                        uri_to_pkg_info
-                            .insert(dir.clone(), base_dir_pkg_info.clone());
                     }
                 }
             }
@@ -157,14 +146,11 @@ pub async fn add_graph_connection_endpoint(
         {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) =
-                crate::designer::graphs::util::find_predefined_graph(
-                    app_pkg,
-                    &request_payload.graph_name,
-                )
+                find_predefined_graph(app_pkg, &request_payload.graph_name)
             {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Add the connection using the converted BaseDirPkgInfo map
+                // Add the connection using the converted BaseDirPkgInfo map.
                 match graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),
