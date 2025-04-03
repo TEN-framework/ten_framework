@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
@@ -11,6 +12,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
+    base_dir_pkg_info::BaseDirPkgInfo,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     pkg_info::{
         message::MsgType, pkg_type::PkgType,
@@ -129,6 +131,72 @@ fn update_property_file(
     )
 }
 
+/// Convert HashMap<String, Vec<PkgInfo>> to HashMap<String, BaseDirPkgInfo>.
+fn convert_to_base_dir_pkg_info_map(
+    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
+) -> HashMap<String, BaseDirPkgInfo> {
+    let mut result = HashMap::new();
+
+    for (key, pkgs) in pkgs_cache {
+        let mut app_pkg_info = None;
+        let mut extension_pkg_info = Vec::new();
+        let mut protocol_pkg_info = Vec::new();
+        let mut addon_loader_pkg_info = Vec::new();
+        let mut system_pkg_info = Vec::new();
+
+        for pkg in pkgs {
+            if let Some(manifest) = &pkg.manifest {
+                match manifest.type_and_name.pkg_type {
+                    PkgType::App => {
+                        app_pkg_info = Some(pkg.clone());
+                    }
+                    PkgType::Extension => {
+                        extension_pkg_info.push(pkg.clone());
+                    }
+                    PkgType::Protocol => {
+                        protocol_pkg_info.push(pkg.clone());
+                    }
+                    PkgType::AddonLoader => {
+                        addon_loader_pkg_info.push(pkg.clone());
+                    }
+                    PkgType::System => {
+                        system_pkg_info.push(pkg.clone());
+                    }
+                    PkgType::Invalid => {}
+                }
+            }
+        }
+
+        let base_dir_pkg_info = BaseDirPkgInfo {
+            app_pkg_info,
+            extension_pkg_info: if extension_pkg_info.is_empty() {
+                None
+            } else {
+                Some(extension_pkg_info)
+            },
+            protocol_pkg_info: if protocol_pkg_info.is_empty() {
+                None
+            } else {
+                Some(protocol_pkg_info)
+            },
+            addon_loader_pkg_info: if addon_loader_pkg_info.is_empty() {
+                None
+            } else {
+                Some(addon_loader_pkg_info)
+            },
+            system_pkg_info: if system_pkg_info.is_empty() {
+                None
+            } else {
+                Some(system_pkg_info)
+            },
+        };
+
+        result.insert(key.clone(), base_dir_pkg_info);
+    }
+
+    result
+}
+
 pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -137,6 +205,10 @@ pub async fn add_graph_connection_endpoint(
 
     // Clone the pkgs_cache for this base_dir.
     let pkgs_cache_clone = state_write.pkgs_cache.clone();
+
+    // Convert pkgs_cache to HashMap<String, BaseDirPkgInfo>
+    let base_dir_pkg_info_map =
+        convert_to_base_dir_pkg_info_map(&pkgs_cache_clone);
 
     // Get the packages for this base_dir.
     if let Some(pkgs) =
@@ -150,7 +222,7 @@ pub async fn add_graph_connection_endpoint(
             {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Add the connection.
+                // Add the connection using the converted BaseDirPkgInfo map
                 match graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),
@@ -158,7 +230,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &pkgs_cache_clone,
+                    &base_dir_pkg_info_map,
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.

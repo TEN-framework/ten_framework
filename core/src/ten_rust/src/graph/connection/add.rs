@@ -7,6 +7,7 @@
 use anyhow::Result;
 use std::collections::HashMap;
 
+use crate::base_dir_pkg_info::BaseDirPkgInfo;
 use crate::graph::{
     connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     Graph,
@@ -31,7 +32,7 @@ impl Graph {
         msg_name: String,
         dest_app: Option<String>,
         dest_extension: String,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
     ) -> Result<()> {
         // Store the original state in case validation fails.
         let original_graph = self.clone();
@@ -221,57 +222,46 @@ impl Graph {
 
     /// Finds package info for source and destination apps and extensions.
     fn find_pkg_infos<'a>(
-        installed_pkgs_of_all_apps: &'a HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &'a HashMap<String, BaseDirPkgInfo>,
         src_app: &Option<String>,
         src_extension: &str,
         dest_app: &Option<String>,
         dest_extension: &str,
     ) -> Result<PkgInfoTuple<'a>> {
-        // Find source app/extension PkgInfo.
-        let mut src_app_pkg_info = None;
+        // Variables to track source and destination package info.
         let mut src_extension_pkg_info = None;
+        let mut dest_extension_pkg_info = None;
 
-        for pkgs in installed_pkgs_of_all_apps.values() {
-            // Find source app PkgInfo.
-            let app_pkg = pkgs.iter().find(|pkg| {
-                if let Some(app_uri) = src_app.as_ref() {
-                    if let Some(property) = &pkg.property {
-                        if let Some(ten) = &property._ten {
-                            if let Some(uri) = &ten.uri {
-                                return pkg.manifest.as_ref().is_some_and(
-                                    |m| {
-                                        m.type_and_name.pkg_type == PkgType::App
-                                    },
-                                ) && uri == app_uri;
-                            }
-                        }
-                    }
+        // Find source app/extension PkgInfo.
+        if let Some(app_uri) = src_app.as_ref() {
+            // Search for the app in the map.
+            if let Some(base_dir_pkg_info) =
+                installed_pkgs_of_all_apps.get(app_uri)
+            {
+                // Check if app exists.
+                if base_dir_pkg_info.app_pkg_info.is_none() {
+                    return Err(anyhow::anyhow!(
+                        "Source app '{}' found in map but app_pkg_info is None",
+                        app_uri
+                    ));
                 }
-                false
-            });
 
-            if let Some(app_pkg) = app_pkg {
-                src_app_pkg_info = Some(app_pkg);
-
-                // Find source extension PkgInfo in the same app.
-                src_extension_pkg_info = pkgs.iter().find(|pkg| {
-                    pkg.manifest.as_ref().is_some_and(|m| {
-                        m.type_and_name.pkg_type == PkgType::Extension
-                            && m.type_and_name.name == src_extension
-                    })
-                });
-
-                if src_extension_pkg_info.is_some() {
-                    break;
+                // Find source extension in extension_pkg_info.
+                if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info
+                {
+                    src_extension_pkg_info = extensions.iter().find(|pkg| {
+                        pkg.manifest.as_ref().is_some_and(|m| {
+                            m.type_and_name.pkg_type == PkgType::Extension
+                                && m.type_and_name.name == src_extension
+                        })
+                    });
                 }
+            } else {
+                return Err(anyhow::anyhow!(
+                    "Source app '{}' not found in the installed packages",
+                    app_uri
+                ));
             }
-        }
-
-        if src_app_pkg_info.is_none() {
-            return Err(anyhow::anyhow!(
-                "Source app '{:?}' not found in the installed packages",
-                src_app
-            ));
         }
 
         if src_extension_pkg_info.is_none() {
@@ -281,51 +271,36 @@ impl Graph {
             ));
         }
 
-        // Find dest app/extension PkgInfo.
-        let mut dest_app_pkg_info = None;
-        let mut dest_extension_pkg_info = None;
-
-        for pkgs in installed_pkgs_of_all_apps.values() {
-            // Find destination app PkgInfo.
-            let app_pkg = pkgs.iter().find(|pkg| {
-                if let Some(app_uri) = dest_app.as_ref() {
-                    if let Some(property) = &pkg.property {
-                        if let Some(ten) = &property._ten {
-                            if let Some(uri) = &ten.uri {
-                                return pkg.manifest.as_ref().is_some_and(
-                                    |m| {
-                                        m.type_and_name.pkg_type == PkgType::App
-                                    },
-                                ) && uri == app_uri;
-                            }
-                        }
-                    }
+        // Find destination app/extension PkgInfo.
+        if let Some(app_uri) = dest_app.as_ref() {
+            // Search for the app in the map.
+            if let Some(base_dir_pkg_info) =
+                installed_pkgs_of_all_apps.get(app_uri)
+            {
+                // Check if app exists.
+                if base_dir_pkg_info.app_pkg_info.is_none() {
+                    return Err(anyhow::anyhow!(
+                        "Destination app '{}' found in map but app_pkg_info is None",
+                        app_uri
+                    ));
                 }
-                false
-            });
 
-            if let Some(app_pkg) = app_pkg {
-                dest_app_pkg_info = Some(app_pkg);
-
-                // Find destination extension PkgInfo in the same app.
-                dest_extension_pkg_info = pkgs.iter().find(|pkg| {
-                    pkg.manifest.as_ref().is_some_and(|m| {
-                        m.type_and_name.pkg_type == PkgType::Extension
-                            && m.type_and_name.name == dest_extension
-                    })
-                });
-
-                if dest_extension_pkg_info.is_some() {
-                    break;
+                // Find destination extension in extension_pkg_info.
+                if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info
+                {
+                    dest_extension_pkg_info = extensions.iter().find(|pkg| {
+                        pkg.manifest.as_ref().is_some_and(|m| {
+                            m.type_and_name.pkg_type == PkgType::Extension
+                                && m.type_and_name.name == dest_extension
+                        })
+                    });
                 }
+            } else {
+                return Err(anyhow::anyhow!(
+                    "Destination app '{}' not found in the installed packages",
+                    app_uri
+                ));
             }
-        }
-
-        if dest_app_pkg_info.is_none() {
-            return Err(anyhow::anyhow!(
-                "Destination app '{:?}' not found in the installed packages",
-                dest_app
-            ));
         }
 
         if dest_extension_pkg_info.is_none() {
@@ -517,7 +492,7 @@ mod tests {
         }
     }
 
-    fn create_test_pkg_info_map() -> HashMap<String, Vec<PkgInfo>> {
+    fn create_test_pkg_info_map() -> HashMap<String, BaseDirPkgInfo> {
         let mut map = HashMap::new();
 
         // Create app PkgInfo.
@@ -617,11 +592,21 @@ mod tests {
             local_dependency_base_dir: None,
         };
 
-        // Add to map.
-        map.insert(
-            "/path/to/app1".to_string(),
-            vec![app_pkg_info, ext1_pkg_info, ext2_pkg_info, ext3_pkg_info],
-        );
+        // Create a BaseDirPkgInfo and add all packages
+        let base_dir_pkg_info = BaseDirPkgInfo {
+            app_pkg_info: Some(app_pkg_info),
+            extension_pkg_info: Some(vec![
+                ext1_pkg_info,
+                ext2_pkg_info,
+                ext3_pkg_info,
+            ]),
+            protocol_pkg_info: None,
+            addon_loader_pkg_info: None,
+            system_pkg_info: None,
+        };
+
+        // Add to map with app URI as key
+        map.insert("app1".to_string(), base_dir_pkg_info);
 
         map
     }
