@@ -23,7 +23,6 @@ use std::{collections::HashMap, path::Path};
 
 use crate::graph::Graph;
 use anyhow::{anyhow, Result};
-use pkg_type_and_name::PkgTypeAndName;
 
 use crate::schema::store::SchemaStore;
 use constants::{
@@ -200,36 +199,17 @@ pub fn get_pkg_info_from_path(
 /// collected package.
 fn collect_pkg_info_from_path<'a>(
     path: &Path,
-    pkgs_info: &'a mut HashMap<PkgTypeAndName, PkgInfo>,
+    pkgs_info: &'a mut Vec<PkgInfo>,
 ) -> Result<&'a PkgInfo> {
     let pkg_info = get_pkg_info_from_path(path, true)?;
-    let pkg_type_name = PkgTypeAndName::from(&pkg_info);
-
-    match pkgs_info.entry(pkg_type_name) {
-        std::collections::hash_map::Entry::Occupied(_) => {
-            if let Some(manifest) = &pkg_info.manifest {
-                Err(anyhow!(
-                    "Duplicated package, type: {}, name: {}",
-                    manifest.type_and_name.pkg_type,
-                    manifest.type_and_name.name
-                ))
-            } else {
-                Err(anyhow!("Duplicated package with missing manifest"))
-            }
-        }
-        std::collections::hash_map::Entry::Vacant(entry) => {
-            let inserted = entry.insert(pkg_info);
-            Ok(inserted)
-        }
-    }
+    pkgs_info.push(pkg_info);
+    Ok(&pkgs_info[pkgs_info.len() - 1])
 }
 
 /// Retrieves information about all installed packages related to a specific
 /// application and stores this information in a HashMap.
-pub fn get_app_installed_pkgs_to_hashmap(
-    app_path: &Path,
-) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
-    let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
+pub fn get_app_installed_pkgs(app_path: &Path) -> Result<Vec<PkgInfo>> {
+    let mut pkgs_info: Vec<PkgInfo> = Vec::new();
 
     // Process the manifest.json file in the root path.
     let app_pkg = collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
@@ -283,19 +263,6 @@ pub fn get_app_installed_pkgs_to_hashmap(
     }
 
     Ok(pkgs_info)
-}
-
-/// A wrapper around `get_all_installed_pkgs_info_of_app_to_hashmap` that
-/// converts the resulting HashMap into a Vec of `PkgInfo` objects.
-///
-/// # Arguments
-/// * `app_path` - The absolute path of the app base directory, required.
-///
-/// # Returns
-/// A list of `PkgInfo` objects.
-pub fn get_app_installed_pkgs(app_path: &Path) -> Result<Vec<PkgInfo>> {
-    let result = get_app_installed_pkgs_to_hashmap(app_path)?;
-    Ok(result.into_values().collect())
 }
 
 /// Identifies local packages that are not tracked in the dependencies list. It

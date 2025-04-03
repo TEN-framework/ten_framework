@@ -12,29 +12,18 @@ use std::{path::Path, sync::Arc};
 use anyhow::Result;
 
 use crate::{config::TmanConfig, output::TmanOutput};
-use ten_rust::pkg_info::{get_app_installed_pkgs_to_hashmap, PkgInfo};
+use ten_rust::pkg_info::{get_app_installed_pkgs, PkgInfo};
 
 /// Retrieves information about all installed packages for the specified
 /// application.
-///
-/// # Arguments
-///
-/// * `tman_config` - Reference to the Tman configuration, used for controlling
-///   verbosity and other runtime behaviors.
-/// * `app_path` - A reference to the path where the application is located.
-///
-/// # Returns
-///
-/// A `Result` containing a vector of package information (`PkgInfo`) if
-/// successful, or an error if the information cannot be retrieved.
 pub fn tman_get_all_installed_pkgs_info_of_app(
     tman_config: Arc<TmanConfig>,
     app_path: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgInfo>> {
-    let pkgs_info = get_app_installed_pkgs_to_hashmap(app_path)?;
+    let pkgs_info = get_app_installed_pkgs(app_path)?;
     if tman_config.verbose {
         out.normal_line(&format!("{:?}", pkgs_info));
     }
-    Ok(pkgs_info.into_values().collect())
+    Ok(pkgs_info)
 }

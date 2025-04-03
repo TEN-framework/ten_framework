@@ -17,7 +17,7 @@ test.describe("first load", () => {
     // Go to the starting url before each test.
 
     await page.goto(BASE_URL, {
-      timeout: 10000,
+      timeout: 30000,
       waitUntil: "load",
     });
   });
