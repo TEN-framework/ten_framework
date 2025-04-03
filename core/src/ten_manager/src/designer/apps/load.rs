@@ -51,18 +51,11 @@ pub async fn load_app_endpoint(
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
         Ok(_) => {
-            let DesignerState {
-                tman_config,
-                pkgs_cache,
-                out,
-            } = &mut *state_write;
+            let pkgs_cache = &mut state_write.pkgs_cache;
 
-            if let Err(err) = get_all_pkgs(
-                tman_config.clone(),
-                pkgs_cache,
-                &request_payload.base_dir,
-                out,
-            ) {
+            if let Err(err) =
+                get_all_pkgs(pkgs_cache, &request_payload.base_dir)
+            {
                 let error_response =
                     ErrorResponse::from_error(&err, "Error fetching packages:");
                 return Ok(HttpResponse::NotFound().json(error_response));

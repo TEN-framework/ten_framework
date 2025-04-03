@@ -28,11 +28,7 @@ pub async fn reload_app_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
-    let DesignerState {
-        tman_config,
-        pkgs_cache,
-        out,
-    } = &mut *state_write;
+    let pkgs_cache = &mut state_write.pkgs_cache;
 
     if let Some(base_dir) = &request_payload.base_dir {
         // Case 1: base_dir is specified in the request payload.
@@ -54,9 +50,7 @@ pub async fn reload_app_endpoint(
         pkgs_cache.remove(base_dir);
 
         // Reload packages for this base_dir.
-        if let Err(err) =
-            get_all_pkgs(tman_config.clone(), pkgs_cache, base_dir, out)
-        {
+        if let Err(err) = get_all_pkgs(pkgs_cache, base_dir) {
             return Ok(HttpResponse::InternalServerError().json(
                 ErrorResponse::from_error(&err, "Failed to reload packages:"),
             ));
@@ -81,9 +75,7 @@ pub async fn reload_app_endpoint(
             pkgs_cache.remove(&base_dir);
 
             // Reload packages for this base_dir.
-            if let Err(err) =
-                get_all_pkgs(tman_config.clone(), pkgs_cache, &base_dir, out)
-            {
+            if let Err(err) = get_all_pkgs(pkgs_cache, &base_dir) {
                 return Ok(HttpResponse::InternalServerError().json(
                     ErrorResponse::from_error(
                         &err,
