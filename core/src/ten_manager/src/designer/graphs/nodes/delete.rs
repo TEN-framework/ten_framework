@@ -286,19 +286,40 @@ mod tests {
 
     #[actix_web::test]
     async fn test_delete_graph_node_success() {
+        // Create a test directory with property.json file.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
+
+        // Read test data from embedded JSON files.
+        let input_property =
+            include_str!("../test_data_embed/app_property.json");
+        let input_manifest =
+            include_str!("../test_data_embed/app_manifest.json");
+
+        // Write input files to temp directory.
+        let property_path = std::path::Path::new(&temp_dir_path)
+            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, input_property).unwrap();
+
+        let manifest_path =
+            std::path::Path::new(&temp_dir_path).join("manifest.json");
+        std::fs::write(&manifest_path, input_manifest).unwrap();
+
+        // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
 
+        // Inject the test app into the mock.
         let all_pkgs_json = vec![(
-            include_str!("../test_data_embed/app_manifest.json").to_string(),
-            include_str!("../test_data_embed/app_property.json").to_string(),
+            std::fs::read_to_string(&manifest_path).unwrap(),
+            std::fs::read_to_string(&property_path).unwrap(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
+            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
@@ -319,7 +340,7 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload =
             crate::designer::graphs::nodes::add::AddGraphNodeRequestPayload {
-                base_dir: TEST_DIR.to_string(),
+                base_dir: temp_dir_path.clone(),
                 graph_name: "default_with_app_uri".to_string(),
                 node_name: "test_delete_node".to_string(),
                 addon_name: "test_addon".to_string(),
@@ -335,6 +356,24 @@ mod tests {
         // Ensure add was successful.
         assert_eq!(resp.status(), 200);
 
+        let updated_property_content =
+            std::fs::read_to_string(&property_path).unwrap();
+
+        let expected_property_content =
+            include_str!("test_data_embed/expected_property_after_adding_in_test_delete_graph_node_success.json");
+
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: serde_json::Value =
+            serde_json::from_str(&updated_property_content).unwrap();
+        let expected_property: serde_json::Value =
+            serde_json::from_str(expected_property_content).unwrap();
+
+        // Compare the updated property with the expected property
+        assert_eq!(
+            updated_property, expected_property,
+            "Updated property does not match expected property"
+        );
+
         // Setup the delete endpoint.
         let app_delete = test::init_service(
             App::new()
@@ -348,7 +387,7 @@ mod tests {
 
         // Now delete the node we just added.
         let delete_request_payload = AddGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: temp_dir_path.clone(),
             graph_name: "default_with_app_uri".to_string(),
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
@@ -376,7 +415,7 @@ mod tests {
 
         // Verify the node was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(pkgs) = state_read.pkgs_cache.get(TEST_DIR) {
+        if let Some(pkgs) = state_read.pkgs_cache.get(&temp_dir_path) {
             if let Some(app_pkg) = pkgs.iter().find(|pkg| {
                 pkg.manifest
                     .as_ref()
@@ -402,5 +441,20 @@ mod tests {
         } else {
             panic!("Base directory not found");
         }
+
+        let updated_property_content =
+            std::fs::read_to_string(&property_path).unwrap();
+
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: serde_json::Value =
+            serde_json::from_str(&updated_property_content).unwrap();
+        let expected_property: serde_json::Value =
+            serde_json::from_str(input_property).unwrap();
+
+        // Compare the updated property with the expected property
+        assert_eq!(
+            updated_property, expected_property,
+            "Updated property does not match expected property"
+        );
     }
 }
