@@ -228,87 +228,68 @@ impl Graph {
         dest_app: &Option<String>,
         dest_extension: &str,
     ) -> Result<PkgInfoTuple<'a>> {
-        // Variables to track source and destination package info.
-        let mut src_extension_pkg_info = None;
-        let mut dest_extension_pkg_info = None;
+        // Helper function to find extension package info.
+        let find_extension_pkg = |app_uri: &Option<String>,
+                                  extension_name: &str,
+                                  is_source: bool|
+         -> Result<Option<&'a PkgInfo>> {
+            let entity_type = if is_source { "Source" } else { "Destination" };
 
-        // Find source app/extension PkgInfo.
-        if let Some(app_uri) = src_app.as_ref() {
-            // Search for the app in the map.
-            if let Some(base_dir_pkg_info) =
-                installed_pkgs_of_all_apps.get(app_uri)
-            {
-                // Check if app exists.
-                if base_dir_pkg_info.app_pkg_info.is_none() {
+            if let Some(app_uri) = app_uri {
+                // Search for the app in the map.
+                if let Some(base_dir_pkg_info) =
+                    installed_pkgs_of_all_apps.get(app_uri)
+                {
+                    // Check if app exists.
+                    if base_dir_pkg_info.app_pkg_info.is_none() {
+                        return Err(anyhow::anyhow!(
+                            "{} app '{}' found in map but app_pkg_info is None",
+                            entity_type,
+                            app_uri
+                        ));
+                    }
+
+                    // Find extension in extension_pkg_info.
+                    if let Some(extensions) =
+                        &base_dir_pkg_info.extension_pkg_info
+                    {
+                        let found_pkg = extensions.iter().find(|pkg| {
+                            pkg.manifest.as_ref().is_some_and(|m| {
+                                m.type_and_name.pkg_type == PkgType::Extension
+                                    && m.type_and_name.name == extension_name
+                            })
+                        });
+
+                        if found_pkg.is_none() {
+                            return Err(anyhow::anyhow!(
+                                "{} extension '{}' not found in the installed packages for app '{}'",
+                                entity_type, extension_name, app_uri
+                            ));
+                        }
+
+                        return Ok(found_pkg);
+                    }
+                } else {
                     return Err(anyhow::anyhow!(
-                        "Source app '{}' found in map but app_pkg_info is None",
+                        "{} app '{}' not found in the installed packages",
+                        entity_type,
                         app_uri
                     ));
                 }
-
-                // Find source extension in extension_pkg_info.
-                if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info
-                {
-                    src_extension_pkg_info = extensions.iter().find(|pkg| {
-                        pkg.manifest.as_ref().is_some_and(|m| {
-                            m.type_and_name.pkg_type == PkgType::Extension
-                                && m.type_and_name.name == src_extension
-                        })
-                    });
-                }
-            } else {
-                return Err(anyhow::anyhow!(
-                    "Source app '{}' not found in the installed packages",
-                    app_uri
-                ));
             }
-        }
 
-        if src_extension_pkg_info.is_none() {
-            return Err(anyhow::anyhow!(
-                "Source extension '{}' not found in the installed packages for app '{:?}'",
-                src_extension, src_app
-            ));
-        }
+            // If we reach here, no package was found.
+            Err(anyhow::anyhow!(
+                "{} extension '{}' not found in the installed packages for app '{:?}'",
+                entity_type, extension_name, app_uri
+            ))
+        };
 
-        // Find destination app/extension PkgInfo.
-        if let Some(app_uri) = dest_app.as_ref() {
-            // Search for the app in the map.
-            if let Some(base_dir_pkg_info) =
-                installed_pkgs_of_all_apps.get(app_uri)
-            {
-                // Check if app exists.
-                if base_dir_pkg_info.app_pkg_info.is_none() {
-                    return Err(anyhow::anyhow!(
-                        "Destination app '{}' found in map but app_pkg_info is None",
-                        app_uri
-                    ));
-                }
-
-                // Find destination extension in extension_pkg_info.
-                if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info
-                {
-                    dest_extension_pkg_info = extensions.iter().find(|pkg| {
-                        pkg.manifest.as_ref().is_some_and(|m| {
-                            m.type_and_name.pkg_type == PkgType::Extension
-                                && m.type_and_name.name == dest_extension
-                        })
-                    });
-                }
-            } else {
-                return Err(anyhow::anyhow!(
-                    "Destination app '{}' not found in the installed packages",
-                    app_uri
-                ));
-            }
-        }
-
-        if dest_extension_pkg_info.is_none() {
-            return Err(anyhow::anyhow!(
-                "Destination extension '{}' not found in the installed packages for app '{:?}'",
-                dest_extension, dest_app
-            ));
-        }
+        // Find both source and destination package info.
+        let src_extension_pkg_info =
+            find_extension_pkg(src_app, src_extension, true)?;
+        let dest_extension_pkg_info =
+            find_extension_pkg(dest_app, dest_extension, false)?;
 
         Ok((src_extension_pkg_info, dest_extension_pkg_info))
     }
