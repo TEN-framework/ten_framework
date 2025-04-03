@@ -137,7 +137,7 @@ fn convert_to_base_dir_pkg_info_map(
 ) -> HashMap<String, BaseDirPkgInfo> {
     let mut result = HashMap::new();
 
-    for (key, pkgs) in pkgs_cache {
+    for (base_dir, pkgs) in pkgs_cache {
         let mut app_pkg_info = None;
         let mut extension_pkg_info = Vec::new();
         let mut protocol_pkg_info = Vec::new();
@@ -191,7 +191,25 @@ fn convert_to_base_dir_pkg_info_map(
             },
         };
 
-        result.insert(key.clone(), base_dir_pkg_info);
+        // Get the app URI from the app package's property if available.
+        let key = if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            if let Some(property) = &app_pkg.property {
+                if let Some(uri) = property.get_app_uri() {
+                    uri
+                } else {
+                    // Fallback to base_dir if no URI is found.
+                    base_dir.clone()
+                }
+            } else {
+                // Fallback to base_dir if no property is found.
+                base_dir.clone()
+            }
+        } else {
+            // Fallback to base_dir if no app package is found.
+            base_dir.clone()
+        };
+
+        result.insert(key, base_dir_pkg_info);
     }
 
     result
