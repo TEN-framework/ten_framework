@@ -51,13 +51,13 @@ pub fn get_all_pkgs(
     let app_path = PathBuf::from(base_dir);
 
     // Fetch package information.
-    let result = tman_get_all_installed_pkgs_info_of_app(
+    let result_pkgs = tman_get_all_installed_pkgs_info_of_app(
         tman_config,
         &app_path,
         out.clone(),
     );
 
-    match result {
+    match result_pkgs {
         Ok(pkgs) => {
             // Store the packages in the cache using the base directory as the
             // key.
