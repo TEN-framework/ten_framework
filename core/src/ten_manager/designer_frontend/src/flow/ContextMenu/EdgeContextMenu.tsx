@@ -9,14 +9,15 @@ import { useTranslation } from "react-i18next";
 import { PencilIcon, ListCollapseIcon, TrashIcon } from "lucide-react";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
-import { CustomEdgeType } from "@/flow/CustomEdge";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+
+import type { TCustomEdge } from "@/types/flow";
 
 interface EdgeContextMenuProps {
   visible: boolean;
   x: number;
   y: number;
-  edge: CustomEdgeType;
+  edge: TCustomEdge;
   onClose: () => void;
 }
 

@@ -14,15 +14,15 @@ import {
 } from "lucide-react";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
-import { CustomNodeType } from "@/flow/CustomNode";
 
 import type { TerminalData, EditorData } from "@/types/widgets";
+import type { TCustomNode } from "@/types/flow";
 
 interface NodeContextMenuProps {
   visible: boolean;
   x: number;
   y: number;
-  node: CustomNodeType;
+  node: TCustomNode;
   onClose: () => void;
   onLaunchTerminal: (data: TerminalData) => void;
   onLaunchEditor: (data: EditorData) => void;
