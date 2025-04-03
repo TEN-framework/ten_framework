@@ -47,24 +47,15 @@ impl Graph {
                 continue;
             }
 
-            // Get the BaseDirPkgInfo for this app and convert to Vec<PkgInfo>
+            // Get the BaseDirPkgInfo for this app.
             let installed_pkgs_of_app =
                 installed_pkgs_of_all_apps.get(node_app_uri).unwrap();
-            let installed_pkgs_vec = installed_pkgs_of_app.to_vec();
 
-            // Check if this specific node exists as an installed package in the
-            // app.
-            let found = installed_pkgs_vec.iter().find(|pkg| {
-                assert!(pkg.is_installed, "Should not happen.");
-
-                if let Some(manifest) = &pkg.manifest {
-                    manifest.type_and_name.pkg_type
-                        == node.type_and_name.pkg_type
-                        && manifest.type_and_name.name == node.addon
-                } else {
-                    false
-                }
-            });
+            // Search for the package using the helper method.
+            let found = installed_pkgs_of_app.find_pkg_by_type_and_name(
+                node.type_and_name.pkg_type,
+                &node.addon,
+            );
 
             // If the node is not found, add it to the missing packages list.
             if found.is_none() {

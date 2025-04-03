@@ -11,10 +11,10 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
 use ten_rust::{
+    base_dir_pkg_info::BaseDirPkgInfo,
     graph::Graph,
     pkg_info::{
         get_app_installed_pkgs, localhost, property::parse_property_in_folder,
-        PkgInfo,
     },
 };
 
@@ -103,8 +103,8 @@ fn validate_cmd_args(command: &CheckGraphCommand) -> Result<()> {
 
 fn get_app_installed_pkgs_with_cmd_data(
     command: &CheckGraphCommand,
-) -> Result<HashMap<String, Vec<PkgInfo>>> {
-    let mut pkgs_info: HashMap<String, Vec<PkgInfo>> = HashMap::new();
+) -> Result<HashMap<String, BaseDirPkgInfo>> {
+    let mut pkgs_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
 
     let single_app = command.app_dir.len() == 1;
 
@@ -134,25 +134,7 @@ fn get_app_installed_pkgs_with_cmd_data(
             app_uri.clone()
         };
 
-        // Combine all package types into a single vector.
-        let mut all_pkgs = Vec::new();
-        if let Some(app_info) = &app_installed_pkgs.app_pkg_info {
-            all_pkgs.push(app_info.clone());
-        }
-        if let Some(ext_info) = &app_installed_pkgs.extension_pkg_info {
-            all_pkgs.extend(ext_info.clone());
-        }
-        if let Some(proto_info) = &app_installed_pkgs.protocol_pkg_info {
-            all_pkgs.extend(proto_info.clone());
-        }
-        if let Some(addon_info) = &app_installed_pkgs.addon_loader_pkg_info {
-            all_pkgs.extend(addon_info.clone());
-        }
-        if let Some(sys_info) = &app_installed_pkgs.system_pkg_info {
-            all_pkgs.extend(sys_info.clone());
-        }
-
-        let present_pkg = pkgs_info.insert(key, all_pkgs);
+        let present_pkg = pkgs_info.insert(key, app_installed_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",
