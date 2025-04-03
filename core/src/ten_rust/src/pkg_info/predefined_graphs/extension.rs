@@ -23,57 +23,38 @@ use crate::{
 };
 
 /// Retrieves all extension nodes from a specified graph.
-///
-/// # Arguments
-/// - `graph_name`: The name of the graph to retrieve extension nodes from.
-/// - `all_pkgs`: A slice of all package information.
-///
-/// # Returns
-/// A vector of extension nodes from the specified graph.
 pub fn get_extension_nodes_in_graph(
     graph_name: &String,
-    all_pkgs: &[PkgInfo],
+    app_pkg: &PkgInfo,
 ) -> Result<Vec<GraphNode>> {
-    // Find the application package within the `all_pkgs`.
-    if let Some(app_pkg) = all_pkgs.iter().find(|pkg| {
-        if let Some(manifest) = &pkg.manifest {
-            manifest.type_and_name.pkg_type == PkgType::App
-        } else {
-            false
-        }
-    }) {
-        if app_pkg.property.is_none() {
-            return Err(anyhow::anyhow!(
-                "Property information is missing".to_string(),
-            ));
-        }
+    if app_pkg.property.is_none() {
+        return Err(anyhow::anyhow!(
+            "Property information is missing".to_string(),
+        ));
+    }
 
-        // Look for the graph by name in the predefined_graphs of the app
-        // package.
-        if let Some(predefined_graph) = pkg_predefined_graphs_find(
-            app_pkg.get_predefined_graphs(),
-            |graph| graph.name == *graph_name,
-        ) {
-            // Collect all extension nodes from the graph.
-            let extension_nodes: Vec<_> = predefined_graph
-                .graph
-                .nodes
-                .iter()
-                .filter(|node| {
-                    node.type_and_name.pkg_type == PkgType::Extension
-                })
-                .cloned()
-                .collect();
+    // Look for the graph by name in the predefined_graphs of the app
+    // package.
+    if let Some(predefined_graph) =
+        pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |graph| {
+            graph.name == *graph_name
+        })
+    {
+        // Collect all extension nodes from the graph.
+        let extension_nodes: Vec<_> = predefined_graph
+            .graph
+            .nodes
+            .iter()
+            .filter(|node| node.type_and_name.pkg_type == PkgType::Extension)
+            .cloned()
+            .collect();
 
-            Ok(extension_nodes)
-        } else {
-            Err(anyhow::anyhow!(
-                "Graph '{}' not found in predefined graphs of the app",
-                graph_name
-            ))
-        }
+        Ok(extension_nodes)
     } else {
-        Err(anyhow::anyhow!("Package information is missing"))
+        Err(anyhow::anyhow!(
+            "Graph '{}' not found in predefined graphs of the app",
+            graph_name
+        ))
     }
 }
 

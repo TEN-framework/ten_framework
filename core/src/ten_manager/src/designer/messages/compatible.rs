@@ -94,27 +94,38 @@ pub async fn get_compatible_messages_endpoint(
     if let Some(base_dir_pkg_info) =
         state_read.pkgs_cache.get(&request_payload.base_dir)
     {
-        // Convert BaseDirPkgInfo to Vec<PkgInfo> for compatibility with
-        // existing functions.
+        if base_dir_pkg_info.app_pkg_info.is_none() {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Application package information is missing"
+                    .to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+
+        // Get the app package directly for finding the graph.
+        let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
+
+        // Still need all packages for extension lookups.
         let all_pkgs = base_dir_pkg_info.to_vec();
 
-        let extensions = match get_extension_nodes_in_graph(
-            &request_payload.graph,
-            &all_pkgs,
-        ) {
-            Ok(exts) => exts,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Error fetching runtime extensions for graph '{}'",
-                        request_payload.graph
-                    )
-                    .as_str(),
-                );
-                return Ok(HttpResponse::NotFound().json(error_response));
-            }
-        };
+        let extensions =
+            match get_extension_nodes_in_graph(&request_payload.graph, app_pkg)
+            {
+                Ok(exts) => exts,
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        format!(
+                            "Error fetching runtime extensions for graph '{}'",
+                            request_payload.graph
+                        )
+                        .as_str(),
+                    );
+                    return Ok(HttpResponse::NotFound().json(error_response));
+                }
+            };
 
         let extension = match get_extension(
             &extensions,
