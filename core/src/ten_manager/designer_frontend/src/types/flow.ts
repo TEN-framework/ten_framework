@@ -33,6 +33,7 @@ export type TCustomEdgeData = {
   extension: string;
   src: TCustomEdgeAddress;
   target: TCustomEdgeAddress;
+  name: string;
 };
 
 export type TCustomEdgeAddressData = {

@@ -105,7 +105,7 @@ const HandleGroupItem = (props: {
       target?: boolean;
     }) =>
     () => {
-      dispatchCustomNodeActionPopup("connections", data.addon, undefined, {
+      dispatchCustomNodeActionPopup("connections", data.name, undefined, {
         filters: {
           type,
           source,

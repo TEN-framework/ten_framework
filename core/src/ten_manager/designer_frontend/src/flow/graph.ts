@@ -101,6 +101,7 @@ export const generateRawEdges = (
             source: extension,
             target: targetExtension,
             data: {
+              name,
               connectionType,
               extension,
               src: {

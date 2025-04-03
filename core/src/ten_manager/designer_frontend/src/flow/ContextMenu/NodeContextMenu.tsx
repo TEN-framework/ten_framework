@@ -49,7 +49,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
         onClose();
         if (node?.data.url)
           onLaunchEditor({
-            title: `${node.data.addon} manifest.json`,
+            title: `${node.data.name} manifest.json`,
             content: "",
             url: `${node.data.url}/manifest.json`,
           });
@@ -62,7 +62,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
         onClose();
         if (node?.data.url)
           onLaunchEditor({
-            title: `${node.data.addon} property.json`,
+            title: `${node.data.name} property.json`,
             content: "",
             url: `${node.data.url}/property.json`,
           });
