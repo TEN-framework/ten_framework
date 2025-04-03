@@ -136,11 +136,21 @@ fn get_app_installed_pkgs_with_cmd_data(
 
         // Combine all package types into a single vector.
         let mut all_pkgs = Vec::new();
-        all_pkgs.push(app_installed_pkgs.app_pkg_info.clone());
-        all_pkgs.extend(app_installed_pkgs.extension_pkg_info.clone());
-        all_pkgs.extend(app_installed_pkgs.protocol_pkg_info.clone());
-        all_pkgs.extend(app_installed_pkgs.addon_loader_pkg_info.clone());
-        all_pkgs.extend(app_installed_pkgs.system_pkg_info.clone());
+        if let Some(app_info) = &app_installed_pkgs.app_pkg_info {
+            all_pkgs.push(app_info.clone());
+        }
+        if let Some(ext_info) = &app_installed_pkgs.extension_pkg_info {
+            all_pkgs.extend(ext_info.clone());
+        }
+        if let Some(proto_info) = &app_installed_pkgs.protocol_pkg_info {
+            all_pkgs.extend(proto_info.clone());
+        }
+        if let Some(addon_info) = &app_installed_pkgs.addon_loader_pkg_info {
+            all_pkgs.extend(addon_info.clone());
+        }
+        if let Some(sys_info) = &app_installed_pkgs.system_pkg_info {
+            all_pkgs.extend(sys_info.clone());
+        }
 
         let present_pkg = pkgs_info.insert(key, all_pkgs);
         if present_pkg.is_some() {

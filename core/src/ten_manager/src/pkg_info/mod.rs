@@ -25,11 +25,21 @@ pub fn tman_get_all_installed_pkgs_info_of_app(
 
     // Combine all package types into a single vector.
     let mut all_pkgs = Vec::new();
-    all_pkgs.push(pkg_info_struct.app_pkg_info.clone());
-    all_pkgs.extend(pkg_info_struct.extension_pkg_info.clone());
-    all_pkgs.extend(pkg_info_struct.protocol_pkg_info.clone());
-    all_pkgs.extend(pkg_info_struct.addon_loader_pkg_info.clone());
-    all_pkgs.extend(pkg_info_struct.system_pkg_info.clone());
+    if let Some(app_info) = &pkg_info_struct.app_pkg_info {
+        all_pkgs.push(app_info.clone());
+    }
+    if let Some(ext_info) = &pkg_info_struct.extension_pkg_info {
+        all_pkgs.extend(ext_info.clone());
+    }
+    if let Some(proto_info) = &pkg_info_struct.protocol_pkg_info {
+        all_pkgs.extend(proto_info.clone());
+    }
+    if let Some(addon_info) = &pkg_info_struct.addon_loader_pkg_info {
+        all_pkgs.extend(addon_info.clone());
+    }
+    if let Some(sys_info) = &pkg_info_struct.system_pkg_info {
+        all_pkgs.extend(sys_info.clone());
+    }
 
     if tman_config.verbose {
         out.normal_line(&format!("{:?}", all_pkgs));
