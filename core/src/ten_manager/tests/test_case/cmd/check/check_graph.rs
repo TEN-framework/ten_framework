@@ -211,6 +211,7 @@ async fn test_cmd_check_unique_extension_in_connections() {
 #[actix_rt::test]
 async fn test_cmd_check_single_app_node_cannot_be_localhost() {
     let tman_config = Arc::new(TmanConfig::default());
+
     let command = CheckGraphCommand {
         app_dir: vec!["tests/test_data/cmd_check_single_app_node_cannot_be_localhost".to_string()],
         graph_json_str: Some(

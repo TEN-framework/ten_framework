@@ -35,9 +35,6 @@ mod tests {
             .parent()
             .expect("Failed to get the parent directory");
 
-        env::set_current_dir(test_dir)
-            .expect("Failed to set current directory");
-
         let test_data_dir = test_dir.join("test_data");
         fs::create_dir_all(&test_data_dir)
             .expect("Failed to create test_data directory");

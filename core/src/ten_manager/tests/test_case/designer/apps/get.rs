@@ -34,10 +34,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps",
-                    web::get().to(get_apps_endpoint),
-                ),
+                .route("/test_get_apps_some", web::get().to(get_apps_endpoint)),
         )
         .await;
 
@@ -51,7 +48,7 @@ mod tests {
             .insert(TEST_DIR.to_string(), empty_pkg_info);
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+            .uri("/test_get_apps_some")
             .to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =
@@ -81,15 +78,12 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps",
-                    web::get().to(get_apps_endpoint),
-                ),
+                .route("/test_get_apps_none", web::get().to(get_apps_endpoint)),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+            .uri("/test_get_apps_none")
             .to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =

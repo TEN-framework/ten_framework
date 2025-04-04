@@ -308,13 +308,6 @@ pub fn dump_manifest_str_to_file<P: AsRef<Path>>(
 /// This function reads the contents of the specified manifest file,
 /// deserializes it into a Manifest struct, and updates any local dependency
 /// paths to use the manifest file's parent directory as the base directory.
-///
-/// # Arguments
-/// * `manifest_file_path` - Path to the manifest.json file.
-///
-/// # Returns
-/// * `Result<Manifest>` - The parsed Manifest struct on success, or an error if
-///   the file cannot be read or the content is invalid.
 pub fn parse_manifest_from_file<P: AsRef<Path>>(
     manifest_file_path: P,
 ) -> Result<Manifest> {

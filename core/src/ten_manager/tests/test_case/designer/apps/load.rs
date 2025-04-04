@@ -32,7 +32,7 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps",
+                    "/test_load_app_fail",
                     web::post().to(load_app_endpoint),
                 ),
         )
@@ -43,7 +43,7 @@ mod tests {
         };
 
         let req = test::TestRequest::post()
-            .uri("/api/designer/v1/apps")
+            .uri("/test_load_app_fail")
             .set_json(&new_base_dir)
             .to_request();
         let resp: Result<

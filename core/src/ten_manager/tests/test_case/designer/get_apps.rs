@@ -53,14 +53,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps",
+                    "/test_get_apps_with_uri",
                     web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+            .uri("/test_get_apps_with_uri")
             .to_request();
 
         // Send the request and get the response.
@@ -116,14 +116,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps",
+                    "/test_get_apps_without_uri",
                     web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+            .uri("/test_get_apps_without_uri")
             .to_request();
 
         // Send the request and get the response.
