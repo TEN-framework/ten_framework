@@ -38,6 +38,8 @@ mod tests {
             &"tests/test_data/app_with_uri".to_string(),
         );
 
+        eprintln!("=-=-= pkgs_cache: {:?}", designer_state.pkgs_cache);
+
         assert_eq!(
             designer_state
                 .pkgs_cache

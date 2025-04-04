@@ -11,11 +11,11 @@ mod tests {
 
     #[test]
     fn test_check_file_exists() {
-        // Test file that exists
+        // Test file that exists.
         let result = check_file_exists(&PathBuf::from("Cargo.toml"));
         assert!(result.is_ok());
 
-        // Test file that doesn't exist
+        // Test file that doesn't exist.
         let result = check_file_exists(&PathBuf::from("non_existent_file.txt"));
         assert!(result.is_err());
     }

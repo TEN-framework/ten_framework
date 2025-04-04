@@ -122,6 +122,7 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
     eprintln!("{:?}", result);
 
     let msg = format!("{:?}", result.err().unwrap());
+    eprintln!("msg: {}", msg);
     assert!(msg.contains("'localhost' is not allowed in graph definition"));
 }
 
