@@ -105,13 +105,28 @@ pub async fn get_graph_nodes_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) =
+    if let Some(base_dir_pkg_info) =
         &state_read.pkgs_cache.get(&request_payload.base_dir)
     {
+        if base_dir_pkg_info.app_pkg_info.is_none() {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Application package information is missing"
+                    .to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+
+        // Get the app package directly for finding the graph.
+        let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
+        // Get extension package information directly, if available
+        let extensions_slice = base_dir_pkg_info.get_extensions();
+
         let graph_name = &request_payload.graph_name;
 
         let extension_graph_nodes =
-            match get_extension_nodes_in_graph(graph_name, all_pkgs) {
+            match get_extension_nodes_in_graph(graph_name, app_pkg) {
                 Ok(exts) => exts,
                 Err(err) => {
                     let error_response = ErrorResponse::from_error(
@@ -129,8 +144,10 @@ pub async fn get_graph_nodes_endpoint(
         let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
         for extension_graph_node in &extension_graph_nodes {
-            let pkg_info =
-                get_pkg_info_for_extension(extension_graph_node, all_pkgs);
+            let pkg_info = get_pkg_info_for_extension(
+                extension_graph_node,
+                extensions_slice,
+            );
             if let Some(pkg_info) = pkg_info {
                 resp_extensions.push(GraphNodesSingleResponseData {
                     addon: extension_graph_node.addon.clone(),

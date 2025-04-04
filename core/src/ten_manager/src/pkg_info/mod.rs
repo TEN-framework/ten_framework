@@ -21,9 +21,13 @@ pub fn tman_get_all_installed_pkgs_info_of_app(
     app_path: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgInfo>> {
-    let pkgs_info = get_app_installed_pkgs(app_path)?;
+    let pkg_info_struct = get_app_installed_pkgs(app_path)?;
+
+    // Use the to_vec method to combine all package types into a single vector.
+    let all_pkgs = pkg_info_struct.to_vec();
+
     if tman_config.verbose {
-        out.normal_line(&format!("{:?}", pkgs_info));
+        out.normal_line(&format!("{:?}", all_pkgs));
     }
-    Ok(pkgs_info)
+    Ok(all_pkgs)
 }

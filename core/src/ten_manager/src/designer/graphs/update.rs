@@ -11,11 +11,11 @@ use serde::{Deserialize, Serialize};
 
 use ten_rust::graph::connection::GraphConnection;
 use ten_rust::graph::node::GraphNode;
-use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::get_pkg_predefined_graph_from_nodes_and_connections;
 
 use super::connections::get::GraphConnectionsSingleResponseData;
 use super::nodes::get::GraphNodesSingleResponseData;
+use super::util::find_app_package_from_base_dir;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
@@ -41,16 +41,11 @@ pub async fn update_graph_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            if let Some(manifest) = &pkg.manifest {
-                manifest.type_and_name.pkg_type == PkgType::App
-            } else {
-                false
-            }
-        }) {
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             let graph_name = &request_payload.graph_name;
 
             // Collect nodes into a Vec<GraphNode>.
@@ -205,17 +200,9 @@ mod tests {
 
         let designer_state = state.read().unwrap();
 
-        let pkgs = designer_state.pkgs_cache.get(TEST_DIR).unwrap();
-        let app_pkg = pkgs
-            .iter()
-            .find(|pkg| {
-                if let Some(manifest) = &pkg.manifest {
-                    manifest.type_and_name.pkg_type == PkgType::App
-                } else {
-                    false
-                }
-            })
-            .unwrap();
+        let base_dir_pkg_info =
+            designer_state.pkgs_cache.get(TEST_DIR).unwrap();
+        let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
 
         let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
         let predefined_graph = predefined_graphs

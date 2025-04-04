@@ -9,8 +9,6 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::pkg_type::PkgType;
-
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
@@ -33,12 +31,10 @@ pub async fn get_graphs_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(pkgs) = &state_read.pkgs_cache.get(&request_payload.base_dir) {
-        if let Some(app_pkg) = pkgs.iter().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+    if let Some(base_dir_pkg_info) =
+        &state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             let graphs: Vec<GetGraphsResponseData> = app_pkg
                 .get_predefined_graphs()
                 .unwrap_or(&vec![])

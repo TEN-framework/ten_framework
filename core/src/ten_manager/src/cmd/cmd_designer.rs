@@ -136,12 +136,7 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        get_all_pkgs(
-            tman_config,
-            &mut state.write().unwrap().pkgs_cache,
-            actual_base_dir,
-            &out,
-        )?;
+        get_all_pkgs(&mut state.write().unwrap().pkgs_cache, actual_base_dir)?;
     }
 
     let server = HttpServer::new(move || {

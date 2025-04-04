@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
+    base_dir_pkg_info::BaseDirPkgInfo,
     graph::{
         connection::{GraphConnection, GraphDestination},
         Graph,
@@ -92,7 +93,7 @@ impl Graph {
 
     fn check_msg_flow_compatible(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
         msg_name: &str,
         msg_type: &MsgType,
         src_msg_schema: Option<&TenSchema>,
@@ -110,20 +111,20 @@ impl Graph {
             // Convert Option<&str> to String lookup key.
             let app_key = Graph::option_str_to_string(dest.get_app_uri());
 
-            let dest_app_installed_pkgs =
-                if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
-                    pkgs
-                } else if ignore_missing_apps {
-                    continue;
-                } else {
-                    return Err(anyhow::anyhow!(
+            let base_dir_pkg_info =
+                match installed_pkgs_of_all_apps.get(&app_key) {
+                    Some(pkg_info) => pkg_info,
+                    None if ignore_missing_apps => continue,
+                    None => {
+                        return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
                     app_key
-                ));
+                ))
+                    }
                 };
 
             let dest_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
-                dest_app_installed_pkgs,
+                base_dir_pkg_info.get_extensions(),
                 dest_addon,
                 msg_name,
                 msg_type,
@@ -175,7 +176,7 @@ impl Graph {
 
     fn check_cmd_flow_compatible(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
         cmd_name: &str,
         src_cmd_schema: Option<&CmdSchema>,
         dests: &[GraphDestination],
@@ -192,20 +193,20 @@ impl Graph {
             // Convert Option<&str> to String lookup key.
             let app_key = Graph::option_str_to_string(dest.get_app_uri());
 
-            let dest_app_installed_pkgs =
-                if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
-                    pkgs
-                } else if ignore_missing_apps {
-                    continue;
-                } else {
-                    return Err(anyhow::anyhow!(
+            let base_dir_pkg_info =
+                match installed_pkgs_of_all_apps.get(&app_key) {
+                    Some(pkg_info) => pkg_info,
+                    None if ignore_missing_apps => continue,
+                    None => {
+                        return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
                     app_key
-                ));
+                ))
+                    }
                 };
 
             let dest_cmd_schema = Self::find_cmd_schema_from_all_pkgs_info(
-                dest_app_installed_pkgs,
+                base_dir_pkg_info.get_extensions(),
                 dest_addon,
                 cmd_name,
                 MsgDirection::In,
@@ -241,7 +242,7 @@ impl Graph {
     /// * `Err` with compatibility error details otherwise
     fn check_connection_compatibility(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
         connection: &GraphConnection,
         ignore_missing_apps: bool,
     ) -> Result<()> {
@@ -256,26 +257,29 @@ impl Graph {
         // Convert Option<&str> to String lookup key.
         let app_key = Graph::option_str_to_string(src_app_uri);
 
-        let src_app_installed_pkgs =
-            if let Some(pkgs) = installed_pkgs_of_all_apps.get(&app_key) {
-                pkgs
-            } else if ignore_missing_apps {
+        let base_dir_pkg_info = match installed_pkgs_of_all_apps.get(&app_key) {
+            Some(pkg_info) => pkg_info,
+            None if ignore_missing_apps => {
                 // If the app is missing but we're ignoring missing apps,
-                // we can return success for this connection
+                // we can return success for this connection.
                 return Ok(());
-            } else {
+            }
+            None => {
                 return Err(anyhow::anyhow!(
                     "App [{}] is not found in the pkgs map, should not happen.",
                     app_key
-                ));
-            };
+                ))
+            }
+        };
+
+        let extensions = base_dir_pkg_info.get_extensions();
 
         // Check command flows.
         if let Some(cmd_flows) = &connection.cmd {
             for (flow_idx, flow) in cmd_flows.iter().enumerate() {
                 // Get source command schema.
                 let src_cmd_schema = Self::find_cmd_schema_from_all_pkgs_info(
-                    src_app_installed_pkgs,
+                    extensions,
                     src_addon,
                     flow.name.as_str(),
                     MsgDirection::Out,
@@ -299,7 +303,7 @@ impl Graph {
             for (flow_idx, flow) in data_flows.iter().enumerate() {
                 // Get source message schema.
                 let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
-                    src_app_installed_pkgs,
+                    extensions,
                     src_addon,
                     flow.name.as_str(),
                     &MsgType::Data,
@@ -325,7 +329,7 @@ impl Graph {
             for (flow_idx, flow) in video_frame_flows.iter().enumerate() {
                 // Get source message schema.
                 let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
-                    src_app_installed_pkgs,
+                    extensions,
                     src_addon,
                     flow.name.as_str(),
                     &MsgType::VideoFrame,
@@ -351,7 +355,7 @@ impl Graph {
             for (flow_idx, flow) in audio_frame_flows.iter().enumerate() {
                 // Get source message schema.
                 let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
-                    src_app_installed_pkgs,
+                    extensions,
                     src_addon,
                     flow.name.as_str(),
                     &MsgType::AudioFrame,
@@ -391,7 +395,7 @@ impl Graph {
     /// * `Err` with detailed compatibility error messages otherwise
     pub fn check_connections_compatibility(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         if self.connections.is_none() {

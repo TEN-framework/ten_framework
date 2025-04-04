@@ -9,8 +9,8 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    graph::Graph,
-    pkg_info::{pkg_type::PkgType, PkgInfo},
+    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph,
+    pkg_info::pkg_type::PkgType,
 };
 
 impl Graph {
@@ -18,7 +18,7 @@ impl Graph {
     /// packages.
     pub fn check_nodes_installation(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         // Collection to store missing packages as tuples of (app_uri,
@@ -29,14 +29,14 @@ impl Graph {
         // status.
         for node in &self.nodes {
             // Get app URI or empty string if None.
-            let app_key = node.get_app_uri().unwrap_or("");
+            let node_app_uri = node.get_app_uri().unwrap_or("");
 
             // Verify if the node's app exists in our app mapping.
-            if !installed_pkgs_of_all_apps.contains_key(app_key) {
+            if !installed_pkgs_of_all_apps.contains_key(node_app_uri) {
                 // If app doesn't exist and we're not skipping such cases, add
                 // it to missing packages.
                 if !ignore_missing_apps {
-                    let uri_for_error = app_key.to_string();
+                    let uri_for_error = node_app_uri.to_string();
                     not_installed_pkgs.push((
                         uri_for_error,
                         node.type_and_name.pkg_type,
@@ -47,27 +47,19 @@ impl Graph {
                 continue;
             }
 
-            // Get the list of installed packages for this app.
+            // Get the BaseDirPkgInfo for this app.
             let installed_pkgs_of_app =
-                installed_pkgs_of_all_apps.get(app_key).unwrap();
+                installed_pkgs_of_all_apps.get(node_app_uri).unwrap();
 
-            // Check if this specific node exists as an installed package in the
-            // app.
-            let found = installed_pkgs_of_app.iter().find(|pkg| {
-                assert!(pkg.is_installed, "Should not happen.");
-
-                if let Some(manifest) = &pkg.manifest {
-                    manifest.type_and_name.pkg_type
-                        == node.type_and_name.pkg_type
-                        && manifest.type_and_name.name == node.addon
-                } else {
-                    false
-                }
-            });
+            // Search for the package using the helper method.
+            let found = installed_pkgs_of_app.find_pkg_by_type_and_name(
+                node.type_and_name.pkg_type,
+                &node.addon,
+            );
 
             // If the node is not found, add it to the missing packages list.
             if found.is_none() {
-                let uri_for_error = app_key.to_string();
+                let uri_for_error = node_app_uri.to_string();
                 not_installed_pkgs.push((
                     uri_for_error,
                     node.type_and_name.pkg_type,

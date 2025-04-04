@@ -28,11 +28,7 @@ pub async fn reload_app_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
-    let DesignerState {
-        tman_config,
-        pkgs_cache,
-        out,
-    } = &mut *state_write;
+    let pkgs_cache = &mut state_write.pkgs_cache;
 
     if let Some(base_dir) = &request_payload.base_dir {
         // Case 1: base_dir is specified in the request payload.
@@ -54,9 +50,7 @@ pub async fn reload_app_endpoint(
         pkgs_cache.remove(base_dir);
 
         // Reload packages for this base_dir.
-        if let Err(err) =
-            get_all_pkgs(tman_config.clone(), pkgs_cache, base_dir, out)
-        {
+        if let Err(err) = get_all_pkgs(pkgs_cache, base_dir) {
             return Ok(HttpResponse::InternalServerError().json(
                 ErrorResponse::from_error(&err, "Failed to reload packages:"),
             ));
@@ -81,9 +75,7 @@ pub async fn reload_app_endpoint(
             pkgs_cache.remove(&base_dir);
 
             // Reload packages for this base_dir.
-            if let Err(err) =
-                get_all_pkgs(tman_config.clone(), pkgs_cache, &base_dir, out)
-            {
+            if let Err(err) = get_all_pkgs(pkgs_cache, &base_dir) {
                 return Ok(HttpResponse::InternalServerError().json(
                     ErrorResponse::from_error(
                         &err,
@@ -106,6 +98,7 @@ mod tests {
     use std::collections::HashMap;
 
     use actix_web::{http::StatusCode, test, App};
+    use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
 
     use super::*;
     use crate::{
@@ -200,10 +193,13 @@ mod tests {
         // This is a bit of a hack but should work for testing purposes.
         let invalid_path = "/definitely/invalid/path/that/doesnt/exist";
 
+        // Create an empty BaseDirPkgInfo.
+        let empty_pkg_info = BaseDirPkgInfo::default();
+
         // Inject an entry with the invalid path.
         designer_state
             .pkgs_cache
-            .insert(invalid_path.to_string(), Vec::new());
+            .insert(invalid_path.to_string(), empty_pkg_info);
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 

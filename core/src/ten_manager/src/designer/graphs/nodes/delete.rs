@@ -19,6 +19,7 @@ use ten_rust::{
 
 use crate::{
     designer::{
+        graphs::util::find_app_package_from_base_dir,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
@@ -26,7 +27,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct AddGraphNodeRequestPayload {
+pub struct DeleteGraphNodeRequestPayload {
     pub base_dir: String,
     pub graph_name: String,
     pub node_name: String,
@@ -36,27 +37,24 @@ pub struct AddGraphNodeRequestPayload {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct AddGraphNodeResponsePayload {
+pub struct DeleteGraphNodeResponsePayload {
     pub success: bool,
 }
 
 pub async fn delete_graph_node_endpoint(
-    request_payload: web::Json<AddGraphNodeRequestPayload>,
+    request_payload: web::Json<DeleteGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().unwrap();
 
     // Get the packages for this base_dir.
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) = pkg_predefined_graphs_find(
                 app_pkg.get_predefined_graphs(),
@@ -109,7 +107,9 @@ pub async fn delete_graph_node_endpoint(
 
                         let response = ApiResponse {
                             status: Status::Ok,
-                            data: AddGraphNodeResponsePayload { success: true },
+                            data: DeleteGraphNodeResponsePayload {
+                                success: true,
+                            },
                             meta: None,
                         };
                         Ok(HttpResponse::Ok().json(response))
@@ -195,7 +195,7 @@ mod tests {
         .await;
 
         // Try to delete a node from a non-existent graph.
-        let request_payload = AddGraphNodeRequestPayload {
+        let request_payload = DeleteGraphNodeRequestPayload {
             base_dir: TEST_DIR.to_string(),
             graph_name: "non_existent_graph".to_string(),
             node_name: "test_node".to_string(),
@@ -255,7 +255,7 @@ mod tests {
         .await;
 
         // Try to delete a non-existent node from an existing graph.
-        let request_payload = AddGraphNodeRequestPayload {
+        let request_payload = DeleteGraphNodeRequestPayload {
             base_dir: TEST_DIR.to_string(),
             graph_name: "default_with_app_uri".to_string(),
             node_name: "non_existent_node".to_string(),
@@ -278,7 +278,7 @@ mod tests {
         let body_str = std::str::from_utf8(&body).unwrap();
         println!("Response body: {}", body_str);
 
-        let response: ApiResponse<AddGraphNodeResponsePayload> =
+        let response: ApiResponse<DeleteGraphNodeResponsePayload> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Ok);
         assert!(response.data.success);
@@ -386,7 +386,7 @@ mod tests {
         .await;
 
         // Now delete the node we just added.
-        let delete_request_payload = AddGraphNodeRequestPayload {
+        let delete_request_payload = DeleteGraphNodeRequestPayload {
             base_dir: temp_dir_path.clone(),
             graph_name: "default_with_app_uri".to_string(),
             node_name: "test_delete_node".to_string(),
@@ -408,19 +408,17 @@ mod tests {
         let body_str = std::str::from_utf8(&body).unwrap();
         println!("Response body: {}", body_str);
 
-        let response: ApiResponse<AddGraphNodeResponsePayload> =
+        let response: ApiResponse<DeleteGraphNodeResponsePayload> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Ok);
         assert!(response.data.success);
 
         // Verify the node was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(pkgs) = state_read.pkgs_cache.get(&temp_dir_path) {
-            if let Some(app_pkg) = pkgs.iter().find(|pkg| {
-                pkg.manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            }) {
+        if let Some(base_dir_pkg_info) =
+            state_read.pkgs_cache.get(&temp_dir_path)
+        {
+            if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
                 if let Some(predefined_graph) = pkg_predefined_graphs_find(
                     app_pkg.get_predefined_graphs(),
                     |g| g.name == "default_with_app_uri",

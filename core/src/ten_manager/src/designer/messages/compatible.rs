@@ -91,25 +91,41 @@ pub async fn get_compatible_messages_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) = state_read.pkgs_cache.get(&request_payload.base_dir)
+    if let Some(base_dir_pkg_info) =
+        state_read.pkgs_cache.get(&request_payload.base_dir)
     {
-        let extensions = match get_extension_nodes_in_graph(
-            &request_payload.graph,
-            all_pkgs,
-        ) {
-            Ok(exts) => exts,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Error fetching runtime extensions for graph '{}'",
-                        request_payload.graph
-                    )
-                    .as_str(),
-                );
-                return Ok(HttpResponse::NotFound().json(error_response));
-            }
-        };
+        if base_dir_pkg_info.app_pkg_info.is_none() {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Application package information is missing"
+                    .to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+
+        // Get the app package directly for finding the graph.
+        let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
+
+        // Get extension package information directly, if available.
+        let extensions_slice = base_dir_pkg_info.get_extensions();
+
+        let extensions =
+            match get_extension_nodes_in_graph(&request_payload.graph, app_pkg)
+            {
+                Ok(exts) => exts,
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        format!(
+                            "Error fetching runtime extensions for graph '{}'",
+                            request_payload.graph
+                        )
+                        .as_str(),
+                    );
+                    return Ok(HttpResponse::NotFound().json(error_response));
+                }
+            };
 
         let extension = match get_extension(
             &extensions,
@@ -138,7 +154,7 @@ pub async fn get_compatible_messages_endpoint(
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
 
-        let pkg_info = get_pkg_info_for_extension(extension, all_pkgs);
+        let pkg_info = get_pkg_info_for_extension(extension, extensions_slice);
         if pkg_info.is_none() {
             let error_response = ErrorResponse::from_error(
                 &anyhow::anyhow!("Extension not found"),
@@ -169,7 +185,7 @@ pub async fn get_compatible_messages_endpoint(
 
                 let results = match get_compatible_cmd_extension(
                     &extensions,
-                    all_pkgs,
+                    extensions_slice,
                     &desired_msg_dir,
                     src_cmd_schema,
                     request_payload.msg_name.as_str(),
@@ -226,7 +242,7 @@ pub async fn get_compatible_messages_endpoint(
 
                 let results = match get_compatible_data_like_msg_extension(
                     &extensions,
-                    all_pkgs,
+                    extensions_slice,
                     &desired_msg_dir,
                     src_msg_schema,
                     &msg_ty,

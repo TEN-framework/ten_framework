@@ -4,14 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Result;
-use ten_rust::pkg_info::PkgInfo;
-
-use crate::{
-    config::TmanConfig, output::TmanOutput,
-    pkg_info::tman_get_all_installed_pkgs_info_of_app,
+use ten_rust::{
+    base_dir_pkg_info::BaseDirPkgInfo, pkg_info::get_app_installed_pkgs,
 };
 
 /// Retrieves and caches all installed packages for the given app.
@@ -19,26 +16,9 @@ use crate::{
 /// This function checks if package information for the specified base directory
 /// already exists in the cache. If it does, it returns immediately. Otherwise,
 /// it fetches the package information and stores it in the cache.
-///
-/// # Arguments
-///
-/// * `tman_config` - Configuration for the TEN manager.
-/// * `pkgs_cache` - A mutable reference to the package cache, mapping base
-///   directories to lists of packages.
-/// * `base_dir` - The base directory of the app to retrieve packages for.
-/// * `out` - Output interface for logging and displaying information.
-///
-/// # Errors
-///
-/// Returns an error if fetching package information fails, which can happen if:
-/// - The base directory doesn't exist or is invalid.
-/// - There are issues reading package manifests.
-/// - Package information cannot be parsed correctly.
 pub fn get_all_pkgs(
-    tman_config: Arc<TmanConfig>,
-    pkgs_cache: &mut HashMap<String, Vec<PkgInfo>>,
+    pkgs_cache: &mut HashMap<String, BaseDirPkgInfo>,
     base_dir: &String,
-    out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Check whether the package information for the specified base_dir already
     // exists in the cache.
@@ -51,16 +31,10 @@ pub fn get_all_pkgs(
     let app_path = PathBuf::from(base_dir);
 
     // Fetch package information.
-    let result_pkgs = tman_get_all_installed_pkgs_info_of_app(
-        tman_config,
-        &app_path,
-        out.clone(),
-    );
+    let result_pkgs = get_app_installed_pkgs(&app_path);
 
     match result_pkgs {
         Ok(pkgs) => {
-            // Store the packages in the cache using the base directory as the
-            // key.
             pkgs_cache.insert(base_dir.to_string(), pkgs);
             Ok(())
         }
