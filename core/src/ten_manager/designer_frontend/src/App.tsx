@@ -18,9 +18,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar";
 import StatusBar from "@/components/StatusBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
-import { CustomNodeType } from "@/flow/CustomNode";
-import { CustomEdgeType } from "@/flow/CustomEdge";
-import { getLayoutedElements } from "@/flow/graph";
+import { generateNodesAndEdges } from "@/flow/graph";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -36,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { usePreferences } from "@/api/services/common";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { PREFERENCES_SCHEMA_LOG } from "@/types/apps";
+
+import type { TCustomEdge, TCustomNode } from "@/types/flow";
 
 const App: React.FC = () => {
   const { nodes, setNodes, edges, setEdges, setNodesAndEdges } = useFlowStore();
@@ -63,16 +63,14 @@ const App: React.FC = () => {
   );
 
   const performAutoLayout = useCallback(() => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      nodes,
-      edges
-    );
+    const { nodes: layoutedNodes, edges: layoutedEdges } =
+      generateNodesAndEdges(nodes, edges);
     setNodesAndEdges(layoutedNodes, layoutedEdges);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
   const handleNodesChange = useCallback(
-    (changes: NodeChange<CustomNodeType>[]) => {
+    (changes: NodeChange<TCustomNode>[]) => {
       const newNodes = applyNodeChanges(changes, nodes);
       setNodes(newNodes);
     },
@@ -81,7 +79,7 @@ const App: React.FC = () => {
   );
 
   const handleEdgesChange = useCallback(
-    (changes: EdgeChange<CustomEdgeType>[]) => {
+    (changes: EdgeChange<TCustomEdge>[]) => {
       const newEdges = applyEdgeChanges(changes, edges);
       setEdges(newEdges);
     },

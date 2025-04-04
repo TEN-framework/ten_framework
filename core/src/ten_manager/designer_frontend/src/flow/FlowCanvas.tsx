@@ -21,8 +21,8 @@ import {
   type EdgeChange,
 } from "@xyflow/react";
 
-import CustomNode, { CustomNodeType } from "@/flow/CustomNode";
-import CustomEdge, { CustomEdgeType } from "@/flow/CustomEdge";
+import CustomNode from "@/flow/CustomNode";
+import CustomEdge from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import { TerminalData } from "@/components/Popup/TerminalPopup";
@@ -36,21 +36,23 @@ import {
   ELogViewerScriptType,
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
+import { ECustomEventName } from "@/utils/popup";
+
+import type { TCustomEdge, TCustomNode } from "@/types/flow";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
-import { ECustomEventName } from "@/utils/popup";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
 }
 
 interface FlowCanvasProps {
-  nodes: CustomNodeType[];
-  edges: CustomEdgeType[];
-  onNodesChange: (changes: NodeChange<CustomNodeType>[]) => void;
-  onEdgesChange: (changes: EdgeChange<CustomEdgeType>[]) => void;
+  nodes: TCustomNode[];
+  edges: TCustomEdge[];
+  onNodesChange: (changes: NodeChange<TCustomNode>[]) => void;
+  onEdgesChange: (changes: EdgeChange<TCustomEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   className?: string;
 }
@@ -64,8 +66,8 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       x: number;
       y: number;
       type?: "node" | "edge";
-      edge?: CustomEdgeType;
-      node?: CustomNodeType;
+      edge?: TCustomEdge;
+      node?: TCustomNode;
     }>({ visible: false, x: 0, y: 0 });
 
     const launchTerminal = (data: TerminalData) => {
@@ -152,7 +154,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
     // Right click nodes.
     const clickNodeContextMenu = useCallback(
-      (event: MouseEvent, node: CustomNodeType) => {
+      (event: MouseEvent, node: TCustomNode) => {
         event.preventDefault();
         setContextMenu({
           visible: true,
@@ -167,7 +169,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
     // Right click Edges.
     const clickEdgeContextMenu = useCallback(
-      (event: MouseEvent, edge: CustomEdgeType) => {
+      (event: MouseEvent, edge: TCustomEdge) => {
         event.preventDefault();
         setContextMenu({
           visible: true,

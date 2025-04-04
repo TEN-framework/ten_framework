@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { Position, NodeProps, Connection, Edge, Node } from "@xyflow/react";
+import { Position, NodeProps, Connection, Edge } from "@xyflow/react";
 import {
   BlocksIcon as ExtensionIcon,
   TerminalIcon,
@@ -18,28 +18,14 @@ import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 import CustomHandle from "@/flow/CustomHandle";
-import { EConnectionType, type TConnectionItem } from "@/types/graphs";
+import { EConnectionType } from "@/types/graphs";
+
+import type { TCustomNode, TCustomNodeData } from "@/types/flow";
 
 const onConnect = (params: Connection | Edge) =>
   console.log("Handle onConnect", params);
 
-export type TCustomNodeData = {
-  name: string;
-  addon: string;
-  sourceCmds: TConnectionItem[];
-  targetCmds: TConnectionItem[];
-  sourceData: TConnectionItem[];
-  targetData: TConnectionItem[];
-  sourceAudioFrame: TConnectionItem[];
-  targetAudioFrame: TConnectionItem[];
-  sourceVideoFrame: TConnectionItem[];
-  targetVideoFrame: TConnectionItem[];
-  url?: string;
-};
-
-export type CustomNodeType = Node<TCustomNodeData, "customNode">;
-
-export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
+export function CustomNode({ data, isConnectable }: NodeProps<TCustomNode>) {
   return (
     <>
       <div
@@ -119,7 +105,7 @@ const HandleGroupItem = (props: {
       target?: boolean;
     }) =>
     () => {
-      dispatchCustomNodeActionPopup("connections", data.addon, undefined, {
+      dispatchCustomNodeActionPopup("connections", data.name, undefined, {
         filters: {
           type,
           source,
@@ -132,11 +118,11 @@ const HandleGroupItem = (props: {
     <div className="flex items-center gap-x-4 justify-between">
       <div className="flex items-center gap-x-2">
         <CustomHandle
-          key={`target-${data.addon}-${connectionType}`}
+          key={`target-${data.name}-${connectionType}`}
           type="target"
           position={Position.Left}
-          id={`target-${data.addon}-${connectionType}`}
-          label={data.addon}
+          id={`target-${data.name}-${connectionType}`}
+          label={data.name}
           labelOffsetX={0}
           isConnectable={isConnectable}
           onConnect={onConnect}
@@ -148,16 +134,16 @@ const HandleGroupItem = (props: {
           })}
         >
           {connectionType === EConnectionType.CMD && (
-            <span>{data.targetCmds?.length || 0}</span>
+            <span>{data.src[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.DATA && (
-            <span>{data.targetData?.length || 0}</span>
+            <span>{data.src[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.AUDIO_FRAME && (
-            <span>{data.targetAudioFrame?.length || 0}</span>
+            <span>{data.src[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.VIDEO_FRAME && (
-            <span>{data.targetVideoFrame?.length || 0}</span>
+            <span>{data.src[connectionType]?.length || 0}</span>
           )}
         </ConnectionCount>
       </div>
@@ -191,24 +177,24 @@ const HandleGroupItem = (props: {
           })}
         >
           {connectionType === EConnectionType.CMD && (
-            <span>{data.sourceCmds?.length || 0}</span>
+            <span>{data.target[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.DATA && (
-            <span>{data.sourceData?.length || 0}</span>
+            <span>{data.target[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.AUDIO_FRAME && (
-            <span>{data.sourceAudioFrame?.length || 0}</span>
+            <span>{data.target[connectionType]?.length || 0}</span>
           )}
           {connectionType === EConnectionType.VIDEO_FRAME && (
-            <span>{data.sourceVideoFrame?.length || 0}</span>
+            <span>{data.target[connectionType]?.length || 0}</span>
           )}
         </ConnectionCount>
         <CustomHandle
-          key={`source-${data.addon}-${connectionType}`}
+          key={`source-${data.name}-${connectionType}`}
           type="source"
           position={Position.Right}
-          id={`source-${data.addon}-${connectionType}`}
-          label={data.addon}
+          id={`source-${data.name}-${connectionType}`}
+          label={data.name}
           labelOffsetX={0}
           isConnectable={isConnectable}
         />

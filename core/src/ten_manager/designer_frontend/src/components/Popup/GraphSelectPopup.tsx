@@ -10,11 +10,11 @@ import { toast } from "sonner";
 import { CheckIcon } from "lucide-react";
 
 import {
-  enhanceNodesWithCommands,
-  fetchAddonInfoForNodes,
-  getLayoutedElements,
-  processConnections,
-  processNodes,
+  generateRawNodes,
+  generateRawEdges,
+  updateNodesWithConnections,
+  updateNodesWithAddonInfo,
+  generateNodesAndEdges,
 } from "@/flow/graph";
 import { Popup } from "@/components/Popup/Popup";
 import {
@@ -37,8 +37,6 @@ import {
 import { useApps } from "@/api/services/apps";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
-
-import type { CustomNodeType } from "@/flow/CustomNode";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();
@@ -79,43 +77,20 @@ export function GraphSelectPopup() {
           graphName,
           baseDir
         );
-
-        let initialNodes: CustomNodeType[] = processNodes(backendNodes);
-
-        const {
-          initialEdges,
-          nodeSourceCmdMap,
-          nodeSourceDataMap,
-          nodeSourceAudioFrameMap,
-          nodeSourceVideoFrameMap,
-          nodeTargetCmdMap,
-          nodeTargetDataMap,
-          nodeTargetAudioFrameMap,
-          nodeTargetVideoFrameMap,
-        } = processConnections(backendConnections);
-
-        // Write back the cmd information to nodes, so that CustomNode could
-        // generate corresponding handles.
-        initialNodes = enhanceNodesWithCommands(initialNodes, {
-          nodeSourceCmdMap,
-          nodeTargetCmdMap,
-          nodeSourceDataMap,
-          nodeTargetDataMap,
-          nodeSourceAudioFrameMap,
-          nodeSourceVideoFrameMap,
-          nodeTargetAudioFrameMap,
-          nodeTargetVideoFrameMap,
-        });
-
-        // Fetch additional addon information for each node.
-        const nodesWithAddonInfo = await fetchAddonInfoForNodes(
+        const rawNodes = generateRawNodes(backendNodes);
+        const [rawEdges, rawEdgeAddressMap] =
+          generateRawEdges(backendConnections);
+        const nodesWithConnections = updateNodesWithConnections(
+          rawNodes,
+          rawEdgeAddressMap
+        );
+        const nodesWithAddonInfo = await updateNodesWithAddonInfo(
           baseDir ?? "",
-          initialNodes
+          nodesWithConnections
         );
 
-        // Auto-layout the nodes and edges.
         const { nodes: layoutedNodes, edges: layoutedEdges } =
-          getLayoutedElements(nodesWithAddonInfo, initialEdges);
+          generateNodesAndEdges(nodesWithAddonInfo, rawEdges);
 
         setNodesAndEdges(layoutedNodes, layoutedEdges);
       } catch (err: unknown) {

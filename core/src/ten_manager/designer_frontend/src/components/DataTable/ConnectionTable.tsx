@@ -108,7 +108,7 @@ export const commonConnectionColumns: ColumnDef<TConnection>[] = [
     cell: ({ row }) => {
       const name = row.getValue("name") as string;
       if (!name) return null;
-      return <div className="text-xs">{name}</div>;
+      return name;
     },
   },
 ];
