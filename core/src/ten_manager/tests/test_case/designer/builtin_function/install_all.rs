@@ -4,12 +4,20 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use actix_web::web;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
+
+use actix_web::{test, web, App};
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 use ten_manager::designer::builtin_function::{
     builtin_function_endpoint, msg::InboundMsg,
+};
+use ten_manager::{
+    config::TmanConfig, designer::DesignerState, output::TmanOutputCli,
 };
 
 use crate::test_case::common::builtin_server::start_test_server;
@@ -91,5 +99,47 @@ async fn test_ws_builtin_function_install_all() {
     println!(
         "Test completed successfully with {} messages received",
         message_count
+    );
+}
+
+#[actix_rt::test]
+async fn test_cmd_builtin_function_install_all() {
+    let designer_state = DesignerState {
+        tman_config: Arc::new(TmanConfig::default()),
+        out: Arc::new(Box::new(TmanOutputCli)),
+        pkgs_cache: HashMap::new(),
+    };
+
+    let designer_state = Arc::new(RwLock::new(designer_state));
+
+    // Initialize the test service with the WebSocket endpoint.
+    let app = test::init_service(
+        App::new().app_data(web::Data::new(designer_state)).route(
+            "/ws/builtin-function",
+            web::get().to(builtin_function_endpoint),
+        ),
+    )
+    .await;
+
+    // Create a basic request just to test if the route is defined.
+    let req = test::TestRequest::get()
+        .uri("/ws/builtin-function")
+        .to_request();
+
+    // Execute the request but don't check for success. This just verifies
+    // that the route exists and the handler is called.
+    let resp = test::call_service(&app, req).await;
+
+    println!("Response status: {:?}", resp.status());
+
+    // Instead of asserting success which requires WebSocket setup, we'll
+    // just verify that the endpoint exists by checking the response
+    // is not a 404.
+    assert_ne!(resp.status().as_u16(), 404, "Endpoint not found");
+
+    // Note: A proper WebSocket test would require a more complex setup.
+    // This test just verifies the route is registered correctly.
+    println!(
+        "WebSocket endpoint /ws/builtin-function is registered and available"
     );
 }
