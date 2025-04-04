@@ -18,29 +18,42 @@ fn main() {
 mod test_case {
     mod common;
 
-    mod cmd_check_graph;
-    mod designer_builtin_function_install;
-    mod designer_builtin_function_install_all;
-    mod designer_get_apps;
-    mod designer_get_graphs;
-    mod designer_get_packages_scripts;
-    mod designer_get_registry_packages;
-    mod designer_load_apps;
-    mod designer_reload_apps;
-    mod designer_terminal;
+    mod cmd {
+        mod check {
+            mod check_graph;
+        }
+        mod modify {
+            mod jq_util;
+        }
+    }
 
-    mod graph;
+    mod designer {
+        mod builtin_function_install;
+        mod builtin_function_install_all;
+        mod get_apps;
+        mod get_graphs;
+        mod get_packages_scripts;
+        mod get_registry_packages;
+        mod load_apps;
+        mod reload_apps;
+        mod terminal;
+    }
+
+    mod graph {
+        mod node {
+            pub mod remove_all_connections;
+            pub mod remove_connection_dest;
+            pub mod update_and_preserve_order;
+        }
+        mod connection {
+            pub mod update_and_preserve_order;
+        }
+    }
 
     // New test modules
     mod version_utils;
 
     mod schema;
-
-    mod cmd {
-        mod cmd_modify {
-            mod jq_util;
-        }
-    }
 
     mod pkg_info {
         mod manifest {
