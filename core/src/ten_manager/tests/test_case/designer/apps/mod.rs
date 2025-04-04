@@ -4,16 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod apps;
-mod builtin_function;
-mod builtin_function_install;
-mod dir_list;
-mod env;
-mod get_apps;
-mod get_graphs;
-mod get_packages_scripts;
-mod get_registry_packages;
-mod load_apps;
-mod reload_apps;
-mod terminal;
-mod version;
+mod addons_test;
+mod create_test;
+mod get_test;
+mod load_test;
+mod reload_test;
+mod unload_test;
