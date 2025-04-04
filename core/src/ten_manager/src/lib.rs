@@ -30,7 +30,7 @@ pub mod designer;
 mod error;
 mod file_type;
 mod fs;
-mod graph;
+pub mod graph;
 pub mod http;
 mod install;
 mod manifest_lock;

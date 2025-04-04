@@ -28,4 +28,6 @@ mod test_case {
     mod designer_load_apps;
     mod designer_reload_apps;
     mod designer_terminal;
+
+    mod graph;
 }
