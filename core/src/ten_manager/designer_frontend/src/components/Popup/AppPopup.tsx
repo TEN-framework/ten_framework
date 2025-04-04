@@ -48,7 +48,7 @@ export const AppFolderPopup = () => {
 
   const { removeWidget } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
-  const { folderPath } = useAppStore();
+  const { folderPath, updateCurrentWorkspace } = useAppStore();
 
   const { mutate: mutateApps } = useApps();
 
@@ -56,6 +56,10 @@ export const AppFolderPopup = () => {
     try {
       await postLoadDir(folderPath.trim());
       setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
+      updateCurrentWorkspace({
+        baseDir: folderPath.trim(),
+        graphName: null,
+      });
       mutateApps();
       toast.success(t("header.menuApp.loadAppSuccess"));
     } catch (error: unknown) {

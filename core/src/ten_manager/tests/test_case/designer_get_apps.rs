@@ -33,10 +33,8 @@ mod tests {
         };
 
         let _ = get_all_pkgs(
-            designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
             &"tests/test_data/app_with_uri".to_string(),
-            &designer_state.out,
         );
 
         assert_eq!(
@@ -98,10 +96,8 @@ mod tests {
         };
 
         let _ = get_all_pkgs(
-            designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
             &"tests/test_data/app_without_uri".to_string(),
-            &designer_state.out,
         );
 
         assert_eq!(

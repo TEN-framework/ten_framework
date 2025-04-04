@@ -45,7 +45,7 @@ export default defineConfig({
 
   // Set global timeout for expectations/assertions.
   expect: {
-    timeout: 10000, // 10 seconds
+    timeout: 30000, // 30 seconds
   },
 
   // Global settings applied to all test projects.

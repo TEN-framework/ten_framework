@@ -161,19 +161,63 @@ pub async fn get_app_addons_endpoint(
         return Ok(HttpResponse::NotFound().json(error_response));
     }
 
-    let mut all_addons: Vec<GetAppAddonsSingleResponseData> = state_read
-        .pkgs_cache
-        .get(&request_payload.base_dir)
-        .unwrap()
-        .iter()
-        .map(convert_pkg_info_to_addon)
-        .collect();
+    let mut all_addons: Vec<GetAppAddonsSingleResponseData> = Vec::new();
 
-    all_addons.retain(|addon| addon.addon_type != PkgType::App.to_string());
+    // Get the BaseDirPkgInfo and extract only the requested packages from it.
+    if let Some(base_dir_pkg_info) =
+        state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
+        let addon_type_filter = request_payload.addon_type.as_deref();
 
-    // Filter by addon_type if provided.
-    if let Some(addon_type) = &request_payload.addon_type {
-        all_addons.retain(|addon| &addon.addon_type == addon_type);
+        // Only process these packages if no addon_type filter is specified or
+        // if it matches "extension"
+        if addon_type_filter.is_none() || addon_type_filter == Some("extension")
+        {
+            // Extract extension packages if they exist.
+            if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+                for ext in extensions {
+                    all_addons.push(convert_pkg_info_to_addon(ext));
+                }
+            }
+        }
+
+        // Only process these packages if no addon_type filter is specified or
+        // if it matches "protocol"
+        if addon_type_filter.is_none() || addon_type_filter == Some("protocol")
+        {
+            // Extract protocol packages if they exist.
+            if let Some(protocols) = &base_dir_pkg_info.protocol_pkg_info {
+                for protocol in protocols {
+                    all_addons.push(convert_pkg_info_to_addon(protocol));
+                }
+            }
+        }
+
+        // Only process these packages if no addon_type filter is specified or
+        // if it matches "addon_loader".
+        if addon_type_filter.is_none()
+            || addon_type_filter == Some("addon_loader")
+        {
+            // Extract addon loader packages if they exist.
+            if let Some(addon_loaders) =
+                &base_dir_pkg_info.addon_loader_pkg_info
+            {
+                for loader in addon_loaders {
+                    all_addons.push(convert_pkg_info_to_addon(loader));
+                }
+            }
+        }
+
+        // Only process these packages if no addon_type filter is specified or
+        // if it matches "system".
+        if addon_type_filter.is_none() || addon_type_filter == Some("system") {
+            // Extract system packages if they exist.
+            if let Some(systems) = &base_dir_pkg_info.system_pkg_info {
+                for system in systems {
+                    all_addons.push(convert_pkg_info_to_addon(system));
+                }
+            }
+        }
     }
 
     // Filter by addon_name if provided.

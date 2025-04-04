@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
@@ -11,21 +12,19 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
+    base_dir_pkg_info::BaseDirPkgInfo,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
-    pkg_info::{
-        message::MsgType, pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find,
-        property::predefined_graph::PredefinedGraph, PkgInfo,
-    },
+    pkg_info::message::MsgType,
 };
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    graph::update_graph_connections_all_fields,
+use crate::designer::graphs::util::find_predefined_graph;
+use crate::designer::{
+    graphs::util::find_app_package_from_base_dir,
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
+
+use crate::graph::update_graph_connections_all_fields;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
@@ -42,25 +41,6 @@ pub struct AddGraphConnectionRequestPayload {
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionResponsePayload {
     pub success: bool,
-}
-
-/// Find the app package in the packages list.
-fn find_app_package(pkgs: &mut [PkgInfo]) -> Option<&mut PkgInfo> {
-    pkgs.iter_mut().find(|pkg| {
-        pkg.manifest
-            .as_ref()
-            .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-    })
-}
-
-/// Find the predefined graph by name.
-fn find_predefined_graph<'a>(
-    app_pkg: &'a mut PkgInfo,
-    graph_name: &str,
-) -> Option<&'a PredefinedGraph> {
-    pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
-        g.name == graph_name
-    })
 }
 
 /// Create a new GraphConnection from request params.
@@ -135,22 +115,39 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Clone the pkgs_cache for this base_dir.
-    let pkgs_cache_clone = state_write.pkgs_cache.clone();
+    // Create a hash map from app URIs to BaseDirPkgInfo for use with
+    // add_connection.
+    let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+
+    // Process all available apps to map URIs to BaseDirPkgInfo.
+    for base_dir_pkg_info in state_write.pkgs_cache.values() {
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            if let Some(property) = &app_pkg.property {
+                if let Some(ten) = &property._ten {
+                    if let Some(uri) = &ten.uri {
+                        // Map the URI to the BaseDirPkgInfo.
+                        uri_to_pkg_info
+                            .insert(uri.clone(), base_dir_pkg_info.clone());
+                    }
+                }
+            }
+        }
+    }
 
     // Get the packages for this base_dir.
-    if let Some(pkgs) =
+    if let Some(base_dir_pkg_info) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
-        if let Some(app_pkg) = find_app_package(pkgs) {
+        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
+        {
             // Get the specified graph from predefined_graphs.
             if let Some(predefined_graph) =
                 find_predefined_graph(app_pkg, &request_payload.graph_name)
             {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Add the connection.
+                // Add the connection using the converted BaseDirPkgInfo map.
                 match graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),
@@ -158,7 +155,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &pkgs_cache_clone,
+                    &uri_to_pkg_info,
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.

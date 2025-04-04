@@ -9,7 +9,6 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
@@ -33,13 +32,11 @@ pub async fn get_app_scripts_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(pkgs) = &state_read.pkgs_cache.get(&request_payload.base_dir) {
-        if let Some(pkg) = pkgs.iter().find(|pkg| {
-            pkg.manifest
-                .as_ref()
-                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-        }) {
-            let scripts = pkg
+    if let Some(base_dir_pkg_info) =
+        &state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            let scripts = app_pkg
                 .manifest
                 .as_ref()
                 .and_then(|m| m.scripts.as_ref())

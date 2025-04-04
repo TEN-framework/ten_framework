@@ -104,19 +104,10 @@ pub async fn create_app_endpoint(
 
             // Re-acquire the lock for updating the cache.
             let mut state_write = state.write().unwrap();
-            let DesignerState {
-                tman_config,
-                pkgs_cache,
-                out,
-            } = &mut *state_write;
+            let pkgs_cache = &mut state_write.pkgs_cache;
 
             // Try to load the newly created app into the cache.
-            if let Err(err) = get_all_pkgs(
-                tman_config.clone(),
-                pkgs_cache,
-                &app_path_str,
-                out,
-            ) {
+            if let Err(err) = get_all_pkgs(pkgs_cache, &app_path_str) {
                 // Don't delete the app directory on cache update failure.
                 let error_response = ErrorResponse::from_error(
                     &err,

@@ -4,22 +4,18 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::collections::HashMap;
+use std::path::Path;
+use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
+use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
 
 use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
+    designer::response::{ApiResponse, ErrorResponse, Status},
+    designer::DesignerState,
     fs::check_is_app_folder,
     pkg_info::get_all_pkgs::get_all_pkgs,
 };
@@ -55,18 +51,11 @@ pub async fn load_app_endpoint(
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
         Ok(_) => {
-            let DesignerState {
-                tman_config,
-                pkgs_cache,
-                out,
-            } = &mut *state_write;
+            let pkgs_cache = &mut state_write.pkgs_cache;
 
-            if let Err(err) = get_all_pkgs(
-                tman_config.clone(),
-                pkgs_cache,
-                &request_payload.base_dir,
-                out,
-            ) {
+            if let Err(err) =
+                get_all_pkgs(pkgs_cache, &request_payload.base_dir)
+            {
                 let error_response =
                     ErrorResponse::from_error(&err, "Error fetching packages:");
                 return Ok(HttpResponse::NotFound().json(error_response));
@@ -92,22 +81,22 @@ pub async fn load_app_endpoint(
 }
 
 fn extract_app_uri(
-    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
+    pkgs_cache: &HashMap<String, BaseDirPkgInfo>,
     base_dir: &str,
 ) -> Option<String> {
-    pkgs_cache.get(base_dir).and_then(|pkg_infos| {
-        pkg_infos
-            .iter()
-            .find(|pkg_info| {
-                pkg_info
-                    .manifest
-                    .as_ref()
-                    .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
-            })
-            .and_then(|pkg_info| pkg_info.property.as_ref())
-            .and_then(|property| property._ten.as_ref())
-            .and_then(|ten| ten.uri.as_ref())
-            .map(|uri| uri.to_string())
+    pkgs_cache.get(base_dir).and_then(|base_dir_pkg_info| {
+        // Check the app package first.
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            if let Some(property) = &app_pkg.property {
+                if let Some(ten) = &property._ten {
+                    if let Some(uri) = &ten.uri {
+                        return Some(uri.to_string());
+                    }
+                }
+            }
+        }
+
+        None
     })
 }
 

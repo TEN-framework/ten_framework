@@ -6,25 +6,12 @@
 //
 import {
   type EdgeProps,
-  type Edge,
   BaseEdge,
   getSmoothStepPath,
   Position,
 } from "@xyflow/react";
 
-import { type EConnectionType } from "@/types/graphs";
-
-export type CustomEdgeType = Edge<
-  {
-    labelOffsetX: number;
-    labelOffsetY: number;
-    connectionType: EConnectionType;
-    name: string;
-    srcApp: string;
-    destApp: string;
-  },
-  "customEdge"
->;
+import type { TCustomEdge } from "@/types/flow";
 
 export function CustomEdge({
   sourceX,
@@ -35,7 +22,7 @@ export function CustomEdge({
   style,
   selected,
   markerEnd,
-}: EdgeProps<CustomEdgeType>) {
+}: EdgeProps<TCustomEdge>) {
   const [path] = getSmoothStepPath({
     sourceX: sourceX,
     sourceY: sourceY,

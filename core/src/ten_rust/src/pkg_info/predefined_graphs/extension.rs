@@ -23,57 +23,38 @@ use crate::{
 };
 
 /// Retrieves all extension nodes from a specified graph.
-///
-/// # Arguments
-/// - `graph_name`: The name of the graph to retrieve extension nodes from.
-/// - `all_pkgs`: A slice of all package information.
-///
-/// # Returns
-/// A vector of extension nodes from the specified graph.
 pub fn get_extension_nodes_in_graph(
     graph_name: &String,
-    all_pkgs: &[PkgInfo],
+    app_pkg: &PkgInfo,
 ) -> Result<Vec<GraphNode>> {
-    // Find the application package within the `all_pkgs`.
-    if let Some(app_pkg) = all_pkgs.iter().find(|pkg| {
-        if let Some(manifest) = &pkg.manifest {
-            manifest.type_and_name.pkg_type == PkgType::App
-        } else {
-            false
-        }
-    }) {
-        if app_pkg.property.is_none() {
-            return Err(anyhow::anyhow!(
-                "Property information is missing".to_string(),
-            ));
-        }
+    if app_pkg.property.is_none() {
+        return Err(anyhow::anyhow!(
+            "Property information is missing".to_string(),
+        ));
+    }
 
-        // Look for the graph by name in the predefined_graphs of the app
-        // package.
-        if let Some(predefined_graph) = pkg_predefined_graphs_find(
-            app_pkg.get_predefined_graphs(),
-            |graph| graph.name == *graph_name,
-        ) {
-            // Collect all extension nodes from the graph.
-            let extension_nodes: Vec<_> = predefined_graph
-                .graph
-                .nodes
-                .iter()
-                .filter(|node| {
-                    node.type_and_name.pkg_type == PkgType::Extension
-                })
-                .cloned()
-                .collect();
+    // Look for the graph by name in the predefined_graphs of the app
+    // package.
+    if let Some(predefined_graph) =
+        pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |graph| {
+            graph.name == *graph_name
+        })
+    {
+        // Collect all extension nodes from the graph.
+        let extension_nodes: Vec<_> = predefined_graph
+            .graph
+            .nodes
+            .iter()
+            .filter(|node| node.type_and_name.pkg_type == PkgType::Extension)
+            .cloned()
+            .collect();
 
-            Ok(extension_nodes)
-        } else {
-            Err(anyhow::anyhow!(
-                "Graph '{}' not found in predefined graphs of the app",
-                graph_name
-            ))
-        }
+        Ok(extension_nodes)
     } else {
-        Err(anyhow::anyhow!("Package information is missing"))
+        Err(anyhow::anyhow!(
+            "Graph '{}' not found in predefined graphs of the app",
+            graph_name
+        ))
     }
 }
 
@@ -81,9 +62,9 @@ pub fn get_extension_nodes_in_graph(
 /// specified in the GraphNode.
 pub fn get_pkg_info_for_extension<'a>(
     extension: &'a GraphNode,
-    all_pkgs: &'a [PkgInfo],
+    extension_pkgs_info: &'a [PkgInfo],
 ) -> Option<&'a PkgInfo> {
-    all_pkgs.iter().find(|pkg| {
+    extension_pkgs_info.iter().find(|pkg| {
         if let Some(manifest) = &pkg.manifest {
             manifest.type_and_name.pkg_type == PkgType::Extension
                 && manifest.type_and_name.name == extension.addon
@@ -125,7 +106,7 @@ pub struct CompatibleExtensionAndMsg<'a> {
 
 pub fn get_compatible_cmd_extension<'a>(
     extensions: &'a [GraphNode],
-    all_pkgs: &[PkgInfo],
+    extension_pkgs_info: &[PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&CmdSchema>,
     cmd_name: &str,
@@ -133,7 +114,7 @@ pub fn get_compatible_cmd_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+        let pkg_info = get_pkg_info_for_extension(ext, extension_pkgs_info)
             .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
 
         let target_cmd_schema =
@@ -168,7 +149,7 @@ pub fn get_compatible_cmd_extension<'a>(
 
 pub fn get_compatible_data_like_msg_extension<'a>(
     extensions: &'a [GraphNode],
-    all_pkgs: &'a [PkgInfo],
+    extension_pkgs_info: &'a [PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&TenSchema>,
     msg_type: &MsgType,
@@ -177,7 +158,7 @@ pub fn get_compatible_data_like_msg_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+        let pkg_info = get_pkg_info_for_extension(ext, extension_pkgs_info)
             .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
 
         let target_msg_schema =

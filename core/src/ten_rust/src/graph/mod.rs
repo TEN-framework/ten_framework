@@ -16,7 +16,7 @@ use anyhow::Result;
 use connection::GraphConnection;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{localhost, PkgInfo};
+use crate::{base_dir_pkg_info::BaseDirPkgInfo, pkg_info::localhost};
 
 /// The state of the 'app' field declaration in all nodes in the graph.
 ///
@@ -227,7 +227,7 @@ impl Graph {
 
     pub fn check(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
     ) -> Result<()> {
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
@@ -247,7 +247,7 @@ impl Graph {
 
     pub fn check_for_single_app(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
     ) -> Result<()> {
         assert!(installed_pkgs_of_all_apps.len() == 1);
 

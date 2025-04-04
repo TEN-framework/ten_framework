@@ -21,11 +21,12 @@ pub mod value_type;
 
 use std::{collections::HashMap, path::Path};
 
-use crate::graph::Graph;
 use anyhow::{anyhow, Result};
-use pkg_type_and_name::PkgTypeAndName;
 
-use crate::schema::store::SchemaStore;
+use crate::{
+    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph, schema::store::SchemaStore,
+};
+
 use constants::{
     ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
     SYSTEM_DIR, TEN_PACKAGES_DIR,
@@ -200,36 +201,84 @@ pub fn get_pkg_info_from_path(
 /// collected package.
 fn collect_pkg_info_from_path<'a>(
     path: &Path,
-    pkgs_info: &'a mut HashMap<PkgTypeAndName, PkgInfo>,
+    pkgs_info: &'a mut BaseDirPkgInfo,
 ) -> Result<&'a PkgInfo> {
     let pkg_info = get_pkg_info_from_path(path, true)?;
-    let pkg_type_name = PkgTypeAndName::from(&pkg_info);
 
-    match pkgs_info.entry(pkg_type_name) {
-        std::collections::hash_map::Entry::Occupied(_) => {
-            if let Some(manifest) = &pkg_info.manifest {
-                Err(anyhow!(
-                    "Duplicated package, type: {}, name: {}",
-                    manifest.type_and_name.pkg_type,
-                    manifest.type_and_name.name
-                ))
-            } else {
-                Err(anyhow!("Duplicated package with missing manifest"))
+    if let Some(manifest) = &pkg_info.manifest {
+        match manifest.type_and_name.pkg_type {
+            PkgType::App => {
+                pkgs_info.app_pkg_info = Some(pkg_info);
+                Ok(pkgs_info.app_pkg_info.as_ref().unwrap())
             }
+            PkgType::Extension => {
+                if pkgs_info.extension_pkg_info.is_none() {
+                    pkgs_info.extension_pkg_info = Some(Vec::new());
+                }
+                pkgs_info
+                    .extension_pkg_info
+                    .as_mut()
+                    .unwrap()
+                    .push(pkg_info);
+                Ok(pkgs_info
+                    .extension_pkg_info
+                    .as_ref()
+                    .unwrap()
+                    .last()
+                    .unwrap())
+            }
+            PkgType::Protocol => {
+                if pkgs_info.protocol_pkg_info.is_none() {
+                    pkgs_info.protocol_pkg_info = Some(Vec::new());
+                }
+                pkgs_info.protocol_pkg_info.as_mut().unwrap().push(pkg_info);
+                Ok(pkgs_info
+                    .protocol_pkg_info
+                    .as_ref()
+                    .unwrap()
+                    .last()
+                    .unwrap())
+            }
+            PkgType::AddonLoader => {
+                if pkgs_info.addon_loader_pkg_info.is_none() {
+                    pkgs_info.addon_loader_pkg_info = Some(Vec::new());
+                }
+                pkgs_info
+                    .addon_loader_pkg_info
+                    .as_mut()
+                    .unwrap()
+                    .push(pkg_info);
+                Ok(pkgs_info
+                    .addon_loader_pkg_info
+                    .as_ref()
+                    .unwrap()
+                    .last()
+                    .unwrap())
+            }
+            PkgType::System => {
+                if pkgs_info.system_pkg_info.is_none() {
+                    pkgs_info.system_pkg_info = Some(Vec::new());
+                }
+                pkgs_info.system_pkg_info.as_mut().unwrap().push(pkg_info);
+                Ok(pkgs_info.system_pkg_info.as_ref().unwrap().last().unwrap())
+            }
+            _ => Err(anyhow!("Unknown package type")),
         }
-        std::collections::hash_map::Entry::Vacant(entry) => {
-            let inserted = entry.insert(pkg_info);
-            Ok(inserted)
-        }
+    } else {
+        Err(anyhow!("Package missing manifest"))
     }
 }
 
 /// Retrieves information about all installed packages related to a specific
-/// application and stores this information in a HashMap.
-pub fn get_app_installed_pkgs_to_hashmap(
-    app_path: &Path,
-) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
-    let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
+/// application and stores this information in a BaseDirPkgInfo struct.
+pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
+    let mut pkgs_info = BaseDirPkgInfo {
+        app_pkg_info: None,
+        extension_pkg_info: None,
+        protocol_pkg_info: None,
+        addon_loader_pkg_info: None,
+        system_pkg_info: None,
+    };
 
     // Process the manifest.json file in the root path.
     let app_pkg = collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
@@ -283,19 +332,6 @@ pub fn get_app_installed_pkgs_to_hashmap(
     }
 
     Ok(pkgs_info)
-}
-
-/// A wrapper around `get_all_installed_pkgs_info_of_app_to_hashmap` that
-/// converts the resulting HashMap into a Vec of `PkgInfo` objects.
-///
-/// # Arguments
-/// * `app_path` - The absolute path of the app base directory, required.
-///
-/// # Returns
-/// A list of `PkgInfo` objects.
-pub fn get_app_installed_pkgs(app_path: &Path) -> Result<Vec<PkgInfo>> {
-    let result = get_app_installed_pkgs_to_hashmap(app_path)?;
-    Ok(result.into_values().collect())
 }
 
 /// Identifies local packages that are not tracked in the dependencies list. It
@@ -401,10 +437,10 @@ pub fn ten_rust_check_graph_for_app(
     let pkgs_info = get_app_installed_pkgs(app_path)?;
 
     // Create a map of all installed packages across all apps.
-    let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> =
+    let mut installed_pkgs_of_all_apps: HashMap<String, BaseDirPkgInfo> =
         HashMap::new();
 
-    // Insert packages for this app.
+    // Insert packages for this app
     installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 
     // Parse the graph JSON.
