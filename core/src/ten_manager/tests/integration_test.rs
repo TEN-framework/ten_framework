@@ -30,4 +30,25 @@ mod test_case {
     mod designer_terminal;
 
     mod graph;
+
+    // New test modules
+    mod version_utils;
+
+    mod schema;
+
+    mod cmd {
+        mod cmd_modify {
+            mod jq_util;
+        }
+    }
+
+    mod pkg_info {
+        mod manifest {
+            mod to_file;
+        }
+    }
+
+    mod registry {
+        mod local;
+    }
 }

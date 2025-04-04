@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod cmd_modify_graph;
-mod jq_util;
+pub mod jq_util;
 
 use std::sync::Arc;
 
