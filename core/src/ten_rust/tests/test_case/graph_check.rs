@@ -99,7 +99,8 @@ fn test_graph_check_single_app() {
     let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_info_struct.is_empty());
 
-    let graph_str = include_str!("test_data/graph_check_single_app/graph.json");
+    let graph_str =
+        include_str!("../test_data/graph_check_single_app/graph.json");
     let graph = Graph::from_str(graph_str).unwrap();
 
     let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
@@ -118,7 +119,7 @@ fn test_graph_check_builtin_extension() {
     assert!(!pkg_info_struct.is_empty());
 
     let graph_str =
-        include_str!("test_data/graph_check_builtin_extension/graph.json");
+        include_str!("../test_data/graph_check_builtin_extension/graph.json");
     let graph = Graph::from_str(graph_str).unwrap();
 
     let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();

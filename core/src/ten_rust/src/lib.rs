@@ -21,4 +21,4 @@ pub mod telemetry;
 // Additionally, if including schema/ folder here, it would result in duplicate
 // declarations.
 /// cbindgen:ignore
-mod schema;
+pub mod schema;

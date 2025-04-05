@@ -10,7 +10,9 @@ pub mod delete;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::graph::{constants, AppUriDeclarationState};
+use crate::constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE;
+use crate::constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE;
+use crate::graph::AppUriDeclarationState;
 
 use crate::graph::is_app_default_loc_or_none;
 use crate::pkg_info::{localhost, pkg_type_and_name::PkgTypeAndName};
@@ -57,9 +59,9 @@ impl GraphNode {
             if app.as_str() == localhost() {
                 let err_msg = if app_uri_declaration_state.is_single_app_graph()
                 {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
                 } else {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
                 };
 
                 return Err(anyhow::anyhow!(err_msg));

@@ -401,30 +401,3 @@ pub fn parse_manifest_in_folder(folder_path: &Path) -> Result<Manifest> {
 
     Ok(manifest)
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::pkg_info::pkg_type::PkgType;
-
-    use super::*;
-
-    #[test]
-    fn test_extension_manifest_from_str() {
-        let manifest_str = include_str!(
-            "test_data_embed/test_extension_manifest_from_str.json"
-        );
-
-        let result: Result<Manifest> = manifest_str.parse();
-        assert!(result.is_ok());
-
-        let manifest = result.unwrap();
-        assert_eq!(manifest.type_and_name.pkg_type, PkgType::Extension);
-
-        let cmd_in = manifest.api.unwrap().cmd_in.unwrap();
-        assert_eq!(cmd_in.len(), 1);
-
-        let required = cmd_in[0].required.as_ref();
-        assert!(required.is_some());
-        assert_eq!(required.unwrap().len(), 1);
-    }
-}
