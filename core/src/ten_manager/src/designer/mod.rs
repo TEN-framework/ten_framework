@@ -109,7 +109,7 @@ pub fn configure_routes(
                 web::post().to(graphs::nodes::delete::delete_graph_node_endpoint),
             )
             .route(
-                "/graphs/nodes/property",
+                "/graphs/nodes/property/update",
                 web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
             )
             // Graph connections endpoints.
@@ -124,6 +124,11 @@ pub fn configure_routes(
             .route(
                 "/graphs/connections/delete",
                 web::post().to(graphs::connections::delete::delete_graph_connection_endpoint),
+            )
+            // Messages endpoints.
+            .route(
+                "/messages/compatible",
+                web::post().to(messages::compatible::get_compatible_messages_endpoint),
             )
             // Preferences endpoints.
             .route(
@@ -170,11 +175,6 @@ pub fn configure_routes(
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
-            )
-            .route(
-                "/messages/compatible",
-                web::post()
-                    .to(messages::compatible::get_compatible_messages_endpoint),
             )
             .route(
                 "/registry/packages",
