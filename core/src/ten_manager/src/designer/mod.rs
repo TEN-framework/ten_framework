@@ -10,6 +10,7 @@ pub mod common;
 pub mod dir_list;
 pub mod env;
 pub mod exec;
+pub mod extensions;
 pub mod file_content;
 pub mod frontend;
 pub mod graphs;
@@ -77,6 +78,11 @@ pub fn configure_routes(
             .route(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
+            )
+            // Extension endpoints.
+            .route(
+                "/extensions/create",
+                web::post().to(extensions::create::create_extension_endpoint),
             )
             // Template packages endpoint.
             .route(
