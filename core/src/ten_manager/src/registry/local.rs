@@ -127,6 +127,22 @@ fn calc_file_hash(path: &Path) -> Result<String> {
     Ok(format!("{:x}", hash))
 }
 
+/// Check if a file exists and is a regular file.
+pub fn check_file_exists(path: &Path) -> Result<()> {
+    if !path.exists() {
+        return Err(anyhow::anyhow!("File does not exist: {}", path.display()));
+    }
+    if !path.is_file() {
+        return Err(anyhow::anyhow!("Path is not a file: {}", path.display()));
+    }
+    Ok(())
+}
+
+/// Extract the filename from a path.
+pub fn extract_filename_from_path(path: &Path) -> Option<String> {
+    path.file_name().map(|f| f.to_string_lossy().to_string())
+}
+
 /// Determine whether the locally cached file and the target file in the local
 /// registry have the same hash.
 fn is_same_file_by_hash(
@@ -581,70 +597,4 @@ pub async fn delete_package(
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use semver::VersionReq;
-
-    use super::*;
-
-    #[test]
-    fn test_semver_version_req() -> Result<()> {
-        let mut rc =
-            VersionReq::parse("3.0.0")?.matches(&Version::parse("3.0.0")?);
-        assert!(rc);
-
-        rc = VersionReq::parse("3.0.0")?.matches(&Version::parse("3.0.1")?);
-        assert!(rc);
-
-        rc = VersionReq::parse("3.0.0")?.matches(&Version::parse("3.1.0")?);
-        assert!(rc);
-
-        rc = VersionReq::parse("3.0.0")?
-            .matches(&Version::parse("3.1.0-alpha")?);
-        assert!(!rc);
-
-        rc = VersionReq::parse("3.0.0")?
-            .matches(&Version::parse("3.1.0+build3")?);
-        assert!(rc);
-
-        rc = VersionReq::parse("3.0.0")?
-            .matches(&Version::parse("3.1.0-beta+build4")?);
-        assert!(!rc);
-
-        rc = VersionReq::parse("3.0.0")?.matches(&Version::parse("4.0.0")?);
-        assert!(!rc);
-
-        rc = VersionReq::parse("3.0.0")?.matches(&Version::parse("4.0.0")?);
-        assert!(!rc);
-
-        rc = VersionReq::parse(">=2.0.0")?.matches(&Version::parse("2.1.0+3")?);
-        assert!(rc);
-
-        rc = VersionReq::parse(">=2.0.0")?.matches(&Version::parse("2.0.0+3")?);
-        assert!(rc);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_semver_version() -> Result<()> {
-        let mut rc = Version::parse("3.0.1")? > Version::parse("3.0.0")?;
-        assert!(rc);
-
-        rc = Version::parse("3.0.0")? > Version::parse("3.0.0-alpha")?;
-        assert!(rc);
-
-        rc = Version::parse("3.0.0")? < Version::parse("3.0.1-alpha")?;
-        assert!(rc);
-
-        rc = Version::parse("3.0.0-alpha")? < Version::parse("3.0.0-beta")?;
-        assert!(rc);
-
-        rc = Version::parse("3.0.0")? == Version::parse("3.0.0")?;
-        assert!(rc);
-
-        Ok(())
-    }
 }

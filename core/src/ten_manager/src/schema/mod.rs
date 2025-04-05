@@ -6,9 +6,6 @@
 //
 mod definition;
 
-#[cfg(test)]
-mod tests;
-
 pub use definition::{DESIGNER_SCHEMA, TMAN_CONFIG_SCHEMA};
 
 use anyhow::Result;

@@ -15,36 +15,28 @@ mod tests {
     use ten_manager::{
         config::TmanConfig,
         designer::{
-            apps::get::{get_apps_endpoint, GetAppsResponseData},
+            apps::load::{
+                load_app_endpoint, LoadAppRequestPayload, LoadAppResponseData,
+            },
             response::{ApiResponse, Status},
             DesignerState,
         },
         output::TmanOutputCli,
-        pkg_info::get_all_pkgs::get_all_pkgs,
     };
 
     #[actix_web::test]
-    async fn test_get_apps_with_uri() {
+    async fn test_load_app_success_with_app_uri() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
+        let tman_config = TmanConfig {
+            verbose: true,
+            ..TmanConfig::default()
+        };
+
+        let designer_state = DesignerState {
+            tman_config: Arc::new(tman_config),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
-
-        let _ = get_all_pkgs(
-            &mut designer_state.pkgs_cache,
-            &"tests/test_data/app_with_uri".to_string(),
-        );
-
-        assert_eq!(
-            designer_state
-                .pkgs_cache
-                .get("tests/test_data/app_with_uri")
-                .unwrap()
-                .len(),
-            3
-        );
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -53,61 +45,53 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps",
-                    web::get().to(get_apps_endpoint),
+                    "/test_load_app_success_with_app_uri",
+                    web::post().to(load_app_endpoint),
                 ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+        // Create request with base_dir specified.
+        let request_payload = LoadAppRequestPayload {
+            base_dir: "tests/test_data/app_with_uri".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/test_load_app_success_with_app_uri")
+            .set_json(request_payload)
             .to_request();
 
         // Send the request and get the response.
         let resp = test::call_service(&app, req).await;
 
-        // Verify the response.
-        assert_eq!(resp.status(), StatusCode::OK);
-
+        let resp_status = &resp.status();
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let api_response: ApiResponse<GetAppsResponseData> =
+        // Verify the response.
+        if resp_status != &StatusCode::OK {
+            println!("{}", body_str);
+
+            panic!("Failed to load app");
+        }
+
+        let api_response: ApiResponse<LoadAppResponseData> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(api_response.status, Status::Ok);
-        assert_eq!(api_response.data.app_info.len(), 1);
         assert_eq!(
-            api_response.data.app_info[0].base_dir,
-            "tests/test_data/app_with_uri"
-        );
-        assert_eq!(
-            api_response.data.app_info[0].app_uri,
+            api_response.data.app_uri,
             Some("msgpack://localhost:8000".to_string())
         );
     }
 
     #[actix_web::test]
-    async fn test_get_apps_without_uri() {
+    async fn test_load_app_success_without_app_uri() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
-
-        let _ = get_all_pkgs(
-            &mut designer_state.pkgs_cache,
-            &"tests/test_data/app_without_uri".to_string(),
-        );
-
-        assert_eq!(
-            designer_state
-                .pkgs_cache
-                .get("tests/test_data/app_without_uri")
-                .unwrap()
-                .len(),
-            3
-        );
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -116,14 +100,20 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps",
-                    web::get().to(get_apps_endpoint),
+                    "/test_load_app_success_without_app_uri",
+                    web::post().to(load_app_endpoint),
                 ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/apps")
+        // Create request with base_dir specified.
+        let request_payload = LoadAppRequestPayload {
+            base_dir: "tests/test_data/app_without_uri".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/test_load_app_success_without_app_uri")
+            .set_json(request_payload)
             .to_request();
 
         // Send the request and get the response.
@@ -135,14 +125,9 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let api_response: ApiResponse<GetAppsResponseData> =
+        let api_response: ApiResponse<LoadAppResponseData> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(api_response.status, Status::Ok);
-        assert_eq!(api_response.data.app_info.len(), 1);
-        assert_eq!(
-            api_response.data.app_info[0].base_dir,
-            "tests/test_data/app_without_uri"
-        );
-        assert_eq!(api_response.data.app_info[0].app_uri, None);
+        assert_eq!(api_response.data.app_uri, None);
     }
 }

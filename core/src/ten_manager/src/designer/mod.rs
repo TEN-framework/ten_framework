@@ -6,23 +6,23 @@
 //
 pub mod apps;
 pub mod builtin_function;
-mod common;
-mod dir_list;
-mod env;
-mod exec;
-mod file_content;
+pub mod common;
+pub mod dir_list;
+pub mod env;
+pub mod exec;
+pub mod file_content;
 pub mod frontend;
 pub mod graphs;
-mod help_text;
-mod locale;
-mod messages;
+pub mod help_text;
+pub mod locale;
+pub mod messages;
 pub mod mock;
 pub mod preferences;
 pub mod registry;
 pub mod response;
-mod template_pkgs;
+pub mod template_pkgs;
 pub mod terminal;
-mod version;
+pub mod version;
 
 use std::{
     collections::HashMap,

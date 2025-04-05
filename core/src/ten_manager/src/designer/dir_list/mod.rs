@@ -4,13 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    fs,
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::fs;
+use std::path::Path;
+use std::sync::{Arc, RwLock};
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{
+    error::{ErrorForbidden, ErrorNotFound},
+    web, HttpResponse, Responder,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -18,19 +19,19 @@ use super::{
     DesignerState,
 };
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FsEntry {
     pub name: String,
     pub path: String,
     pub is_dir: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct ListDirRequestPayload {
     path: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize)]
 pub struct DirListResponseData {
     pub entries: Vec<FsEntry>,
 }
@@ -39,46 +40,57 @@ pub async fn list_dir_endpoint(
     request_payload: web::Json<ListDirRequestPayload>,
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let path_str = request_payload.path.clone();
-    let path_obj = Path::new(&path_str);
+    let path = Path::new(&request_payload.path);
 
-    // If the path does not exist, return 404.
-    if !path_obj.exists() {
-        let response = ApiResponse {
-            status: Status::Fail,
-            data: (),
-            meta: None,
-        };
-        return Ok(HttpResponse::NotFound().json(response));
+    // Check if path exists.
+    if !path.exists() {
+        return Err(ErrorNotFound("Path does not exist"));
     }
 
-    // Collect the returned results.
+    // Check path permissions.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if let Ok(metadata) = fs::metadata(path) {
+            let mode = metadata.mode();
+            if mode & 0o400 == 0 {
+                // Check read permission.
+                return Err(ErrorForbidden("Permission denied"));
+            }
+        }
+    }
+
     let mut entries = Vec::new();
 
-    if path_obj.is_file() {
-        // If it is a file, return only the file information.
-        if let Some(file_name) = path_obj.file_name() {
-            entries.push(FsEntry {
-                name: file_name.to_string_lossy().to_string(),
-                path: path_str.clone(),
-                is_dir: false,
-            });
-        }
-    } else if path_obj.is_dir() {
-        // If it is a folder, list its immediate items.
-        if let Ok(dir_entries) = fs::read_dir(path_obj) {
+    // Case 1: path is a file.
+    if path.is_file() {
+        let file_name = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+        entries.push(FsEntry {
+            name: file_name,
+            path: request_payload.path.clone(),
+            is_dir: false,
+        });
+    }
+    // Case 2: path is a directory.
+    else if path.is_dir() {
+        if let Ok(dir_entries) = fs::read_dir(path) {
             for entry in dir_entries.flatten() {
-                let file_type = entry.file_type();
-                if let Ok(ft) = file_type {
-                    let file_name =
-                        entry.file_name().to_string_lossy().to_string();
-                    let full_path = entry.path().to_string_lossy().to_string();
-                    entries.push(FsEntry {
-                        name: file_name,
-                        path: full_path,
-                        is_dir: ft.is_dir(),
-                    });
-                }
+                let is_dir = if let Ok(file_type) = entry.file_type() {
+                    file_type.is_dir()
+                } else {
+                    false
+                };
+                let name = entry.file_name().to_string_lossy().to_string();
+                let entry_path = entry.path().to_string_lossy().to_string();
+                entries.push(FsEntry {
+                    name,
+                    path: entry_path,
+                    is_dir,
+                });
             }
         }
     }
@@ -89,150 +101,4 @@ pub async fn list_dir_endpoint(
         meta: None,
     };
     Ok(HttpResponse::Ok().json(response))
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::config::TmanConfig;
-    use crate::output::TmanOutputCli;
-
-    use super::*;
-    use actix_web::{test, App};
-    use std::collections::HashMap;
-    use std::fs::{self, File};
-    use std::io::Write;
-    use tempfile::tempdir;
-
-    #[actix_web::test]
-    async fn test_list_dir_with_file_path() {
-        // Create a temporary directory.
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test_file.txt");
-        let mut file = File::create(&file_path).unwrap();
-        writeln!(file, "Hello, world!").unwrap();
-
-        // Initialize DesignerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-        })));
-
-        // Configure the `list_dir` route.
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list",
-            web::post().to(list_dir_endpoint),
-        ))
-        .await;
-
-        // Construct the request.
-        let req_path = file_path.to_string_lossy().to_string();
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/dir-list")
-            .set_json(ListDirRequestPayload { path: req_path })
-            .to_request();
-
-        let resp = test::call_service(&app, req).await;
-
-        assert!(resp.status().is_success());
-
-        let body = test::read_body(resp).await;
-        let response: ApiResponse<DirListResponseData> =
-            serde_json::from_slice(&body).unwrap();
-
-        assert_eq!(response.status, Status::Ok);
-        assert_eq!(response.data.entries.len(), 1);
-        let entry = &response.data.entries[0];
-        assert_eq!(entry.name, "test_file.txt");
-        assert!(!entry.is_dir);
-    }
-
-    #[actix_web::test]
-    async fn test_list_dir_with_directory_path() {
-        // Create a temporary directory.
-        let dir = tempdir().unwrap();
-        let sub_dir = dir.path().join("sub_dir");
-        fs::create_dir(&sub_dir).unwrap();
-        let file1 = dir.path().join("file1.txt");
-        let file2 = sub_dir.join("file2.txt");
-        let mut f1 = File::create(&file1).unwrap();
-        writeln!(f1, "File 1").unwrap();
-        let mut f2 = File::create(&file2).unwrap();
-        writeln!(f2, "File 2").unwrap();
-
-        // Initialize DesignerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-        })));
-
-        // Configure the `list_dir` route.
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list",
-            web::post().to(list_dir_endpoint),
-        ))
-        .await;
-
-        // Construct the request.
-        let req_path = dir.path().to_string_lossy().to_string();
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/dir-list")
-            .set_json(ListDirRequestPayload { path: req_path })
-            .to_request();
-        let resp = test::call_service(&app, req).await;
-
-        assert!(resp.status().is_success());
-
-        let body = test::read_body(resp).await;
-        let response: ApiResponse<DirListResponseData> =
-            serde_json::from_slice(&body).unwrap();
-
-        assert_eq!(response.status, Status::Ok);
-        assert_eq!(response.data.entries.len(), 2);
-
-        let mut entries = response.data.entries.iter().collect::<Vec<_>>();
-        entries.sort_by_key(|e| &e.name);
-        assert_eq!(entries[0].name, "file1.txt");
-        assert_eq!(entries[0].path, file1.to_string_lossy());
-        assert!(!entries[0].is_dir);
-        assert_eq!(entries[1].name, "sub_dir");
-        assert_eq!(entries[1].path, sub_dir.to_string_lossy());
-        assert!(entries[1].is_dir);
-    }
-
-    #[actix_web::test]
-    async fn test_list_dir_with_non_existing_path() {
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-        })));
-
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list",
-            web::post().to(list_dir_endpoint),
-        ))
-        .await;
-
-        // Construct an invalid path.
-        let non_existing_path = "/path/to/nonexistent".to_string();
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/dir-list")
-            .set_json(ListDirRequestPayload {
-                path: non_existing_path,
-            })
-            .to_request();
-
-        let resp = test::call_service(&app, req).await;
-
-        assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
-
-        let body = test::read_body(resp).await;
-        let response: ApiResponse<()> = serde_json::from_slice(&body).unwrap();
-
-        assert_eq!(response.status, Status::Fail);
-    }
 }

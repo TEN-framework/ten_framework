@@ -15,5 +15,4 @@ fn main() {
 }
 
 // Those following mods will be compiled in one executable.
-mod graph_check;
-mod interface;
+mod test_case;

@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod found_result;
-mod local;
+pub mod local;
 mod pkg_cache;
 pub mod pkg_list_cache;
 mod remote;

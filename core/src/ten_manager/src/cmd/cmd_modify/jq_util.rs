@@ -28,96 +28,13 @@ pub fn jq_run(input: Value, code: &str) -> Result<Value> {
     Err(anyhow::anyhow!("empty output"))
 }
 
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use crate::cmd::cmd_modify::jq_util::jq_run;
-
-    #[test]
-    fn test_run() {
-        let input_json = json!({
-          "name": "default",
-          "auto_start": true,
-          "nodes": [
-            {
-              "type": "extension",
-              "name": "aio_http_server_python",
-              "addon": "aio_http_server_python",
-              "extension_group": "test",
-              "property": {
-                "server_port": 8002
-              }
-            },
-            {
-              "type": "extension",
-              "name": "simple_echo_cpp",
-              "addon": "simple_echo_cpp",
-              "extension_group": "default_extension_group"
-            }
-          ],
-          "connections": [
-            {
-              "extension": "aio_http_server_python",
-              "cmd": [
-                {
-                  "name": "test",
-                  "dest": [
-                    {
-                      "extension": "simple_echo_cpp"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        });
-        let code = "(.nodes[] | select(.name == \"simple_echo_cpp\") | .property) = {server_port: 8000}";
-
-        let expected_output = json!(
-            {
-                "name": "default",
-                "auto_start": true,
-                "nodes": [
-                    {
-                        "type": "extension",
-                        "name": "aio_http_server_python",
-                        "addon": "aio_http_server_python",
-                        "extension_group": "test",
-                        "property": {
-                            "server_port": 8002
-                        }
-                    },
-                    {
-                        "type": "extension",
-                        "name": "simple_echo_cpp",
-                        "addon": "simple_echo_cpp",
-                        "extension_group": "default_extension_group",
-                        "property": {
-                            "server_port": 8000
-                        }
-                    }
-                ],
-                "connections": [
-                    {
-                        "extension": "aio_http_server_python",
-                        "cmd": [
-                            {
-                                "name": "test",
-                                "dest": [
-                                    {
-                                        "extension": "simple_echo_cpp"
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        );
-
-        let result = jq_run(input_json, code).unwrap();
-
-        assert_eq!(result, expected_output);
+/// Convert a path array to a jq filter string.
+/// For example, ["a", "b", "c"] becomes ".a.b.c"
+pub fn path_to_jq_filter(path: &[&str]) -> String {
+    if path.is_empty() {
+        return ".".to_string();
     }
+    let mut result = String::from(".");
+    result.push_str(&path.join("."));
+    result
 }

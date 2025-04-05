@@ -419,14 +419,6 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
 }
 
 /// Check the graph for current app.
-///
-/// # Arguments
-/// * `app_base_dir` - The absolute path of the app base directory, required.
-/// * `graph_json` - The graph definition in JSON format, required.
-/// * `app_uri` - The `_ten::uri` of the app, required. We do not read this
-///   content from property.json of app, because the property.json might not
-///   exist. Ex: the property of app might be customized using
-///   `init_property_from_json` in `on_configure` method.
 pub fn ten_rust_check_graph_for_app(
     app_base_dir: &str,
     graph_json: &str,
@@ -440,7 +432,7 @@ pub fn ten_rust_check_graph_for_app(
     let mut installed_pkgs_of_all_apps: HashMap<String, BaseDirPkgInfo> =
         HashMap::new();
 
-    // Insert packages for this app
+    // Insert packages for this app.
     installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 
     // Parse the graph JSON.

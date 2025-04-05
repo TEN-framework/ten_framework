@@ -42,16 +42,16 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
     let all_pkgs_json = vec![
       (
-          include_str!("../test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
+          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
           "{}".to_string(),
       ),
       (
-          include_str!("../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a/manifest.json")
+          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a/manifest.json")
               .to_string(),
           "{}".to_string(),
       ),
       (
-          include_str!("../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b/manifest.json")
+          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b/manifest.json")
               .to_string(),
           "{}".to_string(),
       ),
@@ -106,16 +106,16 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let all_pkgs_json = vec![
         (
-            include_str!("../test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
-            include_str!("../test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
+            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
+            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
         ),
         (
-            include_str!("../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a/manifest.json")
+            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a/manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            include_str!("../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b/manifest.json")
+            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b/manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
