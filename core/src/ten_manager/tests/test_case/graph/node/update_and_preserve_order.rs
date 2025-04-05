@@ -150,6 +150,7 @@ mod tests {
             "test-graph",
             Some(&new_nodes),
             Some(&remove_nodes),
+            None,
         )?;
 
         // Read the updated property.json file back in to verify changes.

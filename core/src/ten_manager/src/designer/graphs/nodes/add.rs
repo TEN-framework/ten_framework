@@ -96,6 +96,7 @@ fn update_node_property_file(
         graph_name,
         Some(&nodes_to_add),
         None,
+        None,
     )?;
     Ok(())
 }

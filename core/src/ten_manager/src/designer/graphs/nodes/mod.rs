@@ -7,6 +7,7 @@
 pub mod add;
 pub mod delete;
 pub mod get;
+pub mod property;
 
 use std::collections::HashMap;
 
