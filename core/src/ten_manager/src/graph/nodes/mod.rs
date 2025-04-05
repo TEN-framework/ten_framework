@@ -30,6 +30,7 @@ pub fn update_graph_node_all_fields(
     graph_name: &str,
     nodes_to_add: Option<&[GraphNode]>,
     nodes_to_remove: Option<&[GraphNode]>,
+    nodes_to_modify_property: Option<&[GraphNode]>,
 ) -> Result<()> {
     // Process _ten.predefined_graphs array.
     if let Some(Value::Object(ten_obj)) = property_all_fields.get_mut("_ten") {
@@ -115,6 +116,141 @@ pub fn update_graph_node_all_fields(
                                                 true
                                             }
                                         });
+                                    }
+                                }
+
+                                // Modify node properties if requested.
+                                if let Some(modify_nodes) =
+                                    nodes_to_modify_property
+                                {
+                                    if !modify_nodes.is_empty() {
+                                        // For each node in the graph.
+                                        for node_value in nodes_array.iter_mut()
+                                        {
+                                            if let Value::Object(node_obj) =
+                                                node_value
+                                            {
+                                                // Check against each node to
+                                                // modify.
+                                                for modify_node in modify_nodes
+                                                {
+                                                    // Only proceed if the node
+                                                    // has a property to apply.
+                                                    if modify_node
+                                                        .property
+                                                        .is_none()
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    // Match the type.
+                                                    let type_match = match node_obj.get("type") {
+                                                        Some(Value::String(node_type)) => {
+                                                            if let Ok(pkg_type) = ten_rust::pkg_info::pkg_type::PkgType::from_str(node_type) {
+                                                                pkg_type == modify_node.type_and_name.pkg_type
+                                                            } else {
+                                                                false
+                                                            }
+                                                        },
+                                                        _ => false
+                                                    };
+
+                                                    // Match the name.
+                                                    let name_match = match node_obj.get("name") {
+                                                        Some(Value::String(node_name)) =>
+                                                            node_name == &modify_node.type_and_name.name,
+                                                        _ => false
+                                                    };
+
+                                                    // Match the addon.
+                                                    let addon_match =
+                                                        match node_obj
+                                                            .get("addon")
+                                                        {
+                                                            Some(
+                                                                Value::String(
+                                                                    node_addon,
+                                                                ),
+                                                            ) => node_addon
+                                                                == &modify_node
+                                                                    .addon,
+                                                            _ => false,
+                                                        };
+
+                                                    // Match the extension_group.
+                                                    let extension_group_match = match (&modify_node.extension_group, node_obj.get("extension_group")) {
+                                                        (Some(group), Some(Value::String(node_group))) =>
+                                                            group == node_group,
+                                                        (None, None) => true,
+                                                        // Modified node doesn't specify extension_group but graph node does.
+                                                        (None, Some(_)) => false,
+                                                        // Modified node has extension_group but graph node doesn't.
+                                                        (Some(_), None) => false,
+                                                        // Other cases (like mismatched types) don't match.
+                                                        _ => false,
+                                                    };
+
+                                                    // Match the app.
+                                                    let app_match = match (
+                                                        &modify_node.app,
+                                                        node_obj.get("app"),
+                                                    ) {
+                                                        (
+                                                            Some(app),
+                                                            Some(
+                                                                Value::String(
+                                                                    node_app,
+                                                                ),
+                                                            ),
+                                                        ) => app == node_app,
+                                                        (None, None) => true,
+                                                        // Modified node doesn't
+                                                        // specify app but graph
+                                                        // node does.
+                                                        (None, Some(_)) => {
+                                                            false
+                                                        }
+                                                        // Modified node has app
+                                                        // but graph node
+                                                        // doesn't.
+                                                        (Some(_), None) => {
+                                                            false
+                                                        }
+                                                        // Other cases (like
+                                                        // mismatched types)
+                                                        // don't match.
+                                                        _ => false,
+                                                    };
+
+                                                    // If all fields match,
+                                                    // update the property.
+                                                    if type_match
+                                                        && name_match
+                                                        && addon_match
+                                                        && extension_group_match
+                                                        && app_match
+                                                    {
+                                                        if let Some(property) =
+                                                            &modify_node
+                                                                .property
+                                                        {
+                                                            node_obj.insert(
+                                                                "property"
+                                                                    .to_string(
+                                                                    ),
+                                                                property
+                                                                    .clone(),
+                                                            );
+                                                        }
+
+                                                        // No need to check
+                                                        // further modify_nodes
+                                                        // for this graph node.
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 

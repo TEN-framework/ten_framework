@@ -102,6 +102,10 @@ pub fn configure_routes(
                 "/graphs/nodes/delete",
                 web::post().to(graphs::nodes::delete::delete_graph_node_endpoint),
             )
+            .route(
+                "/graphs/nodes/property",
+                web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
+            )
             // Graph connections endpoints.
             .route(
                 "/graphs/connections",
