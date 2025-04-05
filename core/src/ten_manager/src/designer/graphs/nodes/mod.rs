@@ -8,6 +8,7 @@ pub mod add;
 pub mod delete;
 pub mod get;
 pub mod property;
+pub mod validation;
 
 use std::collections::HashMap;
 
@@ -55,12 +56,26 @@ pub struct DesignerApi {
 pub struct DesignerPropertyAttributes {
     #[serde(rename = "type")]
     pub prop_type: ValueType,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub items: Option<Box<DesignerPropertyAttributes>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<HashMap<String, DesignerPropertyAttributes>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
 }
 
 impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
     fn from(api_property: ManifestPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
             prop_type: api_property.prop_type,
+            items: api_property.items.map(|items| Box::new((*items).into())),
+            properties: api_property.properties.map(|props| {
+                props.into_iter().map(|(k, v)| (k, v.into())).collect()
+            }),
+            required: api_property.required,
         }
     }
 }

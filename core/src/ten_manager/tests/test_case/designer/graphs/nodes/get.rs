@@ -126,6 +126,9 @@ mod tests {
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::Int8,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -141,6 +144,9 @@ mod tests {
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -156,6 +162,9 @@ mod tests {
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -190,6 +199,9 @@ mod tests {
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::Int32,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -205,6 +217,9 @@ mod tests {
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::Int8,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -220,6 +235,9 @@ mod tests {
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -235,6 +253,9 @@ mod tests {
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
                                         prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -253,6 +274,9 @@ mod tests {
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
                                     prop_type: ValueType::Int8,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map
@@ -284,6 +308,9 @@ mod tests {
                                 "test_property".to_string(),
                                 DesignerPropertyAttributes {
                                     prop_type: ValueType::String,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map
@@ -300,6 +327,9 @@ mod tests {
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
                                     prop_type: ValueType::Int8,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map

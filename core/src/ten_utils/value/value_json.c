@@ -19,6 +19,24 @@
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
 
+bool ten_value_set_from_json_str(ten_value_t *self, const char *json_str) {
+  TEN_ASSERT(self && json_str, "Invalid argument.");
+
+  if (!self || !json_str) {
+    return false;
+  }
+
+  ten_json_t *json = ten_json_from_string(json_str, NULL);
+  if (!json) {
+    TEN_LOGE("Failed to parse JSON string: %s", json_str);
+    return false;
+  }
+
+  bool result = ten_value_set_from_json(self, json);
+  ten_json_destroy(json);
+  return result;
+}
+
 bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
   TEN_ASSERT(self && json, "Invalid argument.");
 
@@ -254,6 +272,30 @@ ten_value_t *ten_value_from_json(ten_json_t *json) {
     ten_value_destroy(value);
     return NULL;
   }
+  return value;
+}
+
+ten_value_t *ten_value_from_json_str(const char *json_str) {
+  TEN_ASSERT(json_str, "Invalid argument.");
+
+  if (json_str == NULL) {
+    return NULL;
+  }
+
+  ten_json_t *json = ten_json_from_string(json_str, NULL);
+  if (!json) {
+    TEN_LOGE("Failed to parse JSON string: %s", json_str);
+    return NULL;
+  }
+
+  ten_value_t *value = ten_value_create_invalid();
+  if (!ten_value_init_from_json(value, json)) {
+    ten_value_destroy(value);
+    ten_json_destroy(json);
+    return NULL;
+  }
+
+  ten_json_destroy(json);
   return value;
 }
 

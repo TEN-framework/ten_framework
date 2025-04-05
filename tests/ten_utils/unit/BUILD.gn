@@ -32,6 +32,7 @@ ten_utils_glob("unit") {
     "ten_thread_test.cc",
     "sm_test.cc",
     "ten_json_test.cc",
+    "ten_value_test.cc",
   ]
 
   if (is_linux || is_mac) {

@@ -8,7 +8,7 @@ import("//build/ten_utils/utils.gni")
 
 ten_utils_glob("schema") {
   deps = [
-    "bindings",
+    "bindings:schema_bindings",
     "keywords",
     "types",
   ]
