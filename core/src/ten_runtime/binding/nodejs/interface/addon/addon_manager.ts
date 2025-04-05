@@ -7,11 +7,13 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { Addon } from "./addon";
-import ten_addon from "../ten_addon";
+import { Addon } from "./addon.js";
+import ten_addon from "../ten_addon.js";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 type Ctor<T> = {
-  new (): T;
+  new(): T;
   prototype: T;
 };
 
@@ -28,7 +30,7 @@ export class AddonManager {
   }
 
   static _find_app_base_dir(): string {
-    let currentDir = __dirname;
+    let currentDir = dirname(fileURLToPath(import.meta.url));
 
     while (currentDir !== path.dirname(currentDir)) {
       const manifestPath = path.join(currentDir, "manifest.json");
@@ -51,7 +53,7 @@ export class AddonManager {
     throw new Error("Cannot find app base dir");
   }
 
-  static _load_all_addons(): void {
+  static async _load_all_addons(): Promise<void> {
     const app_base_dir = AddonManager._find_app_base_dir();
 
     const manifest_path = path.join(app_base_dir, "manifest.json");
@@ -76,7 +78,9 @@ export class AddonManager {
     }
 
     const dirs = fs.opendirSync(extension_folder);
-    for (;;) {
+    const loadPromises = [];
+
+    for (; ;) {
       const entry = dirs.readSync();
       if (!entry) {
         break;
@@ -89,12 +93,18 @@ export class AddonManager {
       const packageJsonFile = `${extension_folder}/${entry.name}/package.json`;
 
       if (entry.isDirectory() && fs.existsSync(packageJsonFile)) {
-        require(`${extension_folder}/${entry.name}`);
+        // Log the extension name
+        console.log(`_load_all_addons Loading extension ${entry.name}`);
+        loadPromises.push(import(`${extension_folder}/${entry.name}/build/index.js`));
       }
     }
+
+    // Wait for all modules to be loaded
+    await Promise.all(loadPromises);
+    console.log(`_load_all_addons Loaded ${loadPromises.length} extensions`);
   }
 
-  static _load_single_addon(name: string): boolean {
+  static async _load_single_addon(name: string): Promise<boolean> {
     const app_base_dir = AddonManager._find_app_base_dir();
 
     const extension_folder = path.join(
@@ -116,10 +126,14 @@ export class AddonManager {
       return false;
     }
 
-    require(`${extension_folder}`);
-    console.log(`Addon ${name} loaded`);
-
-    return true;
+    try {
+      await import(`${extension_folder}/build/index.js`);
+      console.log(`Addon ${name} loaded`);
+      return true;
+    } catch (error) {
+      console.error(`Failed to load addon ${name}: ${error}`);
+      return false;
+    }
   }
 
   static _register_single_addon(name: string, registerContext: any): void {
@@ -166,6 +180,8 @@ export function RegisterAddonAsExtension(
     }
 
     AddonManager._set_register_handler(name, registerHandler);
+
+    console.log(`RegisterAddonAsExtension ${name} registered`);
 
     return klass;
   };

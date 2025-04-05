@@ -2,9 +2,9 @@
   "compilerOptions": {
     "allowJs": false,
     "composite": true,
-    "module": "commonjs",
+    "module": "NodeNext",
     "target": "es6",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "outDir": "build",
     "removeComments": false,
     "sourceMap": true,

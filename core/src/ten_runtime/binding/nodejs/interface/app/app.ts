@@ -4,9 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { AddonManager } from "../addon/addon_manager";
-import ten_addon from "../ten_addon";
-import { TenEnv } from "../ten_env/ten_env";
+import { AddonManager } from "../addon/addon_manager.js";
+import ten_addon from "../ten_addon.js";
+import { TenEnv } from "../ten_env/ten_env.js";
 
 export class App {
   constructor() {
@@ -16,7 +16,7 @@ export class App {
   private async onConfigureProxy(tenEnv: TenEnv): Promise<void> {
     await this.onConfigure(tenEnv);
 
-    AddonManager._load_all_addons();
+    await AddonManager._load_all_addons();
     AddonManager._register_all_addons(null);
 
     ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);

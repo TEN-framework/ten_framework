@@ -1,6 +1,7 @@
 {
   "name": "ten-runtime-nodejs",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "build": "tsc --listEmittedFiles"
   },
