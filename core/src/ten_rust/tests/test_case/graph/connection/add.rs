@@ -59,19 +59,19 @@ mod tests {
         let app_property = Property::from_str(prop_str).unwrap();
 
         // Create ext1 PkgInfo with valid API schema for message communication.
-        let ext1_manifest_str =
+        let ext1_manifest_json_str =
             include_str!("test_data_embed/ext_1_manifest.json");
-        let ext1_manifest = Manifest::from_str(ext1_manifest_str).unwrap();
+        let ext1_manifest = Manifest::from_str(ext1_manifest_json_str).unwrap();
 
         // Create ext2 PkgInfo with compatible API schemas.
-        let ext2_manifest_str =
+        let ext2_manifest_json_str =
             include_str!("test_data_embed/ext_2_manifest.json");
-        let ext2_manifest = Manifest::from_str(ext2_manifest_str).unwrap();
+        let ext2_manifest = Manifest::from_str(ext2_manifest_json_str).unwrap();
 
         // Create ext3 PkgInfo with incompatible API schemas.
-        let ext3_manifest_str =
+        let ext3_manifest_json_str =
             include_str!("test_data_embed/ext_3_manifest.json");
-        let ext3_manifest = Manifest::from_str(ext3_manifest_str).unwrap();
+        let ext3_manifest = Manifest::from_str(ext3_manifest_json_str).unwrap();
 
         // Create app PkgInfo.
         let app_pkg_info = PkgInfo {

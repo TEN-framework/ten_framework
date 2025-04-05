@@ -39,7 +39,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
@@ -47,7 +47,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -99,7 +99,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
@@ -107,7 +107,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -158,19 +158,19 @@ mod tests {
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // Read test data from embedded JSON files.
-        let input_property =
+        let input_property_json_str =
             include_str!("../test_data_embed/app_property.json");
-        let input_manifest =
+        let input_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json");
 
         // Write input files to temp directory.
         let property_path = std::path::Path::new(&temp_dir_path)
             .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, input_property).unwrap();
+        std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
             std::path::Path::new(&temp_dir_path).join("manifest.json");
-        std::fs::write(&manifest_path, input_manifest).unwrap();
+        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
@@ -208,11 +208,16 @@ mod tests {
 
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
+            graph_app_base_dir: temp_dir_path.clone(),
             graph_name: "default_with_app_uri".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
         };
 
         let req = test::TestRequest::post()
@@ -224,19 +229,19 @@ mod tests {
         // Ensure add was successful.
         assert_eq!(resp.status(), 200);
 
-        let updated_property_content =
+        let updated_property_json_str =
             std::fs::read_to_string(&property_path).unwrap();
 
-        let expected_property_content =
+        let expected_property_json_str =
             include_str!("test_data_embed/expected_property_after_adding_in_test_delete_graph_node_success.json");
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
-            serde_json::from_str(&updated_property_content).unwrap();
+            serde_json::from_str(&updated_property_json_str).unwrap();
         let expected_property: serde_json::Value =
-            serde_json::from_str(expected_property_content).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
 
-        // Compare the updated property with the expected property
+        // Compare the updated property with the expected property.
         assert_eq!(
             updated_property, expected_property,
             "Updated property does not match expected property"
@@ -315,7 +320,7 @@ mod tests {
         let updated_property: serde_json::Value =
             serde_json::from_str(&updated_property_content).unwrap();
         let expected_property: serde_json::Value =
-            serde_json::from_str(input_property).unwrap();
+            serde_json::from_str(input_property_json_str).unwrap();
 
         // Compare the updated property with the expected property
         assert_eq!(

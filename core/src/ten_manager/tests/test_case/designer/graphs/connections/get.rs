@@ -39,7 +39,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![
+        let all_pkgs_json_str = vec![
             (
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
@@ -72,7 +72,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -140,7 +140,7 @@ mod tests {
 
         // The first item is 'manifest.json', and the second item is
         // 'property.json'.
-        let all_pkgs_json = vec![
+        let all_pkgs_json_str = vec![
             (
                 include_str!("test_data_embed/get_connections_have_all_data_type/app_manifest.json")
                     .to_string(),
@@ -162,7 +162,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 

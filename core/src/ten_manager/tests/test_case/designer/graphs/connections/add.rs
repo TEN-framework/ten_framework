@@ -44,15 +44,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -80,7 +80,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property.clone()),
             (ext3_manifest, empty_property.clone()),
@@ -137,7 +137,7 @@ mod tests {
         assert!(response.data.success);
 
         // Define expected property.json content after adding the connection.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_success.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_success.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -146,7 +146,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences.
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
@@ -172,7 +172,7 @@ mod tests {
         let temp_dir = tempfile::tempdir().unwrap();
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
-        let all_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
@@ -189,7 +189,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             &test_dir,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -238,15 +238,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -274,7 +274,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property.clone()),
             (ext3_manifest, empty_property.clone()),
@@ -340,7 +340,7 @@ mod tests {
         assert!(resp2.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_preserves_order.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_preserves_order.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -349,7 +349,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences.
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
@@ -376,15 +376,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -412,7 +412,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property.clone()),
             (ext3_manifest, empty_property.clone()),
@@ -478,7 +478,7 @@ mod tests {
         assert!(resp2.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_file_comparison.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_file_comparison.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -487,7 +487,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
@@ -514,15 +514,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -543,7 +543,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property),
         ];
@@ -594,7 +594,7 @@ mod tests {
         assert!(response.data.success);
 
         // Define expected property.json content after adding the connection.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_data_type.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_data_type.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -603,7 +603,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences.
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
@@ -630,15 +630,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -659,7 +659,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property),
         ];
@@ -724,7 +724,7 @@ mod tests {
         assert!(resp.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_graph_connection_frame_types.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_frame_types.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -733,7 +733,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences.
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
@@ -760,15 +760,15 @@ mod tests {
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // Load both the app package JSON and extension addon package JSONs.
-        let app_manifest =
+        let app_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json").to_string();
-        let app_property =
+        let app_property_json_str =
             include_str!("../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, &app_property).unwrap();
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create three extension addon manifest strings.
         let ext1_manifest = r#"{
@@ -796,7 +796,7 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest, app_property),
+            (app_manifest_json_str, app_property_json_str),
             (ext1_manifest, empty_property.clone()),
             (ext2_manifest, empty_property.clone()),
             (ext3_manifest, empty_property),
@@ -883,7 +883,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property = include_str!("test_data_embed/expected_json__test_add_multiple_connections_preservation_order.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_multiple_connections_preservation_order.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -892,7 +892,7 @@ mod tests {
 
         // Normalize both JSON strings to handle formatting differences.
         let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property).unwrap();
+            serde_json::from_str(expected_property_json_str).unwrap();
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_property).unwrap();
 
