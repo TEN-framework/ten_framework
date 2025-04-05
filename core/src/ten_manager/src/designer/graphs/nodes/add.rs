@@ -100,12 +100,137 @@ fn update_node_property_file(
     Ok(())
 }
 
+/// Validates the AddGraphNodeRequestPayload based on the addon extension
+/// schema.
+fn validate_add_graph_node_request(
+    request_payload: &AddGraphNodeRequestPayload,
+    state: &mut DesignerState,
+) -> Result<(), String> {
+    // If addon_app_base_dir is not specified, skip the checks.
+    if request_payload.addon_app_base_dir.is_none() {
+        return Ok(());
+    }
+
+    let addon_app_base_dir =
+        request_payload.addon_app_base_dir.as_ref().unwrap();
+
+    // Step 2: Find BaseDirPkgInfo using addon_app_base_dir.
+    let base_dir_pkg_info = match state.pkgs_cache.get(addon_app_base_dir) {
+        Some(pkg_info) => pkg_info,
+        None => {
+            return Err(format!(
+                "Addon app base directory '{}' not found in pkgs_cache",
+                addon_app_base_dir
+            ))
+        }
+    };
+
+    // Step 3: Check that app_uri matches with the app_pkg_info's uri if set.
+    if let Some(app_pkg_info) = &base_dir_pkg_info.app_pkg_info {
+        if let Some(property) = &app_pkg_info.property {
+            if let Some(ten) = &property._ten {
+                let app_uri_matches = match (&request_payload.app_uri, &ten.uri)
+                {
+                    // Both sides have no URI - OK.
+                    (None, None) => true,
+                    // Both have URI - must match.
+                    (Some(req_uri), Some(app_uri)) => req_uri == app_uri,
+                    // One side has URI and the other doesn't - not OK.
+                    _ => false,
+                };
+
+                if !app_uri_matches {
+                    return Err(format!(
+                        "Request app_uri {:?} doesn't match app package uri {:?}",
+                        request_payload.app_uri, ten.uri
+                    ));
+                }
+            }
+        }
+    }
+
+    // Step 4 & 5: Find extension PkgInfo and validate property against json
+    // schema if present.
+    if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+        for ext_pkg in extensions {
+            if let Some(manifest) = &ext_pkg.manifest {
+                if manifest.type_and_name.pkg_type == PkgType::Extension
+                    && manifest.type_and_name.name == request_payload.addon_name
+                {
+                    // Found matching extension - check property schema if it
+                    // exists.
+                    if let Some(api) = &manifest.api {
+                        if let Some(property_schema) = &api.property {
+                            // If request payload has property and extension has
+                            // schema, validate.
+                            if let Some(property) = &request_payload.property {
+                                // Convert property_schema to a JSON Schema
+                                // document.
+                                let schema_json = serde_json::json!({
+                                    "type": "object",
+                                    "properties": property_schema,
+                                    "additionalProperties": false
+                                });
+
+                                // Create validator from schema.
+                                let validator = match jsonschema::Validator::new(
+                                    &schema_json,
+                                ) {
+                                    Ok(v) => v,
+                                    Err(e) => {
+                                        return Err(format!(
+                                        "Failed to compile property schema: {}",
+                                        e
+                                    ))
+                                    }
+                                };
+
+                                // Validate property against schema.
+                                if let Err(errors) =
+                                    validator.validate(property)
+                                {
+                                    return Err(format!(
+                                        "Property validation failed: {}",
+                                        errors
+                                    ));
+                                }
+                            }
+                        }
+                    }
+
+                    return Ok(());
+                }
+            }
+        }
+
+        // If we got here, the extension wasn't found.
+        return Err(format!(
+            "Extension '{}' not found in addon_app_base_dir",
+            request_payload.addon_name
+        ));
+    }
+
+    Ok(())
+}
+
 pub async fn add_graph_node_endpoint(
     request_payload: web::Json<AddGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().unwrap();
+
+    // Validate the request payload before proceeding.
+    if let Err(validation_error) =
+        validate_add_graph_node_request(&request_payload, &mut state_write)
+    {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Validation failed: {}", validation_error),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
     // Get the packages for this base_dir.
     if let Some(base_dir_pkg_info) = state_write
