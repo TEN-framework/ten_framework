@@ -71,47 +71,18 @@ pub fn validate_node_request<T: ExtensionSchemaValidatable>(
                     && manifest.type_and_name.name == request.get_addon_name()
                 {
                     // Found matching extension - check property schema if it
-                    // exists.
-                    if let Some(api) = &manifest.api {
-                        if let Some(property_schema) = &api.property {
-                            eprintln!(
-                                "=-=-= property_schema: {:?}",
-                                property_schema
-                            );
-
-                            // If request payload has property and extension has
-                            // schema, validate.
-                            if let Some(property) = request.get_property() {
-                                // Convert property_schema to a JSON Schema
-                                // document.
-                                let schema_json = serde_json::json!({
-                                    "type": "object",
-                                    "properties": property_schema,
-                                    "additionalProperties": false
-                                });
-
-                                // Create validator from schema.
-                                let validator = match jsonschema::Validator::new(
-                                    &schema_json,
-                                ) {
-                                    Ok(v) => v,
-                                    Err(e) => {
-                                        return Err(format!(
-                                        "Failed to compile property schema: {}",
-                                        e
-                                    ))
-                                    }
-                                };
-
-                                // Validate property against schema.
-                                if let Err(errors) =
-                                    validator.validate(property)
-                                {
-                                    return Err(format!(
-                                        "Property validation failed: {}",
-                                        errors
-                                    ));
-                                }
+                    // exists and request has property.
+                    if let (Some(property), Some(schema_store)) =
+                        (request.get_property(), &ext_pkg.schema_store)
+                    {
+                        if let Some(property_schema) = &schema_store.property {
+                            if let Err(e) =
+                                property_schema.validate_json(property)
+                            {
+                                return Err(format!(
+                                    "Property validation failed: {}",
+                                    e
+                                ));
                             }
                         }
                     }
