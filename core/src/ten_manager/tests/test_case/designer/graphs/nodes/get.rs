@@ -31,6 +31,7 @@ mod tests {
         },
         output::TmanOutputCli,
     };
+    use ten_rust::pkg_info::value_type::ValueType;
 
     #[actix_web::test]
     async fn test_get_extensions_success() {
@@ -124,7 +125,7 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
+                                        prop_type: ValueType::Int8,
                                     },
                                 );
                                 map
@@ -139,7 +140,7 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
                                     },
                                 );
                                 map
@@ -154,7 +155,7 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
                                     },
                                 );
                                 map
@@ -188,7 +189,7 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int32".to_string(),
+                                        prop_type: ValueType::Int32,
                                     },
                                 );
                                 map
@@ -203,7 +204,7 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
+                                        prop_type: ValueType::Int8,
                                     },
                                 );
                                 map
@@ -218,7 +219,7 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
                                     },
                                 );
                                 map
@@ -233,7 +234,7 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
                                     },
                                 );
                                 map
@@ -251,7 +252,7 @@ mod tests {
                             map.insert(
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
+                                    prop_type: ValueType::Int8,
                                 },
                             );
                             map
@@ -282,7 +283,7 @@ mod tests {
                             map.insert(
                                 "test_property".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
+                                    prop_type: ValueType::String,
                                 },
                             );
                             map
@@ -298,7 +299,7 @@ mod tests {
                             map.insert(
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
+                                    prop_type: ValueType::Int8,
                                 },
                             );
                             map

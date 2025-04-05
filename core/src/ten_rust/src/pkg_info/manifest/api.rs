@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize};
 
+use crate::pkg_info::value_type::ValueType;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestApi {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,7 +44,7 @@ pub struct ManifestApi {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestPropertyAttributes {
     #[serde(rename = "type")]
-    pub prop_type: String,
+    pub prop_type: ValueType,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

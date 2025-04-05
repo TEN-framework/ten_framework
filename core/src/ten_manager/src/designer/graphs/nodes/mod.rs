@@ -18,6 +18,7 @@ use ten_rust::pkg_info::manifest::api::{
 use ten_rust::pkg_info::manifest::api::{
     ManifestCmdResult, ManifestPropertyAttributes,
 };
+use ten_rust::pkg_info::value_type::ValueType;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerApi {
@@ -52,13 +53,13 @@ pub struct DesignerApi {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DesignerPropertyAttributes {
     #[serde(rename = "type")]
-    pub prop_type: String,
+    pub prop_type: ValueType,
 }
 
 impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
     fn from(api_property: ManifestPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
-            prop_type: api_property.prop_type.to_string(),
+            prop_type: api_property.prop_type,
         }
     }
 }
