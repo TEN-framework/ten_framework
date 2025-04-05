@@ -63,11 +63,14 @@ mod tests {
 
         // Try to add a node to a non-existent graph.
         let request_payload = AddGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            graph_app_base_dir: TEST_DIR.to_string(),
             graph_name: "non_existent_graph".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: Some("http://test-app-uri.com".to_string()),
+            property: None,
         };
 
         let req = test::TestRequest::post()
@@ -120,11 +123,14 @@ mod tests {
 
         // Try to add a node with localhost app URI (which is not allowed).
         let request_payload = AddGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            graph_app_base_dir: TEST_DIR.to_string(),
             graph_name: "default".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: Some(localhost().to_string()),
+            property: None,
         };
 
         let req = test::TestRequest::post()
@@ -177,11 +183,14 @@ mod tests {
 
         // Add a node to the default graph with the same app URI as other nodes
         let request_payload = AddGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            graph_app_base_dir: TEST_DIR.to_string(),
             graph_name: "default_with_app_uri".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: Some("http://example.com:8000".to_string()),
+            property: None,
         };
 
         let req = test::TestRequest::post()
@@ -239,11 +248,14 @@ mod tests {
 
         // Add a node to the default graph with the same app URI as other nodes.
         let request_payload = AddGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            graph_app_base_dir: TEST_DIR.to_string(),
             graph_name: "default".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: None,
+            property: None,
         };
 
         let req = test::TestRequest::post()
@@ -327,11 +339,14 @@ mod tests {
 
         // Add a node to the test-graph.
         let request_payload = AddGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
+            graph_app_base_dir: temp_dir_path.clone(),
             graph_name: "test-graph".to_string(),
+            addon_app_base_dir: None,
             node_name: "new-node".to_string(),
             addon_name: "new-addon".to_string(),
+            extension_group_name: None,
             app_uri: None,
+            property: None,
         };
 
         let req = test::TestRequest::post()

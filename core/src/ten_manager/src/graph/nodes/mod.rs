@@ -6,6 +6,7 @@
 //
 use std::fs::OpenOptions;
 use std::path::Path;
+use std::str::FromStr;
 
 use anyhow::{Context, Result};
 use serde_json::Value;
@@ -47,33 +48,70 @@ pub fn update_graph_node_all_fields(
                                 // Remove nodes if requested.
                                 if let Some(remove_nodes) = nodes_to_remove {
                                     if !remove_nodes.is_empty() {
-                                        // First, convert nodes to remove into
-                                        // comparable form.
-                                        let nodes_to_remove_serialized: Vec<
-                                            String,
-                                        > = remove_nodes
-                                            .iter()
-                                            .filter_map(|node| {
-                                                let node_value =
-                                                    serde_json::to_value(node)
-                                                        .ok()?;
-                                                serde_json::to_string(
-                                                    &node_value,
-                                                )
-                                                .ok()
-                                            })
-                                            .collect();
-
-                                        // Filter out nodes to remove.
+                                        // Filter out nodes to remove based on
+                                        // key fields only, ignoring property.
                                         nodes_array.retain(|item| {
-                                            if let Ok(item_str) =
-                                                serde_json::to_string(item)
-                                            {
-                                                !nodes_to_remove_serialized
-                                                    .contains(&item_str)
+                                            // For each node in the array, check if it matches any node in nodes_to_remove.
+                                            if let Value::Object(item_obj) = item {
+                                                // For each node to remove, check if the current node matches.
+                                                !remove_nodes.iter().any(|remove_node| {
+                                                    // Match the type.
+                                                    let type_match = match item_obj.get("type") {
+                                                        Some(Value::String(item_type)) => {
+                                                            if let Ok(pkg_type) = ten_rust::pkg_info::pkg_type::PkgType::from_str(item_type) {
+                                                                pkg_type == remove_node.type_and_name.pkg_type
+                                                            } else {
+                                                                false
+                                                            }
+                                                        },
+                                                        _ => false
+                                                    };
+
+                                                    // Match the name.
+                                                    let name_match = match item_obj.get("name") {
+                                                        Some(Value::String(item_name)) =>
+                                                            item_name == &remove_node.type_and_name.name,
+                                                        _ => false
+                                                    };
+
+                                                    // Match the addon.
+                                                    let addon_match = match item_obj.get("addon") {
+                                                        Some(Value::String(item_addon)) =>
+                                                            item_addon == &remove_node.addon,
+                                                        _ => false
+                                                    };
+
+                                                    // Match the extension_group if it exists in the node to remove.
+                                                    let extension_group_match = match (&remove_node.extension_group, item_obj.get("extension_group")) {
+                                                        (Some(group), Some(Value::String(item_group))) =>
+                                                            group == item_group,
+                                                        (None, None) => true,
+                                                         // Node to remove doesn't specify extension_group.
+                                                        (None, Some(_)) => false,
+                                                        // Node to remove has extension_group but item doesn't.
+                                                        (Some(_), None) => false,
+                                                        // Other cases (like mismatched types) don't match.
+                                                        _ => false,
+                                                    };
+
+                                                    // Match the app if it exists in the node to remove.
+                                                    let app_match = match (&remove_node.app, item_obj.get("app")) {
+                                                        (Some(app), Some(Value::String(item_app))) =>
+                                                            app == item_app,
+                                                        (None, None) => true,
+                                                        // Node to remove doesn't specify app.
+                                                        (None, Some(_)) => false,
+                                                        // Node to remove has app but item doesn't.
+                                                        (Some(_), None) => false,
+                                                        // Other cases (like mismatched types) don't match.
+                                                        _ => false,
+                                                    };
+
+                                                    // All fields match.
+                                                    type_match && name_match && addon_match && extension_group_match && app_match
+                                                })
                                             } else {
-                                                // Keep items that can't be
-                                                // serialized.
+                                                // Keep non-object values.
                                                 true
                                             }
                                         });

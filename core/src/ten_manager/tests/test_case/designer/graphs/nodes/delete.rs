@@ -208,11 +208,16 @@ mod tests {
 
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
+            graph_app_base_dir: temp_dir_path.clone(),
             graph_name: "default_with_app_uri".to_string(),
+            addon_app_base_dir: None,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
+            extension_group_name: None,
             app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
         };
 
         let req = test::TestRequest::post()
@@ -236,7 +241,7 @@ mod tests {
         let expected_property: serde_json::Value =
             serde_json::from_str(expected_property_content).unwrap();
 
-        // Compare the updated property with the expected property
+        // Compare the updated property with the expected property.
         assert_eq!(
             updated_property, expected_property,
             "Updated property does not match expected property"
