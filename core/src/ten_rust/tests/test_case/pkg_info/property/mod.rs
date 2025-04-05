@@ -157,8 +157,8 @@ mod tests {
 
     #[test]
     fn test_dump_property_without_localhost_app_in_graph() {
-        let json_data = include_str!("test_data_embed/property.json");
-        let property: Property = json_data.parse().unwrap();
+        let json_str = include_str!("test_data_embed/property.json");
+        let property: Property = json_str.parse().unwrap();
         assert!(property._ten.is_some());
         let ten = property._ten.as_ref().unwrap();
         let predefined_graphs = ten.predefined_graphs.as_ref().unwrap();

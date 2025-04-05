@@ -33,7 +33,7 @@ mod tests {
         };
 
         // Inject initial package data.
-        let initial_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("test_data/app_manifest.json").to_string(),
             include_str!("test_data/app_property.json").to_string(),
         )];
@@ -41,7 +41,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            initial_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 

@@ -32,9 +32,9 @@ mod tests {
 
     #[test]
     fn test_predefined_graph_has_no_extensions() {
-        let property_str =
+        let property_json_str =
             include_str!("test_data_embed/predefined_graph_no_extensions.json");
-        let property: Property = Property::from_str(property_str).unwrap();
+        let property: Property = Property::from_str(property_json_str).unwrap();
         let ten = property._ten.as_ref().unwrap();
         let predefined_graph =
             ten.predefined_graphs.as_ref().unwrap().first().unwrap();
