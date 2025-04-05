@@ -90,7 +90,10 @@ fn auto_gen_schema_bindings_from_c() {
     let disabled_clippy_lints = [
         "#![allow(non_upper_case_globals)]",
         "#![allow(non_camel_case_types)]",
+        "#![allow(non_snake_case)]",
         "#![allow(dead_code)]",
+        "#![allow(improper_ctypes)]",
+        "#![allow(improper_ctypes_definitions)]",
     ];
     let new_bindings_content =
         disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
@@ -165,7 +168,10 @@ fn auto_gen_value_bindings_from_c() {
     let disabled_clippy_lints = [
         "#![allow(non_upper_case_globals)]",
         "#![allow(non_camel_case_types)]",
+        "#![allow(non_snake_case)]",
         "#![allow(dead_code)]",
+        "#![allow(improper_ctypes)]",
+        "#![allow(improper_ctypes_definitions)]",
     ];
     let new_bindings_content =
         disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
