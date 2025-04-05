@@ -10,12 +10,18 @@ pub mod delete;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::graph::is_app_default_loc_or_none;
-use crate::pkg_info::localhost;
-
-use super::{
-    constants, msg_conversion::MsgAndResultConversion, AppUriDeclarationState,
+use crate::constants::{
+    ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED,
+    ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED,
+    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE,
 };
+use crate::pkg_info::localhost;
+use crate::{
+    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE,
+    graph::is_app_default_loc_or_none,
+};
+
+use super::{msg_conversion::MsgAndResultConversion, AppUriDeclarationState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GraphConnection {
@@ -47,9 +53,9 @@ impl GraphConnection {
             if app.as_str() == localhost() {
                 let err_msg = if app_uri_declaration_state.is_single_app_graph()
                 {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
                 } else {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
                 };
 
                 return Err(anyhow::anyhow!(err_msg));
@@ -60,7 +66,7 @@ impl GraphConnection {
                 == AppUriDeclarationState::NoneDeclared
             {
                 return Err(anyhow::anyhow!(
-                    constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED
+                    ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED
                 ));
             }
         } else {
@@ -69,7 +75,7 @@ impl GraphConnection {
                 != AppUriDeclarationState::NoneDeclared
             {
                 return Err(anyhow::anyhow!(
-                    constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
+                    ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
                 ));
             }
         }
@@ -185,9 +191,9 @@ impl GraphDestination {
             if app.as_str() == localhost() {
                 let err_msg = if app_uri_declaration_state.is_single_app_graph()
                 {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
                 } else {
-                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
+                    ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
                 };
 
                 return Err(anyhow::anyhow!(err_msg));
@@ -198,7 +204,7 @@ impl GraphDestination {
                 == AppUriDeclarationState::NoneDeclared
             {
                 return Err(anyhow::anyhow!(
-                    constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED
+                    ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED
                 ));
             }
         } else {
@@ -207,7 +213,7 @@ impl GraphDestination {
                 != AppUriDeclarationState::NoneDeclared
             {
                 return Err(anyhow::anyhow!(
-                    constants::ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
+                    ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED
                 ));
             }
         }

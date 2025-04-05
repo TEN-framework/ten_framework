@@ -15,17 +15,4 @@ fn main() {
 }
 
 // Those following mods will be compiled in one executable.
-mod test_case {
-    mod common;
-
-    mod cmd_check_graph;
-    mod designer_builtin_function_install;
-    mod designer_builtin_function_install_all;
-    mod designer_get_apps;
-    mod designer_get_graphs;
-    mod designer_get_packages_scripts;
-    mod designer_get_registry_packages;
-    mod designer_load_apps;
-    mod designer_reload_apps;
-    mod designer_terminal;
-}
+mod test_case;

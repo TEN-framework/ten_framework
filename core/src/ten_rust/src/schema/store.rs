@@ -33,7 +33,7 @@ pub struct CmdSchema {
 #[derive(Debug, Clone, Default)]
 pub struct SchemaStore {
     /// Schema for property definitions.
-    property: Option<TenSchema>,
+    pub property: Option<TenSchema>,
 
     /// Command schemas for incoming commands.
     pub cmd_in: HashMap<String, CmdSchema>,
@@ -83,7 +83,7 @@ impl SchemaStore {
     ///
     /// Each schema type is parsed and stored in the appropriate collection
     /// within the SchemaStore.
-    fn parse_schemas_from_manifest(
+    pub fn parse_schemas_from_manifest(
         &mut self,
         manifest_api: &ManifestApi,
     ) -> Result<()> {
@@ -348,33 +348,4 @@ pub fn are_cmd_schemas_compatible(
     are_ten_schemas_compatible(source.result.as_ref(), target.result.as_ref())?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use crate::pkg_info::manifest::Manifest;
-
-    use super::*;
-
-    #[test]
-    fn test_create_schema_store_success() {
-        let manifest_str = include_str!(
-            "test_data_embed/extension_manifest_has_all_types_schema.json"
-        );
-
-        let manifest_result = Manifest::from_str(manifest_str);
-        let manifest = manifest_result.as_ref().unwrap();
-        let mut schema_store = SchemaStore::default();
-        schema_store
-            .parse_schemas_from_manifest(manifest.api.as_ref().unwrap())
-            .unwrap();
-
-        assert!(schema_store.property.is_some());
-
-        let property = serde_json::json!({"app_id": "123", "app_version": 1});
-        let property_schema = schema_store.property.as_ref().unwrap();
-        assert!(property_schema.validate_json(&property).is_ok());
-    }
 }
