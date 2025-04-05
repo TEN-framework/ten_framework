@@ -45,6 +45,18 @@ pub struct ManifestApi {
 pub struct ManifestPropertyAttributes {
     #[serde(rename = "type")]
     pub prop_type: ValueType,
+
+    // Used when prop_type is ValueType::Array.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub items: Option<Box<ManifestPropertyAttributes>>,
+
+    // Used when prop_type is ValueType::Object.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<HashMap<String, ManifestPropertyAttributes>>,
+
+    // Used when prop_type is ValueType::Object.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
