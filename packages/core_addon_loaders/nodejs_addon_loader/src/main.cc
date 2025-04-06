@@ -332,6 +332,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       if (result->early_return()) {
         std::cerr << "Nodejs addon loader early return: " << result->exit_code()
                   << '\n';
+        // NOLINTNEXTLINE(concurrency-mt-unsafe)
         exit(result->exit_code());
       }
 
@@ -362,6 +363,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       });
     } catch (const std::exception &e) {
       std::cerr << "Nodejs addon loader init exception: " << e.what() << '\n';
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
       exit(1);
     }
 
@@ -371,6 +373,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
     if (this->node_init_result_ > 0) {
       std::cerr << "Nodejs addon loader init failed" << '\n';
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
       exit(1);
     }
 

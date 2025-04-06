@@ -13,18 +13,18 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 type Ctor<T> = {
-  new(): T;
+  new (): T;
   prototype: T;
 };
 
-type addonRegisterHandler = (registerContext: any) => void;
+type addonRegisterHandler = (registerContext: unknown) => void;
 
 export class AddonManager {
   private static _registry: Map<string, addonRegisterHandler> = new Map();
 
   static _set_register_handler(
     name: string,
-    handler: addonRegisterHandler
+    handler: addonRegisterHandler,
   ): void {
     AddonManager._registry.set(name, handler);
   }
@@ -37,11 +37,12 @@ export class AddonManager {
       if (fs.existsSync(manifestPath)) {
         try {
           const manifestJson = JSON.parse(
-            fs.readFileSync(manifestPath, "utf-8")
+            fs.readFileSync(manifestPath, "utf-8"),
           );
           if (manifestJson.type === "app") {
             return currentDir;
           }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           // Ignore
         }
@@ -63,10 +64,10 @@ export class AddonManager {
 
     const manifest = JSON.parse(fs.readFileSync(manifest_path, "utf-8"));
 
-    let extension_names = [];
+    const extension_names = [];
 
     const dependencies = manifest.dependencies;
-    for (let dep of dependencies) {
+    for (const dep of dependencies) {
       if (dep.type === "extension") {
         extension_names.push(dep.name);
       }
@@ -80,7 +81,7 @@ export class AddonManager {
     const dirs = fs.opendirSync(extension_folder);
     const loadPromises = [];
 
-    for (; ;) {
+    for (;;) {
       const entry = dirs.readSync();
       if (!entry) {
         break;
@@ -93,15 +94,17 @@ export class AddonManager {
       const packageJsonFile = `${extension_folder}/${entry.name}/package.json`;
 
       if (entry.isDirectory() && fs.existsSync(packageJsonFile)) {
-        // Log the extension name
+        // Log the extension name.
         console.log(`_load_all_addons Loading extension ${entry.name}`);
-        loadPromises.push(import(`${extension_folder}/${entry.name}/build/index.js`));
+        loadPromises.push(
+          import(`${extension_folder}/${entry.name}/build/index.js`),
+        );
       }
     }
 
-    // Wait for all modules to be loaded
+    // Wait for all modules to be loaded.
     await Promise.all(loadPromises);
-    console.log(`_load_all_addons Loaded ${loadPromises.length} extensions`);
+    console.log(`_load_all_addons loaded ${loadPromises.length} extensions`);
   }
 
   static async _load_single_addon(name: string): Promise<boolean> {
@@ -110,18 +113,19 @@ export class AddonManager {
     const extension_folder = path.join(
       app_base_dir,
       "ten_packages/extension",
-      name
+      name,
     );
     if (!fs.existsSync(extension_folder)) {
       console.log(`Addon ${name} directory not found in ${extension_folder}`);
       return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const dirs = fs.opendirSync(extension_folder);
     const packageJsonFile = `${extension_folder}/package.json`;
     if (!fs.existsSync(packageJsonFile)) {
       console.log(
-        `Addon ${name} package.json not found in ${extension_folder}`
+        `Addon ${name} package.json not found in ${extension_folder}`,
       );
       return false;
     }
@@ -136,7 +140,7 @@ export class AddonManager {
     }
   }
 
-  static _register_single_addon(name: string, registerContext: any): void {
+  static _register_single_addon(name: string, registerContext: unknown): void {
     const handler = AddonManager._registry.get(name);
     if (handler) {
       try {
@@ -151,8 +155,8 @@ export class AddonManager {
     }
   }
 
-  static _register_all_addons(registerContext: any): void {
-    for (let [name, handler] of AddonManager._registry) {
+  static _register_all_addons(registerContext: unknown): void {
+    for (const [name, handler] of AddonManager._registry) {
       try {
         handler(registerContext);
 
@@ -167,15 +171,16 @@ export class AddonManager {
 }
 
 export function RegisterAddonAsExtension(
-  name: string
+  name: string,
 ): <T extends Ctor<Addon>>(klass: T) => T {
   return function <T extends Ctor<Addon>>(klass: T): T {
-    function registerHandler(registerContext: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    function registerHandler(registerContext: unknown) {
       const addon_instance = new klass();
 
       ten_addon.ten_nodejs_addon_manager_register_addon_as_extension(
         name,
-        addon_instance
+        addon_instance,
       );
     }
 

@@ -66,7 +66,7 @@ export class AudioFrame extends Msg {
   setSamplesPerChannel(samplesPerChannel: number): void {
     ten_addon.ten_nodejs_audio_frame_set_samples_per_channel(
       this,
-      samplesPerChannel
+      samplesPerChannel,
     );
   }
 
@@ -85,7 +85,7 @@ export class AudioFrame extends Msg {
   setNumberOfChannels(numberOfChannels: number): void {
     ten_addon.ten_nodejs_audio_frame_set_number_of_channels(
       this,
-      numberOfChannels
+      numberOfChannels,
     );
   }
 
