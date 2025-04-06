@@ -16,6 +16,7 @@ mod get_registry_packages;
 mod graphs;
 mod help_text;
 mod load_apps;
+mod manifest;
 mod messages;
 mod preferences;
 mod reload_apps;

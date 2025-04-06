@@ -589,15 +589,31 @@
     "if": {
       "properties": {
         "type": {
-          "const": "extension"
+          "const": "app"
         }
       }
     },
     "then": {
       "not": {
         "required": [
-          "predefined_graphs"
+          "api"
         ]
+      }
+    },
+    "else": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "extension"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "predefined_graphs"
+          ]
+        }
       }
     }
   }
