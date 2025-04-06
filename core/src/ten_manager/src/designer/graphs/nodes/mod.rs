@@ -7,6 +7,8 @@
 pub mod add;
 pub mod delete;
 pub mod get;
+pub mod property;
+pub mod validation;
 
 use std::collections::HashMap;
 
@@ -18,6 +20,7 @@ use ten_rust::pkg_info::manifest::api::{
 use ten_rust::pkg_info::manifest::api::{
     ManifestCmdResult, ManifestPropertyAttributes,
 };
+use ten_rust::pkg_info::value_type::ValueType;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerApi {
@@ -52,13 +55,27 @@ pub struct DesignerApi {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DesignerPropertyAttributes {
     #[serde(rename = "type")]
-    pub prop_type: String,
+    pub prop_type: ValueType,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub items: Option<Box<DesignerPropertyAttributes>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<HashMap<String, DesignerPropertyAttributes>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
 }
 
 impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
     fn from(api_property: ManifestPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
-            prop_type: api_property.prop_type.to_string(),
+            prop_type: api_property.prop_type,
+            items: api_property.items.map(|items| Box::new((*items).into())),
+            properties: api_property.properties.map(|props| {
+                props.into_iter().map(|(k, v)| (k, v.into())).collect()
+            }),
+            required: api_property.required,
         }
     }
 }

@@ -39,7 +39,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
@@ -47,7 +47,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -101,7 +101,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![(
+        let all_pkgs_json_str = vec![(
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
@@ -109,7 +109,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -159,25 +159,25 @@ mod tests {
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // Read test data from embedded JSON files.
-        let input_property =
+        let input_property_json_str =
             include_str!("../test_data_embed/app_property.json");
-        let input_manifest =
+        let input_manifest_json_str =
             include_str!("../test_data_embed/app_manifest.json");
 
         // The expected property will be the same as input but with the
         // connection removed.
-        let expected_property_str = input_property.replace(
+        let expected_property_json_str = input_property_json_str.replace(
             r#"{"app": "http://example.com:8000", "extension": "extension_1", "cmd": [{"name": "hello_world", "dest": [{"app": "http://example.com:8000", "extension": "extension_2"}]}]}"#,
             r#"{"app": "http://example.com:8000", "extension": "extension_1", "cmd": []}"#);
 
         // Write input files to temp directory.
         let property_path = std::path::Path::new(&temp_dir_path)
             .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, input_property).unwrap();
+        std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
             std::path::Path::new(&temp_dir_path).join("manifest.json");
-        std::fs::write(&manifest_path, input_manifest).unwrap();
+        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
@@ -291,7 +291,7 @@ mod tests {
         let updated_property: serde_json::Value =
             serde_json::from_str(&updated_property_content).unwrap();
         let expected_property: serde_json::Value =
-            serde_json::from_str(&expected_property_str).unwrap();
+            serde_json::from_str(&expected_property_json_str).unwrap();
 
         // Compare the updated property with the expected property.
         assert_eq!(

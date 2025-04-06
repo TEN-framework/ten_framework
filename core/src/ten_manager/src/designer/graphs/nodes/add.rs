@@ -17,6 +17,9 @@ use ten_rust::{
 };
 
 use crate::designer::{
+    graphs::nodes::validation::{
+        validate_node_request, ExtensionSchemaValidatable,
+    },
     graphs::util::{find_app_package_from_base_dir, find_predefined_graph},
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
@@ -24,11 +27,15 @@ use crate::designer::{
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphNodeRequestPayload {
-    pub base_dir: String,
+    pub graph_app_base_dir: String,
     pub graph_name: String,
+
+    pub addon_app_base_dir: Option<String>,
     pub node_name: String,
     pub addon_name: String,
+    pub extension_group_name: Option<String>,
     pub app_uri: Option<String>,
+    pub property: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -62,7 +69,9 @@ fn add_extension_node_to_graph(
 fn create_extension_node(
     node_name: &str,
     addon_name: &str,
+    extension_group_name: &Option<String>,
     app_uri: &Option<String>,
+    property: &Option<serde_json::Value>,
 ) -> GraphNode {
     GraphNode {
         type_and_name: PkgTypeAndName {
@@ -70,9 +79,9 @@ fn create_extension_node(
             name: node_name.to_string(),
         },
         addon: addon_name.to_string(),
-        extension_group: None,
+        extension_group: extension_group_name.clone(),
         app: app_uri.clone(),
-        property: None,
+        property: property.clone(),
     }
 }
 
@@ -90,8 +99,36 @@ fn update_node_property_file(
         graph_name,
         Some(&nodes_to_add),
         None,
+        None,
     )?;
     Ok(())
+}
+
+impl ExtensionSchemaValidatable for AddGraphNodeRequestPayload {
+    fn get_addon_app_base_dir(&self) -> &Option<String> {
+        &self.addon_app_base_dir
+    }
+
+    fn get_addon_name(&self) -> &str {
+        &self.addon_name
+    }
+
+    fn get_app_uri(&self) -> &Option<String> {
+        &self.app_uri
+    }
+
+    fn get_property(&self) -> &Option<serde_json::Value> {
+        &self.property
+    }
+}
+
+/// Validates the AddGraphNodeRequestPayload based on the addon extension
+/// schema.
+fn validate_add_graph_node_request(
+    request_payload: &AddGraphNodeRequestPayload,
+    state: &mut DesignerState,
+) -> Result<(), String> {
+    validate_node_request(request_payload, state)
 }
 
 pub async fn add_graph_node_endpoint(
@@ -101,9 +138,22 @@ pub async fn add_graph_node_endpoint(
     // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().unwrap();
 
+    // Validate the request payload before proceeding.
+    if let Err(validation_error) =
+        validate_add_graph_node_request(&request_payload, &mut state_write)
+    {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Validation failed: {}", validation_error),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
+
     // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) =
-        state_write.pkgs_cache.get_mut(&request_payload.base_dir)
+    if let Some(base_dir_pkg_info) = state_write
+        .pkgs_cache
+        .get_mut(&request_payload.graph_app_base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
@@ -129,7 +179,9 @@ pub async fn add_graph_node_endpoint(
                         let new_node = create_extension_node(
                             &request_payload.node_name,
                             &request_payload.addon_name,
+                            &request_payload.extension_group_name,
                             &request_payload.app_uri,
+                            &request_payload.property,
                         );
 
                         // Update property.json file with the new graph node.
@@ -137,7 +189,7 @@ pub async fn add_graph_node_endpoint(
                             // Write the updated property_all_fields map to
                             // property.json.
                             if let Err(e) = update_node_property_file(
-                                &request_payload.base_dir,
+                                &request_payload.graph_app_base_dir,
                                 property,
                                 &request_payload.graph_name,
                                 &new_node,

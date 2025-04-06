@@ -9,30 +9,57 @@ use std::{fmt, str::FromStr};
 use anyhow::{Error, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ValueType {
+    #[serde(rename = "null")]
     Null,
+
+    #[serde(rename = "bool")]
     Bool,
 
+    #[serde(rename = "int8")]
     Int8,
+
+    #[serde(rename = "int16")]
     Int16,
+
+    #[serde(rename = "int32")]
     Int32,
+
+    #[serde(rename = "int64")]
     Int64,
 
+    #[serde(rename = "uint8")]
     Uint8,
+
+    #[serde(rename = "uint16")]
     Uint16,
+
+    #[serde(rename = "uint32")]
     Uint32,
+
+    #[serde(rename = "uint64")]
     Uint64,
 
+    #[serde(rename = "float32")]
     Float32,
+
+    #[serde(rename = "float64")]
     Float64,
 
+    #[serde(rename = "string")]
     String,
+
+    #[serde(rename = "buf")]
     Buf,
 
+    #[serde(rename = "array")]
     Array,
+
+    #[serde(rename = "object")]
     Object,
 
+    #[serde(rename = "ptr")]
     Ptr,
 }
 
@@ -41,6 +68,7 @@ impl FromStr for ValueType {
 
     fn from_str(s: &str) -> Result<Self> {
         match s {
+            "null" => Ok(ValueType::Null),
             "bool" => Ok(ValueType::Bool),
 
             "int8" => Ok(ValueType::Int8),
@@ -62,7 +90,12 @@ impl FromStr for ValueType {
             "array" => Ok(ValueType::Array),
             "object" => Ok(ValueType::Object),
 
-            _ => Err(Error::msg("Failed to parse string to value type")),
+            "ptr" => Ok(ValueType::Ptr),
+
+            _ => Err(Error::msg(format!(
+                "Failed to parse string '{}' to value type",
+                s
+            ))),
         }
     }
 }
@@ -70,6 +103,7 @@ impl FromStr for ValueType {
 impl fmt::Display for ValueType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            ValueType::Null => write!(f, "null"),
             ValueType::Bool => write!(f, "bool"),
 
             ValueType::Int8 => write!(f, "int8"),
@@ -77,10 +111,10 @@ impl fmt::Display for ValueType {
             ValueType::Int32 => write!(f, "int32"),
             ValueType::Int64 => write!(f, "int64"),
 
-            ValueType::Uint8 => write!(f, "Uint8"),
-            ValueType::Uint16 => write!(f, "Uint16"),
-            ValueType::Uint32 => write!(f, "Uint32"),
-            ValueType::Uint64 => write!(f, "Uint64"),
+            ValueType::Uint8 => write!(f, "uint8"),
+            ValueType::Uint16 => write!(f, "uint16"),
+            ValueType::Uint32 => write!(f, "uint32"),
+            ValueType::Uint64 => write!(f, "uint64"),
 
             ValueType::Float32 => write!(f, "float32"),
             ValueType::Float64 => write!(f, "float64"),
@@ -91,7 +125,7 @@ impl fmt::Display for ValueType {
             ValueType::Array => write!(f, "array"),
             ValueType::Object => write!(f, "object"),
 
-            _ => panic!("Failed to parse string to value type"),
+            ValueType::Ptr => write!(f, "ptr"),
         }
     }
 }

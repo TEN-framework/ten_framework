@@ -76,7 +76,10 @@
             "app": "http://example.com:8000",
             "type": "extension",
             "addon": "test_addon",
-            "name": "test_delete_node"
+            "name": "test_delete_node",
+            "property": {
+              "test_property": "test_value_for_delete"
+            }
           }
         ],
         "connections": [

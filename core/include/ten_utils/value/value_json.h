@@ -16,6 +16,11 @@ typedef struct ten_value_t ten_value_t;
 
 TEN_UTILS_API ten_value_t *ten_value_from_json(ten_json_t *json);
 
+TEN_UTILS_API ten_value_t *ten_value_from_json_str(const char *json_str);
+
 TEN_UTILS_API bool ten_value_to_json(ten_value_t *self, ten_json_t *json);
 
 TEN_UTILS_API bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json);
+
+TEN_UTILS_API bool ten_value_set_from_json_str(ten_value_t *self,
+                                               const char *json_str);

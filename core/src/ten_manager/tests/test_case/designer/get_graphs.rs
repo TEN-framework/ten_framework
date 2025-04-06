@@ -40,7 +40,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
         pkgs_cache: HashMap::new(),
     };
 
-    let all_pkgs_json = vec![
+    let all_pkgs_json_str = vec![
       (
           include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
           "{}".to_string(),
@@ -60,7 +60,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     let inject_ret = inject_all_pkgs_for_mock(
         "tests/test_data/cmd_designer_graphs_app_property_not_exist",
         &mut designer_state.pkgs_cache,
-        all_pkgs_json,
+        all_pkgs_json_str,
     );
     assert!(inject_ret.is_ok());
 
@@ -104,7 +104,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
         pkgs_cache: HashMap::new(),
     };
 
-    let all_pkgs_json = vec![
+    let all_pkgs_json_str = vec![
         (
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
@@ -124,7 +124,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     let inject_ret = inject_all_pkgs_for_mock(
         "tests/test_data/cmd_designer_connections_has_msg_conversion",
         &mut designer_state.pkgs_cache,
-        all_pkgs_json,
+        all_pkgs_json_str,
     );
     assert!(inject_ret.is_ok());
 

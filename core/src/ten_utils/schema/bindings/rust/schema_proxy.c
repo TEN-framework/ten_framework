@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "include_internal/ten_utils/schema/bindings/rust/schema.h"
+#include "include_internal/ten_utils/schema/bindings/rust/schema_proxy.h"
 
 #include "include_internal/ten_utils/schema/schema.h"
 #include "ten_utils/lib/alloc.h"

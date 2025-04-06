@@ -31,6 +31,7 @@ mod tests {
         },
         output::TmanOutputCli,
     };
+    use ten_rust::pkg_info::value_type::ValueType;
 
     #[actix_web::test]
     async fn test_get_extensions_success() {
@@ -40,7 +41,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![
+        let all_pkgs_json_str = vec![
             (
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
@@ -73,7 +74,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
@@ -124,7 +125,10 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
+                                        prop_type: ValueType::Int8,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -139,7 +143,10 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -154,7 +161,10 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -188,7 +198,10 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int32".to_string(),
+                                        prop_type: ValueType::Int32,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -203,7 +216,10 @@ mod tests {
                                 map.insert(
                                     "test_property".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
+                                        prop_type: ValueType::Int8,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -218,7 +234,10 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -233,7 +252,10 @@ mod tests {
                                 map.insert(
                                     "foo".to_string(),
                                     DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
+                                        prop_type: ValueType::String,
+                                        items: None,
+                                        properties: None,
+                                        required: None,
                                     },
                                 );
                                 map
@@ -251,7 +273,10 @@ mod tests {
                             map.insert(
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
+                                    prop_type: ValueType::Int8,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map
@@ -282,7 +307,10 @@ mod tests {
                             map.insert(
                                 "test_property".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
+                                    prop_type: ValueType::String,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map
@@ -298,7 +326,10 @@ mod tests {
                             map.insert(
                                 "foo".to_string(),
                                 DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
+                                    prop_type: ValueType::Int8,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
                                 },
                             );
                             map
@@ -370,7 +401,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json = vec![
+        let all_pkgs_json_str = vec![
             (
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
@@ -403,7 +434,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
-            all_pkgs_json,
+            all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 

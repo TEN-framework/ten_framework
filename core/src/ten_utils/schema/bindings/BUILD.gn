@@ -6,6 +6,6 @@
 #
 import("//build/ten_utils/utils.gni")
 
-ten_utils_glob("bindings") {
-  deps = [ "rust" ]
+ten_utils_glob("schema_bindings") {
+  deps = [ "rust:schema_rust_bindings" ]
 }
