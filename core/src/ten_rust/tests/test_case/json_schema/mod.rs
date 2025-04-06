@@ -18,8 +18,7 @@ mod tests {
           "type": "app",
           "name": "default_app_cpp",
           "version": "0.1.0",
-          "dependencies": [],
-          "api": {}
+          "dependencies": []
         }
         "#;
         let result = ten_validate_manifest_json_string(manifest);
@@ -30,8 +29,8 @@ mod tests {
     fn test_validate_dependencies_normal() {
         let manifest = r#"
         {
-          "type": "app",
-          "name": "default_app_cpp",
+          "type": "extension",
+          "name": "default_extension_cpp",
           "version": "0.1.0",
           "dependencies": [{
             "type": "system",
@@ -54,8 +53,7 @@ mod tests {
           "version": "0.1.0",
           "dependencies": [{
             "path": "path/to/dependency"
-          }],
-          "api": {}
+          }]
         }
         "#;
         let result = ten_validate_manifest_json_string(manifest);
@@ -75,8 +73,7 @@ mod tests {
             "version": "0.6.0"
           },{
             "path": "path/to/dependency"
-          }],
-          "api": {}
+          }]
         }
         "#;
         let result = ten_validate_manifest_json_string(manifest);
@@ -312,8 +309,8 @@ mod tests {
     fn test_validate_api_cmd_in_success_1() {
         let manifest = r#"
         {
-          "type": "app",
-          "name": "default_app_cpp",
+          "type": "extension",
+          "name": "default_extension_cpp",
           "version": "0.1.0",
           "dependencies": [],
           "api": {
@@ -359,6 +356,7 @@ mod tests {
         "#;
 
         let result = ten_validate_manifest_json_string(manifest);
+        println!("result: {:?}", result);
         assert!(result.is_ok());
     }
 
@@ -366,8 +364,8 @@ mod tests {
     fn test_validate_api_cmd_in_success_2() {
         let manifest = r#"
         {
-          "type": "app",
-          "name": "default_app_cpp",
+          "type": "extension",
+          "name": "default_extension_cpp",
           "version": "0.1.0",
           "dependencies": [],
           "api": {
@@ -421,8 +419,8 @@ mod tests {
     fn test_validate_api_cmd_in_success_3() {
         let manifest = r#"
         {
-          "type": "app",
-          "name": "default_app_cpp",
+          "type": "extension",
+          "name": "default_extension_cpp",
           "version": "0.1.0",
           "dependencies": [],
           "api": {
@@ -477,8 +475,8 @@ mod tests {
     fn test_validate_api_cmd_in_has_nested_object_required() {
         let manifest = r#"
         {
-          "type": "app",
-          "name": "default_app_cpp",
+          "type": "extension",
+          "name": "default_extension_cpp",
           "version": "0.1.0",
           "dependencies": [],
           "api": {
