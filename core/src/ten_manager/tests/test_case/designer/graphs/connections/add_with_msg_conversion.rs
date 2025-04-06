@@ -225,7 +225,7 @@ mod tests {
         }"#
         .to_string();
 
-        // The empty property for addons
+        // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
@@ -251,7 +251,7 @@ mod tests {
         )
         .await;
 
-        // Create msg_conversion rules with result conversion
+        // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
             msg: MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
@@ -307,103 +307,27 @@ mod tests {
 
         assert!(response.data.success);
 
+        // Define expected property.json content after adding all three
+        // connections.
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_msg_and_result_conversion.json");
+
         // Read the actual property.json file generated during the test.
         let property_path =
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        let actual_property_str =
-            std::fs::read_to_string(property_path).unwrap();
-        let actual_property: serde_json::Value =
-            serde_json::from_str(&actual_property_str).unwrap();
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
 
-        // Validate the property.json contains our connection with both
-        // msg_conversion and result
-        if let Some(ten) = actual_property.get("_ten") {
-            if let Some(predefined_graphs) = ten.get("predefined_graphs") {
-                if let Some(default_graph) =
-                    predefined_graphs.get("default_with_app_uri")
-                {
-                    if let Some(connections) = default_graph.get("connections")
-                    {
-                        let mut found_msg_conversion = false;
-                        let mut found_result_conversion = false;
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property_json_str).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
 
-                        // Check all connections in the array
-                        if let Some(connections_array) = connections.as_array()
-                        {
-                            for connection in connections_array {
-                                if let Some(extension) =
-                                    connection.get("extension")
-                                {
-                                    if extension == "extension_1" {
-                                        if let Some(cmd) = connection.get("cmd")
-                                        {
-                                            if let Some(cmd_array) =
-                                                cmd.as_array()
-                                            {
-                                                for cmd_item in cmd_array {
-                                                    if let Some(name) =
-                                                        cmd_item.get("name")
-                                                    {
-                                                        if name == "test_cmd_with_result" {
-                                                            if let Some(dest_array) = cmd_item.get("dest").and_then(|d| d.as_array()) {
-                                                                for dest in dest_array {
-                                                                    if dest.get("extension") == Some(&serde_json::json!("extension_2")) {
-                                                                        // Check for msg_conversion
-                                                                        if let Some(msg_conversion) = dest.get("msg_conversion") {
-                                                                            // Verify request conversion
-                                                                            if msg_conversion.get("type") == Some(&serde_json::json!("per_property")) {
-                                                                                if let Some(rules) = msg_conversion.get("rules") {
-                                                                                    if let Some(rule) = rules.as_array().unwrap().first() {
-                                                                                        if rule.get("path") == Some(&serde_json::json!("request_property")) {
-                                                                                            found_msg_conversion = true;
-                                                                                        }
-                                                                                    }
-                                                                                }
-
-                                                                                // Verify keep_original
-                                                                                assert_eq!(msg_conversion.get("keep_original"), Some(&serde_json::json!(true)));
-                                                                            }
-
-                                                                            // Verify result conversion
-                                                                            if let Some(result) = msg_conversion.get("result") {
-                                                                                if result.get("type") == Some(&serde_json::json!("per_property")) {
-                                                                                    if let Some(rules) = result.get("rules") {
-                                                                                        if let Some(rule) = rules.as_array().unwrap().first() {
-                                                                                            if rule.get("path") == Some(&serde_json::json!("response_property")) {
-                                                                                                found_result_conversion = true;
-                                                                                            }
-                                                                                        }
-                                                                                    }
-
-                                                                                    // Verify keep_original for result
-                                                                                    assert_eq!(result.get("keep_original"), Some(&serde_json::json!(false)));
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        assert!(
-                            found_msg_conversion,
-                            "Message conversion not found in property.json"
-                        );
-                        assert!(
-                            found_result_conversion,
-                            "Result conversion not found in property.json"
-                        );
-                    }
-                }
-            }
-        }
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 }

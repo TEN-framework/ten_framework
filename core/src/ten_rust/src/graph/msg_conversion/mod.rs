@@ -115,8 +115,25 @@ impl MsgConversionRule {
 pub struct MsgConversionRules {
     pub rules: Vec<MsgConversionRule>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        default,
+        deserialize_with = "deserialize_keep_original"
+    )]
     pub keep_original: Option<bool>,
+}
+
+fn deserialize_keep_original<'de, D>(
+    deserializer: D,
+) -> Result<Option<bool>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value: Option<bool> = Option::deserialize(deserializer)?;
+    match value {
+        Some(true) => Ok(Some(true)),
+        _ => Ok(None), // Convert false or None to None
+    }
 }
 
 impl MsgConversionRules {
