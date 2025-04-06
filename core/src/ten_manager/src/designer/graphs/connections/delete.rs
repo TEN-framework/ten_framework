@@ -119,6 +119,7 @@ pub async fn delete_graph_connection_endpoint(
                                 &request_payload.graph_name,
                                 None,
                                 Some(&connections_to_remove),
+                                None,
                             ) {
                                 eprintln!("Warning: Failed to update property.json file: {}", e);
                             }

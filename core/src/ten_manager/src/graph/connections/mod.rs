@@ -10,21 +10,14 @@ use anyhow::{Context, Result};
 use serde_json::Value;
 
 use ten_rust::{
-    graph::connection::GraphConnection,
+    graph::connection::{GraphConnection, GraphMessageFlow},
     pkg_info::constants::PROPERTY_JSON_FILENAME,
 };
 
 /// Update the connections of a graph in the property.json file.
 ///
 /// This function updates the connections in the property.json file for a
-/// specified graph. It adds or removes connections from the existing list,
-/// preserving the original order.
-///
-/// Both `connections_to_add` and `connections_to_remove` are optional, allowing
-/// for:
-///   - Adding new connections without removing any.
-///   - Removing connections without adding any new ones.
-///   - Both adding and removing connections in a single call.
+/// specified graph.
 ///
 /// In all cases, the original order of connections in the property.json file is
 /// preserved.
@@ -34,6 +27,7 @@ pub fn update_graph_connections_all_fields(
     graph_name: &str,
     connections_to_add: Option<&[GraphConnection]>,
     connections_to_remove: Option<&[GraphConnection]>,
+    connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
 ) -> Result<()> {
     // Process _ten.predefined_graphs array.
     if let Some(Value::Object(ten_obj)) = property_all_fields.get_mut("_ten") {
@@ -50,6 +44,81 @@ pub fn update_graph_connections_all_fields(
                             if let Some(Value::Array(connections_array)) =
                                 graph_obj.get_mut("connections")
                             {
+                                // Update message conversion if requested.
+                                if let Some(modify_connections) =
+                                    connections_to_modify_msg_conversion
+                                {
+                                    if !modify_connections.is_empty() {
+                                        // For each connection in the graph.
+                                        for connection_value in
+                                            connections_array.iter_mut()
+                                        {
+                                            if let Value::Object(conn_obj) =
+                                                connection_value
+                                            {
+                                                // Get the app and extension
+                                                // from the current connection.
+                                                let conn_app = conn_obj
+                                                    .get("app")
+                                                    .and_then(|v| v.as_str());
+                                                let conn_extension = conn_obj
+                                                    .get("extension")
+                                                    .and_then(|v| v.as_str());
+
+                                                if let Some(extension_str) =
+                                                    conn_extension
+                                                {
+                                                    // Check against each
+                                                    // connection to modify.
+                                                    for modify_conn in
+                                                        modify_connections
+                                                    {
+                                                        // Only proceed if the
+                                                        // connection matches by
+                                                        // app and extension.
+                                                        let app_match = match (
+                                                            conn_app,
+                                                            &modify_conn.app,
+                                                        ) {
+                                                            (None, None) => {
+                                                                true
+                                                            }
+                                                            (
+                                                                Some(app1),
+                                                                Some(app2),
+                                                            ) => app1 == app2,
+                                                            _ => false,
+                                                        };
+
+                                                        if app_match
+                                                            && extension_str
+                                                                == modify_conn
+                                                                    .extension
+                                                        {
+                                                            // Connection
+                                                            // matched, now
+                                                            // update the
+                                                            // message conversions
+                                                            // for each message
+                                                            // type.
+                                                            update_msg_conversion_for_type(conn_obj, "cmd", modify_conn.cmd.as_ref());
+                                                            update_msg_conversion_for_type(conn_obj, "data", modify_conn.data.as_ref());
+                                                            update_msg_conversion_for_type(conn_obj, "audio_frame", modify_conn.audio_frame.as_ref());
+                                                            update_msg_conversion_for_type(conn_obj, "video_frame", modify_conn.video_frame.as_ref());
+
+                                                            // No need to check
+                                                            // further modify_connections
+                                                            // for this graph
+                                                            // connection.
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // Remove connections if requested.
                                 if let Some(remove_connections) =
                                     connections_to_remove
@@ -295,4 +364,106 @@ pub fn update_graph_connections_all_fields(
         .context("Failed to write to property.json file")?;
 
     Ok(())
+}
+
+/// Helper function to update message conversion for a specific message type in
+/// a connection.
+fn update_msg_conversion_for_type(
+    conn_obj: &mut serde_json::Map<String, Value>,
+    msg_type: &str,
+    flows: Option<&Vec<GraphMessageFlow>>,
+) {
+    if let Some(flows) = flows {
+        if let Some(Value::Array(conn_flows)) = conn_obj.get_mut(msg_type) {
+            // Iterate through each flow in the connection.
+            for conn_flow in conn_flows.iter_mut() {
+                if let Value::Object(conn_flow_obj) = conn_flow {
+                    if let Some(Value::String(flow_name)) =
+                        conn_flow_obj.get("name")
+                    {
+                        // Find the corresponding flow in the modify connection.
+                        for modify_flow in flows {
+                            if &modify_flow.name == flow_name {
+                                // Found matching flow, update destinations.
+                                if let Some(Value::Array(conn_dests)) =
+                                    conn_flow_obj.get_mut("dest")
+                                {
+                                    for conn_dest in conn_dests.iter_mut() {
+                                        if let Value::Object(conn_dest_obj) =
+                                            conn_dest
+                                        {
+                                            // Get the destination extension and
+                                            // app.
+                                            let dest_ext = conn_dest_obj
+                                                .get("extension")
+                                                .and_then(|v| v.as_str());
+                                            let dest_app = conn_dest_obj
+                                                .get("app")
+                                                .and_then(|v| v.as_str());
+
+                                            if let Some(dest_ext) = dest_ext {
+                                                // Find matching destination in
+                                                // the modify flow.
+                                                for modify_dest in
+                                                    &modify_flow.dest
+                                                {
+                                                    let app_match = match (
+                                                        dest_app,
+                                                        &modify_dest.app,
+                                                    ) {
+                                                        (None, None) => true,
+                                                        (
+                                                            Some(app1),
+                                                            Some(app2),
+                                                        ) => app1 == app2,
+                                                        _ => false,
+                                                    };
+
+                                                    if app_match
+                                                        && dest_ext
+                                                            == modify_dest
+                                                                .extension
+                                                    {
+                                                        // Update msg_conversion
+                                                        // if provided in the
+                                                        // modify destination.
+                                                        if let Some(
+                                                            msg_conversion,
+                                                        ) = &modify_dest
+                                                            .msg_conversion
+                                                        {
+                                                            // Convert the
+                                                            // msg_conversion to
+                                                            // a JSON value.
+                                                            if let Ok(conversion_value) = serde_json::to_value(msg_conversion) {
+                                                                conn_dest_obj.insert("msg_conversion".to_string(), conversion_value);
+                                                            }
+                                                        } else {
+                                                            // If msg_conversion
+                                                            // is None in the
+                                                            // modify destination,
+                                                            // remove it.
+                                                            conn_dest_obj.remove("msg_conversion");
+                                                        }
+
+                                                        // Found matching
+                                                        // destination,
+                                                        // no need to check
+                                                        // more.
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Found matching flow, no need to check more.
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

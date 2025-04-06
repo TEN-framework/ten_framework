@@ -5,6 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod add;
-pub mod add_with_msg_conversion;
 pub mod delete;
 pub mod get;
+pub mod msg_conversion;

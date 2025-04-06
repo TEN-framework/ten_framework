@@ -49,9 +49,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../test_data_embed/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -164,7 +164,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_msg_conversion.json");
+        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_msg_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -201,9 +201,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../test_data_embed/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -309,7 +309,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_msg_and_result_conversion.json");
+        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_msg_and_result_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =

@@ -31,12 +31,14 @@ use crate::graph::update_graph_connections_all_fields;
 pub struct AddGraphConnectionRequestPayload {
     pub base_dir: String,
     pub graph_name: String,
+
     pub src_app: Option<String>,
     pub src_extension: String,
     pub msg_type: MsgType,
     pub msg_name: String,
     pub dest_app: Option<String>,
     pub dest_extension: String,
+
     pub msg_conversion: Option<MsgAndResultConversion>,
 }
 
@@ -107,6 +109,7 @@ fn update_property_file(
         &mut property.all_fields,
         graph_name,
         Some(&connections_to_add),
+        None,
         None,
     )
 }
