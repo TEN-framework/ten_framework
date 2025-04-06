@@ -19,6 +19,7 @@ mod load_apps;
 mod manifest;
 mod messages;
 mod preferences;
+mod property;
 mod reload_apps;
 mod template_pkgs;
 mod terminal;
