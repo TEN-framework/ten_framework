@@ -4,7 +4,7 @@
 // See the LICENSE file for more information.
 //
 import { WebSocketServer } from "ws";
-import * as express from "express";
+import express from "express";
 import * as http from "http";
 
 import {
