@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::{
     base_dir_pkg_info::BaseDirPkgInfo,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
+    graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
 };
 
@@ -36,6 +37,7 @@ pub struct AddGraphConnectionRequestPayload {
     pub msg_name: String,
     pub dest_app: Option<String>,
     pub dest_extension: String,
+    pub msg_conversion: Option<MsgAndResultConversion>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -51,7 +53,7 @@ fn create_graph_connection(
     let destination = GraphDestination {
         app: request_payload.dest_app.clone(),
         extension: request_payload.dest_extension.clone(),
-        msg_conversion: None,
+        msg_conversion: request_payload.msg_conversion.clone(),
     };
 
     // Create the message flow.
@@ -156,6 +158,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
                     &uri_to_pkg_info,
+                    request_payload.msg_conversion.clone(),
                 ) {
                     Ok(_) => {
                         // Update the predefined_graph in the app_pkg.

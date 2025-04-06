@@ -174,6 +174,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &create_test_pkg_info_map(),
+            None,
         );
 
         assert!(result.is_ok());
@@ -215,6 +216,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &create_test_pkg_info_map(),
+            None,
         );
 
         assert!(result.is_err());
@@ -238,6 +240,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(), // This node doesn't exist.
             &create_test_pkg_info_map(),
+            None,
         );
 
         assert!(result.is_err());
@@ -267,6 +270,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -280,6 +284,7 @@ mod tests {
             Some("app1".to_string()),
             "ext3".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -323,6 +328,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -334,6 +340,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -345,6 +352,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -356,6 +364,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -395,6 +404,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -407,6 +417,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
 
         // This should fail because the connection already exists.
@@ -451,6 +462,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -463,6 +475,7 @@ mod tests {
             Some("app1".to_string()),
             "ext3".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_ok());
 
@@ -475,6 +488,7 @@ mod tests {
             Some("app1".to_string()),
             "ext3".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_err());
         assert!(result
@@ -492,6 +506,7 @@ mod tests {
             Some("app1".to_string()),
             "ext3".to_string(),
             &pkg_info_map,
+            None,
         );
         assert!(result.is_err());
         assert!(result

@@ -5,4 +5,5 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod add;
+mod add_with_msg_conversion;
 mod delete;
