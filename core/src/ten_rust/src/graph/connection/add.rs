@@ -33,6 +33,9 @@ impl Graph {
         dest_app: Option<String>,
         dest_extension: String,
         installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        msg_conversion: Option<
+            crate::graph::msg_conversion::MsgAndResultConversion,
+        >,
     ) -> Result<()> {
         // Store the original state in case validation fails.
         let original_graph = self.clone();
@@ -79,7 +82,7 @@ impl Graph {
         let destination = GraphDestination {
             app: dest_app,
             extension: dest_extension,
-            msg_conversion: None,
+            msg_conversion,
         };
 
         // Initialize connections if None.

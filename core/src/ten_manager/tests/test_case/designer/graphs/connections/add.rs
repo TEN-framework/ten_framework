@@ -114,6 +114,7 @@ mod tests {
             msg_name: "test_cmd".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -213,6 +214,7 @@ mod tests {
             msg_name: "test_cmd".to_string(),
             dest_app: None,
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -309,6 +311,7 @@ mod tests {
             msg_name: "test_cmd1".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req1 = test::TestRequest::post()
@@ -329,6 +332,7 @@ mod tests {
             msg_name: "test_cmd2".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
         };
 
         let req2 = test::TestRequest::post()
@@ -447,6 +451,7 @@ mod tests {
             msg_name: "test_cmd1".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req1 = test::TestRequest::post()
@@ -467,6 +472,7 @@ mod tests {
             msg_name: "test_cmd2".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
         };
 
         let req2 = test::TestRequest::post()
@@ -577,6 +583,7 @@ mod tests {
             msg_name: "test_data".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -693,6 +700,7 @@ mod tests {
             msg_name: "audio_stream".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -713,6 +721,7 @@ mod tests {
             msg_name: "video_stream".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -831,6 +840,7 @@ mod tests {
             msg_name: "cmd_1".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -851,6 +861,7 @@ mod tests {
             msg_name: "cmd_2".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
@@ -871,6 +882,7 @@ mod tests {
             msg_name: "cmd_3".to_string(),
             dest_app: Some("http://example.com:8000".to_string()),
             dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
         };
 
         let req = test::TestRequest::post()
