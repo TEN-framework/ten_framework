@@ -94,6 +94,7 @@ fn auto_gen_schema_bindings_from_c() {
         "#![allow(dead_code)]",
         "#![allow(improper_ctypes)]",
         "#![allow(improper_ctypes_definitions)]",
+        "#![allow(clippy::upper_case_acronyms)]",
     ];
     let new_bindings_content =
         disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
@@ -172,6 +173,7 @@ fn auto_gen_value_bindings_from_c() {
         "#![allow(dead_code)]",
         "#![allow(improper_ctypes)]",
         "#![allow(improper_ctypes_definitions)]",
+        "#![allow(clippy::upper_case_acronyms)]",
     ];
     let new_bindings_content =
         disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
