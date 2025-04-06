@@ -17,7 +17,7 @@ export class CmdResult extends Msg {
   private constructor(
     statusCode: StatusCode,
     targetCmd: Cmd,
-    createShellOnly: boolean
+    createShellOnly: boolean,
   ) {
     super();
 

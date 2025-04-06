@@ -20,7 +20,7 @@ export class TenEnv {
         cmd,
         async (cmdResult: CmdResult | null, error: Error | null) => {
           resolve([cmdResult, error]);
-        }
+        },
       );
 
       if (err) {
@@ -36,7 +36,7 @@ export class TenEnv {
         data,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -52,7 +52,7 @@ export class TenEnv {
         videoFrame,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -68,7 +68,7 @@ export class TenEnv {
         audioFrame,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -84,7 +84,7 @@ export class TenEnv {
         cmdResult,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -100,7 +100,7 @@ export class TenEnv {
         path,
         async (result: boolean) => {
           resolve(result);
-        }
+        },
       );
     });
   }
@@ -112,7 +112,7 @@ export class TenEnv {
         path,
         async (result: string, error: Error | null) => {
           resolve([result, error]);
-        }
+        },
       );
 
       if (err) {
@@ -121,7 +121,10 @@ export class TenEnv {
     });
   }
 
-  async setPropertyFromJson(path: string, jsonStr: string): Promise<Error | null> {
+  async setPropertyFromJson(
+    path: string,
+    jsonStr: string,
+  ): Promise<Error | null> {
     return new Promise<Error | null>((resolve) => {
       const err = ten_addon.ten_nodejs_ten_env_set_property_from_json(
         this,
@@ -129,7 +132,7 @@ export class TenEnv {
         jsonStr,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -145,7 +148,7 @@ export class TenEnv {
         path,
         async (result: number, error: Error | null) => {
           resolve([result, error]);
-        }
+        },
       );
 
       if (err) {
@@ -162,7 +165,7 @@ export class TenEnv {
         value,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -178,7 +181,7 @@ export class TenEnv {
         path,
         async (result: string, error: Error | null) => {
           resolve([result, error]);
-        }
+        },
       );
 
       if (err) {
@@ -195,7 +198,7 @@ export class TenEnv {
         value,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -211,7 +214,7 @@ export class TenEnv {
         jsonStr,
         async (error: Error | null) => {
           resolve(error);
-        }
+        },
       );
 
       if (err) {
@@ -265,7 +268,7 @@ export class TenEnv {
       callerFunction,
       callerFile,
       callerLine,
-      message
+      message,
     );
   }
 }

@@ -87,7 +87,7 @@ class WebsocketServerExtensionAddon extends Addon {
 
   async onCreateInstance(
     _tenEnv: TenEnv,
-    instanceName: string
+    instanceName: string,
   ): Promise<Extension> {
     return new WebsocketServerExtension(instanceName);
   }

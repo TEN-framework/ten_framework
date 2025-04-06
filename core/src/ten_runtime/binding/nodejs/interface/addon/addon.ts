@@ -16,6 +16,7 @@ export abstract class Addon {
   private async onInitProxy(tenEnv: TenEnv): Promise<void> {
     try {
       await this.onInit(tenEnv);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // TODO: What should we do in this situation?
     } finally {
@@ -26,6 +27,7 @@ export abstract class Addon {
   private async onDeinitProxy(tenEnv: TenEnv): Promise<void> {
     try {
       await this.onDeinit(tenEnv);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // TODO: What should we do in this situation?
     } finally {
@@ -40,27 +42,29 @@ export abstract class Addon {
   private async onCreateInstanceProxy(
     tenEnv: TenEnv,
     instanceName: string,
-    context: any
+    context: unknown,
   ): Promise<void> {
     const extension = await this.onCreateInstance(tenEnv, instanceName);
 
     ten_addon.ten_nodejs_ten_env_on_create_instance_done(
       tenEnv,
       extension,
-      context
+      context,
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onInit(tenEnv: TenEnv): Promise<void> {
     // Stub for override.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onDeinit(tenEnv: TenEnv): Promise<void> {
     // Stub for override.
   }
 
   abstract onCreateInstance(
     tenEnv: TenEnv,
-    instanceName: string
+    instanceName: string,
   ): Promise<Extension>;
 }

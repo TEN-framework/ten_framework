@@ -37,7 +37,7 @@ export class App {
     // fact.
     ten_addon.ten_nodejs_app_on_end_of_life(this);
 
-    (global as any).gc();
+    (global as unknown as { gc: () => void }).gc();
   }
 
   // The ten app should be run in another native thread not the JS main thread.
@@ -49,14 +49,17 @@ export class App {
     ten_addon.ten_nodejs_app_close(this);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onConfigure(tenEnv: TenEnv): Promise<void> {
     // Stub for override.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onInit(tenEnv: TenEnv): Promise<void> {
     // Stub for override.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onDeinit(tenEnv: TenEnv): Promise<void> {
     // Stub for override.
   }

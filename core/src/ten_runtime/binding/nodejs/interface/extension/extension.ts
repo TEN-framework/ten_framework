@@ -60,50 +60,59 @@ export abstract class Extension {
 
   private async onAudioFrameProxy(
     tenEnv: TenEnv,
-    frame: AudioFrame
+    frame: AudioFrame,
   ): Promise<void> {
     await this.onAudioFrame(tenEnv, frame);
   }
 
   private async onVideoFrameProxy(
     tenEnv: TenEnv,
-    frame: VideoFrame
+    frame: VideoFrame,
   ): Promise<void> {
     await this.onVideoFrame(tenEnv, frame);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onConfigure(tenEnv: TenEnv): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onInit(tenEnv: TenEnv): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onStart(tenEnv: TenEnv): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onStop(tenEnv: TenEnv): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onDeinit(tenEnv: TenEnv): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onCmd(tenEnv: TenEnv, cmd: Cmd): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onData(tenEnv: TenEnv, data: Data): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onAudioFrame(tenEnv: TenEnv, frame: AudioFrame): Promise<void> {
     // stub for override
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onVideoFrame(tenEnv: TenEnv, frame: VideoFrame): Promise<void> {
     // stub for override
   }
