@@ -14,9 +14,7 @@ use ten_rust::{
 };
 
 use crate::designer::{
-    graphs::nodes::validation::{
-        validate_node_request, ExtensionSchemaValidatable,
-    },
+    graphs::nodes::validate::{validate_node_request, GraphNodeValidatable},
     graphs::util::{find_app_package_from_base_dir, find_predefined_graph},
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
@@ -40,7 +38,7 @@ pub struct UpdateGraphNodePropertyResponsePayload {
     pub success: bool,
 }
 
-impl ExtensionSchemaValidatable for UpdateGraphNodePropertyRequestPayload {
+impl GraphNodeValidatable for UpdateGraphNodePropertyRequestPayload {
     fn get_addon_app_base_dir(&self) -> &Option<String> {
         &self.addon_app_base_dir
     }
