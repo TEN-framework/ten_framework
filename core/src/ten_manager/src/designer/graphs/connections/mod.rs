@@ -7,6 +7,7 @@
 pub mod add;
 pub mod delete;
 pub mod get;
+pub mod msg_conversion;
 
 use serde::{Deserialize, Serialize};
 

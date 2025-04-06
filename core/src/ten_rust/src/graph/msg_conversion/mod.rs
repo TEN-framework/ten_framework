@@ -116,11 +116,15 @@ pub struct MsgConversionRules {
     pub rules: Vec<MsgConversionRule>,
 
     #[serde(
-        skip_serializing_if = "Option::is_none",
         default,
+        skip_serializing_if = "serialize_keep_original",
         deserialize_with = "deserialize_keep_original"
     )]
     pub keep_original: Option<bool>,
+}
+
+fn serialize_keep_original(opt: &Option<bool>) -> bool {
+    !opt.unwrap_or(false)
 }
 
 fn deserialize_keep_original<'de, D>(

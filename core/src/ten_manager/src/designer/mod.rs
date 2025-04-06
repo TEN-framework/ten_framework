@@ -125,6 +125,10 @@ pub fn configure_routes(
                 "/graphs/connections/delete",
                 web::post().to(graphs::connections::delete::delete_graph_connection_endpoint),
             )
+            .route(
+                "/graphs/connections/msg_conversion/update",
+                web::post().to(graphs::connections::msg_conversion::update::update_graph_connection_msg_conversion_endpoint),
+            )
             // Messages endpoints.
             .route(
                 "/messages/compatible",

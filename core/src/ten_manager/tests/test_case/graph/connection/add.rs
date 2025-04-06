@@ -17,84 +17,18 @@ mod tests {
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
     #[test]
-    fn test_update_connections_preserves_order() -> Result<()> {
+    fn test_add_connection() -> Result<()> {
         // Create a temporary directory for our test.
         let temp_dir = TempDir::new()?;
         let test_dir = temp_dir.path().to_str().unwrap().to_string();
 
         // First, create the initial property.json with a connection.
-        let initial_json = r#"{
-  "_ten": {
-    "predefined_graphs": [
-      {
-        "name": "test_graph",
-        "connections": [
-          {
-            "app": "http://example.com:8000",
-            "extension": "extension_1",
-            "cmd": [
-              {
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ],
-                "name": "existing_cmd"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}"#;
+        let initial_json =
+            include_str!("test_data_embed/initial_property.json");
 
         // Expected JSON after adding the connections.
-        let expected_json = r#"{
-  "_ten": {
-    "predefined_graphs": [
-      {
-        "name": "test_graph",
-        "connections": [
-          {
-            "app": "http://example.com:8000",
-            "extension": "extension_1",
-            "cmd": [
-              {
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ],
-                "name": "existing_cmd"
-              },
-              {
-                "name": "new_cmd1",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ]
-              },
-              {
-                "name": "new_cmd2",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_3"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}"#;
+        let expected_json =
+            include_str!("test_data_embed/expected_property.json");
 
         // Write the initial JSON to property.json.
         let property_path =
@@ -147,6 +81,7 @@ mod tests {
             "test_graph",
             Some(&connections_to_add),
             None,
+            None,
         )?;
 
         // Read the updated property.json.
@@ -159,33 +94,10 @@ mod tests {
         let actual_value: serde_json::Value =
             serde_json::from_str(&actual_json)?;
 
-        // Convert back to normalized strings for comparison
-        let normalized_expected =
-            serde_json::to_string_pretty(&expected_value)?;
-        let normalized_actual = serde_json::to_string_pretty(&actual_value)?;
-
-        if normalized_expected != normalized_actual {
-            eprintln!("Expected JSON:\n{}", normalized_expected);
-            eprintln!("Actual JSON:\n{}", normalized_actual);
-
-            // Find where they differ.
-            let expected_lines: Vec<&str> =
-                normalized_expected.lines().collect();
-            let actual_lines: Vec<&str> = normalized_actual.lines().collect();
-
-            for (i, (expected_line, actual_line)) in
-                expected_lines.iter().zip(actual_lines.iter()).enumerate()
-            {
-                if expected_line != actual_line {
-                    eprintln!("First difference at line {}:", i + 1);
-                    eprintln!("Expected: {}", expected_line);
-                    eprintln!("Actual:   {}", actual_line);
-                    break;
-                }
-            }
-
-            panic!("JSON content doesn't match");
-        }
+        assert_eq!(
+            expected_value, actual_value,
+            "Updated property does not match expected property"
+        );
 
         Ok(())
     }
