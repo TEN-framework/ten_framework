@@ -2,6 +2,7 @@
   "name": "ten-default-app",
   "version": "1.0.0",
   "main": "./bin/start.js",
+  "type": "module",
   "devDependencies": {
     "typescript": "^5.7.2"
   },
