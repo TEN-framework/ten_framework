@@ -16,9 +16,11 @@ pub mod frontend;
 pub mod graphs;
 pub mod help_text;
 pub mod locale;
+pub mod manifest;
 pub mod messages;
 pub mod mock;
 pub mod preferences;
+pub mod property;
 pub mod registry;
 pub mod response;
 pub mod template_pkgs;
@@ -83,6 +85,16 @@ pub fn configure_routes(
             .route(
                 "/extensions/create",
                 web::post().to(extensions::create::create_extension_endpoint),
+            )
+            // Manifest validation endpoints.
+            .route(
+                "/manifest/validate",
+                web::post().to(manifest::validate::validate_manifest_endpoint),
+            )
+            // Property validation endpoints.
+            .route(
+                "/property/validate",
+                web::post().to(property::validate::validate_property_endpoint),
             )
             // Template packages endpoint.
             .route(

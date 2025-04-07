@@ -589,15 +589,48 @@
     "if": {
       "properties": {
         "type": {
-          "const": "extension"
+          "const": "app"
         }
       }
     },
     "then": {
-      "not": {
-        "required": [
-          "predefined_graphs"
-        ]
+      "properties": {
+        // In the app's `manifest.json`, only the specification of the `api`
+        // property is allowed; other APIs are not permitted to be specified.
+        "api": {
+          "type": "object",
+          "properties": {
+            "property": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/alphanumericCharacters"
+              },
+              "patternProperties": {
+                "^[A-Za-z_][A-Za-z0-9_]*$": {
+                  "$ref": "#/$defs/valueType"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "else": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "extension"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "predefined_graphs"
+          ]
+        }
       }
     }
   }
