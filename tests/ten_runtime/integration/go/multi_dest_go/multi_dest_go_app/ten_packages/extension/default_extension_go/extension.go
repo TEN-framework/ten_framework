@@ -2,8 +2,7 @@
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
-// Refer to https://github.com/TEN-framework/ten_framework/LICENSE for more
-// information.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 
 package default_extension_go
@@ -53,32 +52,35 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 
 		newCmd, _ := ten.NewCmd("test")
 
-		tenEnv.SendCmdEx(newCmd, func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
-			if err != nil {
-				panic("Failed to send cmd: " + err.Error())
-			}
-
-			statusCode, _ := cmdResult.GetStatusCode()
-			if statusCode == ten.StatusCodeOk {
-				receivedOkCount++
-			} else {
-				receivedErrCount++
-			}
-
-			completed, _ := cmdResult.IsCompleted()
-			tenEnv.LogInfo("completed: " + strconv.FormatBool(completed))
-			if completed {
-				if receivedOkCount != 2 || receivedErrCount != 1 {
-					panic("Invalid number of received ok or err" +
-						"receivedOkCount: " + strconv.Itoa(receivedOkCount) +
-						"receivedErrCount: " + strconv.Itoa(receivedErrCount))
+		tenEnv.SendCmdEx(
+			newCmd,
+			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
+				if err != nil {
+					panic("Failed to send cmd: " + err.Error())
 				}
 
-				newCmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
-				newCmdResult.SetPropertyString("detail", "ok")
-				tenEnv.ReturnResult(newCmdResult, nil)
-			}
-		})
+				statusCode, _ := cmdResult.GetStatusCode()
+				if statusCode == ten.StatusCodeOk {
+					receivedOkCount++
+				} else {
+					receivedErrCount++
+				}
+
+				completed, _ := cmdResult.IsCompleted()
+				tenEnv.LogInfo("completed: " + strconv.FormatBool(completed))
+				if completed {
+					if receivedOkCount != 2 || receivedErrCount != 1 {
+						panic("Invalid number of received ok or err" +
+							"receivedOkCount: " + strconv.Itoa(receivedOkCount) +
+							"receivedErrCount: " + strconv.Itoa(receivedErrCount))
+					}
+
+					newCmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
+					newCmdResult.SetPropertyString("detail", "ok")
+					tenEnv.ReturnResult(newCmdResult, nil)
+				}
+			},
+		)
 
 	}
 }

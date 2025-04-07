@@ -78,19 +78,13 @@ def test_multi_dest_go():
         # client depends on some libraries in the TEN app.
         my_env["DYLD_LIBRARY_PATH"] = os.path.join(
             base_path,
-            (
-                "multi_dest_go_app/ten_packages/"
-                "system/ten_runtime/lib"
-            ),
+            ("multi_dest_go_app/ten_packages/" "system/ten_runtime/lib"),
         )
     else:
         # client depends on some libraries in the TEN app.
         my_env["LD_LIBRARY_PATH"] = os.path.join(
             base_path,
-            (
-                "multi_dest_go_app/ten_packages/"
-                "system/ten_runtime/lib"
-            ),
+            ("multi_dest_go_app/ten_packages/" "system/ten_runtime/lib"),
         )
 
         if (
@@ -108,9 +102,7 @@ def test_multi_dest_go():
                 print("Using AddressSanitizer library.")
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(
-        base_path, "multi_dest_go_app/bin/start"
-    )
+    server_cmd = os.path.join(base_path, "multi_dest_go_app/bin/start")
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
@@ -144,9 +136,7 @@ def test_multi_dest_go():
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
-            print(
-                "The multi_dest_go can not stop after 30 seconds."
-            )
+            print("The multi_dest_go can not stop after 30 seconds.")
             server.kill()
 
         exit_code = server.wait()
