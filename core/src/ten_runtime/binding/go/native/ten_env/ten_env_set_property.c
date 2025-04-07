@@ -96,7 +96,8 @@ static ten_go_error_t ten_go_ten_env_set_property(ten_go_ten_env_t *self,
                                                   uintptr_t callback_handle) {
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
