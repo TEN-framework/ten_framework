@@ -68,6 +68,7 @@ typedef struct ten_go_callback_ctx_t {
 extern void tenGoOnCmdResult(ten_go_handle_t ten_env_bridge,
                              ten_go_handle_t cmd_result_bridge,
                              ten_go_handle_t result_handler,
+                             bool is_completed,
                              ten_go_error_t cgo_error);
 
 extern void tenGoOnError(ten_go_handle_t ten_env_bridge,
