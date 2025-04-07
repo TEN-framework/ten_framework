@@ -54,7 +54,9 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_object(value)) {
     TEN_LOGE("Invalid value type for property: telemetry. Expected an object.");
@@ -78,6 +80,8 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
       if (!self->telemetry_system) {
         TEN_LOGE("Failed to create telemetry system with endpoint: %s",
                  endpoint);
+
+        // NOLINTNEXTLINE(concurrency-mt-unsafe)
         exit(EXIT_FAILURE);
       } else {
         TEN_LOGI("Create telemetry system with endpoint: %s", endpoint);
@@ -91,6 +95,8 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
   self->telemetry_system = ten_telemetry_system_create(NULL, NULL);
   if (!self->telemetry_system) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
+
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   } else {
     TEN_LOGI("Create telemetry system with default endpoint.");

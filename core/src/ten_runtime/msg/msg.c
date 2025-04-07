@@ -1153,7 +1153,8 @@ static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
                                      ten_value_t *value, ten_error_t *err) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   if (!path || !strlen(path)) {
     // If the path is empty, clear and set all properties.
@@ -1223,7 +1224,8 @@ bool ten_msg_set_property(ten_shared_ptr_t *self, const char *path,
                           ten_value_t *value, ten_error_t *err) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   return ten_raw_msg_set_property(ten_shared_ptr_get_data(self), path, value,
                                   err);

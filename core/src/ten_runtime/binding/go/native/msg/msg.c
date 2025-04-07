@@ -486,7 +486,8 @@ ten_go_error_t ten_go_msg_property_get_ptr(uintptr_t bridge_addr,
 static void ten_go_msg_set_property(ten_go_msg_t *self, const void *path,
                                     int path_len, ten_value_t *value) {
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   ten_string_t path_str;
 
