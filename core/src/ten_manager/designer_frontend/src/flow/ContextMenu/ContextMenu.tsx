@@ -6,13 +6,12 @@
 //
 import React from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonProps } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-export interface ContextMenuItem {
+export interface ContextMenuItem extends ButtonProps {
   label?: string;
   icon?: React.ReactNode;
-  onClick?: () => void;
   separator?: boolean;
 }
 
@@ -49,7 +48,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
                 "flex w-full justify-start px-2.5 py-1.5 whitespace-nowrap",
                 "h-auto font-normal cursor-pointer"
               )}
-              onClick={item.onClick}
+              {...item}
             >
               <div>
                 <span

@@ -4,6 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
@@ -13,8 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import { SpinnerLoading } from "@/components/Status/Loading";
 import { type IDialog, useDialogStore } from "@/store/dialog";
-import { useTranslation } from "react-i18next";
 
 export function GlobalDialogs() {
   const { dialogs } = useDialogStore();
@@ -30,6 +33,8 @@ export function GlobalDialogs() {
 
 function GlobalDialog(props: { dialog: IDialog }) {
   const { dialog } = props;
+  const [isLoading, setIsLoading] = React.useState(false);
+
   const { t } = useTranslation();
 
   return (
@@ -51,18 +56,23 @@ function GlobalDialog(props: { dialog: IDialog }) {
                   await dialog.onCancel?.();
                   await dialog.postCancel?.();
                 }}
+                disabled={isLoading}
               >
                 {dialog.cancelLabel || t("action.cancel")}
               </Button>
             )}
             {dialog.onConfirm && (
               <Button
-                variant="default"
+                variant={dialog.variant || "default"}
+                disabled={isLoading}
                 onClick={async () => {
+                  setIsLoading(true);
                   await dialog.onConfirm?.();
                   await dialog.postConfirm?.();
+                  setIsLoading(false);
                 }}
               >
+                {isLoading && <SpinnerLoading className="w-4 h-4" />}
                 {dialog.confirmLabel || t("action.confirm")}
               </Button>
             )}

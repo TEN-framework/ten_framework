@@ -12,8 +12,13 @@ import {
   Trash2Icon,
   LogsIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
+import { useDialogStore, useFlowStore } from "@/store";
+import { deleteNode } from "@/api/services/graphs";
+// eslint-disable-next-line max-len
+import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
 
 import type { TerminalData, EditorData } from "@/types/widgets";
 import type { TCustomNode } from "@/types/flow";
@@ -23,6 +28,8 @@ interface NodeContextMenuProps {
   x: number;
   y: number;
   node: TCustomNode;
+  baseDir?: string | null;
+  graphName?: string | null;
   onClose: () => void;
   onLaunchTerminal: (data: TerminalData) => void;
   onLaunchEditor: (data: EditorData) => void;
@@ -34,12 +41,16 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   x,
   y,
   node,
+  baseDir,
+  graphName,
   onClose,
   onLaunchTerminal,
   onLaunchEditor,
   onLaunchLogViewer,
 }) => {
   const { t } = useTranslation();
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { setNodesAndEdges } = useFlowStore();
 
   const items: ContextMenuItem[] = [
     {
@@ -92,9 +103,50 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
     },
     {
       label: t("action.delete"),
+      disabled: !baseDir || !graphName,
       icon: <Trash2Icon />,
       onClick: () => {
         onClose();
+        appendDialog({
+          id: "delete-node-dialog-" + node.data.name,
+          title: t("action.delete"),
+          content: t("action.deleteNodeConfirmation"),
+          variant: "destructive",
+          onCancel: async () => {
+            removeDialog("delete-node-dialog-" + node.data.name);
+          },
+          onConfirm: async () => {
+            if (!baseDir || !graphName) {
+              removeDialog("delete-node-dialog-" + node.data.name);
+              return;
+            }
+            try {
+              await deleteNode({
+                base_dir: baseDir,
+                graph_name: graphName,
+                node_name: node.data.name,
+                addon_name: node.data.addon,
+                extension_group_name: node.data.extension_group,
+              });
+              toast.success(t("popup.node.deleteNodeSuccess"), {
+                description: `${node.data.name}`,
+              });
+              const { nodes, edges } = await resetNodesAndEdgesByGraphName(
+                graphName,
+                baseDir
+              );
+              setNodesAndEdges(nodes, edges);
+            } catch (error: unknown) {
+              toast.error(t("action.deleteNodeFailed"), {
+                description:
+                  error instanceof Error ? error.message : "Unknown error",
+              });
+              console.error(error);
+            } finally {
+              removeDialog("delete-node-dialog-" + node.data.name);
+            }
+          },
+        });
       },
     },
   ];

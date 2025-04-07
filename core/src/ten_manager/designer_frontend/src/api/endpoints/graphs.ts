@@ -8,7 +8,13 @@ import z from "zod";
 
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
-import type { IBackendNode, IBackendConnection, IGraph } from "@/types/graphs";
+import {
+  AddNodePayloadSchema,
+  DeleteNodePayloadSchema,
+  type IBackendNode,
+  type IBackendConnection,
+  type IGraph,
+} from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
   nodes: {
@@ -32,6 +38,62 @@ export const ENDPOINT_GRAPHS = {
           })
         ) as z.ZodType<IBackendNode[]>
       ),
+    },
+  },
+  addNode: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/add`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AddNodePayloadSchema,
+      responseSchema: genResSchema(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
+  deleteNode: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/delete`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: DeleteNodePayloadSchema,
+      responseSchema: genResSchema(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
+  nodesPropertyUpdate: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/property/update`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        graph_app_base_dir: z.string(),
+        graph_name: z.string(),
+        addon_app_base_dir: z.string().optional(),
+        node_name: z.string(),
+        addon_name: z.string(),
+        extension_group_name: z.string().optional(),
+        app_uri: z.string().optional(),
+        property: z.unknown().optional(),
+      }),
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
+    },
+  },
+  nodesValidate: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/validate`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        addon_app_base_dir: z.string().optional(),
+        node_name: z.string(),
+        addon_name: z.string(),
+        extension_group_name: z.string().optional(),
+        app_uri: z.string().optional(),
+        property: z.unknown().optional(),
+      }),
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
   connections: {

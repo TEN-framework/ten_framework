@@ -28,7 +28,7 @@ import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import { TerminalData } from "@/components/Popup/TerminalPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useAppStore } from "@/store";
 import {
   EWidgetDisplayType,
   EWidgetCategory,
@@ -60,6 +60,7 @@ interface FlowCanvasProps {
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
   ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, className }) => {
     const { appendWidget, appendWidgetIfNotExists } = useWidgetStore();
+    const { currentWorkspace } = useAppStore();
 
     const [contextMenu, setContextMenu] = useState<{
       visible: boolean;
@@ -132,6 +133,8 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             x={contextMenu.x}
             y={contextMenu.y}
             node={contextMenu.node}
+            baseDir={currentWorkspace?.baseDir}
+            graphName={currentWorkspace?.graphName}
             onClose={closeContextMenu}
             onLaunchTerminal={launchTerminal}
             onLaunchEditor={launchEditor}

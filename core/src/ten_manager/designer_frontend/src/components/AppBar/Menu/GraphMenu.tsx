@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { FolderOpenIcon, MoveIcon } from "lucide-react";
+import { FolderOpenIcon, MoveIcon, PackagePlusIcon } from "lucide-react";
 
 import {
   NavigationMenuContent,
@@ -13,15 +13,17 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useAppStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 import {
   EDefaultWidgetType,
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
+import { ENodeActions } from "@/types/graphs";
 
 export function GraphMenu(props: {
   onAutoLayout: () => void;
@@ -33,6 +35,7 @@ export function GraphMenu(props: {
 
   const { t } = useTranslation();
   const { appendWidgetIfNotExists } = useWidgetStore();
+  const { currentWorkspace } = useAppStore();
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
@@ -41,6 +44,22 @@ export function GraphMenu(props: {
       display_type: EWidgetDisplayType.Popup,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
+      },
+    });
+  };
+
+  const onAddNode = () => {
+    if (!currentWorkspace?.baseDir) return;
+    appendWidgetIfNotExists({
+      id:
+        `node-add-popup-` +
+        `${currentWorkspace.baseDir}-${currentWorkspace?.graphName}`,
+      category: EWidgetCategory.Node,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: ENodeActions.ADD,
+        base_dir: currentWorkspace.baseDir,
+        graph_name: currentWorkspace?.graphName,
       },
     });
   };
@@ -83,6 +102,18 @@ export function GraphMenu(props: {
           >
             <MoveIcon />
             {t("header.menuGraph.autoLayout")}
+          </Button>
+        </NavigationMenuLink>
+        <Separator className="w-full" />
+        <NavigationMenuLink asChild>
+          <Button
+            className="w-full justify-start"
+            variant="ghost"
+            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            onClick={onAddNode}
+          >
+            <PackagePlusIcon />
+            {t("header.menuGraph.addNode")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>

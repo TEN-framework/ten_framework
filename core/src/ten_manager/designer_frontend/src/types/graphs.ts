@@ -4,6 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { z } from "zod";
+
+import { stringToJSONSchema } from "@/utils";
+
 export interface IBackendNode {
   addon: string;
   name: string;
@@ -66,3 +70,30 @@ export type TConnectionItem = {
 };
 
 export type TConnectionMap = Record<string, Set<TConnectionItem>>;
+
+export enum ENodeActions {
+  ADD = "add",
+  DELETE = "delete",
+}
+
+export const AddNodePayloadSchema = z.object({
+  graph_app_base_dir: z.string(),
+  graph_name: z.string(),
+  addon_app_base_dir: z.string().optional(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+  property: stringToJSONSchema
+    .pipe(z.record(z.string(), z.unknown()))
+    .default("{}"),
+});
+
+export const DeleteNodePayloadSchema = z.object({
+  base_dir: z.string(),
+  graph_name: z.string(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+});

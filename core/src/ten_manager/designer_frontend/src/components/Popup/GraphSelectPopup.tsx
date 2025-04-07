@@ -9,13 +9,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CheckIcon } from "lucide-react";
 
-import {
-  generateRawNodes,
-  generateRawEdges,
-  updateNodesWithConnections,
-  updateNodesWithAddonInfo,
-  generateNodesAndEdges,
-} from "@/flow/graph";
 import { Popup } from "@/components/Popup/Popup";
 import {
   Select,
@@ -29,14 +22,12 @@ import {
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import {
-  retrieveGraphNodes,
-  retrieveGraphConnections,
-  useGraphs,
-} from "@/api/services/graphs";
+import { useGraphs } from "@/api/services/graphs";
 import { useApps } from "@/api/services/apps";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+// eslint-disable-next-line max-len
+import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();
@@ -72,25 +63,8 @@ export function GraphSelectPopup() {
         graphName,
       });
       try {
-        const backendNodes = await retrieveGraphNodes(graphName, baseDir);
-        const backendConnections = await retrieveGraphConnections(
-          graphName,
-          baseDir
-        );
-        const rawNodes = generateRawNodes(backendNodes);
-        const [rawEdges, rawEdgeAddressMap] =
-          generateRawEdges(backendConnections);
-        const nodesWithConnections = updateNodesWithConnections(
-          rawNodes,
-          rawEdgeAddressMap
-        );
-        const nodesWithAddonInfo = await updateNodesWithAddonInfo(
-          baseDir ?? "",
-          nodesWithConnections
-        );
-
         const { nodes: layoutedNodes, edges: layoutedEdges } =
-          generateNodesAndEdges(nodesWithAddonInfo, rawEdges);
+          await resetNodesAndEdgesByGraphName(graphName, baseDir);
 
         setNodesAndEdges(layoutedNodes, layoutedEdges);
       } catch (err: unknown) {
