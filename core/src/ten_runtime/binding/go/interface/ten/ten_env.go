@@ -29,6 +29,7 @@ type (
 // TenEnv represents the interface for the TEN (Run Time Environment) component.
 type TenEnv interface {
 	SendCmd(cmd Cmd, handler ResultHandler) error
+	SendCmdEx(cmd Cmd, handler ResultHandler) error
 	SendData(data Data, handler ErrorHandler) error
 	SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) error
 	SendAudioFrame(audioFrame AudioFrame, handler ErrorHandler) error
