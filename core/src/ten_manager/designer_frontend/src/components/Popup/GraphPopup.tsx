@@ -9,18 +9,21 @@ import { useTranslation } from "react-i18next";
 
 import { Popup } from "@/components/Popup/Popup";
 import { useWidgetStore } from "@/store/widget";
-import { GraphAddNodeWidget } from "@/components/Widget/GraphsWidget";
-import { ENodeActions } from "@/types/graphs";
+import {
+  GraphAddConnectionWidget,
+  GraphAddNodeWidget,
+} from "@/components/Widget/GraphsWidget";
+import { EGraphActions } from "@/types/graphs";
 
-import type { INodeWidget } from "@/types/widgets";
+import type { IGraphWidget } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 400;
 const DEFAULT_HEIGHT = 300;
 
-export const NodePopup = (props: {
+export const GraphPopup = (props: {
   id: string;
-  metadata: INodeWidget<{
-    type: ENodeActions;
+  metadata: IGraphWidget<{
+    type: EGraphActions;
     base_dir: string;
     graph_name?: string;
   }>["metadata"];
@@ -36,10 +39,12 @@ export const NodePopup = (props: {
 
   const titleMemo = React.useMemo(() => {
     switch (metadata.type) {
-      case ENodeActions.ADD:
-        return t("popup.node.titleAddNode");
+      case EGraphActions.ADD_NODE:
+        return t("popup.graph.titleAddNode");
+      case EGraphActions.ADD_CONNECTION:
+        return t("popup.graph.titleAddConnection");
       default:
-        return t("popup.node.title");
+        return t("popup.graph.title");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metadata.type]);
@@ -54,13 +59,16 @@ export const NodePopup = (props: {
       height={DEFAULT_HEIGHT}
       contentClassName="px-0"
     >
-      {metadata.type === ENodeActions.ADD && (
+      {metadata.type === EGraphActions.ADD_NODE && (
         <GraphAddNodeWidget
           {...metadata}
           postAddNodeActions={() => {
             removeWidget(id);
           }}
         />
+      )}
+      {metadata.type === EGraphActions.ADD_CONNECTION && (
+        <GraphAddConnectionWidget {...metadata} />
       )}
     </Popup>
   );

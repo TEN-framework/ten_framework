@@ -113,6 +113,24 @@ export const parseReq = <T extends ENDPOINT_METHOD>(
   });
 };
 
+export class APIError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export const parseResponseError = async (res: Response) => {
+  try {
+    const errorData = await res.json();
+    throw new APIError(errorData.message || "Unknown error occurred");
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    throw new Error(error as string);
+  }
+};
+
 export const makeAPIRequest = async <T extends ENDPOINT_METHOD, R = unknown>(
   reqTemplate: IReqTemplate<T, R>,
   opts?: {
@@ -124,11 +142,7 @@ export const makeAPIRequest = async <T extends ENDPOINT_METHOD, R = unknown>(
   const req = parseReq(reqTemplate, opts);
   const res = await req;
   if (!res.ok) {
-    logger.error(
-      { scope: "api", module: "request", data: { res } },
-      "request failed"
-    );
-    throw new Error(`${res.statusText}`);
+    await parseResponseError(res);
   }
   const data = await res.json();
   logger.debug(

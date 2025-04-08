@@ -19,6 +19,8 @@ import type {
   AddNodePayloadSchema,
   DeleteNodePayloadSchema,
   IGraph,
+  AddConnectionPayloadSchema,
+  IBackendNode,
 } from "@/types/graphs";
 
 export const retrieveGraphNodes = async (
@@ -32,6 +34,59 @@ export const retrieveGraphNodes = async (
   const res = await req;
   return template.responseSchema.parse(res).data;
 };
+
+// // TODO: refine this hook(post should not be used)
+// export const useGraphNodes = (graphName: string, baseDir: string) => {
+//   const template = ENDPOINT_GRAPHS.nodes[ENDPOINT_METHOD.POST];
+//   const url =
+//     prepareReqUrl(template) + `${baseDir ? encodeURIComponent(baseDir) : ""}`;
+//   const queryHookCache = getQueryHookCache();
+
+//   const [data, setData] = React.useState<IBackendNode[] | null>(() => {
+//     const [cachedData, cachedDataIsExpired] =
+//       queryHookCache.get<IBackendNode[]>(url);
+//     if (!cachedData || cachedDataIsExpired) {
+//       return null;
+//     }
+//     return cachedData;
+//   });
+
+//   const [error, setError] = React.useState<Error | null>(null);
+//   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+//   const fetchData = React.useCallback(async () => {
+//     if (baseDir === null) {
+//       return;
+//     }
+//     setIsLoading(true);
+//     try {
+//       const template = ENDPOINT_GRAPHS.nodes[ENDPOINT_METHOD.POST];
+//       const req = makeAPIRequest(template, {
+//         body: { graph_name: graphName, ...(baseDir && { base_dir: baseDir }) },
+//       });
+//       const res = await req;
+//       const parsedData = template.responseSchema.parse(res).data;
+//       setData(parsedData);
+//       queryHookCache.set(url, parsedData);
+//     } catch (err) {
+//       setError(err as Error);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [baseDir, url]);
+
+//   React.useEffect(() => {
+//     fetchData();
+//   }, [fetchData]);
+
+//   return {
+//     nodes: data,
+//     error,
+//     isLoading,
+//     mutate: fetchData,
+//   };
+// };
 
 export const retrieveGraphConnections = async (
   graphName: string,
@@ -107,10 +162,21 @@ export const postAddNode = async (
   return template.responseSchema.parse(res).data;
 };
 
-export const deleteNode = async (
+export const postDeleteNode = async (
   data: z.infer<typeof DeleteNodePayloadSchema>
 ) => {
   const template = ENDPOINT_GRAPHS.deleteNode[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postAddConnection = async (
+  data: z.infer<typeof AddConnectionPayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.addConnection[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: data,
   });

@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
 import { useDialogStore, useFlowStore } from "@/store";
-import { deleteNode } from "@/api/services/graphs";
+import { postDeleteNode } from "@/api/services/graphs";
 // eslint-disable-next-line max-len
 import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
 
@@ -121,7 +121,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
               return;
             }
             try {
-              await deleteNode({
+              await postDeleteNode({
                 base_dir: baseDir,
                 graph_name: graphName,
                 node_name: node.data.name,

@@ -44,6 +44,9 @@ export function GraphSelectPopup() {
   const [selectedApp, setSelectedApp] = React.useState<string | null>(
     currentWorkspace.baseDir ?? loadedApps?.app_info?.[0]?.base_dir ?? null
   );
+  const [selectedAppUri, setSelectedAppUri] = React.useState<string | null>(
+    currentWorkspace.appUri ?? loadedApps?.app_info?.[0]?.app_uri ?? null
+  );
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);
 
@@ -53,14 +56,21 @@ export function GraphSelectPopup() {
 
   const handleSelectApp = (app?: string | null) => {
     setSelectedApp(app ?? null);
+    setSelectedAppUri(
+      loadedApps?.app_info?.find((appInfo) => appInfo.base_dir === app)
+        ?.app_uri ?? null
+    );
+
     setTmpSelectedGraph(null);
   };
 
   const handleSelectGraph =
-    (graphName: string, baseDir: string | null) => async () => {
+    (graphName: string, baseDir: string | null, appUri: string | null) =>
+    async () => {
       updateCurrentWorkspace({
         baseDir,
         graphName,
+        appUri,
       });
       try {
         const { nodes: layoutedNodes, edges: layoutedEdges } =
@@ -96,7 +106,7 @@ export function GraphSelectPopup() {
         ),
       });
     } else {
-      await handleSelectGraph(tmpSelectedGraph, selectedApp)();
+      await handleSelectGraph(tmpSelectedGraph, selectedApp, selectedAppUri)();
       toast.success(t("popup.selectGraph.updateSuccess"), {
         description: (
           <>

@@ -12,12 +12,16 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
-import { AddNodePayloadSchema } from "@/types/graphs";
+import {
+  AddNodePayloadSchema,
+  AddConnectionPayloadSchema,
+  EConnectionType,
+} from "@/types/graphs";
 import { Button } from "@/components/ui/Button";
 import {
   Form,
   FormControl,
-  FormDescription,
+  //   FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -53,6 +57,7 @@ import {
   postAddNode,
   retrieveGraphNodes,
   retrieveGraphConnections,
+  postAddConnection,
 } from "@/api/services/graphs";
 import { useAddons } from "@/api/services/addons";
 import { cn } from "@/lib/utils";
@@ -131,12 +136,12 @@ export const GraphAddNodeWidget = (props: {
         setNodesAndEdges(nodes, edges);
         postAddNodeActions?.();
       }
-      toast.success(t("popup.node.addNodeSuccess"), {
+      toast.success(t("popup.graph.addNodeSuccess"), {
         description: `Node ${data.node_name} added successfully`,
       });
     } catch (error) {
       console.error(error);
-      toast.error(t("popup.node.addNodeError"), {
+      toast.error(t("popup.graph.addNodeError"), {
         description: error instanceof Error ? error.message : "Unknown error",
       });
     } finally {
@@ -157,12 +162,12 @@ export const GraphAddNodeWidget = (props: {
 
   React.useEffect(() => {
     if (graphError) {
-      toast.error(t("popup.node.graphError"), {
+      toast.error(t("popup.graph.graphError"), {
         description: graphError.message,
       });
     }
     if (addonError) {
-      toast.error(t("popup.node.addonError"), {
+      toast.error(t("popup.graph.addonError"), {
         description: addonError.message,
       });
     }
@@ -180,17 +185,17 @@ export const GraphAddNodeWidget = (props: {
           name="graph_app_base_dir"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.graphAppBaseDir")}</FormLabel>
+              <FormLabel>{t("popup.graph.graphAppBaseDir")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t("popup.node.graphAppBaseDir")}
+                  placeholder={t("popup.graph.graphAppBaseDir")}
                   {...field}
                   readOnly
                   disabled
                 />
               </FormControl>
               {/* <FormDescription>
-                {t("popup.node.graphAppBaseDirDescription")}
+                {t("popup.graph.graphAppBaseDirDescription")}
               </FormDescription> */}
               <FormMessage />
             </FormItem>
@@ -201,20 +206,20 @@ export const GraphAddNodeWidget = (props: {
           name="graph_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.graphName")}</FormLabel>
+              <FormLabel>{t("popup.graph.graphName")}</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
-                    <SelectValue placeholder={t("popup.node.graphName")} />
+                    <SelectValue placeholder={t("popup.graph.graphName")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>{t("popup.node.graphName")}</SelectLabel>
+                      <SelectLabel>{t("popup.graph.graphName")}</SelectLabel>
                       {isGraphsLoading ? (
-                        <SelectItem value={t("popup.node.graphName")}>
+                        <SelectItem value={t("popup.graph.graphName")}>
                           <SpinnerLoading className="size-4" />
                         </SelectItem>
                       ) : (
@@ -238,9 +243,9 @@ export const GraphAddNodeWidget = (props: {
           name="node_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.nodeName")}</FormLabel>
+              <FormLabel>{t("popup.graph.nodeName")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("popup.node.nodeName")} {...field} />
+                <Input placeholder={t("popup.graph.nodeName")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -252,7 +257,7 @@ export const GraphAddNodeWidget = (props: {
           name="addon_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.addonName")}</FormLabel>
+              <FormLabel>{t("popup.graph.addonName")}</FormLabel>
               <FormControl>
                 <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
                   <PopoverTrigger asChild>
@@ -267,17 +272,19 @@ export const GraphAddNodeWidget = (props: {
                       {field.value
                         ? addons?.find((addon) => addon.name === field.value)
                             ?.name
-                        : t("popup.node.addonName")}
+                        : t("popup.graph.addonName")}
                       {/* eslint-disable-next-line max-len */}
                       <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
                     <Command>
-                      <CommandInput placeholder={t("popup.node.searchAddon")} />
+                      <CommandInput
+                        placeholder={t("popup.graph.searchAddon")}
+                      />
                       <CommandList>
                         <CommandEmpty>
-                          {t("popup.node.noAddonFound")}
+                          {t("popup.graph.noAddonFound")}
                         </CommandEmpty>
                         <CommandGroup>
                           {addons?.map((addon) => (
@@ -316,10 +323,10 @@ export const GraphAddNodeWidget = (props: {
           name="addon_app_base_dir"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.addonAppBaseDir")}</FormLabel>
+              <FormLabel>{t("popup.graph.addonAppBaseDir")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t("popup.node.addonAppBaseDir")}
+                  placeholder={t("popup.graph.addonAppBaseDir")}
                   {...field}
                 />
               </FormControl>
@@ -333,10 +340,10 @@ export const GraphAddNodeWidget = (props: {
           name="extension_group_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.extensionGroupName")}</FormLabel>
+              <FormLabel>{t("popup.graph.extensionGroupName")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t("popup.node.extensionGroupName")}
+                  placeholder={t("popup.graph.extensionGroupName")}
                   {...field}
                 />
               </FormControl>
@@ -350,9 +357,9 @@ export const GraphAddNodeWidget = (props: {
           name="app_uri"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.appUri")}</FormLabel>
+              <FormLabel>{t("popup.graph.appUri")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("popup.node.appUri")} {...field} />
+                <Input placeholder={t("popup.graph.appUri")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -364,11 +371,10 @@ export const GraphAddNodeWidget = (props: {
           name="property"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.node.property")}</FormLabel>
+              <FormLabel>{t("popup.graph.property")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={t("popup.node.property")}
-                  defaultValue={JSON.stringify({})}
+                  placeholder={t("popup.graph.property")}
                   value={field.value as unknown as string}
                   onChange={(e) => {
                     field.onChange(e.target.value);
@@ -387,8 +393,255 @@ export const GraphAddNodeWidget = (props: {
           {isSubmitting ? (
             <SpinnerLoading className="size-4" />
           ) : (
-            t("popup.node.addNode")
+            t("popup.graph.addNode")
           )}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+const AddConnectionFormSchema = AddConnectionPayloadSchema.extend({
+  //   dest_app_dir: z.string(),
+  //   dest_graph_name: z.string(),
+});
+
+export const GraphAddConnectionWidget = (props: {
+  base_dir: string;
+  app_uri?: string | null;
+  graph_name?: string;
+  postAddConnectionActions?: () => void | Promise<void>;
+}) => {
+  const { base_dir, app_uri, graph_name, postAddConnectionActions } = props;
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const { t } = useTranslation();
+  const { nodes, setNodesAndEdges } = useFlowStore();
+  const {
+    graphs,
+    isLoading: isGraphsLoading,
+    error: graphError,
+  } = useGraphs(base_dir);
+  const { currentWorkspace } = useAppStore();
+
+  const form = useForm<z.infer<typeof AddConnectionFormSchema>>({
+    resolver: zodResolver(AddConnectionFormSchema),
+    defaultValues: {
+      base_dir: base_dir,
+      graph_name: graph_name,
+      src_app: app_uri,
+      src_extension: undefined,
+      msg_type: EConnectionType.CMD,
+      msg_name: undefined,
+      dest_app: app_uri,
+      //   dest_app_dir: base_dir, // extended field, cause dest_app is nullable
+      //   dest_graph_name: graph_name, // extended field, target graph > nodes
+      dest_extension: undefined,
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof AddConnectionFormSchema>) => {
+    setIsSubmitting(true);
+    try {
+      const payload = AddConnectionPayloadSchema.parse(data);
+      if (payload.src_extension === payload.dest_extension) {
+        throw new Error(t("popup.graph.sameNodeError"));
+        return;
+      }
+      console.log("GraphAddConnection", payload);
+      await postAddConnection(payload);
+      if (
+        currentWorkspace?.graphName === data.graph_name &&
+        data.base_dir === base_dir
+      ) {
+        const { nodes, edges } = await resetNodesAndEdgesByGraphName(
+          data.graph_name,
+          data.base_dir
+        );
+        setNodesAndEdges(nodes, edges);
+        postAddConnectionActions?.();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unknown error");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (graphError) {
+      toast.error(t("popup.graph.graphError"), {
+        description: graphError.message,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphError]);
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4 w-full h-full overflow-y-auto px-2"
+      >
+        <FormField
+          control={form.control}
+          name="base_dir"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.graphAppBaseDir")}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={t("popup.graph.graphAppBaseDir")}
+                  {...field}
+                  readOnly
+                  disabled
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="graph_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.graphName")}</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger className="w-full" disabled={isGraphsLoading}>
+                    <SelectValue placeholder={t("popup.graph.graphName")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>{t("popup.graph.graphName")}</SelectLabel>
+                      {isGraphsLoading ? (
+                        <SelectItem value={t("popup.graph.graphName")}>
+                          <SpinnerLoading className="size-4" />
+                        </SelectItem>
+                      ) : (
+                        graphs?.map((graph) => (
+                          <SelectItem key={graph.name} value={graph.name}>
+                            {graph.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="src_extension"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.srcExtension")}</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-full overflow-hidden">
+                    <SelectValue placeholder={t("popup.graph.srcExtension")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>{t("popup.graph.srcExtension")}</SelectLabel>
+                      {nodes.map((node) => (
+                        <SelectItem key={node.id} value={node.data.name}>
+                          {node.data.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="msg_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.messageType")}</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-full overflow-hidden">
+                    <SelectValue placeholder={t("popup.graph.messageType")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>{t("popup.graph.messageType")}</SelectLabel>
+                      {Object.values(EConnectionType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="msg_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.messageName")}</FormLabel>
+              <FormControl>
+                <Input placeholder={t("popup.graph.messageName")} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="dest_extension"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.destExtension")}</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? undefined}
+                >
+                  <SelectTrigger className="w-full overflow-hidden">
+                    <SelectValue placeholder={t("popup.graph.destExtension")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>
+                        {t("popup.graph.destExtension")}
+                      </SelectLabel>
+                      {nodes
+                        .filter((i) => i.id !== form.watch("src_extension"))
+                        .map((node) => (
+                          <SelectItem key={node.id} value={node.data.name}>
+                            {node.data.name}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <SpinnerLoading className="size-4" />}
+          {t("popup.graph.addConnection")}
         </Button>
       </form>
     </Form>

@@ -71,9 +71,9 @@ export type TConnectionItem = {
 
 export type TConnectionMap = Record<string, Set<TConnectionItem>>;
 
-export enum ENodeActions {
-  ADD = "add",
-  DELETE = "delete",
+export enum EGraphActions {
+  ADD_NODE = "add_node",
+  ADD_CONNECTION = "add_connection",
 }
 
 export const AddNodePayloadSchema = z.object({
@@ -96,4 +96,16 @@ export const DeleteNodePayloadSchema = z.object({
   addon_name: z.string(),
   extension_group_name: z.string().optional(),
   app_uri: z.string().optional(),
+});
+
+export const AddConnectionPayloadSchema = z.object({
+  base_dir: z.string(),
+  graph_name: z.string(),
+  src_app: z.string().nullable().optional(),
+  src_extension: z.string(),
+  msg_type: z.nativeEnum(EConnectionType),
+  msg_name: z.string(),
+  dest_app: z.string().nullable().optional(),
+  dest_extension: z.string(),
+  msg_conversion: z.unknown().optional(), // TODO: add msg_conversion type
 });

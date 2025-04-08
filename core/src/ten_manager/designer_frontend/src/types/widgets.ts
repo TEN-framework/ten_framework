@@ -6,7 +6,7 @@
 //
 import { z } from "zod";
 import { IListTenCloudStorePackage } from "@/types/extension";
-import { EConnectionType, ENodeActions } from "@/types/graphs";
+import { EConnectionType, EGraphActions } from "@/types/graphs";
 
 export interface TerminalData {
   title: string;
@@ -46,7 +46,7 @@ export enum EWidgetCategory {
   LogViewer = "log_viewer",
   Extension = "extension",
   Default = "default",
-  Node = "node",
+  Graph = "graph",
 }
 
 export interface IWidgetBase {
@@ -70,14 +70,15 @@ export interface ICustomConnectionWidget extends IWidgetBase {
   metadata: CustomConnectionData;
 }
 
-export interface INodeWidget<
+export interface IGraphWidget<
   T extends {
-    type: ENodeActions;
+    type: EGraphActions;
     base_dir: string;
     graph_name?: string;
+    app_uri?: string;
   },
 > extends IWidgetBase {
-  category: EWidgetCategory.Node;
+  category: EWidgetCategory.Graph;
   metadata: T;
 }
 
@@ -166,6 +167,11 @@ export type IWidget<T> =
       }
     >
   | IExtensionWidget
-  | INodeWidget<
-      T & { type: ENodeActions; base_dir: string; graph_name?: string }
+  | IGraphWidget<
+      T & {
+        type: EGraphActions;
+        base_dir: string;
+        graph_name?: string;
+        app_uri?: string;
+      }
     >;

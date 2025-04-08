@@ -5,7 +5,12 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { FolderOpenIcon, MoveIcon, PackagePlusIcon } from "lucide-react";
+import {
+  FolderOpenIcon,
+  MoveIcon,
+  PackagePlusIcon,
+  GitPullRequestCreateIcon,
+} from "lucide-react";
 
 import {
   NavigationMenuContent,
@@ -23,7 +28,7 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
-import { ENodeActions } from "@/types/graphs";
+import { EGraphActions } from "@/types/graphs";
 
 export function GraphMenu(props: {
   onAutoLayout: () => void;
@@ -48,18 +53,20 @@ export function GraphMenu(props: {
     });
   };
 
-  const onAddNode = () => {
+  const onGraphAct = (type: EGraphActions) => () => {
     if (!currentWorkspace?.baseDir) return;
     appendWidgetIfNotExists({
       id:
-        `node-add-popup-` +
+        `graph-add-` +
+        `${type}-popup-` +
         `${currentWorkspace.baseDir}-${currentWorkspace?.graphName}`,
-      category: EWidgetCategory.Node,
+      category: EWidgetCategory.Graph,
       display_type: EWidgetDisplayType.Popup,
       metadata: {
-        type: ENodeActions.ADD,
+        type,
         base_dir: currentWorkspace.baseDir,
         graph_name: currentWorkspace?.graphName,
+        app_uri: currentWorkspace?.appUri,
       },
     });
   };
@@ -110,10 +117,21 @@ export function GraphMenu(props: {
             className="w-full justify-start"
             variant="ghost"
             disabled={!currentWorkspace || !currentWorkspace.baseDir}
-            onClick={onAddNode}
+            onClick={onGraphAct(EGraphActions.ADD_NODE)}
           >
             <PackagePlusIcon />
             {t("header.menuGraph.addNode")}
+          </Button>
+        </NavigationMenuLink>
+        <NavigationMenuLink asChild>
+          <Button
+            className="w-full justify-start"
+            variant="ghost"
+            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            onClick={onGraphAct(EGraphActions.ADD_CONNECTION)}
+          >
+            <GitPullRequestCreateIcon />
+            {t("header.menuGraph.addConnection")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>

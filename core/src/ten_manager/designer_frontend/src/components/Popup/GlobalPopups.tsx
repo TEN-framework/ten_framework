@@ -29,7 +29,7 @@ import {
   ExtensionStorePopup,
   ExtensionPopup,
 } from "@/components/Popup/ExtensionPopup";
-import { NodePopup } from "@/components/Popup/NodePopup";
+import { GraphPopup } from "@/components/Popup/GraphPopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -42,7 +42,7 @@ export function GlobalPopups() {
     logViewerWidgetsMemo,
     defaultWidgetsMemo,
     extensionWidgetsMemo,
-    nodeWidgetsMemo,
+    graphWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -65,8 +65,8 @@ export function GlobalPopups() {
     const extensionWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Extension
     );
-    const nodeWidgets = popupWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Node
+    const graphWidgets = popupWidgets.filter(
+      (widget) => widget.category === EWidgetCategory.Graph
     );
     return [
       popupWidgets,
@@ -76,7 +76,7 @@ export function GlobalPopups() {
       logViewerWidgets,
       defaultWidgets,
       extensionWidgets,
-      nodeWidgets,
+      graphWidgets,
     ];
   }, [widgets]);
 
@@ -153,9 +153,9 @@ export function GlobalPopups() {
           versions={widget.metadata.versions}
         />
       ))}
-      {nodeWidgetsMemo.map((widget) => (
-        <NodePopup
-          key={`NodePopup-${widget.id}`}
+      {graphWidgetsMemo.map((widget) => (
+        <GraphPopup
+          key={`GraphPopup-${widget.id}`}
           id={widget.id}
           metadata={widget.metadata}
         />

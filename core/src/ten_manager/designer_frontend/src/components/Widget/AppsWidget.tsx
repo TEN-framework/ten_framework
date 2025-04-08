@@ -122,6 +122,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
         updateCurrentWorkspace({
           baseDir: null,
           graphName: null,
+          appUri: null,
         });
       }
       toast.success(t("header.menuApp.unloadAppSuccess"));

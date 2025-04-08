@@ -11,6 +11,7 @@ import { genResSchema } from "@/api/endpoints/utils";
 import {
   AddNodePayloadSchema,
   DeleteNodePayloadSchema,
+  AddConnectionPayloadSchema,
   type IBackendNode,
   type IBackendConnection,
   type IGraph,
@@ -164,6 +165,14 @@ export const ENDPOINT_GRAPHS = {
           })
         )
       ),
+    },
+  },
+  addConnection: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/connections/add`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AddConnectionPayloadSchema,
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
   graphs: {
