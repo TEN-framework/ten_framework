@@ -31,7 +31,7 @@ mod tests {
     };
 
     #[actix_web::test]
-    async fn test_add_graph_connection_success() {
+    async fn test_add_graph_connection_success_1() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -141,6 +141,149 @@ mod tests {
 
         // Define expected property.json content after adding the connection.
         let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_success.json");
+
+        // Read the actual property.json file generated during the test.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        let actual_property = std::fs::read_to_string(property_path).unwrap();
+
+        // Normalize both JSON strings to handle formatting differences.
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_property_json_str).unwrap();
+        let actual_value: serde_json::Value =
+            serde_json::from_str(&actual_property).unwrap();
+
+        // Compare the normalized JSON values.
+        assert_eq!(
+            expected_value, actual_value,
+            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
+    }
+
+    #[actix_web::test]
+    async fn test_add_graph_connection_success_2() {
+        let mut designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
+        };
+
+        // Create a temporary directory for our test to store the generated
+        // property.json.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let test_dir = temp_dir.path().to_str().unwrap().to_string();
+
+        // Load both the app package JSON and extension addon package JSONs.
+        let app_manifest_json_str =
+            include_str!("../test_data_embed/app_manifest.json").to_string();
+        let app_property_json_str = include_str!(
+            "test_data_embed/initial_property_add_connection_2.json"
+        )
+        .to_string();
+
+        // Create the property.json file in the temporary directory.
+        let property_path =
+            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, &app_property_json_str).unwrap();
+
+        // Create extension addon manifest strings.
+        let ext1_manifest = r#"{
+            "type": "extension",
+            "name": "aio_http_server_python",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        let ext2_manifest = r#"{
+            "type": "extension",
+            "name": "simple_echo_cpp",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        let ext3_manifest = r#"{
+            "type": "extension",
+            "name": "mock_extension_1",
+            "version": "0.1.0"
+        }"#
+        .to_string();
+
+        let ext4_manifest = r#"{
+          "type": "extension",
+          "name": "mock_extension_2",
+          "version": "0.1.0"
+        }"#
+        .to_string();
+
+        // The empty property for addons
+        let empty_property = r#"{"_ten":{}}"#.to_string();
+
+        let all_pkgs_json = vec![
+            (app_manifest_json_str, app_property_json_str),
+            (ext1_manifest, empty_property.clone()),
+            (ext2_manifest, empty_property.clone()),
+            (ext3_manifest, empty_property.clone()),
+            (ext4_manifest, empty_property.clone()),
+        ];
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &test_dir,
+            &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
+            all_pkgs_json,
+        );
+        assert!(inject_ret.is_ok());
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/graphs/connections/add",
+                web::post().to(add_graph_connection_endpoint),
+            ),
+        )
+        .await;
+
+        // Add a connection between existing nodes in the default graph.
+        let request_payload = AddGraphConnectionRequestPayload {
+            base_dir: test_dir.clone(),
+            graph_name: "default".to_string(),
+            src_app: None,
+            src_extension: "aio_http_server_python".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "c1".to_string(),
+            dest_app: None,
+            dest_extension: "simple_echo_cpp".to_string(),
+            msg_conversion: None,
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections/add")
+            .set_json(request_payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Print the status and body for debugging.
+        let status = resp.status();
+        println!("Response status: {:?}", status);
+        let body = test::read_body(resp).await;
+        let body_str = std::str::from_utf8(&body).unwrap();
+        println!("Response body: {}", body_str);
+
+        assert!(status.is_success());
+
+        let response: ApiResponse<AddGraphConnectionResponsePayload> =
+            serde_json::from_str(body_str).unwrap();
+
+        assert!(response.data.success);
+
+        // Define expected property.json content after adding the connection.
+        let expected_property_json_str = include_str!(
+            "test_data_embed/expected_property_add_connection_2.json"
+        );
 
         // Read the actual property.json file generated during the test.
         let property_path =

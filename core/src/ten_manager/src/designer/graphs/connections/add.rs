@@ -27,6 +27,13 @@ use crate::designer::{
 
 use crate::graph::update_graph_connections_all_fields;
 
+/// A struct that contains both PkgsInfoInApp and its base_dir.
+#[derive(Clone)]
+struct PkgInfoWithBaseDir {
+    pkg_info: PkgsInfoInApp,
+    base_dir: String,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
     pub base_dir: String,
@@ -122,18 +129,28 @@ pub async fn add_graph_connection_endpoint(
 
     // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<String, PkgsInfoInApp> = HashMap::new();
+    let mut uri_to_pkg_info: HashMap<String, PkgInfoWithBaseDir> =
+        HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp.
-    for base_dir_pkg_info in state_write.pkgs_cache.values() {
+    for (base_dir, base_dir_pkg_info) in state_write.pkgs_cache.iter() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
-                    if let Some(uri) = &ten.uri {
-                        // Map the URI to the PkgsInfoInApp.
-                        uri_to_pkg_info
-                            .insert(uri.clone(), base_dir_pkg_info.clone());
-                    }
+                    // Map the URI to the PkgsInfoInApp, using empty string if
+                    // URI is None.
+                    let key = ten
+                        .uri
+                        .as_ref()
+                        .map_or_else(String::new, |uri| uri.clone());
+
+                    uri_to_pkg_info.insert(
+                        key,
+                        PkgInfoWithBaseDir {
+                            pkg_info: base_dir_pkg_info.clone(),
+                            base_dir: base_dir.clone(),
+                        },
+                    );
                 }
             }
         }
@@ -160,7 +177,10 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &uri_to_pkg_info,
+                    &uri_to_pkg_info
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v.pkg_info.clone()))
+                        .collect(),
                     request_payload.msg_conversion.clone(),
                 ) {
                     Ok(_) => {
