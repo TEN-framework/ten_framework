@@ -33,7 +33,7 @@ import {
   ITenPackageLocal,
   ITenPackage,
   IListTenLocalStorePackage,
-  ETenPackageType,
+  EPackageSource,
 } from "@/types/extension";
 
 export const ExtensionStoreWidget = (props: {
@@ -87,17 +87,17 @@ export const ExtensionStoreWidget = (props: {
       localOnlyAddons: localOnlyAddons.map((item) => ({
         ...item,
         isInstalled: true,
-        _type: ETenPackageType.Local,
+        _type: EPackageSource.Local,
       })) as ITenPackageLocal[],
       installedPackages: installedPackages.map((item) => ({
         ...item,
         isInstalled: true,
-        _type: ETenPackageType.Default,
+        _type: EPackageSource.Default,
       })) as ITenPackage[],
       uninstalledPackages: uninstalledPackages.map((item) => ({
         ...item,
         isInstalled: false,
-        _type: ETenPackageType.Default,
+        _type: EPackageSource.Default,
       })) as ITenPackage[],
       installedPackageNames: [
         ...new Set(installedPackages.map((item) => item.name)),
@@ -170,7 +170,7 @@ export const ExtensionStoreWidget = (props: {
             {
               ...target,
               isInstalled: true,
-              _type: ETenPackageType.Default,
+              _type: EPackageSource.Default,
             },
           ];
         },
@@ -199,7 +199,7 @@ export const ExtensionStoreWidget = (props: {
             {
               ...target,
               isInstalled: false,
-              _type: ETenPackageType.Default,
+              _type: EPackageSource.Default,
             },
           ];
         },

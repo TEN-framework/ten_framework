@@ -8,7 +8,16 @@ import z from "zod";
 
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
-import type { IBackendNode, IBackendConnection, IGraph } from "@/types/graphs";
+import {
+  AddNodePayloadSchema,
+  DeleteNodePayloadSchema,
+  AddConnectionPayloadSchema,
+  type IBackendNode,
+  type IBackendConnection,
+  type IGraph,
+  UpdateNodePropertyPayloadSchema,
+  ValidateGraphNodePayloadSchema,
+} from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
   nodes: {
@@ -32,6 +41,46 @@ export const ENDPOINT_GRAPHS = {
           })
         ) as z.ZodType<IBackendNode[]>
       ),
+    },
+  },
+  addNode: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/add`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AddNodePayloadSchema,
+      responseSchema: genResSchema(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
+  deleteNode: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/delete`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: DeleteNodePayloadSchema,
+      responseSchema: genResSchema(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
+  nodesPropertyUpdate: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/property/update`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: UpdateNodePropertyPayloadSchema,
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
+    },
+  },
+  nodesValidate: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/validate`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: ValidateGraphNodePayloadSchema,
+      responseSchema: z.any().optional(),
     },
   },
   connections: {
@@ -102,6 +151,14 @@ export const ENDPOINT_GRAPHS = {
           })
         )
       ),
+    },
+  },
+  addConnection: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/connections/add`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AddConnectionPayloadSchema,
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
   graphs: {

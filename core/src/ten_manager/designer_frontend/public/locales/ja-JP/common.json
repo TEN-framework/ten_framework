@@ -27,7 +27,9 @@
       "title": "グラフ",
       "loadGraph": "グラフを読み込む",
       "autoLayout": "自動レイアウト",
-      "selectLoadedApp": "読み込まれたアプリを選択"
+      "selectLoadedApp": "読み込まれたアプリを選択",
+      "addNode": "ノードを追加",
+      "addConnection": "接続を追加"
     },
     "menuHelp": {
       "title": "ヘルプ",
@@ -92,7 +94,9 @@
     "run": "実行",
     "viewDetails": "詳細を表示",
     "reset": "リセット",
-    "chooseBaseDir": "ベースディレクトリを選択"
+    "chooseBaseDir": "ベースディレクトリを選択",
+    "deleteNodeConfirmationWithName": "ノード {{name}} を削除してもよろしいですか？",
+    "update": "更新"
   },
   "toast": {
     "saveFileSuccess": "ファイルの保存に成功しました",
@@ -149,6 +153,36 @@
       "appName": "アプリ名",
       "appNameDescription": "アプリの名前を入力してください。",
       "baseDirDescription": "アプリのベースディレクトリを選択してください。"
+    },
+    "node": {
+      "properties": "プロパティ"
+    },
+    "graph": {
+      "title": "ノード",
+      "titleAddNode": "ノードを追加",
+      "graphAppBaseDir": "ベースディレクトリ",
+      "graphName": "グラフ名",
+      "nodeName": "ノード名",
+      "addonName": "アドオン名",
+      "searchAddon": "アドオンを検索",
+      "noAddonFound": "アドオンが見つかりません",
+      "useInputAddon": "'{{addonName}}' を使用",
+      "property": "プロパティ",
+      "addNode": "ノードを追加",
+      "addNodeSuccess": "ノードの追加に成功しました",
+      "addNodeError": "ノードの追加に失敗しました",
+      "graphError": "グラフの読み込みに失敗しました",
+      "addonError": "アドオンの読み込みに失敗しました",
+      "deleteNodeSuccess": "ノードの削除に成功しました",
+      "deleteNodeFailed": "ノードの削除に失敗しました",
+      "titleAddConnection": "接続を追加",
+      "sameNodeError": "送信元と送信先のノードは同じにできません",
+      "srcExtension": "送信元拡張機能",
+      "destExtension": "送信先拡張機能",
+      "messageType": "メッセージタイプ",
+      "messageName": "メッセージ名",
+      "addConnection": "接続を追加",
+      "titleUpdateNodePropertyByName": "[{{name}}] プロパティを更新"
     }
   },
   "dock": {
@@ -202,7 +236,8 @@
     "versionHistory": "バージョン履歴",
     "selectVersion": "バージョンを選択",
     "versionLatest": "最新",
-    "localAddonTip": "（ローカル）"
+    "localAddonTip": "（ローカル）",
+    "extension": "拡張機能"
   },
   "statusBar": {
     "appsLoadedWithCount": "{{count}}個のアプリが読み込まれています",
@@ -228,5 +263,13 @@
     "cancel": "キャンセル",
     "saved": "保存済み",
     "savedSuccess": "設定 {{key}} が正常に保存されました"
+  },
+  "components": {
+    "combobox": {
+      "create": "{{query}} を作成",
+      "placeholder": "検索または新規作成",
+      "noItems": "項目がありません",
+      "enterValueToCreate": "新規作成する値を入力してください"
+    }
   }
 }

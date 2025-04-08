@@ -22,10 +22,12 @@ export interface IAppStore {
     initialized?: boolean;
     baseDir: string | null;
     graphName: string | null;
+    appUri: string | null;
   };
   updateCurrentWorkspace: (currentWorkspace: {
     baseDir: string | null;
     graphName: string | null;
+    appUri?: string | null;
   }) => void;
   /** @deprecated */
   runScript: string;
@@ -57,11 +59,13 @@ export const useAppStore = create<IAppStore>()(
   devtools((set) => ({
     currentWorkspace: {
       baseDir: null,
+      appUri: null,
       graphName: null,
     },
     updateCurrentWorkspace: (currentWorkspace: {
       baseDir?: string | null;
       graphName?: string | null;
+      appUri?: string | null;
     }) =>
       set((state) => ({
         currentWorkspace: {
@@ -74,6 +78,10 @@ export const useAppStore = create<IAppStore>()(
             currentWorkspace.graphName !== undefined
               ? currentWorkspace.graphName
               : state.currentWorkspace.graphName,
+          appUri:
+            currentWorkspace.appUri !== undefined
+              ? currentWorkspace.appUri
+              : state.currentWorkspace.appUri,
           initialized: true,
         },
       })),

@@ -4,12 +4,16 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { z } from "zod";
+
+import { stringToJSONSchema } from "@/utils";
+
 export interface IBackendNode {
   addon: string;
   name: string;
   extension_group?: string;
   app?: string;
-  property?: unknown;
+  property?: Record<string, unknown>;
   api?: unknown;
   is_installed: boolean;
 }
@@ -66,3 +70,60 @@ export type TConnectionItem = {
 };
 
 export type TConnectionMap = Record<string, Set<TConnectionItem>>;
+
+export enum EGraphActions {
+  ADD_NODE = "add_node",
+  ADD_CONNECTION = "add_connection",
+  UPDATE_NODE_PROPERTY = "update_node_property",
+}
+
+export const AddNodePayloadSchema = z.object({
+  graph_app_base_dir: z.string(),
+  graph_name: z.string(),
+  addon_app_base_dir: z.string().optional(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+  property: stringToJSONSchema
+    .pipe(z.record(z.string(), z.unknown()))
+    .default("{}"),
+});
+
+export const DeleteNodePayloadSchema = z.object({
+  base_dir: z.string(),
+  graph_name: z.string(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+});
+
+export const AddConnectionPayloadSchema = z.object({
+  base_dir: z.string(),
+  graph_name: z.string(),
+  src_app: z.string().nullable().optional(),
+  src_extension: z.string(),
+  msg_type: z.nativeEnum(EConnectionType),
+  msg_name: z.string(),
+  dest_app: z.string().nullable().optional(),
+  dest_extension: z.string(),
+  msg_conversion: z.unknown().optional(), // TODO: add msg_conversion type
+});
+
+export const ValidateGraphNodePayloadSchema = z.object({
+  addon_app_base_dir: z.string().optional(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+  property: stringToJSONSchema
+    .pipe(z.record(z.string(), z.unknown()))
+    .default("{}"),
+});
+
+export const UpdateNodePropertyPayloadSchema =
+  ValidateGraphNodePayloadSchema.extend({
+    graph_app_base_dir: z.string(),
+    graph_name: z.string(),
+  });
