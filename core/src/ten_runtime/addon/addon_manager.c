@@ -145,6 +145,28 @@ void ten_addon_manager_register_all_addons(ten_addon_manager_t *self,
   ten_mutex_unlock(self->mutex);
 }
 
+void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
+                                                  void *register_ctx) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  ten_mutex_lock(self->mutex);
+
+  ten_list_iterator_t iter = ten_list_begin(&self->registry);
+  while (!ten_list_iterator_is_end(iter)) {
+    ten_listnode_t *node = iter.node;
+    ten_addon_registration_t *reg =
+        (ten_addon_registration_t *)ten_ptr_listnode_get(node);
+
+    if (reg && reg->func && reg->addon_type == TEN_ADDON_TYPE_ADDON_LOADER) {
+      reg->func(register_ctx);
+    }
+
+    iter = ten_list_iterator_next(iter);
+  }
+
+  ten_mutex_unlock(self->mutex);
+}
+
 bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
                                                TEN_ADDON_TYPE addon_type,
                                                const char *addon_name,
