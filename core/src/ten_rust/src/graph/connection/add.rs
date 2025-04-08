@@ -7,7 +7,7 @@
 use anyhow::Result;
 use std::collections::HashMap;
 
-use crate::base_dir_pkg_info::PkgsInfoInApp;
+use crate::base_dir_pkg_info::PkgInfInAppoWithBaseDir;
 use crate::graph::{
     connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     Graph,
@@ -32,7 +32,10 @@ impl Graph {
         msg_name: String,
         dest_app: Option<String>,
         dest_extension: String,
-        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
+        installed_pkgs_of_all_apps: &HashMap<
+            Option<String>,
+            PkgInfInAppoWithBaseDir,
+        >,
         msg_conversion: Option<
             crate::graph::msg_conversion::MsgAndResultConversion,
         >,
@@ -225,7 +228,10 @@ impl Graph {
 
     /// Finds package info for source and destination apps and extensions.
     fn find_pkg_infos<'a>(
-        installed_pkgs_of_all_apps: &'a HashMap<String, PkgsInfoInApp>,
+        installed_pkgs_of_all_apps: &'a HashMap<
+            Option<String>,
+            PkgInfInAppoWithBaseDir,
+        >,
         src_app: &Option<String>,
         src_extension: &str,
         dest_app: &Option<String>,
@@ -238,47 +244,44 @@ impl Graph {
          -> Result<Option<&'a PkgInfo>> {
             let entity_type = if is_source { "Source" } else { "Destination" };
 
-            if let Some(app_uri) = app_uri {
-                // Search for the app in the map.
-                if let Some(base_dir_pkg_info) =
-                    installed_pkgs_of_all_apps.get(app_uri)
-                {
-                    // Check if app exists.
-                    if base_dir_pkg_info.app_pkg_info.is_none() {
-                        return Err(anyhow::anyhow!(
-                            "{} app '{}' found in map but app_pkg_info is None",
-                            entity_type,
-                            app_uri
-                        ));
-                    }
-
-                    // Find extension in extension_pkg_info.
-                    if let Some(extensions) =
-                        &base_dir_pkg_info.extension_pkg_info
-                    {
-                        let found_pkg = extensions.iter().find(|pkg| {
-                            pkg.manifest.as_ref().is_some_and(|m| {
-                                m.type_and_name.pkg_type == PkgType::Extension
-                                    && m.type_and_name.name == extension_name
-                            })
-                        });
-
-                        if found_pkg.is_none() {
-                            return Err(anyhow::anyhow!(
-                                "{} extension '{}' not found in the installed packages for app '{}'",
-                                entity_type, extension_name, app_uri
-                            ));
-                        }
-
-                        return Ok(found_pkg);
-                    }
-                } else {
+            if let Some(base_dir_pkg_info) =
+                installed_pkgs_of_all_apps.get(app_uri)
+            {
+                // Check if app exists.
+                if base_dir_pkg_info.pkgs_info_in_app.app_pkg_info.is_none() {
                     return Err(anyhow::anyhow!(
-                        "{} app '{}' not found in the installed packages",
+                        "{} app '{}' found in map but app_pkg_info is None",
                         entity_type,
                         app_uri
                     ));
                 }
+
+                // Find extension in extension_pkg_info.
+                if let Some(extensions) =
+                    &base_dir_pkg_info.pkgs_info_in_app.extension_pkg_info
+                {
+                    let found_pkg = extensions.iter().find(|pkg| {
+                        pkg.manifest.as_ref().is_some_and(|m| {
+                            m.type_and_name.pkg_type == PkgType::Extension
+                                && m.type_and_name.name == extension_name
+                        })
+                    });
+
+                    if found_pkg.is_none() {
+                        return Err(anyhow::anyhow!(
+                                "{} extension '{}' not found in the installed packages for app '{}'",
+                                entity_type, extension_name, app_uri
+                            ));
+                    }
+
+                    return Ok(found_pkg);
+                }
+            } else {
+                return Err(anyhow::anyhow!(
+                    "{} app '{}' not found in the installed packages",
+                    entity_type,
+                    app_uri
+                ));
             }
 
             // If we reach here, no package was found.

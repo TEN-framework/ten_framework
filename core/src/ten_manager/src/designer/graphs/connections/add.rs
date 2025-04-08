@@ -27,13 +27,6 @@ use crate::designer::{
 
 use crate::graph::update_graph_connections_all_fields;
 
-/// A struct that contains both PkgsInfoInApp and its base_dir.
-#[derive(Clone)]
-struct PkgInfInAppoWithBaseDir {
-    pkg_info: PkgsInfoInApp,
-    base_dir: String,
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
     pub base_dir: String,
