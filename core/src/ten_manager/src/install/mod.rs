@@ -261,6 +261,7 @@ fn update_package_manifest(
                             match get_pkg_info_from_path(
                                 Path::new(&path),
                                 false,
+                                false,
                             ) {
                                 Ok(info) => info,
                                 Err(_) => {

@@ -131,7 +131,7 @@ fn process_local_dependency_to_get_candidate(
                 )
             })?;
 
-        let mut pkg_info = get_pkg_info_from_path(&abs_path, false)?;
+        let mut pkg_info = get_pkg_info_from_path(&abs_path, false, false)?;
 
         pkg_info.is_local_dependency = true;
         pkg_info.local_dependency_path = Some(path.clone());

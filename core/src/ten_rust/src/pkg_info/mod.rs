@@ -162,28 +162,17 @@ impl PkgInfo {
 ///
 /// This function reads and parses the manifest.json and property.json files
 /// from the given path, then constructs a PkgInfo object with the parsed data.
-///
-/// # Arguments
-/// * `path` - The base directory of the package containing manifest.json and
-///   optionally property.json.
-/// * `is_installed` - Boolean flag indicating whether the package is already
-///   installed in the system.
-///
-/// # Returns
-/// * `Result<PkgInfo>` - The constructed package information on success, or an
-///   error if the manifest couldn't be parsed or the PkgInfo couldn't be
-///   created.
-///
-/// # Errors
-/// * Returns an error if manifest.json is missing or invalid.
-/// * Returns an error if property.json exists but is invalid.
-/// * Returns an error if PkgInfo creation fails.
 pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
+    parse_property: bool,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
-    let property = parse_property_in_folder(path)?;
+    let property = if parse_property {
+        parse_property_in_folder(path)?
+    } else {
+        None
+    };
 
     let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
 
@@ -203,7 +192,7 @@ fn collect_pkg_info_from_path(
     path: &Path,
     pkgs_info: &mut PkgsInfoInApp,
 ) -> Result<()> {
-    let pkg_info = get_pkg_info_from_path(path, true)?;
+    let pkg_info = get_pkg_info_from_path(path, true, true)?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
