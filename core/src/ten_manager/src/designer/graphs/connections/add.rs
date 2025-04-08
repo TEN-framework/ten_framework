@@ -11,7 +11,7 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::base_dir_pkg_info::PkgInfInAppoWithBaseDir;
+use ten_rust::base_dir_pkg_info::PkgsInfoInAppWithBaseDir;
 use ten_rust::{
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
@@ -122,7 +122,7 @@ pub async fn add_graph_connection_endpoint(
 
     // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<Option<String>, PkgInfInAppoWithBaseDir> =
+    let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
         HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp.
@@ -163,7 +163,7 @@ pub async fn add_graph_connection_endpoint(
 
                     uri_to_pkg_info.insert(
                         key,
-                        PkgInfInAppoWithBaseDir {
+                        PkgsInfoInAppWithBaseDir {
                             pkgs_info_in_app: base_dir_pkg_info.clone(),
                             base_dir: base_dir.clone(),
                         },

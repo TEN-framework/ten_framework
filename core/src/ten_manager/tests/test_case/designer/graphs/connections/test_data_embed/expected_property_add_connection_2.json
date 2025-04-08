@@ -70,6 +70,14 @@
                     "extension": "mock_extension_2"
                   }
                 ]
+              },
+              {
+                "name": "c1",
+                "dest": [
+                  {
+                    "extension": "simple_echo_cpp"
+                  }
+                ]
               }
             ],
             "data": [
