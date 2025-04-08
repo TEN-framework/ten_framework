@@ -144,6 +144,23 @@ pub async fn add_graph_connection_endpoint(
                         .as_ref()
                         .map_or_else(String::new, |uri| uri.clone());
 
+                    // Check if the key already exists.
+                    if let Some(existing) = uri_to_pkg_info.get(&key) {
+                        let error_response = ErrorResponse {
+                            status: Status::Fail,
+                            message: format!(
+                                "Duplicate app uri '{}' found in both '{}' and '{}'",
+                                key,
+                                existing.base_dir,
+                                base_dir
+                            ),
+                            error: None,
+                        };
+                        return Ok(
+                            HttpResponse::BadRequest().json(error_response)
+                        );
+                    }
+
                     uri_to_pkg_info.insert(
                         key,
                         PkgInfoWithBaseDir {
