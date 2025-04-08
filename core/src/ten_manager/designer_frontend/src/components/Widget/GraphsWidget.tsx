@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/Popover";
 import { Textarea } from "@/components/ui/Textarea";
 import { SpinnerLoading } from "@/components/Status/Loading";
+import { Combobox } from "@/components/ui/Combobox";
 import {
   useGraphs,
   postAddNode,
@@ -102,8 +103,13 @@ export const GraphAddNodeWidget = (props: {
   postAddNodeActions?: () => void | Promise<void>;
 }) => {
   const { base_dir, graph_name, postAddNodeActions } = props;
-  const [comboboxOpen, setComboboxOpen] = React.useState(false);
+  const [customAddon, setCustomAddon] = React.useState<string | undefined>(
+    undefined
+  );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [remoteCheckErrorMessage, setRemoteCheckErrorMessage] = React.useState<
+    string | undefined
+  >(undefined);
 
   const { t } = useTranslation();
   const { currentWorkspace } = useAppStore();
@@ -141,9 +147,9 @@ export const GraphAddNodeWidget = (props: {
       });
     } catch (error) {
       console.error(error);
-      toast.error(t("popup.graph.addNodeError"), {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      setRemoteCheckErrorMessage(
+        error instanceof Error ? error.message : "Unknown error"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -159,6 +165,19 @@ export const GraphAddNodeWidget = (props: {
     isLoading: isAddonsLoading,
     error: addonError,
   } = useAddons(base_dir);
+
+  const comboboxOptionsMemo = React.useMemo(() => {
+    const addonsOptions = addons
+      ? addons.map((addon) => ({
+          value: addon.name,
+          label: addon.name,
+        }))
+      : [];
+    const customAddons = customAddon
+      ? [{ value: customAddon, label: customAddon }]
+      : [];
+    return [...addonsOptions, ...customAddons];
+  }, [addons, customAddon]);
 
   React.useEffect(() => {
     if (graphError) {
@@ -195,8 +214,8 @@ export const GraphAddNodeWidget = (props: {
                 />
               </FormControl>
               {/* <FormDescription>
-                {t("popup.graph.graphAppBaseDirDescription")}
-              </FormDescription> */}
+            {t("popup.graph.graphAppBaseDirDescription")}
+            </FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -259,112 +278,23 @@ export const GraphAddNodeWidget = (props: {
             <FormItem>
               <FormLabel>{t("popup.graph.addonName")}</FormLabel>
               <FormControl>
-                <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      disabled={isAddonsLoading}
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={comboboxOpen}
-                      className="w-full justify-between"
-                    >
-                      {isAddonsLoading && <SpinnerLoading className="size-4" />}
-                      {field.value
-                        ? addons?.find((addon) => addon.name === field.value)
-                            ?.name
-                        : t("popup.graph.addonName")}
-                      {/* eslint-disable-next-line max-len */}
-                      <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder={t("popup.graph.searchAddon")}
-                      />
-                      <CommandList>
-                        <CommandEmpty>
-                          {t("popup.graph.noAddonFound")}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {addons?.map((addon) => (
-                            <CommandItem
-                              key={addon.name}
-                              value={addon.name}
-                              onSelect={(currentValue) => {
-                                field.onChange(currentValue);
-                                setComboboxOpen(false);
-                              }}
-                            >
-                              <CheckIcon
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === addon.name
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {addon.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Combobox
+                  options={comboboxOptionsMemo}
+                  placeholder={t("popup.graph.addonName")}
+                  selected={field.value}
+                  onChange={(i) => {
+                    field.onChange(i.value);
+                  }}
+                  onCreate={(i) => {
+                    setCustomAddon(i);
+                    field.onChange(i);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        {/* <FormField
-          control={form.control}
-          name="addon_app_base_dir"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.addonAppBaseDir")}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t("popup.graph.addonAppBaseDir")}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-
-        {/* <FormField
-          control={form.control}
-          name="extension_group_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.extensionGroupName")}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t("popup.graph.extensionGroupName")}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-
-        {/* <FormField
-          control={form.control}
-          name="app_uri"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.appUri")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("popup.graph.appUri")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
 
         <FormField
           control={form.control}
@@ -385,6 +315,10 @@ export const GraphAddNodeWidget = (props: {
             </FormItem>
           )}
         />
+
+        {remoteCheckErrorMessage && (
+          <div className="text-red-500">{remoteCheckErrorMessage}</div>
+        )}
 
         <Button
           type="submit"

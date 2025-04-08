@@ -110,7 +110,9 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
         appendDialog({
           id: "delete-node-dialog-" + node.data.name,
           title: t("action.delete"),
-          content: t("action.deleteNodeConfirmation"),
+          content: t("action.deleteNodeConfirmationWithName", {
+            name: node.data.name,
+          }),
           variant: "destructive",
           onCancel: async () => {
             removeDialog("delete-node-dialog-" + node.data.name);
