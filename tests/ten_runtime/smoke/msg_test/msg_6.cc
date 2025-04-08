@@ -58,7 +58,9 @@ class test_app : public ten::app_t {
         R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 2
+                        "log": {
+                          "level": 2
+                        }
                       }
                     })");
     ten_env.on_configure_done();

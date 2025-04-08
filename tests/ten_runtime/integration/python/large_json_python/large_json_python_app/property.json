@@ -1,6 +1,8 @@
 {
   "_ten": {
-    "log_level": 3,
+    "log": {
+      "level": 3
+    },
     "predefined_graphs": [
       {
         "name": "default",
