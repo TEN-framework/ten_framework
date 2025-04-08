@@ -7,6 +7,8 @@
 #include "include_internal/ten_runtime/addon/addon_manager.h"
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/addon/common/common.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
@@ -155,7 +157,13 @@ void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
         (ten_addon_registration_t *)ten_ptr_listnode_get(node);
 
     if (reg && reg->func && reg->addon_type == TEN_ADDON_TYPE_ADDON_LOADER) {
-      reg->func(register_ctx);
+      // Check if the addon loader is already registered.
+      ten_addon_host_t *addon_host = ten_addon_store_find_by_type(
+          TEN_ADDON_TYPE_ADDON_LOADER,
+          ten_string_get_raw_str(&reg->addon_name));
+      if (!addon_host) {
+        reg->func(register_ctx);
+      }
     }
 
     iter = ten_list_iterator_next(iter);
