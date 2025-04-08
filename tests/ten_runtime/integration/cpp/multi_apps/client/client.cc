@@ -41,8 +41,8 @@ void test_extension_in_app1_not_installed() {
 
   auto detail = cmd_result->get_property_string("detail");
   // NOLINTNEXTLINE
-  TEN_ASSERT(!detail.empty() && detail.find("ext_e") != std::string::npos,
-             "Should not happen.");
+  TEN_ASSERT(!detail.empty(), "Should not happen.");
+  TEN_ASSERT(detail.find("ext_e") != std::string::npos, "Should not happen.");
 
   delete client;
 }
