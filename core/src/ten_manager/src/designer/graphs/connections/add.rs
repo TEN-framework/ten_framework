@@ -29,7 +29,7 @@ use crate::graph::update_graph_connections_all_fields;
 
 /// A struct that contains both PkgsInfoInApp and its base_dir.
 #[derive(Clone)]
-struct PkgInfoWithBaseDir {
+struct PkgInfInAppoWithBaseDir {
     pkg_info: PkgsInfoInApp,
     base_dir: String,
 }
@@ -129,7 +129,7 @@ pub async fn add_graph_connection_endpoint(
 
     // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<Option<String>, PkgInfoWithBaseDir> =
+    let mut uri_to_pkg_info: HashMap<Option<String>, PkgInfInAppoWithBaseDir> =
         HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp.
@@ -170,7 +170,7 @@ pub async fn add_graph_connection_endpoint(
 
                     uri_to_pkg_info.insert(
                         key,
-                        PkgInfoWithBaseDir {
+                        PkgInfInAppoWithBaseDir {
                             pkg_info: base_dir_pkg_info.clone(),
                             base_dir: base_dir.clone(),
                         },
