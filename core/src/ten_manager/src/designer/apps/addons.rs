@@ -27,7 +27,7 @@ pub struct GetAppAddonsRequestPayload {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub addon_type: Option<String>,
+    pub addon_type: Option<PkgType>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
@@ -37,7 +37,7 @@ pub struct GetAppAddonsRequestPayload {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetAppAddonsSingleResponseData {
     #[serde(rename = "type")]
-    pub addon_type: String,
+    pub addon_type: PkgType,
 
     #[serde(rename = "name")]
     pub addon_name: String,
@@ -52,10 +52,10 @@ fn convert_pkg_info_to_addon(
     pkg_info_with_src: &PkgInfo,
 ) -> GetAppAddonsSingleResponseData {
     GetAppAddonsSingleResponseData {
-        addon_type: pkg_info_with_src.manifest.as_ref().map_or_else(
-            || PkgType::Extension.to_string(),
-            |m| m.type_and_name.pkg_type.to_string(),
-        ),
+        addon_type: pkg_info_with_src
+            .manifest
+            .as_ref()
+            .map_or_else(|| PkgType::Extension, |m| m.type_and_name.pkg_type),
         addon_name: pkg_info_with_src.manifest.as_ref().map_or_else(
             || "unknown".to_string(),
             |m| m.type_and_name.name.clone(),
@@ -167,11 +167,12 @@ pub async fn get_app_addons_endpoint(
     if let Some(base_dir_pkg_info) =
         state_read.pkgs_cache.get(&request_payload.base_dir)
     {
-        let addon_type_filter = request_payload.addon_type.as_deref();
+        let addon_type_filter = request_payload.addon_type.as_ref();
 
         // Only process these packages if no addon_type filter is specified or
         // if it matches "extension"
-        if addon_type_filter.is_none() || addon_type_filter == Some("extension")
+        if addon_type_filter.is_none()
+            || addon_type_filter == Some(&PkgType::Extension)
         {
             // Extract extension packages if they exist.
             if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
@@ -183,7 +184,8 @@ pub async fn get_app_addons_endpoint(
 
         // Only process these packages if no addon_type filter is specified or
         // if it matches "protocol"
-        if addon_type_filter.is_none() || addon_type_filter == Some("protocol")
+        if addon_type_filter.is_none()
+            || addon_type_filter == Some(&PkgType::Protocol)
         {
             // Extract protocol packages if they exist.
             if let Some(protocols) = &base_dir_pkg_info.protocol_pkg_info {
@@ -196,7 +198,7 @@ pub async fn get_app_addons_endpoint(
         // Only process these packages if no addon_type filter is specified or
         // if it matches "addon_loader".
         if addon_type_filter.is_none()
-            || addon_type_filter == Some("addon_loader")
+            || addon_type_filter == Some(&PkgType::AddonLoader)
         {
             // Extract addon loader packages if they exist.
             if let Some(addon_loaders) =
@@ -210,7 +212,9 @@ pub async fn get_app_addons_endpoint(
 
         // Only process these packages if no addon_type filter is specified or
         // if it matches "system".
-        if addon_type_filter.is_none() || addon_type_filter == Some("system") {
+        if addon_type_filter.is_none()
+            || addon_type_filter == Some(&PkgType::System)
+        {
             // Extract system packages if they exist.
             if let Some(systems) = &base_dir_pkg_info.system_pkg_info {
                 for system in systems {
