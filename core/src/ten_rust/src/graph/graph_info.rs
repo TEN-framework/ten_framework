@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::pkg_info::pkg_type::PkgType;
@@ -12,13 +13,19 @@ use super::Graph;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GraphInfo {
-    pub graph: Graph,
+    pub name: String,
 
-    pub app_base_dir: Option<String>,
-    pub graph_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub auto_start: Option<bool>,
 
+    #[serde(flatten)]
+    pub graph: Graph,
+
+    #[serde(skip)]
+    pub app_base_dir: Option<String>,
+    #[serde(skip)]
     pub belonging_pkg_type: PkgType,
+    #[serde(skip)]
     pub belonging_pkg_name: Option<String>,
 }
 
@@ -42,8 +49,12 @@ impl GraphInfo {
         }
 
         // Add graph_name.
-        id.push_str(&self.graph_name);
+        id.push_str(&self.name);
 
         id
+    }
+
+    pub fn validate_and_complete(&mut self) -> Result<()> {
+        self.graph.validate_and_complete()
     }
 }

@@ -21,9 +21,8 @@ use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
     utils::read_file_to_string,
 };
-use crate::graph::is_app_default_loc_or_none;
+use crate::graph::{graph_info::GraphInfo, is_app_default_loc_or_none};
 use crate::json_schema;
-use predefined_graph::PredefinedGraph;
 
 /// Represents the property configuration of a TEN package.
 ///
@@ -150,7 +149,7 @@ impl Property {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TenInProperty {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub predefined_graphs: Option<Vec<PredefinedGraph>>,
+    pub predefined_graphs: Option<Vec<GraphInfo>>,
 
     #[serde(skip_serializing_if = "is_app_default_loc_or_none")]
     pub uri: Option<String>,

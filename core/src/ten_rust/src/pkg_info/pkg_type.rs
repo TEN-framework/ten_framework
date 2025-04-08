@@ -41,6 +41,12 @@ pub enum PkgType {
     AddonLoader,
 }
 
+impl Default for PkgType {
+    fn default() -> Self {
+        PkgType::Invalid
+    }
+}
+
 impl FromStr for PkgType {
     type Err = anyhow::Error;
 

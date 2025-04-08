@@ -24,7 +24,9 @@ use std::{collections::HashMap, path::Path};
 use anyhow::{anyhow, Result};
 
 use crate::{
-    base_dir_pkg_info::PkgsInfoInApp, graph::Graph, schema::store::SchemaStore,
+    base_dir_pkg_info::PkgsInfoInApp,
+    graph::{graph_info::GraphInfo, Graph},
+    schema::store::SchemaStore,
 };
 
 use constants::{
@@ -36,9 +38,7 @@ use manifest::{
     parse_manifest_in_folder, Manifest,
 };
 use pkg_type::PkgType;
-use property::{
-    parse_property_in_folder, predefined_graph::PredefinedGraph, Property,
-};
+use property::{parse_property_in_folder, Property};
 
 pub fn localhost() -> &'static str {
     "localhost"
@@ -102,7 +102,7 @@ impl PkgInfo {
         Ok(pkg_info)
     }
 
-    pub fn get_predefined_graphs(&self) -> Option<&Vec<PredefinedGraph>> {
+    pub fn get_predefined_graphs(&self) -> Option<&Vec<GraphInfo>> {
         if let Some(property) = &self.property {
             if let Some(ten) = &property._ten {
                 return ten.predefined_graphs.as_ref();
@@ -112,7 +112,7 @@ impl PkgInfo {
         None
     }
 
-    pub fn update_predefined_graph(&mut self, new_graph: &PredefinedGraph) {
+    pub fn update_predefined_graph(&mut self, new_graph: &GraphInfo) {
         if let Some(property) = &mut self.property {
             if let Some(ten) = &mut property._ten {
                 if let Some(predefined_graphs) = &mut ten.predefined_graphs {
