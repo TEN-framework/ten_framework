@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
@@ -308,7 +309,15 @@ static ten_addon_t builtin_extension_group_addon = {
     NULL,
 };
 
-void ten_builtin_extension_group_addon_register(void) {
+static void ten_builtin_extension_group_register_handler(void *register_ctx) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
-                                     &builtin_extension_group_addon, NULL);
+                                     &builtin_extension_group_addon,
+                                     register_ctx);
+}
+
+void ten_addon_manager_add_builtin_extension_group(void) {
+  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+  ten_addon_manager_add_addon(manager, "extension_group",
+                              TEN_STR_DEFAULT_EXTENSION_GROUP,
+                              ten_builtin_extension_group_register_handler);
 }

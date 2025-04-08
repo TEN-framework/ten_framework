@@ -228,16 +228,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_load_all_from_ten_package_base_dirs(&self->ten_package_base_dirs,
                                                 &err);
 
-  // Addon initialization phase 2: registering.
-  ten_builtin_extension_group_addon_register();
-  ten_builtin_test_extension_addon_register();
-
-  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
-  register_ctx->app = self;
-
-  ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
-  ten_addon_register_ctx_destroy(register_ctx);
+  ten_addon_manager_add_builtin_extension_group();
+  ten_addon_manager_add_builtin_test_extension();
 
   lock_operation_rc = ten_addon_store_unlock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");

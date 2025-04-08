@@ -403,12 +403,18 @@ static bool ten_addon_register_specific_addon(
 bool ten_addon_try_load_specific_addon_using_native_addon_loader(
     const char *app_base_dir, TEN_ADDON_TYPE addon_type,
     const char *addon_name) {
-  if (ten_addon_load_specific_addon_using_native_addon_loader(
-          app_base_dir, addon_type, addon_name, NULL)) {
-    if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL,
-                                           NULL)) {
+  if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL, NULL)) {
+    // If the addon is not registered, try to load it using the native addon
+    // loader.
+    bool success = ten_addon_load_specific_addon_using_native_addon_loader(
+        app_base_dir, addon_type, addon_name, NULL);
+    if (!success) {
       return false;
     }
+
+    // If the addon is loaded successfully, try to register it again.
+    return ten_addon_register_specific_addon(addon_type, addon_name, NULL,
+                                             NULL);
   }
 
   return true;
