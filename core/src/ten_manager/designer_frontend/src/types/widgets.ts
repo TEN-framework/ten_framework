@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { IListTenCloudStorePackage } from "@/types/extension";
 import { EConnectionType, EGraphActions } from "@/types/graphs";
+import { TCustomNode } from "@/types/flow";
 
 export interface TerminalData {
   title: string;
@@ -76,6 +77,7 @@ export interface IGraphWidget<
     base_dir: string;
     graph_name?: string;
     app_uri?: string;
+    node?: TCustomNode;
   },
 > extends IWidgetBase {
   category: EWidgetCategory.Graph;
@@ -173,5 +175,6 @@ export type IWidget<T> =
         base_dir: string;
         graph_name?: string;
         app_uri?: string;
+        node?: TCustomNode;
       }
     >;

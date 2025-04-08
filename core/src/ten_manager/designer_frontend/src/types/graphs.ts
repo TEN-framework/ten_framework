@@ -13,7 +13,7 @@ export interface IBackendNode {
   name: string;
   extension_group?: string;
   app?: string;
-  property?: unknown;
+  property?: Record<string, unknown>;
   api?: unknown;
   is_installed: boolean;
 }
@@ -74,6 +74,7 @@ export type TConnectionMap = Record<string, Set<TConnectionItem>>;
 export enum EGraphActions {
   ADD_NODE = "add_node",
   ADD_CONNECTION = "add_connection",
+  UPDATE_NODE_PROPERTY = "update_node_property",
 }
 
 export const AddNodePayloadSchema = z.object({
@@ -109,3 +110,20 @@ export const AddConnectionPayloadSchema = z.object({
   dest_extension: z.string(),
   msg_conversion: z.unknown().optional(), // TODO: add msg_conversion type
 });
+
+export const ValidateGraphNodePayloadSchema = z.object({
+  addon_app_base_dir: z.string().optional(),
+  node_name: z.string(),
+  addon_name: z.string(),
+  extension_group_name: z.string().optional(),
+  app_uri: z.string().optional(),
+  property: stringToJSONSchema
+    .pipe(z.record(z.string(), z.unknown()))
+    .default("{}"),
+});
+
+export const UpdateNodePropertyPayloadSchema =
+  ValidateGraphNodePayloadSchema.extend({
+    graph_app_base_dir: z.string(),
+    graph_name: z.string(),
+  });

@@ -18,12 +18,18 @@ import ContextMenu, {
   EContextMenuItemType,
   type IContextMenuItem,
 } from "@/flow/ContextMenu/ContextMenu";
-import { useDialogStore, useFlowStore } from "@/store";
+import { useDialogStore, useFlowStore, useWidgetStore } from "@/store";
 import { postDeleteNode } from "@/api/services/graphs";
 // eslint-disable-next-line max-len
 import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
+import {
+  EWidgetCategory,
+  EWidgetDisplayType,
+  type TerminalData,
+  type EditorData,
+} from "@/types/widgets";
+import { EGraphActions } from "@/types/graphs";
 
-import type { TerminalData, EditorData } from "@/types/widgets";
 import type { TCustomNode } from "@/types/flow";
 
 interface NodeContextMenuProps {
@@ -54,6 +60,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   const { t } = useTranslation();
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
   const items: IContextMenuItem[] = [
     {
@@ -100,6 +107,17 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       icon: <FilePenLineIcon />,
       onClick: () => {
         onClose();
+        appendWidgetIfNotExists({
+          id: "update-node-property-widget-" + node.data.name,
+          category: EWidgetCategory.Graph,
+          display_type: EWidgetDisplayType.Popup,
+          metadata: {
+            type: EGraphActions.UPDATE_NODE_PROPERTY,
+            base_dir: baseDir,
+            graph_name: graphName,
+            node: node,
+          },
+        });
       },
     },
     {

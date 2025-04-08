@@ -10,12 +10,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import {
   AddNodePayloadSchema,
   AddConnectionPayloadSchema,
   EConnectionType,
+  UpdateNodePropertyPayloadSchema,
+  ValidateGraphNodePayloadSchema,
 } from "@/types/graphs";
 import { Button } from "@/components/ui/Button";
 import {
@@ -37,19 +38,6 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/Command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/Popover";
 import { Textarea } from "@/components/ui/Textarea";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { Combobox } from "@/components/ui/Combobox";
@@ -59,6 +47,8 @@ import {
   retrieveGraphNodes,
   retrieveGraphConnections,
   postAddConnection,
+  postUpdateNodeProperty,
+  postValidateGraphNode,
 } from "@/api/services/graphs";
 import { useAddons } from "@/api/services/addons";
 import { cn } from "@/lib/utils";
@@ -70,6 +60,7 @@ import {
   generateNodesAndEdges,
 } from "@/flow/graph";
 import { useAppStore, useFlowStore } from "@/store";
+import type { TCustomNode } from "@/types/flow";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const resetNodesAndEdgesByGraphName = async (
@@ -577,6 +568,108 @@ export const GraphAddConnectionWidget = (props: {
           {isSubmitting && <SpinnerLoading className="size-4" />}
           {t("popup.graph.addConnection")}
         </Button>
+      </form>
+    </Form>
+  );
+};
+
+export const GraphUpdateNodePropertyWidget = (props: {
+  base_dir: string;
+  app_uri?: string | null;
+  graph_name?: string;
+  node: TCustomNode;
+  postUpdateNodePropertyActions?: () => void | Promise<void>;
+}) => {
+  const { base_dir, app_uri, graph_name, node, postUpdateNodePropertyActions } =
+    props;
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const { t } = useTranslation();
+
+  const { setNodesAndEdges } = useFlowStore();
+  const { currentWorkspace } = useAppStore();
+
+  const form = useForm<z.infer<typeof UpdateNodePropertyPayloadSchema>>({
+    resolver: zodResolver(UpdateNodePropertyPayloadSchema),
+    defaultValues: {
+      graph_app_base_dir: base_dir,
+      graph_name: graph_name,
+      //   addon_app_base_dir: undefined,
+      node_name: node.data.name,
+      addon_name: node.data.addon,
+      extension_group_name: node.data.extension_group,
+      app_uri: app_uri ?? undefined,
+      property: JSON.stringify(
+        node?.data.property || {},
+        null,
+        2
+      ) as unknown as Record<string, unknown>,
+    },
+  });
+
+  const onSubmit = async (
+    data: z.infer<typeof UpdateNodePropertyPayloadSchema>
+  ) => {
+    console.log("GraphUpdateNodeProperty", data);
+    setIsSubmitting(true);
+    try {
+      await postValidateGraphNode(
+        ValidateGraphNodePayloadSchema.parse({
+          ...data,
+          property: JSON.stringify(data.property, null, 2),
+        })
+      );
+      await postUpdateNodeProperty(data);
+      if (currentWorkspace?.graphName === data.graph_name) {
+        const { nodes, edges } = await resetNodesAndEdgesByGraphName(
+          data.graph_name,
+          data.graph_app_base_dir
+        );
+        setNodesAndEdges(nodes, edges);
+      }
+      toast.success(t("popup.graph.updateNodePropertySuccess"), {
+        description: `Node ${data.node_name} updated successfully`,
+      });
+      postUpdateNodePropertyActions?.();
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Unknown error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn("space-y-4", "w-full h-full overflow-y-auto px-2")}
+      >
+        <FormField
+          control={form.control}
+          name="property"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("popup.graph.property")}</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="h-full min-h-40"
+                  value={field.value as unknown as string}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <SpinnerLoading className="size-4" />}
+            {t("popup.graph.updateNodeProperty")}
+          </Button>
+        </div>
       </form>
     </Form>
   );

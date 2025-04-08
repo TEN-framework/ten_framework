@@ -15,6 +15,8 @@ import {
   type IBackendNode,
   type IBackendConnection,
   type IGraph,
+  UpdateNodePropertyPayloadSchema,
+  ValidateGraphNodePayloadSchema,
 } from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
@@ -69,16 +71,7 @@ export const ENDPOINT_GRAPHS = {
     [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/graphs/nodes/property/update`,
       method: ENDPOINT_METHOD.POST,
-      requestSchema: z.object({
-        graph_app_base_dir: z.string(),
-        graph_name: z.string(),
-        addon_app_base_dir: z.string().optional(),
-        node_name: z.string(),
-        addon_name: z.string(),
-        extension_group_name: z.string().optional(),
-        app_uri: z.string().optional(),
-        property: z.unknown().optional(),
-      }),
+      requestSchema: UpdateNodePropertyPayloadSchema,
       responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
@@ -86,15 +79,8 @@ export const ENDPOINT_GRAPHS = {
     [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/graphs/nodes/validate`,
       method: ENDPOINT_METHOD.POST,
-      requestSchema: z.object({
-        addon_app_base_dir: z.string().optional(),
-        node_name: z.string(),
-        addon_name: z.string(),
-        extension_group_name: z.string().optional(),
-        app_uri: z.string().optional(),
-        property: z.unknown().optional(),
-      }),
-      responseSchema: genResSchema(z.any()), // TODO: add response schema
+      requestSchema: ValidateGraphNodePayloadSchema,
+      responseSchema: z.any().optional(),
     },
   },
   connections: {

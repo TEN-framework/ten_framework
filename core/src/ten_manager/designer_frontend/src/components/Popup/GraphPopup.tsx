@@ -12,10 +12,12 @@ import { useWidgetStore } from "@/store/widget";
 import {
   GraphAddConnectionWidget,
   GraphAddNodeWidget,
+  GraphUpdateNodePropertyWidget,
 } from "@/components/Widget/GraphsWidget";
 import { EGraphActions } from "@/types/graphs";
 
 import type { IGraphWidget } from "@/types/widgets";
+import type { TCustomNode } from "@/types/flow";
 
 const DEFAULT_WIDTH = 400;
 const DEFAULT_HEIGHT = 300;
@@ -26,6 +28,7 @@ export const GraphPopup = (props: {
     type: EGraphActions;
     base_dir: string;
     graph_name?: string;
+    node?: TCustomNode;
   }>["metadata"];
 }) => {
   const { id, metadata } = props;
@@ -43,11 +46,15 @@ export const GraphPopup = (props: {
         return t("popup.graph.titleAddNode");
       case EGraphActions.ADD_CONNECTION:
         return t("popup.graph.titleAddConnection");
+      case EGraphActions.UPDATE_NODE_PROPERTY:
+        return t("popup.graph.titleUpdateNodePropertyByName", {
+          name: metadata.node?.data.name,
+        });
       default:
         return t("popup.graph.title");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metadata.type]);
+  }, [metadata.type, metadata.node]);
 
   return (
     <Popup
@@ -68,8 +75,23 @@ export const GraphPopup = (props: {
         />
       )}
       {metadata.type === EGraphActions.ADD_CONNECTION && (
-        <GraphAddConnectionWidget {...metadata} />
+        <GraphAddConnectionWidget
+          {...metadata}
+          postAddConnectionActions={() => {
+            removeWidget(id);
+          }}
+        />
       )}
+      {metadata.type === EGraphActions.UPDATE_NODE_PROPERTY &&
+        metadata.node && (
+          <GraphUpdateNodePropertyWidget
+            {...metadata}
+            node={metadata.node}
+            postUpdateNodePropertyActions={() => {
+              removeWidget(id);
+            }}
+          />
+        )}
     </Popup>
   );
 };
