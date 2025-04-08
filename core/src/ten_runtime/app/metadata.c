@@ -112,22 +112,6 @@ bool ten_app_init_uri(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self, "Should not happen.");
-  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
-  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
-  ten_log_global_set_output_level(ten_value_get_int64(value, &err));
-
-  ten_error_deinit(&err);
-
-  return true;
-}
-
 bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
