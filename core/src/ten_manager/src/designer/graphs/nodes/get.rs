@@ -10,13 +10,12 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::graph::node::GraphNode;
-use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
-use ten_rust::pkg_info::predefined_graphs::extension::get_pkg_info_for_extension;
-use ten_rust::pkg_info::{
-    pkg_type::PkgType,
-    predefined_graphs::extension::get_extension_nodes_in_graph,
+use ten_rust::graph::extension::{
+    get_extension_nodes_in_graph, get_pkg_info_for_extension,
 };
+use ten_rust::graph::node::GraphNode;
+use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 
 use crate::designer::common::{
     get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,

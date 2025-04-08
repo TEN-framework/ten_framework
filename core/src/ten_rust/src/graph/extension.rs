@@ -6,12 +6,12 @@
 //
 use anyhow::Result;
 
-use super::pkg_predefined_graphs_find;
 use crate::{
     graph::node::GraphNode,
     pkg_info::{
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
+        predefined_graphs::pkg_predefined_graphs_find,
         PkgInfo,
     },
     schema::{
