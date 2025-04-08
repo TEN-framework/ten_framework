@@ -129,7 +129,7 @@ pub async fn add_graph_connection_endpoint(
 
     // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<String, PkgInfoWithBaseDir> =
+    let mut uri_to_pkg_info: HashMap<Option<String>, PkgInfoWithBaseDir> =
         HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp.
@@ -137,20 +137,21 @@ pub async fn add_graph_connection_endpoint(
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
-                    // Map the URI to the PkgsInfoInApp, using empty string if
-                    // URI is None.
-                    let key = ten
-                        .uri
-                        .as_ref()
-                        .map_or_else(String::new, |uri| uri.clone());
+                    // Map the URI to the PkgsInfoInApp, using None if URI is
+                    // None.
+                    let key = ten.uri.clone();
 
                     // Check if the key already exists.
                     if let Some(existing) = uri_to_pkg_info.get(&key) {
+                        let key_str = key
+                            .as_ref()
+                            .map_or("None".to_string(), |uri| uri.clone());
+
                         let error_response = ErrorResponse {
                             status: Status::Fail,
                             message: format!(
                                 "Duplicate app uri '{}' found in both '{}' and '{}'",
-                                key,
+                                key_str,
                                 existing.base_dir,
                                 base_dir
                             ),
@@ -196,7 +197,9 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.dest_extension.clone(),
                     &uri_to_pkg_info
                         .iter()
-                        .map(|(k, v)| (k.clone(), v.pkg_info.clone()))
+                        .map(|(k, v)| {
+                            (k.clone().unwrap_or_default(), v.pkg_info.clone())
+                        })
                         .collect(),
                     request_payload.msg_conversion.clone(),
                 ) {
