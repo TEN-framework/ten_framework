@@ -30,6 +30,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Inject initial package data.
@@ -41,6 +42,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
@@ -103,6 +105,7 @@ mod tests {
             }),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // We'll use a special path that should cause get_all_pkgs to fail.

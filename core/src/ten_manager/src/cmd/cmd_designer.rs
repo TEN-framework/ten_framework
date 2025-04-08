@@ -119,6 +119,7 @@ pub async fn execute_cmd(
         tman_config: tman_config.clone(),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     }));
 
     let mut actual_base_dir_opt: Option<String> = Some(base_dir);
@@ -136,7 +137,10 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        get_all_pkgs_in_app(&mut state.write().unwrap().pkgs_cache, actual_base_dir)?;
+        get_all_pkgs_in_app(
+            &mut state.write().unwrap().pkgs_cache,
+            actual_base_dir,
+        )?;
     }
 
     let server = HttpServer::new(move || {

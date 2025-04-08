@@ -33,6 +33,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         let all_pkgs_json_str = vec![
@@ -54,6 +55,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
@@ -101,6 +103,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Include manifests with schema definitions
@@ -123,6 +126,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
@@ -165,6 +169,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Include manifests with schema definitions
@@ -187,6 +192,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
@@ -229,6 +235,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         }));
 
         let app = test::init_service(
@@ -273,6 +280,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         }));
 
         let app = test::init_service(
@@ -314,6 +322,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         let all_pkgs_json_str = vec![(
@@ -324,6 +333,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
@@ -369,6 +379,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Only include the app manifest and property, but exclude extension
@@ -394,6 +405,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());

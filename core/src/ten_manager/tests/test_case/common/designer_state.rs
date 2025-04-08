@@ -38,6 +38,7 @@ pub fn create_designer_state() -> Arc<RwLock<DesignerState>> {
         tman_config: Arc::new(tman_config),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     };
 
     Arc::new(RwLock::new(designer_state))

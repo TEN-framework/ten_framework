@@ -10,6 +10,7 @@ use std::str::FromStr;
 use anyhow::Result;
 
 use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
+use ten_rust::graph::graph_info::GraphInfo;
 use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::property::parse_property_from_str;
@@ -18,6 +19,7 @@ use ten_rust::pkg_info::PkgInfo;
 pub fn inject_all_pkgs_for_mock(
     base_dir: &str,
     pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
     all_pkgs_json: Vec<(String, String)>,
 ) -> Result<()> {
     if pkgs_cache.contains_key(base_dir) {
@@ -32,8 +34,7 @@ pub fn inject_all_pkgs_for_mock(
 
     for metadata_json in all_pkgs_json {
         let manifest = Manifest::from_str(&metadata_json.0)?;
-        let property =
-            parse_property_from_str(&metadata_json.1, &mut HashMap::new())?;
+        let property = parse_property_from_str(&metadata_json.1, graphs_cache)?;
 
         let pkg_info = PkgInfo::from_metadata(&manifest, &Some(property))?;
 
