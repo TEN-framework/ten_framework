@@ -20,9 +20,11 @@ use serde::{Deserialize, Serialize};
     Hash,
     Serialize,
     Deserialize,
+    Default,
 )]
 pub enum PkgType {
     #[serde(rename = "invalid")]
+    #[default]
     Invalid,
 
     #[serde(rename = "system")]
@@ -39,12 +41,6 @@ pub enum PkgType {
 
     #[serde(rename = "addon_loader")]
     AddonLoader,
-}
-
-impl Default for PkgType {
-    fn default() -> Self {
-        PkgType::Invalid
-    }
 }
 
 impl FromStr for PkgType {
