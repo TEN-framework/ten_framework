@@ -61,7 +61,9 @@ class test_app_1 : public ten::app_t {
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 2,
+                        "log": {
+                          "level": 2
+                        },
                         "long_running_mode": true,
                         "predefined_graphs": [{
                           "name": "default",

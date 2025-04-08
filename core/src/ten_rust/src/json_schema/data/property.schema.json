@@ -415,12 +415,6 @@
         "uri": {
           "$ref": "#/$defs/uri"
         },
-        "log_level": {
-          "$ref": "#/$defs/logLevels"
-        },
-        "log_file": {
-          "$ref": "#/$defs/notEmptyString"
-        },
         "log": {
           "type": "object",
           "additionalProperties": false,

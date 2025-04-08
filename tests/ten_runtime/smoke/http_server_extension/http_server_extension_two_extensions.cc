@@ -54,7 +54,9 @@ class test_app : public ten::app_t {
         // clang-format off
                  R"({
                       "_ten": {
-                        "log_level": 2,
+                        "log": {
+                          "level": 2
+                        },
                         "predefined_graphs": [{
                           "name": "default",
                           "auto_start": true,
