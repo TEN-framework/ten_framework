@@ -52,15 +52,6 @@ pub struct Property {
 /// string, which is useful for loading property configurations from files or
 /// string literals. After parsing the JSON, it automatically validates and
 /// completes the property configuration to ensure it meets all requirements.
-///
-/// # Arguments
-/// * `s` - A string slice containing a valid JSON representation of a property
-///   configuration.
-///
-/// # Returns
-/// * `Ok(Property)` - A validated and completed property configuration if
-///   parsing succeeds.
-/// * `Err` - An error if JSON parsing fails or if validation fails.
 impl FromStr for Property {
     type Err = anyhow::Error;
 
