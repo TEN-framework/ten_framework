@@ -139,9 +139,6 @@ void ten_addon_manager_register_all_addons(ten_addon_manager_t *self,
     iter = ten_list_iterator_next(iter);
   }
 
-  // Clear the registry after loading.
-  ten_list_clear(&self->registry);
-
   ten_mutex_unlock(self->mutex);
 }
 
@@ -177,48 +174,24 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
 
   ten_mutex_lock(self->mutex);
 
-  ten_listnode_t *found_node = NULL;
-  ten_addon_registration_t *found_reg = NULL;
-
   // Iterate through the registry to find the specific addon.
   ten_list_foreach (&self->registry, iter) {
     ten_addon_registration_t *reg =
         (ten_addon_registration_t *)ten_ptr_listnode_get(iter.node);
     if (reg && reg->addon_type == addon_type &&
         ten_string_is_equal_c_str(&reg->addon_name, addon_name)) {
-      found_node = iter.node;
-      found_reg = reg;
+      reg->func(register_ctx);
+      success = true;
       break;
     }
   }
 
-  if (found_node) {
-    // Remove the addon from the registry.
-    ten_list_detach_node(&self->registry, found_node);
-  }
-
-  // Since the `register` function of the addon (i.e., the
-  // `ten_addon_registration_func_t` function) is highly likely to call the API
-  // of the addon manager. To avoid causing a deadlock, the addon manager's
-  // mutex needs to be released first before calling the addon's `register`
-  // function.
-  ten_mutex_unlock(self->mutex);
-
-  if (found_reg) {
-    TEN_ASSERT(found_node, "Should not happen.");
-
-    // Register the specific addon.
-    found_reg->func(register_ctx);
-    success = true;
-
-    // Prevent memory leak.
-    ten_listnode_destroy(found_node);
-  } else {
-    TEN_ASSERT(!found_node, "Should not happen.");
-
+  if (!success) {
     TEN_LOGI("Unable to find '%s:%s' in registry.",
              ten_addon_type_to_string(addon_type), addon_name);
   }
+
+  ten_mutex_unlock(self->mutex);
 
   return success;
 }
