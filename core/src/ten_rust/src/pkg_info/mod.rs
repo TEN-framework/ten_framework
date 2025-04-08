@@ -199,17 +199,17 @@ pub fn get_pkg_info_from_path(
 /// Collect the corresponding package from the information within the specified
 /// path, add it to the collection provided as a parameter, and return the newly
 /// collected package.
-fn collect_pkg_info_from_path<'a>(
+fn collect_pkg_info_from_path(
     path: &Path,
-    pkgs_info: &'a mut BaseDirPkgInfo,
-) -> Result<&'a PkgInfo> {
+    pkgs_info: &mut BaseDirPkgInfo,
+) -> Result<()> {
     let pkg_info = get_pkg_info_from_path(path, true)?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
             PkgType::App => {
                 pkgs_info.app_pkg_info = Some(pkg_info);
-                Ok(pkgs_info.app_pkg_info.as_ref().unwrap())
+                Ok(())
             }
             PkgType::Extension => {
                 if pkgs_info.extension_pkg_info.is_none() {
@@ -220,24 +220,14 @@ fn collect_pkg_info_from_path<'a>(
                     .as_mut()
                     .unwrap()
                     .push(pkg_info);
-                Ok(pkgs_info
-                    .extension_pkg_info
-                    .as_ref()
-                    .unwrap()
-                    .last()
-                    .unwrap())
+                Ok(())
             }
             PkgType::Protocol => {
                 if pkgs_info.protocol_pkg_info.is_none() {
                     pkgs_info.protocol_pkg_info = Some(Vec::new());
                 }
                 pkgs_info.protocol_pkg_info.as_mut().unwrap().push(pkg_info);
-                Ok(pkgs_info
-                    .protocol_pkg_info
-                    .as_ref()
-                    .unwrap()
-                    .last()
-                    .unwrap())
+                Ok(())
             }
             PkgType::AddonLoader => {
                 if pkgs_info.addon_loader_pkg_info.is_none() {
@@ -248,19 +238,14 @@ fn collect_pkg_info_from_path<'a>(
                     .as_mut()
                     .unwrap()
                     .push(pkg_info);
-                Ok(pkgs_info
-                    .addon_loader_pkg_info
-                    .as_ref()
-                    .unwrap()
-                    .last()
-                    .unwrap())
+                Ok(())
             }
             PkgType::System => {
                 if pkgs_info.system_pkg_info.is_none() {
                     pkgs_info.system_pkg_info = Some(Vec::new());
                 }
                 pkgs_info.system_pkg_info.as_mut().unwrap().push(pkg_info);
-                Ok(pkgs_info.system_pkg_info.as_ref().unwrap().last().unwrap())
+                Ok(())
             }
             _ => Err(anyhow!("Unknown package type")),
         }
@@ -281,8 +266,9 @@ pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
     };
 
     // Process the manifest.json file in the root path.
-    let app_pkg = collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
-    if let Some(manifest) = &app_pkg.manifest {
+    collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
+
+    if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
         if manifest.type_and_name.pkg_type != PkgType::App {
             return Err(anyhow!(
                 "The current working directory does not belong to the `app`."
