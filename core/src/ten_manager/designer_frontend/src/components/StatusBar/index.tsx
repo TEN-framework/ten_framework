@@ -78,6 +78,7 @@ const StatusApps = () => {
       updateCurrentWorkspace({
         baseDir: data?.app_info?.[0]?.base_dir,
         graphName: null,
+        appUri: data?.app_info?.[0]?.app_uri,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -9,13 +9,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CheckIcon } from "lucide-react";
 
-import {
-  generateRawNodes,
-  generateRawEdges,
-  updateNodesWithConnections,
-  updateNodesWithAddonInfo,
-  generateNodesAndEdges,
-} from "@/flow/graph";
 import { Popup } from "@/components/Popup/Popup";
 import {
   Select,
@@ -29,14 +22,12 @@ import {
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import {
-  retrieveGraphNodes,
-  retrieveGraphConnections,
-  useGraphs,
-} from "@/api/services/graphs";
+import { useGraphs } from "@/api/services/graphs";
 import { useApps } from "@/api/services/apps";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+// eslint-disable-next-line max-len
+import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();
@@ -53,6 +44,9 @@ export function GraphSelectPopup() {
   const [selectedApp, setSelectedApp] = React.useState<string | null>(
     currentWorkspace.baseDir ?? loadedApps?.app_info?.[0]?.base_dir ?? null
   );
+  const [selectedAppUri, setSelectedAppUri] = React.useState<string | null>(
+    currentWorkspace.appUri ?? loadedApps?.app_info?.[0]?.app_uri ?? null
+  );
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);
 
@@ -62,35 +56,25 @@ export function GraphSelectPopup() {
 
   const handleSelectApp = (app?: string | null) => {
     setSelectedApp(app ?? null);
+    setSelectedAppUri(
+      loadedApps?.app_info?.find((appInfo) => appInfo.base_dir === app)
+        ?.app_uri ?? null
+    );
+
     setTmpSelectedGraph(null);
   };
 
   const handleSelectGraph =
-    (graphName: string, baseDir: string | null) => async () => {
+    (graphName: string, baseDir: string | null, appUri: string | null) =>
+    async () => {
       updateCurrentWorkspace({
         baseDir,
         graphName,
+        appUri,
       });
       try {
-        const backendNodes = await retrieveGraphNodes(graphName, baseDir);
-        const backendConnections = await retrieveGraphConnections(
-          graphName,
-          baseDir
-        );
-        const rawNodes = generateRawNodes(backendNodes);
-        const [rawEdges, rawEdgeAddressMap] =
-          generateRawEdges(backendConnections);
-        const nodesWithConnections = updateNodesWithConnections(
-          rawNodes,
-          rawEdgeAddressMap
-        );
-        const nodesWithAddonInfo = await updateNodesWithAddonInfo(
-          baseDir ?? "",
-          nodesWithConnections
-        );
-
         const { nodes: layoutedNodes, edges: layoutedEdges } =
-          generateNodesAndEdges(nodesWithAddonInfo, rawEdges);
+          await resetNodesAndEdgesByGraphName(graphName, baseDir);
 
         setNodesAndEdges(layoutedNodes, layoutedEdges);
       } catch (err: unknown) {
@@ -122,7 +106,7 @@ export function GraphSelectPopup() {
         ),
       });
     } else {
-      await handleSelectGraph(tmpSelectedGraph, selectedApp)();
+      await handleSelectGraph(tmpSelectedGraph, selectedApp, selectedAppUri)();
       toast.success(t("popup.selectGraph.updateSuccess"), {
         description: (
           <>

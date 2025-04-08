@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { z } from "zod";
 
 import {
   makeAPIRequest,
@@ -14,7 +15,14 @@ import {
 import { ENDPOINT_GRAPHS } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
-import type { IGraph } from "@/types/graphs";
+import type {
+  AddNodePayloadSchema,
+  DeleteNodePayloadSchema,
+  IGraph,
+  AddConnectionPayloadSchema,
+  UpdateNodePropertyPayloadSchema,
+  ValidateGraphNodePayloadSchema,
+} from "@/types/graphs";
 
 export const retrieveGraphNodes = async (
   graphName: string,
@@ -89,4 +97,59 @@ export const useGraphs = (baseDir?: string | null) => {
     isLoading,
     mutate: fetchData,
   };
+};
+
+export const postAddNode = async (
+  data: z.infer<typeof AddNodePayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.addNode[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postDeleteNode = async (
+  data: z.infer<typeof DeleteNodePayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.deleteNode[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postAddConnection = async (
+  data: z.infer<typeof AddConnectionPayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.addConnection[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postUpdateNodeProperty = async (
+  data: z.infer<typeof UpdateNodePropertyPayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.nodesPropertyUpdate[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postValidateGraphNode = async (
+  data: z.infer<typeof ValidateGraphNodePayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.nodesValidate[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
 };

@@ -29,7 +29,7 @@ import { ExtensionTooltipContent } from "@/components/Widget/ExtensionWidget/Ext
 import {
   type IListTenCloudStorePackage,
   type IListTenLocalStorePackage,
-  ETenPackageType,
+  EPackageSource,
   ITenPackage,
   ITenPackageLocal,
 } from "@/types/extension";
@@ -57,7 +57,7 @@ export const ExtensionList = (props: {
   }) => {
     const item = items[props.index];
 
-    if (item._type === ETenPackageType.Local) {
+    if (item._type === EPackageSource.Local) {
       return (
         <AddonItem
           item={item}
@@ -102,7 +102,7 @@ export const ExtensionList = (props: {
 
 export interface IExtensionBaseItemProps<T> {
   item: T;
-  _type?: ETenPackageType;
+  _type?: EPackageSource;
   isInstalled?: boolean;
   className?: string;
   readOnly?: boolean;
@@ -183,7 +183,7 @@ export const ExtensionBaseItem = React.forwardRef<
           )}
         >
           {item.name}
-          {_type === ETenPackageType.Local && (
+          {_type === EPackageSource.Local && (
             <span
               className={cn(
                 "text-gray-500 dark:text-gray-400",
@@ -304,7 +304,7 @@ export const AddonItem = (props: {
   item: IListTenLocalStorePackage;
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
-  _type?: ETenPackageType;
+  _type?: EPackageSource;
   readOnly?: boolean;
 }) => {
   return (

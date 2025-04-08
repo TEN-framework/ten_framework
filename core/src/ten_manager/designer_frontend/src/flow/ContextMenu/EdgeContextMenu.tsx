@@ -8,7 +8,10 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { PencilIcon, ListCollapseIcon, TrashIcon } from "lucide-react";
 
-import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
+import ContextMenu, {
+  type IContextMenuItem,
+  EContextMenuItemType,
+} from "@/flow/ContextMenu/ContextMenu";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
 import type { TCustomEdge } from "@/types/flow";
@@ -30,8 +33,9 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const items: ContextMenuItem[] = [
+  const items: IContextMenuItem[] = [
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.viewDetails"),
       icon: <ListCollapseIcon />,
       onClick: () => {
@@ -40,6 +44,7 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
       },
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.edit"),
       icon: <PencilIcon />,
       onClick: () => {
@@ -47,6 +52,7 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
       },
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.delete"),
       icon: <TrashIcon />,
       onClick: () => {

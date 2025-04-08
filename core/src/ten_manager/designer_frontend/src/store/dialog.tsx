@@ -19,6 +19,7 @@ export interface IDialog {
   postCancel?: () => Promise<void>;
   cancelLabel?: string | React.ReactNode;
   confirmLabel?: string | React.ReactNode;
+  variant?: "default" | "destructive";
 }
 
 export const useDialogStore = create<{

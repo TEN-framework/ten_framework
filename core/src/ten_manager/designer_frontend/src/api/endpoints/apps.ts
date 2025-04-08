@@ -15,6 +15,7 @@ import {
   TemplatePkgsReqSchema,
   AppCreateReqSchema,
 } from "@/types/apps";
+import { ETenPackageType } from "@/types/extension";
 
 export const ENDPOINT_APPS = {
   apps: {
@@ -130,7 +131,7 @@ export const ENDPOINT_ADDONS = {
             name: z.string(),
             url: z.string(),
             api: z.unknown().optional(),
-            type: z.string(),
+            type: z.nativeEnum(ETenPackageType),
           })
         )
       ),

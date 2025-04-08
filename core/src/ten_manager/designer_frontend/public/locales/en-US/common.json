@@ -27,7 +27,9 @@
       "title": "Graph",
       "loadGraph": "Load Graph",
       "autoLayout": "Auto Layout",
-      "selectLoadedApp": "Select a Loaded App"
+      "selectLoadedApp": "Select a Loaded App",
+      "addNode": "Add Node",
+      "addConnection": "Add Connection"
     },
     "menuHelp": {
       "title": "Help",
@@ -92,7 +94,9 @@
     "run": "Run",
     "viewDetails": "View Details",
     "reset": "Reset",
-    "chooseBaseDir": "Choose Base Dir"
+    "chooseBaseDir": "Choose Base Dir",
+    "deleteNodeConfirmationWithName": "Are you sure you want to delete the node {{name}}?",
+    "update": "Update"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -118,6 +122,9 @@
       "connectTitle": "Connection Details",
       "title": "Connection",
       "filters": "Filters"
+    },
+    "node": {
+      "properties": "Properties"
     },
     "logViewer": {
       "title": "Log Viewer",
@@ -149,6 +156,33 @@
       "appName": "App Name",
       "appNameDescription": "Enter the name for the app.",
       "baseDirDescription": "Select the base directory for the app."
+    },
+    "graph": {
+      "title": "Node",
+      "titleAddNode": "Add Node",
+      "graphAppBaseDir": "Base Dir",
+      "graphName": "Graph Name",
+      "nodeName": "Node Name",
+      "addonName": "Addon Name",
+      "searchAddon": "Search Addon",
+      "noAddonFound": "No addon found",
+      "useInputAddon": "Use '{{addonName}}'",
+      "property": "Property",
+      "addNode": "Add Node",
+      "addNodeSuccess": "Node added successfully",
+      "addNodeError": "Failed to add node",
+      "graphError": "Failed to load graph",
+      "addonError": "Failed to load addon",
+      "deleteNodeSuccess": "Node deleted successfully",
+      "deleteNodeFailed": "Failed to delete node",
+      "titleAddConnection": "Add Connection",
+      "sameNodeError": "Source and destination nodes cannot be the same",
+      "srcExtension": "Source Extension",
+      "destExtension": "Destination Extension",
+      "messageType": "Message Type",
+      "messageName": "Message Name",
+      "addConnection": "Add Connection",
+      "titleUpdateNodePropertyByName": "Update [{{name}}] Property"
     }
   },
   "dock": {
@@ -173,6 +207,7 @@
     "noResults": "No results."
   },
   "extensionStore": {
+    "extension": "Extension",
     "title": "Extension Store",
     "readOnly": "Read Only",
     "compatible": "Compatible",
@@ -228,5 +263,13 @@
     "cancel": "Cancel",
     "saved": "Saved",
     "savedSuccess": "Preferences {{key}} saved successfully"
+  },
+  "components": {
+    "combobox": {
+      "create": "Create {{query}}",
+      "placeholder": "Search or create new",
+      "noItems": "No items",
+      "enterValueToCreate": "Enter a value to create a new one"
+    }
   }
 }

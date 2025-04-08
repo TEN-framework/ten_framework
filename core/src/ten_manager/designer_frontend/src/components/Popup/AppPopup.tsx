@@ -54,11 +54,12 @@ export const AppFolderPopup = () => {
 
   const handleSetBaseDir = async (folderPath: string) => {
     try {
-      await postLoadDir(folderPath.trim());
+      const { app_uri = null } = await postLoadDir(folderPath.trim());
       setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
       updateCurrentWorkspace({
         baseDir: folderPath.trim(),
         graphName: null,
+        appUri: app_uri,
       });
       mutateApps();
       toast.success(t("header.menuApp.loadAppSuccess"));
