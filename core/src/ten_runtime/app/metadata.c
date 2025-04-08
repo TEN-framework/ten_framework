@@ -128,28 +128,6 @@ bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self, "Should not happen.");
-  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
-  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
-
-  ten_string_t log_file;
-  TEN_STRING_INIT(log_file);
-
-  ten_string_init_from_c_str_with_size(
-      &log_file, ten_value_peek_raw_str(value, NULL),
-      strlen(ten_value_peek_raw_str(value, NULL)));
-
-  if (!ten_string_is_empty(&log_file)) {
-    ten_log_global_set_output_to_file(ten_string_get_raw_str(&log_file));
-  }
-
-  ten_string_deinit(&log_file);
-
-  return true;
-}
-
 bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
