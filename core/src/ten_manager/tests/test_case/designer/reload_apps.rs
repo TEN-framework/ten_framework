@@ -20,7 +20,7 @@ mod tests {
             DesignerState,
         },
         output::TmanOutputCli,
-        pkg_info::get_all_pkgs::get_all_pkgs,
+        pkg_info::get_all_pkgs::get_all_pkgs_in_app,
     };
 
     /// Test successful package reload with a specified base_dir.
@@ -33,7 +33,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let _ = get_all_pkgs(
+        let _ = get_all_pkgs_in_app(
             &mut designer_state.pkgs_cache,
             &"tests/test_data/app_with_uri".to_string(),
         );
@@ -103,7 +103,7 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        let _ = get_all_pkgs(
+        let _ = get_all_pkgs_in_app(
             &mut designer_state.pkgs_cache,
             &"tests/test_data/app_with_uri".to_string(),
         );

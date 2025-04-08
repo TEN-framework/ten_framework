@@ -7,7 +7,7 @@
 use std::{collections::HashMap, path::Path, str::FromStr};
 
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::Graph,
     pkg_info::{
         get_app_installed_pkgs, property::predefined_graph::PredefinedGraph,
@@ -26,7 +26,7 @@ fn test_graph_check_extension_not_installed_1() {
     let predefined_graph: PredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct);
 
     let result = graph.check(&pkg_info_map);
@@ -46,7 +46,7 @@ fn test_graph_check_extension_not_installed_2() {
     let predefined_graph: PredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct);
 
     let result = graph.check(&pkg_info_map);
@@ -66,7 +66,7 @@ fn test_graph_check_predefined_graph_success() {
     let predefined_graph: PredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check(&pkg_info_map);
@@ -85,7 +85,7 @@ fn test_graph_check_all_msgs_schema_incompatible() {
     let predefined_graph: PredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check(&pkg_info_map);
@@ -103,7 +103,7 @@ fn test_graph_check_single_app() {
         include_str!("../test_data/graph_check_single_app/graph.json");
     let graph = Graph::from_str(graph_json_str).unwrap();
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     // The schema of 'ext_c' is not found, but it's OK because we only check
@@ -122,7 +122,7 @@ fn test_graph_check_builtin_extension() {
         include_str!("../test_data/graph_check_builtin_extension/graph.json");
     let graph = Graph::from_str(graph_json_str).unwrap();
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check_for_single_app(&pkg_info_map);

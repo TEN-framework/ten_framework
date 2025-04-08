@@ -23,7 +23,7 @@ use crate::{
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     output::{TmanOutput, TmanOutputCli},
-    pkg_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 
 #[derive(Clone, Debug)]
@@ -136,7 +136,7 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        get_all_pkgs(&mut state.write().unwrap().pkgs_cache, actual_base_dir)?;
+        get_all_pkgs_in_app(&mut state.write().unwrap().pkgs_cache, actual_base_dir)?;
     }
 
     let server = HttpServer::new(move || {

@@ -9,7 +9,7 @@ mod tests {
     use std::{collections::HashMap, str::FromStr};
 
     use ten_rust::{
-        base_dir_pkg_info::BaseDirPkgInfo,
+        base_dir_pkg_info::PkgsInfoInApp,
         graph::{node::GraphNode, Graph},
         pkg_info::{
             manifest::Manifest, message::MsgType, pkg_type::PkgType,
@@ -35,7 +35,7 @@ mod tests {
         }
     }
 
-    fn create_test_pkg_info_map() -> HashMap<String, BaseDirPkgInfo> {
+    fn create_test_pkg_info_map() -> HashMap<String, PkgsInfoInApp> {
         let mut map = HashMap::new();
 
         // Create app PkgInfo.
@@ -135,8 +135,8 @@ mod tests {
             local_dependency_base_dir: None,
         };
 
-        // Create a BaseDirPkgInfo and add all packages
-        let base_dir_pkg_info = BaseDirPkgInfo {
+        // Create a PkgsInfoInApp and add all packages
+        let base_dir_pkg_info = PkgsInfoInApp {
             app_pkg_info: Some(app_pkg_info),
             extension_pkg_info: Some(vec![
                 ext1_pkg_info,

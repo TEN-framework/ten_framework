@@ -9,8 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph,
-    pkg_info::pkg_type::PkgType,
+    base_dir_pkg_info::PkgsInfoInApp, graph::Graph, pkg_info::pkg_type::PkgType,
 };
 
 impl Graph {
@@ -18,7 +17,7 @@ impl Graph {
     /// packages.
     pub fn check_nodes_installation(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         // Collection to store missing packages as tuples of (app_uri,
@@ -47,7 +46,7 @@ impl Graph {
                 continue;
             }
 
-            // Get the BaseDirPkgInfo for this app.
+            // Get the PkgsInfoInApp for this app.
             let installed_pkgs_of_app =
                 installed_pkgs_of_all_apps.get(node_app_uri).unwrap();
 

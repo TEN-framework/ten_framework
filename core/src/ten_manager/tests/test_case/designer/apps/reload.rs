@@ -10,7 +10,7 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{http::StatusCode, test, web, App};
-    use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
+    use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
@@ -109,8 +109,8 @@ mod tests {
         // This is a bit of a hack but should work for testing purposes.
         let invalid_path = "/definitely/invalid/path/that/doesnt/exist";
 
-        // Create an empty BaseDirPkgInfo.
-        let empty_pkg_info = BaseDirPkgInfo::default();
+        // Create an empty PkgsInfoInApp.
+        let empty_pkg_info = PkgsInfoInApp::default();
 
         // Inject an entry with the invalid path.
         designer_state

@@ -11,7 +11,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::Graph,
     pkg_info::{
         get_app_installed_pkgs, localhost, property::parse_property_in_folder,
@@ -103,8 +103,8 @@ fn validate_cmd_args(command: &CheckGraphCommand) -> Result<()> {
 
 fn get_app_installed_pkgs_with_cmd_data(
     command: &CheckGraphCommand,
-) -> Result<HashMap<String, BaseDirPkgInfo>> {
-    let mut pkgs_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+) -> Result<HashMap<String, PkgsInfoInApp>> {
+    let mut pkgs_info: HashMap<String, PkgsInfoInApp> = HashMap::new();
 
     let single_app = command.app_dir.len() == 1;
 

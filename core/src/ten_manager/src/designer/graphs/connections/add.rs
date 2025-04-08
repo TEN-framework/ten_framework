@@ -12,7 +12,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
@@ -120,17 +120,17 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Create a hash map from app URIs to BaseDirPkgInfo for use with
+    // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut uri_to_pkg_info: HashMap<String, PkgsInfoInApp> = HashMap::new();
 
-    // Process all available apps to map URIs to BaseDirPkgInfo.
+    // Process all available apps to map URIs to PkgsInfoInApp.
     for base_dir_pkg_info in state_write.pkgs_cache.values() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
                     if let Some(uri) = &ten.uri {
-                        // Map the URI to the BaseDirPkgInfo.
+                        // Map the URI to the PkgsInfoInApp.
                         uri_to_pkg_info
                             .insert(uri.clone(), base_dir_pkg_info.clone());
                     }
@@ -152,7 +152,7 @@ pub async fn add_graph_connection_endpoint(
             {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Add the connection using the converted BaseDirPkgInfo map.
+                // Add the connection using the converted PkgsInfoInApp map.
                 match graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),

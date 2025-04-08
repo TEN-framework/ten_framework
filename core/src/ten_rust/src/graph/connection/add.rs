@@ -7,7 +7,7 @@
 use anyhow::Result;
 use std::collections::HashMap;
 
-use crate::base_dir_pkg_info::BaseDirPkgInfo;
+use crate::base_dir_pkg_info::PkgsInfoInApp;
 use crate::graph::{
     connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     Graph,
@@ -32,7 +32,7 @@ impl Graph {
         msg_name: String,
         dest_app: Option<String>,
         dest_extension: String,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         msg_conversion: Option<
             crate::graph::msg_conversion::MsgAndResultConversion,
         >,
@@ -225,7 +225,7 @@ impl Graph {
 
     /// Finds package info for source and destination apps and extensions.
     fn find_pkg_infos<'a>(
-        installed_pkgs_of_all_apps: &'a HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &'a HashMap<String, PkgsInfoInApp>,
         src_app: &Option<String>,
         src_extension: &str,
         dest_app: &Option<String>,

@@ -9,14 +9,14 @@ use std::str::FromStr;
 
 use anyhow::Result;
 
-use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
+use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 use ten_rust::pkg_info::{manifest::Manifest, property::Property};
 
 pub fn inject_all_pkgs_for_mock(
     base_dir: &str,
-    pkgs_cache: &mut HashMap<String, BaseDirPkgInfo>,
+    pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
     all_pkgs_json: Vec<(String, String)>,
 ) -> Result<()> {
     if pkgs_cache.contains_key(base_dir) {
@@ -56,7 +56,7 @@ pub fn inject_all_pkgs_for_mock(
         }
     }
 
-    let base_dir_pkg_info = BaseDirPkgInfo {
+    let base_dir_pkg_info = PkgsInfoInApp {
         app_pkg_info,
         extension_pkg_info: if extension_pkg_info.is_empty() {
             None

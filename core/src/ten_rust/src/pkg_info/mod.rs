@@ -24,7 +24,7 @@ use std::{collections::HashMap, path::Path};
 use anyhow::{anyhow, Result};
 
 use crate::{
-    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph, schema::store::SchemaStore,
+    base_dir_pkg_info::PkgsInfoInApp, graph::Graph, schema::store::SchemaStore,
 };
 
 use constants::{
@@ -201,7 +201,7 @@ pub fn get_pkg_info_from_path(
 /// collected package.
 fn collect_pkg_info_from_path(
     path: &Path,
-    pkgs_info: &mut BaseDirPkgInfo,
+    pkgs_info: &mut PkgsInfoInApp,
 ) -> Result<()> {
     let pkg_info = get_pkg_info_from_path(path, true)?;
 
@@ -255,9 +255,9 @@ fn collect_pkg_info_from_path(
 }
 
 /// Retrieves information about all installed packages related to a specific
-/// application and stores this information in a BaseDirPkgInfo struct.
-pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
-    let mut pkgs_info = BaseDirPkgInfo {
+/// application and stores this information in a PkgsInfoInApp struct.
+pub fn get_app_installed_pkgs(app_path: &Path) -> Result<PkgsInfoInApp> {
+    let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,
         extension_pkg_info: None,
         protocol_pkg_info: None,
@@ -415,7 +415,7 @@ pub fn ten_rust_check_graph_for_app(
     let pkgs_info = get_app_installed_pkgs(app_path)?;
 
     // Create a map of all installed packages across all apps.
-    let mut installed_pkgs_of_all_apps: HashMap<String, BaseDirPkgInfo> =
+    let mut installed_pkgs_of_all_apps: HashMap<String, PkgsInfoInApp> =
         HashMap::new();
 
     // Insert packages for this app.
