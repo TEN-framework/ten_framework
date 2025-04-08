@@ -15,6 +15,13 @@ pub struct PkgsInfoInApp {
     pub system_pkg_info: Option<Vec<PkgInfo>>,
 }
 
+/// A struct that contains both PkgsInfoInApp and its base_dir.
+#[derive(Clone)]
+pub struct PkgsInfoInAppWithBaseDir {
+    pub pkgs_info_in_app: PkgsInfoInApp,
+    pub base_dir: String,
+}
+
 impl PkgsInfoInApp {
     // Get a reference to the extension packages or an empty slice if none.
     pub fn get_extensions(&self) -> &[PkgInfo] {
