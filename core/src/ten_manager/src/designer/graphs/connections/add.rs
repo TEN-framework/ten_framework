@@ -11,8 +11,8 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use ten_rust::base_dir_pkg_info::PkgInfInAppoWithBaseDir;
 use ten_rust::{
-    base_dir_pkg_info::PkgsInfoInApp,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
@@ -164,7 +164,7 @@ pub async fn add_graph_connection_endpoint(
                     uri_to_pkg_info.insert(
                         key,
                         PkgInfInAppoWithBaseDir {
-                            pkg_info: base_dir_pkg_info.clone(),
+                            pkgs_info_in_app: base_dir_pkg_info.clone(),
                             base_dir: base_dir.clone(),
                         },
                     );
@@ -194,12 +194,7 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_name.clone(),
                     request_payload.dest_app.clone(),
                     request_payload.dest_extension.clone(),
-                    &uri_to_pkg_info
-                        .iter()
-                        .map(|(k, v)| {
-                            (k.clone().unwrap_or_default(), v.pkg_info.clone())
-                        })
-                        .collect(),
+                    &uri_to_pkg_info,
                     request_payload.msg_conversion.clone(),
                 ) {
                     Ok(_) => {

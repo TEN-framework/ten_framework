@@ -250,7 +250,7 @@ impl Graph {
                 // Check if app exists.
                 if base_dir_pkg_info.pkgs_info_in_app.app_pkg_info.is_none() {
                     return Err(anyhow::anyhow!(
-                        "{} app '{}' found in map but app_pkg_info is None",
+                        "{} app '{:?}' found in map but app_pkg_info is None",
                         entity_type,
                         app_uri
                     ));
@@ -269,7 +269,7 @@ impl Graph {
 
                     if found_pkg.is_none() {
                         return Err(anyhow::anyhow!(
-                                "{} extension '{}' not found in the installed packages for app '{}'",
+                                "{} extension '{}' not found in the installed packages for app '{:?}'",
                                 entity_type, extension_name, app_uri
                             ));
                     }
@@ -278,7 +278,7 @@ impl Graph {
                 }
             } else {
                 return Err(anyhow::anyhow!(
-                    "{} app '{}' not found in the installed packages",
+                    "{} app '{:?}' not found in the installed packages",
                     entity_type,
                     app_uri
                 ));
