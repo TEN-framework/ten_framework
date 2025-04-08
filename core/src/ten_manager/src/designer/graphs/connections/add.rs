@@ -143,18 +143,24 @@ pub async fn add_graph_connection_endpoint(
 
                     // Check if the key already exists.
                     if let Some(existing) = uri_to_pkg_info.get(&key) {
-                        let key_str = key
-                            .as_ref()
-                            .map_or("None".to_string(), |uri| uri.clone());
+                        let error_message = if key.is_none() {
+                            format!(
+                                "Found two apps with unspecified URI in both '{}' and '{}'",
+                                existing.base_dir,
+                                base_dir
+                            )
+                        } else {
+                            format!(
+                                "Duplicate app uri '{}' found in both '{}' and '{}'",
+                                key.as_ref().unwrap(),
+                                existing.base_dir,
+                                base_dir
+                            )
+                        };
 
                         let error_response = ErrorResponse {
                             status: Status::Fail,
-                            message: format!(
-                                "Duplicate app uri '{}' found in both '{}' and '{}'",
-                                key_str,
-                                existing.base_dir,
-                                base_dir
-                            ),
+                            message: error_message,
                             error: None,
                         };
                         return Ok(
