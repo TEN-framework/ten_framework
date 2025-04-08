@@ -104,10 +104,18 @@ pub async fn create_app_endpoint(
 
             // Re-acquire the lock for updating the cache.
             let mut state_write = state.write().unwrap();
-            let pkgs_cache = &mut state_write.pkgs_cache;
+
+            // Destructure to avoid multiple mutable borrows.
+            let DesignerState {
+                pkgs_cache,
+                graphs_cache,
+                ..
+            } = &mut *state_write;
 
             // Try to load the newly created app into the cache.
-            if let Err(err) = get_all_pkgs_in_app(pkgs_cache, &app_path_str) {
+            if let Err(err) =
+                get_all_pkgs_in_app(pkgs_cache, graphs_cache, &app_path_str)
+            {
                 // Don't delete the app directory on cache update failure.
                 let error_response = ErrorResponse::from_error(
                     &err,

@@ -137,10 +137,16 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        get_all_pkgs_in_app(
-            &mut state.write().unwrap().pkgs_cache,
-            actual_base_dir,
-        )?;
+        let mut state_write = state.write().unwrap();
+
+        // Destructure to avoid multiple mutable borrows.
+        let DesignerState {
+            pkgs_cache,
+            graphs_cache,
+            ..
+        } = &mut *state_write;
+
+        get_all_pkgs_in_app(pkgs_cache, graphs_cache, actual_base_dir)?;
     }
 
     let server = HttpServer::new(move || {

@@ -15,9 +15,12 @@ use ten_rust::{
 #[test]
 fn test_graph_check_extension_not_installed_1() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
@@ -37,9 +40,12 @@ fn test_graph_check_extension_not_installed_1() {
 #[test]
 fn test_graph_check_extension_not_installed_2() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
@@ -59,9 +65,12 @@ fn test_graph_check_extension_not_installed_2() {
 #[test]
 fn test_graph_check_predefined_graph_success() {
     let app_dir = "tests/test_data/graph_check_predefined_graph_success";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
@@ -80,9 +89,12 @@ fn test_graph_check_predefined_graph_success() {
 #[test]
 fn test_graph_check_all_msgs_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
@@ -102,9 +114,12 @@ fn test_graph_check_all_msgs_schema_incompatible() {
 #[test]
 fn test_graph_check_single_app() {
     let app_dir = "tests/test_data/graph_check_single_app";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let graph_json_str =
@@ -123,9 +138,12 @@ fn test_graph_check_single_app() {
 #[test]
 fn test_graph_check_builtin_extension() {
     let app_dir = "tests/test_data/graph_check_builtin_extension";
-    let pkg_info_struct =
-        get_app_installed_pkgs(Path::new(app_dir), &mut HashMap::new())
-            .unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let graph_json_str =

@@ -164,13 +164,13 @@ pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
     parse_property: bool,
-    graphs_cache: Option<&mut HashMap<String, GraphInfo>>,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
     let property = if parse_property {
         assert!(graphs_cache.is_some());
 
-        parse_property_in_folder(path, graphs_cache.unwrap())?
+        parse_property_in_folder(path, graphs_cache.as_mut().unwrap())?
     } else {
         None
     };
@@ -192,10 +192,11 @@ pub fn get_pkg_info_from_path(
 fn collect_pkg_info_from_path(
     path: &Path,
     pkgs_info: &mut PkgsInfoInApp,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    parse_property: bool,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<()> {
     let pkg_info =
-        get_pkg_info_from_path(path, true, true, Some(graphs_cache))?;
+        get_pkg_info_from_path(path, true, parse_property, graphs_cache)?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
@@ -250,7 +251,8 @@ fn collect_pkg_info_from_path(
 /// application and stores this information in a PkgsInfoInApp struct.
 pub fn get_app_installed_pkgs(
     app_path: &Path,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    parse_property: bool,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<PkgsInfoInApp> {
     let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,
@@ -261,7 +263,12 @@ pub fn get_app_installed_pkgs(
     };
 
     // Process the manifest.json file in the root path.
-    collect_pkg_info_from_path(app_path, &mut pkgs_info, graphs_cache)?;
+    collect_pkg_info_from_path(
+        app_path,
+        &mut pkgs_info,
+        parse_property,
+        graphs_cache,
+    )?;
 
     if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
         if manifest.type_and_name.pkg_type != PkgType::App {
@@ -308,6 +315,7 @@ pub fn get_app_installed_pkgs(
                         collect_pkg_info_from_path(
                             &path,
                             &mut pkgs_info,
+                            parse_property,
                             graphs_cache,
                         )?;
                     }

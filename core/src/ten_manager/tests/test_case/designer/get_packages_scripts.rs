@@ -39,6 +39,7 @@ mod tests {
 
         let _ = get_all_pkgs_in_app(
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             &"tests/test_data/app_with_uri".to_string(),
         );
 
