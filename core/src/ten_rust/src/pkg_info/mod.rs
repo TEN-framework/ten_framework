@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod binding;
 pub mod constants;
 pub mod hash;
 pub mod language;
@@ -24,8 +23,7 @@ use std::{collections::HashMap, path::Path};
 use anyhow::{anyhow, Result};
 
 use crate::{
-    base_dir_pkg_info::PkgsInfoInApp,
-    graph::{graph_info::GraphInfo, Graph},
+    base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
     schema::store::SchemaStore,
 };
 
@@ -166,10 +164,13 @@ pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
     parse_property: bool,
+    graphs_cache: Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
     let property = if parse_property {
-        parse_property_in_folder(path)?
+        assert!(graphs_cache.is_some());
+
+        parse_property_in_folder(path, graphs_cache.unwrap())?
     } else {
         None
     };
@@ -191,8 +192,10 @@ pub fn get_pkg_info_from_path(
 fn collect_pkg_info_from_path(
     path: &Path,
     pkgs_info: &mut PkgsInfoInApp,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
 ) -> Result<()> {
-    let pkg_info = get_pkg_info_from_path(path, true, true)?;
+    let pkg_info =
+        get_pkg_info_from_path(path, true, true, Some(graphs_cache))?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
@@ -245,7 +248,10 @@ fn collect_pkg_info_from_path(
 
 /// Retrieves information about all installed packages related to a specific
 /// application and stores this information in a PkgsInfoInApp struct.
-pub fn get_app_installed_pkgs(app_path: &Path) -> Result<PkgsInfoInApp> {
+pub fn get_app_installed_pkgs(
+    app_path: &Path,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
+) -> Result<PkgsInfoInApp> {
     let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,
         extension_pkg_info: None,
@@ -255,7 +261,7 @@ pub fn get_app_installed_pkgs(app_path: &Path) -> Result<PkgsInfoInApp> {
     };
 
     // Process the manifest.json file in the root path.
-    collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
+    collect_pkg_info_from_path(app_path, &mut pkgs_info, graphs_cache)?;
 
     if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
         if manifest.type_and_name.pkg_type != PkgType::App {
@@ -299,7 +305,11 @@ pub fn get_app_installed_pkgs(app_path: &Path) -> Result<PkgsInfoInApp> {
                         // represents a valid TEN package, and this package is a
                         // _local_ dependency of app.
 
-                        collect_pkg_info_from_path(&path, &mut pkgs_info)?;
+                        collect_pkg_info_from_path(
+                            &path,
+                            &mut pkgs_info,
+                            graphs_cache,
+                        )?;
                     }
                 }
             }
@@ -391,28 +401,4 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
     }
 
     to_be_replaced
-}
-
-/// Check the graph for current app.
-pub fn ten_rust_check_graph_for_app(
-    app_base_dir: &str,
-    graph_json: &str,
-    app_uri: &str,
-) -> Result<()> {
-    // Get all installed packages.
-    let app_path = Path::new(app_base_dir);
-    let pkgs_info = get_app_installed_pkgs(app_path)?;
-
-    // Create a map of all installed packages across all apps.
-    let mut installed_pkgs_of_all_apps: HashMap<String, PkgsInfoInApp> =
-        HashMap::new();
-
-    // Insert packages for this app.
-    installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
-
-    // Parse the graph JSON.
-    // let graph = Graph::from_str(graph_json)?;
-    let graph: Graph = serde_json::from_str(graph_json)?;
-
-    graph.check_for_single_app(&installed_pkgs_of_all_apps)
 }

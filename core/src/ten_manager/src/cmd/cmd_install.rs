@@ -421,7 +421,7 @@ pub async fn execute_cmd(
     let mut installing_pkg_name: Option<String> = None;
 
     let app_pkg_to_work_with =
-        get_pkg_info_from_path(&app_dir_to_work_with, true, false)?;
+        get_pkg_info_from_path(&app_dir_to_work_with, true, false, None)?;
 
     // We need to start looking for dependencies outward from the cwd package,
     // and the cwd package itself is considered a candidate.
@@ -489,7 +489,7 @@ pub async fn execute_cmd(
         // Read the `manifest.json` of the local package to obtain its `type`,
         // `name`, and `version`.
         let local_pkg_info =
-            get_pkg_info_from_path(&local_manifest_dir, false, false)?;
+            get_pkg_info_from_path(&local_manifest_dir, false, false, None)?;
 
         installing_pkg_type = Some(
             local_pkg_info
@@ -774,7 +774,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&specified_cwd, true, false)?;
+                    get_pkg_info_from_path(&specified_cwd, true, false, None)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,
@@ -789,7 +789,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&specified_cwd, true, false)?;
+                    get_pkg_info_from_path(&specified_cwd, true, false, None)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,

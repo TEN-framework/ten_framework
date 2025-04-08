@@ -10,9 +10,10 @@ use std::str::FromStr;
 use anyhow::Result;
 
 use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
+use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::property::parse_property_from_str;
 use ten_rust::pkg_info::PkgInfo;
-use ten_rust::pkg_info::{manifest::Manifest, property::Property};
 
 pub fn inject_all_pkgs_for_mock(
     base_dir: &str,
@@ -31,7 +32,8 @@ pub fn inject_all_pkgs_for_mock(
 
     for metadata_json in all_pkgs_json {
         let manifest = Manifest::from_str(&metadata_json.0)?;
-        let property = Property::from_str(&metadata_json.1)?;
+        let property =
+            parse_property_from_str(&metadata_json.1, &mut HashMap::new())?;
 
         let pkg_info = PkgInfo::from_metadata(&manifest, &Some(property))?;
 

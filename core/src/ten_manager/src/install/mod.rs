@@ -262,6 +262,7 @@ fn update_package_manifest(
                                 Path::new(&path),
                                 false,
                                 false,
+                                None,
                             ) {
                                 Ok(info) => info,
                                 Err(_) => {

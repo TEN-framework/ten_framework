@@ -13,7 +13,8 @@ mod tests {
         graph::{node::GraphNode, Graph},
         pkg_info::{
             manifest::Manifest, message::MsgType, pkg_type::PkgType,
-            pkg_type_and_name::PkgTypeAndName, property::Property, PkgInfo,
+            pkg_type_and_name::PkgTypeAndName,
+            property::parse_property_from_str, PkgInfo,
         },
         schema::store::SchemaStore,
     };
@@ -56,7 +57,8 @@ mod tests {
             }
         }
         "#;
-        let app_property = Property::from_str(prop_str).unwrap();
+        let app_property =
+            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
 
         // Create ext1 PkgInfo with valid API schema for message communication.
         let ext1_manifest_json_str =

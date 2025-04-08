@@ -11,14 +11,18 @@ mod msg_conversion_tests {
 
     use ten_rust::{
         base_dir_pkg_info::PkgsInfoInApp,
-        graph::msg_conversion::{
-            MsgAndResultConversion, MsgConversion, MsgConversionMode,
-            MsgConversionRule, MsgConversionRules, MsgConversionType,
+        graph::{
+            msg_conversion::{
+                MsgAndResultConversion, MsgConversion, MsgConversionMode,
+                MsgConversionRule, MsgConversionRules, MsgConversionType,
+            },
+            node::GraphNode,
+            Graph,
         },
-        graph::{node::GraphNode, Graph},
         pkg_info::{
             manifest::Manifest, message::MsgType, pkg_type::PkgType,
-            pkg_type_and_name::PkgTypeAndName, property::Property, PkgInfo,
+            pkg_type_and_name::PkgTypeAndName,
+            property::parse_property_from_str, PkgInfo,
         },
         schema::store::SchemaStore,
     };
@@ -61,7 +65,8 @@ mod msg_conversion_tests {
             }
         }
         "#;
-        let app_property = Property::from_str(prop_str).unwrap();
+        let app_property =
+            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
 
         // Create ext1 PkgInfo with valid API schema for message communication.
         let ext1_manifest_json_str =

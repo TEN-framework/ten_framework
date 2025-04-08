@@ -20,7 +20,7 @@ mod tests {
         pkg_info::{
             constants::TEN_FIELD_IN_PROPERTY,
             localhost,
-            property::{Property, TenInProperty},
+            property::{parse_property_from_str, Property, TenInProperty},
         },
     };
 
@@ -35,7 +35,8 @@ mod tests {
         }
         "#;
 
-        let property: Property = json_data.parse().unwrap();
+        let property =
+            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
@@ -60,7 +61,8 @@ mod tests {
         }
         "#;
 
-        let property: Property = json_data.parse().unwrap();
+        let property =
+            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
@@ -139,7 +141,8 @@ mod tests {
         }
         "#;
 
-        let property: Property = json_data.parse().unwrap();
+        let property =
+            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("property.json");
@@ -158,8 +161,11 @@ mod tests {
     #[test]
     fn test_dump_property_without_localhost_app_in_graph() {
         let json_str = include_str!("test_data_embed/property.json");
-        let property: Property = json_str.parse().unwrap();
+
+        let property =
+            parse_property_from_str(json_str, &mut HashMap::new()).unwrap();
         assert!(property._ten.is_some());
+
         let ten = property._ten.as_ref().unwrap();
         let predefined_graphs = ten.predefined_graphs.as_ref().unwrap();
         let nodes = &predefined_graphs.first().as_ref().unwrap().graph.nodes;
@@ -180,7 +186,9 @@ mod tests {
         let prop_str = include_str!(
             "test_data_embed/dump_property_with_msg_conversion.json"
         );
-        let property: Property = prop_str.parse().unwrap();
+
+        let property =
+            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
         assert!(property._ten.is_some());
 
         let ten = property._ten.as_ref().unwrap();
