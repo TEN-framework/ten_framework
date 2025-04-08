@@ -235,6 +235,9 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
   register_ctx->app = self;
 
+  // Addonloader addons do not implement the on_init() function, so after
+  // the following method is called, all addon loaders will be registered and
+  // added to the addon store.
   ten_addon_manager_register_all_addon_loaders(manager, register_ctx);
   ten_addon_register_ctx_destroy(register_ctx);
 
