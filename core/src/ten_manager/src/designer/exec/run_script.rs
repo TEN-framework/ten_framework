@@ -19,7 +19,7 @@ pub fn extract_command_from_manifest(
 
     let base_dir_pkg_info = state.pkgs_cache.get(base_dir).unwrap();
 
-    // Get the app package directly from BaseDirPkgInfo.
+    // Get the app package directly from PkgsInfoInApp.
     let app_pkg = match &base_dir_pkg_info.app_pkg_info {
         Some(app_pkg) => app_pkg,
         None => {

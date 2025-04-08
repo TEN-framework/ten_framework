@@ -23,7 +23,7 @@ use crate::{
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     output::{TmanOutput, TmanOutputCli},
-    pkg_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 
 #[derive(Clone, Debug)]
@@ -119,6 +119,7 @@ pub async fn execute_cmd(
         tman_config: tman_config.clone(),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     }));
 
     let mut actual_base_dir_opt: Option<String> = Some(base_dir);
@@ -136,7 +137,16 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        get_all_pkgs(&mut state.write().unwrap().pkgs_cache, actual_base_dir)?;
+        let mut state_write = state.write().unwrap();
+
+        // Destructure to avoid multiple mutable borrows.
+        let DesignerState {
+            pkgs_cache,
+            graphs_cache,
+            ..
+        } = &mut *state_write;
+
+        get_all_pkgs_in_app(pkgs_cache, graphs_cache, actual_base_dir)?;
     }
 
     let server = HttpServer::new(move || {

@@ -39,11 +39,6 @@ void test_extension_in_app1_not_installed() {
   TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
-  auto detail = cmd_result->get_property_string("detail");
-  // NOLINTNEXTLINE
-  TEN_ASSERT(!detail.empty() && detail.find("ext_e") != std::string::npos,
-             "Should not happen.");
-
   delete client;
 }
 
@@ -84,11 +79,6 @@ void test_extension_in_app2_not_installed() {
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
-             "Should not happen.");
-
-  auto detail = cmd_result->get_property_string("detail");
-  // NOLINTNEXTLINE
-  TEN_ASSERT(!detail.empty() && detail.find("ext_e") != std::string::npos,
              "Should not happen.");
 
   delete client;

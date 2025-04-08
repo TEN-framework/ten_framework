@@ -10,7 +10,6 @@
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/engine_interface.h"
-#include "include_internal/ten_runtime/app/graph.h"
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -209,13 +208,6 @@ bool ten_app_start_predefined_graph(
           self, predefined_graph_info, err);
   if (!start_graph_cmd) {
     return false;
-  }
-
-  if (!ten_app_check_start_graph_cmd(self, start_graph_cmd, err)) {
-    // TODO(Wei): The graph check does not support message conversion now, so we
-    // can not return false here. WIP: issues#160.
-    TEN_LOGW("[%s] The predefined graph is invalid, %s", ten_app_get_uri(self),
-             ten_error_message(err));
   }
 
   ten_msg_set_src_to_app(start_graph_cmd, self);

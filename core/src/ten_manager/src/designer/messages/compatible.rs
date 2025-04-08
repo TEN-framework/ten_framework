@@ -9,13 +9,13 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::{
-    message::{MsgDirection, MsgType},
-    predefined_graphs::extension::{
+use ten_rust::{
+    graph::extension::{
         get_compatible_cmd_extension, get_compatible_data_like_msg_extension,
         get_extension, get_extension_nodes_in_graph,
         get_pkg_info_for_extension, CompatibleExtensionAndMsg,
     },
+    pkg_info::message::{MsgDirection, MsgType},
 };
 
 use crate::designer::{

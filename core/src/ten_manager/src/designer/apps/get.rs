@@ -42,7 +42,7 @@ pub async fn get_apps_endpoint(
                     .iter()
                     .map(|(base_dir, base_dir_pkg_info)| {
                         // Get the App package info directly from
-                        // BaseDirPkgInfo.
+                        // PkgsInfoInApp.
                         let app_uri = base_dir_pkg_info
                             .app_pkg_info
                             .as_ref()

@@ -20,9 +20,11 @@ use serde::{Deserialize, Serialize};
     Hash,
     Serialize,
     Deserialize,
+    Default,
 )]
 pub enum PkgType {
     #[serde(rename = "invalid")]
+    #[default]
     Invalid,
 
     #[serde(rename = "system")]

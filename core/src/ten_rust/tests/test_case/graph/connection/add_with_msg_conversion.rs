@@ -10,15 +10,19 @@ mod msg_conversion_tests {
     use std::str::FromStr;
 
     use ten_rust::{
-        base_dir_pkg_info::BaseDirPkgInfo,
-        graph::msg_conversion::{
-            MsgAndResultConversion, MsgConversion, MsgConversionMode,
-            MsgConversionRule, MsgConversionRules, MsgConversionType,
+        base_dir_pkg_info::PkgsInfoInApp,
+        graph::{
+            msg_conversion::{
+                MsgAndResultConversion, MsgConversion, MsgConversionMode,
+                MsgConversionRule, MsgConversionRules, MsgConversionType,
+            },
+            node::GraphNode,
+            Graph,
         },
-        graph::{node::GraphNode, Graph},
         pkg_info::{
             manifest::Manifest, message::MsgType, pkg_type::PkgType,
-            pkg_type_and_name::PkgTypeAndName, property::Property, PkgInfo,
+            pkg_type_and_name::PkgTypeAndName,
+            property::parse_property_from_str, PkgInfo,
         },
         schema::store::SchemaStore,
     };
@@ -40,7 +44,7 @@ mod msg_conversion_tests {
         }
     }
 
-    fn create_test_pkg_info_map() -> HashMap<String, BaseDirPkgInfo> {
+    fn create_test_pkg_info_map() -> HashMap<String, PkgsInfoInApp> {
         let mut map = HashMap::new();
 
         // Create app PkgInfo.
@@ -61,7 +65,8 @@ mod msg_conversion_tests {
             }
         }
         "#;
-        let app_property = Property::from_str(prop_str).unwrap();
+        let app_property =
+            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
 
         // Create ext1 PkgInfo with valid API schema for message communication.
         let ext1_manifest_json_str =
@@ -140,8 +145,8 @@ mod msg_conversion_tests {
             local_dependency_base_dir: None,
         };
 
-        // Create a BaseDirPkgInfo and add all packages
-        let base_dir_pkg_info = BaseDirPkgInfo {
+        // Create a PkgsInfoInApp and add all packages
+        let base_dir_pkg_info = PkgsInfoInApp {
             app_pkg_info: Some(app_pkg_info),
             extension_pkg_info: Some(vec![
                 ext1_pkg_info,

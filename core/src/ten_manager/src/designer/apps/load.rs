@@ -11,13 +11,13 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
+use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
 use crate::{
     designer::response::{ApiResponse, ErrorResponse, Status},
     designer::DesignerState,
     fs::check_is_app_folder,
-    pkg_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -51,18 +51,27 @@ pub async fn load_app_endpoint(
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
         Ok(_) => {
-            let pkgs_cache = &mut state_write.pkgs_cache;
+            // Destructure to avoid multiple mutable borrows.
+            let DesignerState {
+                pkgs_cache,
+                graphs_cache,
+                ..
+            } = &mut *state_write;
 
-            if let Err(err) =
-                get_all_pkgs(pkgs_cache, &request_payload.base_dir)
-            {
+            if let Err(err) = get_all_pkgs_in_app(
+                pkgs_cache,
+                graphs_cache,
+                &request_payload.base_dir,
+            ) {
                 let error_response =
                     ErrorResponse::from_error(&err, "Error fetching packages:");
                 return Ok(HttpResponse::NotFound().json(error_response));
             }
 
-            let app_uri =
-                extract_app_uri(pkgs_cache, &request_payload.base_dir);
+            let app_uri = extract_app_uri(
+                &state_write.pkgs_cache,
+                &request_payload.base_dir,
+            );
             Ok(HttpResponse::Ok().json(ApiResponse {
                 status: Status::Ok,
                 data: LoadAppResponseData { app_uri },
@@ -81,7 +90,7 @@ pub async fn load_app_endpoint(
 }
 
 fn extract_app_uri(
-    pkgs_cache: &HashMap<String, BaseDirPkgInfo>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     base_dir: &str,
 ) -> Option<String> {
     pkgs_cache.get(base_dir).and_then(|base_dir_pkg_info| {
@@ -99,4 +108,3 @@ fn extract_app_uri(
         None
     })
 }
-

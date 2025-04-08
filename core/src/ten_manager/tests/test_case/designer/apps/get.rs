@@ -10,7 +10,7 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{test, web, App};
-    use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
+    use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
@@ -27,6 +27,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -38,8 +39,8 @@ mod tests {
         )
         .await;
 
-        // Create an empty BaseDirPkgInfo.
-        let empty_pkg_info = BaseDirPkgInfo::default();
+        // Create an empty PkgsInfoInApp.
+        let empty_pkg_info = PkgsInfoInApp::default();
 
         designer_state
             .write()
@@ -72,6 +73,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 

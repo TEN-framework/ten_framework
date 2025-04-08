@@ -6,7 +6,10 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, RwLock};
+    use std::{
+        collections::HashMap,
+        sync::{Arc, RwLock},
+    };
 
     use actix_web::{test, web, App};
 
@@ -23,6 +26,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: Default::default(),
+            graphs_cache: HashMap::new(),
         }));
 
         // Create test app.
@@ -61,6 +65,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: Default::default(),
+            graphs_cache: HashMap::new(),
         }));
 
         // Create test app

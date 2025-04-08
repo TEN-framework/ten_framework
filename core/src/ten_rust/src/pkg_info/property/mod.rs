@@ -4,13 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod predefined_graph;
-
 use std::{
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
-    str::FromStr,
 };
 
 use anyhow::{Context, Result};
@@ -21,9 +18,8 @@ use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
     utils::read_file_to_string,
 };
-use crate::graph::is_app_default_loc_or_none;
+use crate::graph::{graph_info::GraphInfo, is_app_default_loc_or_none};
 use crate::json_schema;
-use predefined_graph::PredefinedGraph;
 
 /// Represents the property configuration of a TEN package.
 ///
@@ -55,32 +51,21 @@ pub struct Property {
 /// string, which is useful for loading property configurations from files or
 /// string literals. After parsing the JSON, it automatically validates and
 /// completes the property configuration to ensure it meets all requirements.
-///
-/// # Arguments
-/// * `s` - A string slice containing a valid JSON representation of a property
-///   configuration.
-///
-/// # Returns
-/// * `Ok(Property)` - A validated and completed property configuration if
-///   parsing succeeds.
-/// * `Err` - An error if JSON parsing fails or if validation fails.
-impl FromStr for Property {
-    type Err = anyhow::Error;
+pub fn parse_property_from_str(
+    s: &str,
+    _graphs_cache: &mut HashMap<String, GraphInfo>,
+) -> Result<Property> {
+    let mut property: Property = serde_json::from_str(s)?;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut property: Property = serde_json::from_str(s)?;
-
-        // Extract _ten field from all_fields if it exists.
-        if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY)
-        {
-            let ten_in_property: TenInProperty =
-                serde_json::from_value(ten_value.clone())?;
-            property._ten = Some(ten_in_property);
-        }
-
-        property.validate_and_complete()?;
-        Ok(property)
+    // Extract _ten field from all_fields if it exists.
+    if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY) {
+        let ten_in_property: TenInProperty =
+            serde_json::from_value(ten_value.clone())?;
+        property._ten = Some(ten_in_property);
     }
+
+    property.validate_and_complete()?;
+    Ok(property)
 }
 
 impl Property {
@@ -150,7 +135,7 @@ impl Property {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TenInProperty {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub predefined_graphs: Option<Vec<PredefinedGraph>>,
+    pub predefined_graphs: Option<Vec<GraphInfo>>,
 
     #[serde(skip_serializing_if = "is_app_default_loc_or_none")]
     pub uri: Option<String>,
@@ -222,8 +207,9 @@ pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
 /// # Returns
 /// * `Result<Property>` - The parsed and validated Property struct on success,
 ///   or an error if the file cannot be read or the content is invalid.
-pub fn parse_property_from_file<P: AsRef<Path>>(
+fn parse_property_from_file<P: AsRef<Path>>(
     property_file_path: P,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
 ) -> Result<Option<Property>> {
     if !property_file_path.as_ref().exists() {
         return Ok(None);
@@ -242,18 +228,19 @@ pub fn parse_property_from_file<P: AsRef<Path>>(
     let content = read_file_to_string(property_file_path)?;
 
     // Parse the content and validate the property structure.
-    Property::from_str(&content).map(Some)
+    parse_property_from_str(&content, graphs_cache).map(Some)
 }
 
 pub fn parse_property_in_folder(
     folder_path: &Path,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
 ) -> Result<Option<Property>> {
     // Path to the property.json file.
     let property_path = folder_path.join(PROPERTY_JSON_FILENAME);
 
     // Read and parse the property.json file.
-    let property =
-        parse_property_from_file(&property_path).with_context(|| {
+    let property = parse_property_from_file(&property_path, graphs_cache)
+        .with_context(|| {
             format!("Failed to load {}.", property_path.display())
         })?;
 
