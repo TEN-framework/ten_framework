@@ -14,7 +14,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
+import ContextMenu, {
+  EContextMenuItemType,
+  type IContextMenuItem,
+} from "@/flow/ContextMenu/ContextMenu";
 import { useDialogStore, useFlowStore } from "@/store";
 import { postDeleteNode } from "@/api/services/graphs";
 // eslint-disable-next-line max-len
@@ -52,37 +55,58 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
 
-  const items: ContextMenuItem[] = [
+  const items: IContextMenuItem[] = [
     {
-      label: t("action.edit") + " manifest.json",
+      _type: EContextMenuItemType.SUB_MENU_BUTTON,
+      label: t("action.edit") + " " + t("extensionStore.extension"),
+      icon: <FilePenLineIcon />,
+      items: [
+        {
+          _type: EContextMenuItemType.BUTTON,
+          label: t("action.edit") + " manifest.json",
+          icon: <FilePenLineIcon />,
+          onClick: () => {
+            onClose();
+            if (node?.data.url)
+              onLaunchEditor({
+                title: `${node.data.name} manifest.json`,
+                content: "",
+                url: `${node.data.url}/manifest.json`,
+              });
+          },
+        },
+        {
+          _type: EContextMenuItemType.BUTTON,
+          label: t("action.edit") + " property.json",
+          icon: <FilePenLineIcon />,
+          onClick: () => {
+            onClose();
+            if (node?.data.url)
+              onLaunchEditor({
+                title: `${node.data.name} property.json`,
+                content: "",
+                url: `${node.data.url}/property.json`,
+              });
+          },
+        },
+      ],
+    },
+    {
+      _type: EContextMenuItemType.SEPARATOR,
+    },
+    {
+      _type: EContextMenuItemType.BUTTON,
+      label: t("action.update") + " " + t("popup.node.properties"),
       icon: <FilePenLineIcon />,
       onClick: () => {
         onClose();
-        if (node?.data.url)
-          onLaunchEditor({
-            title: `${node.data.name} manifest.json`,
-            content: "",
-            url: `${node.data.url}/manifest.json`,
-          });
       },
     },
     {
-      label: t("action.edit") + " property.json",
-      icon: <FilePenLineIcon />,
-      onClick: () => {
-        onClose();
-        if (node?.data.url)
-          onLaunchEditor({
-            title: `${node.data.name} property.json`,
-            content: "",
-            url: `${node.data.url}/property.json`,
-          });
-      },
+      _type: EContextMenuItemType.SEPARATOR,
     },
     {
-      separator: true,
-    },
-    {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.launchTerminal"),
       icon: <TerminalIcon />,
       onClick: () => {
@@ -91,6 +115,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       },
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.launchLogViewer"),
       icon: <LogsIcon />,
       onClick: () => {
@@ -99,9 +124,10 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       },
     },
     {
-      separator: true,
+      _type: EContextMenuItemType.SEPARATOR,
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.delete"),
       disabled: !baseDir || !graphName,
       icon: <Trash2Icon />,
