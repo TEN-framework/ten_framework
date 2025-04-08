@@ -27,7 +27,9 @@
       "title": "圖譜",
       "loadGraph": "載入圖譜",
       "autoLayout": "自動佈局",
-      "selectLoadedApp": "選擇已載入的應用程式"
+      "selectLoadedApp": "選擇已載入的應用程式",
+      "addNode": "新增節點",
+      "addConnection": "新增連線"
     },
     "menuHelp": {
       "title": "說明",
@@ -92,7 +94,9 @@
     "run": "執行",
     "viewDetails": "查看詳情",
     "reset": "重置",
-    "chooseBaseDir": "選擇基礎目錄"
+    "chooseBaseDir": "選擇基礎目錄",
+    "deleteNodeConfirmationWithName": "確定要刪除節點 {{name}} 嗎？",
+    "update": "更新"
   },
   "toast": {
     "saveFileSuccess": "檔案儲存成功",
@@ -149,6 +153,36 @@
       "appName": "應用程式名稱",
       "appNameDescription": "輸入應用程式的名稱。",
       "baseDirDescription": "選擇應用程式的基礎目錄。"
+    },
+    "node": {
+      "properties": "屬性"
+    },
+    "graph": {
+      "title": "節點",
+      "titleAddNode": "新增節點",
+      "graphAppBaseDir": "基礎目錄",
+      "graphName": "圖譜名稱",
+      "nodeName": "節點名稱",
+      "addonName": "附加元件名稱",
+      "searchAddon": "搜尋附加元件",
+      "noAddonFound": "未找到附加元件",
+      "useInputAddon": "使用 '{{addonName}}'",
+      "property": "屬性",
+      "addNode": "新增節點",
+      "addNodeSuccess": "節點新增成功",
+      "addNodeError": "節點新增失敗",
+      "graphError": "圖譜載入失敗",
+      "addonError": "附加元件載入失敗",
+      "deleteNodeSuccess": "節點刪除成功",
+      "deleteNodeFailed": "節點刪除失敗",
+      "titleAddConnection": "新增連線",
+      "sameNodeError": "來源節點和目標節點不能相同",
+      "srcExtension": "來源擴充功能",
+      "destExtension": "目標擴充功能",
+      "messageType": "訊息類型",
+      "messageName": "訊息名稱",
+      "addConnection": "新增連線",
+      "titleUpdateNodePropertyByName": "更新節點 [{{name}}] 屬性"
     }
   },
   "dock": {
@@ -202,7 +236,8 @@
     "versionHistory": "版本歷史",
     "selectVersion": "選擇版本",
     "versionLatest": "最新",
-    "localAddonTip": "(本機)"
+    "localAddonTip": "(本機)",
+    "extension": "擴充功能"
   },
   "statusBar": {
     "appsLoadedWithCount": "已載入 {{count}} 個應用程式",
@@ -228,5 +263,13 @@
     "cancel": "取消",
     "saved": "已儲存",
     "savedSuccess": "偏好設定 {{key}} 儲存成功"
+  },
+  "components": {
+    "combobox": {
+      "create": "建立 {{query}}",
+      "placeholder": "搜尋或建立新項目",
+      "noItems": "無項目",
+      "enterValueToCreate": "輸入值以建立新項目"
+    }
   }
 }
