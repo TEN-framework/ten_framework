@@ -34,7 +34,9 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
     rc = ten_env_init_property_from_json(ten_env,
                                          "{\
                                                \"_ten\": {\
-                                                 \"log_level\": 2\
+                                                 \"log\": {\
+                                                   \"level\": 2\
+                                                 }\
                                                }\
                                              }",
                                          NULL);

@@ -23,6 +23,7 @@ group("go") {
       "local_dependency_1_go",
       "local_dependency_2_go",
       "msg_clone_go",
+      "multi_dest_go",
       "no_dest_go",
       "prepare_to_stop_go",
       "return_result_go",

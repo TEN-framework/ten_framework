@@ -27,14 +27,6 @@ static const ten_app_ten_namespace_prop_info_t
             .init_from_value = ten_app_init_uri,
         },
         {
-            .name = TEN_STR_LOG_LEVEL,
-            .init_from_value = ten_app_init_log_level,
-        },
-        {
-            .name = TEN_STR_LOG_FILE,
-            .init_from_value = ten_app_init_log_file,
-        },
-        {
             .name = TEN_STR_TELEMETRY,
             .init_from_value = ten_app_init_telemetry_system,
         },

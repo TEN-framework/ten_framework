@@ -88,7 +88,9 @@ class test_remote_app : public ten::app_t {
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8088/",
-                        "log_level": 2
+                        "log": {
+                          "level": 2
+                        }
                       }
                     })"
         // clang-format on

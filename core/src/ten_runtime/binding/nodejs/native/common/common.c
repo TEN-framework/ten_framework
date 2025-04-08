@@ -317,7 +317,8 @@ napi_value ten_nodejs_create_error(napi_env env, ten_error_t *error) {
 napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
                                           ten_error_t *error) {
   TEN_ASSERT(env, "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
   TEN_ASSERT(error, "Should not happen.");
 
   napi_value js_value = NULL;
@@ -418,7 +419,8 @@ napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
 napi_value ten_nodejs_create_value_string(napi_env env, ten_value_t *value,
                                           ten_error_t *error) {
   TEN_ASSERT(env, "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   napi_value js_value = NULL;
   napi_status status = napi_ok;

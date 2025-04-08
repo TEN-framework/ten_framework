@@ -48,11 +48,5 @@ TEN_RUNTIME_PRIVATE_API bool ten_app_init_long_running_mode(ten_app_t *self,
 TEN_RUNTIME_PRIVATE_API bool ten_app_init_uri(ten_app_t *self,
                                               ten_value_t *value);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_log_level(ten_app_t *self,
-                                                    ten_value_t *value);
-
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_log_file(ten_app_t *self,
-                                                   ten_value_t *value);
-
 TEN_RUNTIME_PRIVATE_API bool ten_app_init_log(ten_app_t *self,
                                               ten_value_t *value);

@@ -56,6 +56,7 @@ func tenGoOnCmdResult(
 	tenEnvObjID C.uintptr_t,
 	cmdResultBridge C.uintptr_t,
 	resultHandler C.uintptr_t,
+	isCompleted C.bool,
 	cgoError C.ten_go_error_t,
 ) {
 	tenEnvObj, ok := handle(tenEnvObjID).get().(TenEnv)
@@ -75,7 +76,13 @@ func tenGoOnCmdResult(
 		cr = newCmdResult(cmdResultBridge)
 	}
 
-	cb := loadAndDeleteGoHandle(goHandle(resultHandler))
+	var cb any = nil
+	if isCompleted {
+		cb = loadAndDeleteGoHandle(goHandle(resultHandler))
+	} else {
+		cb = loadGoHandle(goHandle(resultHandler))
+	}
+
 	if cb == nil || cb == goHandleNil {
 		// Should not happen.
 		panic("The result handler is not found from handle map.")

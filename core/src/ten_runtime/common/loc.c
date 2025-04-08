@@ -55,7 +55,8 @@ ten_loc_t *ten_loc_create(const char *app_uri, const char *graph_id,
 }
 
 ten_loc_t *ten_loc_create_from_value(ten_value_t *value) {
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   ten_loc_t *self = ten_loc_create_empty();
 
@@ -244,7 +245,8 @@ void ten_loc_to_string(ten_loc_t *self, ten_string_t *result) {
 
 static bool ten_loc_set_value(ten_loc_t *self, ten_value_t *value) {
   TEN_ASSERT(self && ten_loc_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
 
   ten_list_t loc_fields = TEN_LIST_INIT_VAL;
 

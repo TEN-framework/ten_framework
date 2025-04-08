@@ -80,10 +80,14 @@ static void proxy_send_cmd_callback(ten_env_t *ten_env,
     ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
   }
 
-  tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, cmd_result_bridge_addr,
-                   handler_id, cgo_error);
+  bool is_completed = ten_cmd_result_is_completed(c_cmd_result, NULL);
 
-  ten_go_callback_ctx_destroy(callback_info);
+  tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, cmd_result_bridge_addr,
+                   handler_id, is_completed, cgo_error);
+
+  if (is_completed) {
+    ten_go_callback_ctx_destroy(callback_info);
+  }
 }
 
 static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
@@ -126,7 +130,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
       ten_go_error_from_error(&cgo_error, &err);
 
       tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, 0,
-                       notify_info->handler_id, cgo_error);
+                       notify_info->handler_id, true, cgo_error);
     }
   }
 

@@ -148,8 +148,6 @@
 #define TEN_STR_ADDON "addon"
 #define TEN_STR_TEN_PACKAGES "ten_packages"
 #define TEN_STR_ONE_EVENT_LOOP_PER_ENGINE "one_event_loop_per_engine"
-#define TEN_STR_LOG_LEVEL "log_level"
-#define TEN_STR_LOG_FILE "log_file"
 #define TEN_STR_LOG "log"
 #define TEN_STR_LEVEL "level"
 #define TEN_STR_FILE "file"
