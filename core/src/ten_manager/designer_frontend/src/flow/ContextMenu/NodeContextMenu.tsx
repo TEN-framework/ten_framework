@@ -105,7 +105,9 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       _type: EContextMenuItemType.BUTTON,
       label: t("action.update") + " " + t("popup.node.properties"),
       icon: <FilePenLineIcon />,
+      disabled: !baseDir || !graphName,
       onClick: () => {
+        if (!baseDir || !graphName) return;
         onClose();
         appendWidgetIfNotExists({
           id: "update-node-property-widget-" + node.data.name,

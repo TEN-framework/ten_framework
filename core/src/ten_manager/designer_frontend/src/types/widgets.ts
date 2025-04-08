@@ -156,25 +156,21 @@ export interface IExtensionWidget extends IWidgetBase {
   };
 }
 
-export type IWidget<T> =
+export type IWidget =
   | ITerminalWidget
   | IEditorWidget
   | ICustomConnectionWidget
   | ILogViewerWidget
-  | IDefaultWidget<
-      T & {
-        type: EDefaultWidgetType;
-        base_dir?: string;
-        scripts?: string[];
-      }
-    >
+  | IDefaultWidget<{
+      type: EDefaultWidgetType;
+      base_dir?: string;
+      scripts?: string[];
+    }>
   | IExtensionWidget
-  | IGraphWidget<
-      T & {
-        type: EGraphActions;
-        base_dir: string;
-        graph_name?: string;
-        app_uri?: string;
-        node?: TCustomNode;
-      }
-    >;
+  | IGraphWidget<{
+      type: EGraphActions;
+      base_dir: string;
+      graph_name?: string;
+      app_uri?: string;
+      node?: TCustomNode;
+    }>;

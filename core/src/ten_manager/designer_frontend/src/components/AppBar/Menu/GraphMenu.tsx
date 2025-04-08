@@ -65,8 +65,8 @@ export function GraphMenu(props: {
       metadata: {
         type,
         base_dir: currentWorkspace.baseDir,
-        graph_name: currentWorkspace?.graphName,
-        app_uri: currentWorkspace?.appUri,
+        graph_name: currentWorkspace?.graphName || undefined,
+        app_uri: currentWorkspace?.appUri || undefined,
       },
     });
   };
