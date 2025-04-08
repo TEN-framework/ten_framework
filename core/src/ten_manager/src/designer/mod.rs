@@ -8,6 +8,7 @@ pub mod apps;
 pub mod builtin_function;
 pub mod common;
 pub mod dir_list;
+pub mod doc_link;
 pub mod env;
 pub mod exec;
 pub mod extensions;
@@ -198,6 +199,10 @@ pub fn configure_routes(
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
+            )
+            .route(
+                "/doc-link",
+                web::post().to(doc_link::get_doc_link_endpoint),
             )
             .route(
                 "/registry/packages",
