@@ -10,6 +10,7 @@ import("//build/ten_runtime/options.gni")
 
 ten_runtime_glob("msgpack_files") {
   file_list = []
+
   include_dirs = [
     "//packages",
     "//core",

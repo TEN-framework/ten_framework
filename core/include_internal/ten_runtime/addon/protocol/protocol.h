@@ -10,9 +10,11 @@
 
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/addon/addon.h"
+#include "ten_runtime/addon/addon_manager.h"
 
 typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
+typedef struct ten_addon_manager_t ten_addon_manager_t;
 
 #define TEN_REGISTER_ADDON_AS_PROTOCOL(PROTOCOL_NAME, ADDON) \
   TEN_ADDON_REGISTER(protocol, PROTOCOL_NAME, ADDON)
