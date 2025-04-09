@@ -18,9 +18,6 @@ typedef struct ten_addon_store_t ten_addon_store_t;
 typedef struct ten_addon_t ten_addon_t;
 typedef struct ten_addon_host_t ten_addon_host_t;
 
-#define TEN_REGISTER_ADDON_AS_EXTENSION_GROUP(NAME, ADDON) \
-  TEN_ADDON_REGISTER(extension_group, NAME, ADDON)
-
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_extension_group_get_global_store(
     void);
 

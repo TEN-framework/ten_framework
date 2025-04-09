@@ -40,7 +40,10 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_manager_destroy(
 TEN_RUNTIME_API void ten_addon_manager_register_all_addons(
     ten_addon_manager_t *self, void *register_ctx);
 
-TEN_RUNTIME_API void ten_addon_manager_register_all_addon_loaders(
+TEN_RUNTIME_PRIVATE_API void ten_addon_manager_register_all_addon_loaders(
+    ten_addon_manager_t *self, void *register_ctx);
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_manager_register_all_protocols(
     ten_addon_manager_t *self, void *register_ctx);
 
 TEN_RUNTIME_API bool ten_addon_manager_register_specific_addon(
