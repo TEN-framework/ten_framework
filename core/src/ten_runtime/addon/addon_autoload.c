@@ -360,16 +360,19 @@ static bool ten_addon_register_specific_addon(
 bool ten_addon_try_load_specific_addon_using_native_addon_loader(
     const char *app_base_dir, TEN_ADDON_TYPE addon_type,
     const char *addon_name) {
+  // First, check whether the phase 2 registering function of the addon we want
+  // to handle has already been added to the addon manager. If it has, proceed
+  // directly with the phase 2 registration. Otherwise, start from phase 1.
   if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL, NULL)) {
     // If the addon is not registered, try to load it using the native addon
-    // loader.
+    // loader (phase 1).
     bool success = ten_addon_load_specific_addon_using_native_addon_loader(
         app_base_dir, addon_type, addon_name, NULL);
     if (!success) {
       return false;
     }
 
-    // If the addon is loaded successfully, try to register it again.
+    // If the addon is loaded successfully, try to register it again (phase 2).
     return ten_addon_register_specific_addon(addon_type, addon_name, NULL,
                                              NULL);
   }
