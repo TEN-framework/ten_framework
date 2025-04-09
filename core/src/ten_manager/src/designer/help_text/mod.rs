@@ -10,7 +10,6 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fmt;
-use std::str::FromStr;
 use std::sync::OnceLock;
 
 use crate::designer::{
@@ -27,10 +26,14 @@ const SUPPORTED_LOCALES: [Locale; 3] =
 
 /// Enum for help text keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
 pub enum HelpTextKey {
+    #[serde(rename = "ten_agent")]
     TenAgent,
+
+    #[serde(rename = "ten_framework")]
     TenFramework,
+
+    #[serde(rename = "unknown")]
     #[serde(other)]
     Unknown,
 }
@@ -41,18 +44,6 @@ impl fmt::Display for HelpTextKey {
             HelpTextKey::TenAgent => write!(f, "ten_agent"),
             HelpTextKey::TenFramework => write!(f, "ten_framework"),
             HelpTextKey::Unknown => write!(f, "unknown"),
-        }
-    }
-}
-
-impl FromStr for HelpTextKey {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ten_agent" => Ok(HelpTextKey::TenAgent),
-            "ten_framework" => Ok(HelpTextKey::TenFramework),
-            _ => Ok(HelpTextKey::Unknown),
         }
     }
 }

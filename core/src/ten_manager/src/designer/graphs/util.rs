@@ -5,10 +5,11 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
+    graph::graph_info::GraphInfo,
     pkg_info::{
         pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
-        property::predefined_graph::PredefinedGraph, PkgInfo,
+        PkgInfo,
     },
 };
 
@@ -21,9 +22,9 @@ pub fn find_app_package(pkgs: &mut [PkgInfo]) -> Option<&mut PkgInfo> {
     })
 }
 
-/// Finds the app package directly from BaseDirPkgInfo.
+/// Finds the app package directly from PkgsInfoInApp.
 pub fn find_app_package_from_base_dir(
-    base_dir_pkg_info: &mut BaseDirPkgInfo,
+    base_dir_pkg_info: &mut PkgsInfoInApp,
 ) -> Option<&mut PkgInfo> {
     base_dir_pkg_info.app_pkg_info.as_mut()
 }
@@ -32,7 +33,7 @@ pub fn find_app_package_from_base_dir(
 pub fn find_predefined_graph<'a>(
     app_pkg: &'a mut PkgInfo,
     graph_name: &str,
-) -> Option<&'a PredefinedGraph> {
+) -> Option<&'a GraphInfo> {
     pkg_predefined_graphs_find(app_pkg.get_predefined_graphs(), |g| {
         g.name == graph_name
     })

@@ -7,7 +7,7 @@
 use crate::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 #[derive(Debug, Clone, Default)]
-pub struct BaseDirPkgInfo {
+pub struct PkgsInfoInApp {
     pub app_pkg_info: Option<PkgInfo>,
     pub extension_pkg_info: Option<Vec<PkgInfo>>,
     pub protocol_pkg_info: Option<Vec<PkgInfo>>,
@@ -15,7 +15,14 @@ pub struct BaseDirPkgInfo {
     pub system_pkg_info: Option<Vec<PkgInfo>>,
 }
 
-impl BaseDirPkgInfo {
+/// A struct that contains both PkgsInfoInApp and its base_dir.
+#[derive(Clone)]
+pub struct PkgsInfoInAppWithBaseDir {
+    pub pkgs_info_in_app: PkgsInfoInApp,
+    pub base_dir: String,
+}
+
+impl PkgsInfoInApp {
     // Get a reference to the extension packages or an empty slice if none.
     pub fn get_extensions(&self) -> &[PkgInfo] {
         if let Some(extensions) = &self.extension_pkg_info {
@@ -139,7 +146,7 @@ impl BaseDirPkgInfo {
         }
     }
 
-    /// Returns the total number of packages in this BaseDirPkgInfo.
+    /// Returns the total number of packages in this PkgsInfoInApp.
     pub fn len(&self) -> usize {
         let mut count = 0;
         if self.app_pkg_info.is_some() {

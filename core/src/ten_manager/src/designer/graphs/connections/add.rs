@@ -11,8 +11,8 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use ten_rust::base_dir_pkg_info::PkgsInfoInAppWithBaseDir;
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
@@ -120,20 +120,54 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Create a hash map from app URIs to BaseDirPkgInfo for use with
+    // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
+        HashMap::new();
 
-    // Process all available apps to map URIs to BaseDirPkgInfo.
-    for base_dir_pkg_info in state_write.pkgs_cache.values() {
+    // Process all available apps to map URIs to PkgsInfoInApp.
+    for (base_dir, base_dir_pkg_info) in state_write.pkgs_cache.iter() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
-                    if let Some(uri) = &ten.uri {
-                        // Map the URI to the BaseDirPkgInfo.
-                        uri_to_pkg_info
-                            .insert(uri.clone(), base_dir_pkg_info.clone());
+                    // Map the URI to the PkgsInfoInApp, using None if URI is
+                    // None.
+                    let key = ten.uri.clone();
+
+                    // Check if the key already exists.
+                    if let Some(existing) = uri_to_pkg_info.get(&key) {
+                        let error_message = if key.is_none() {
+                            format!(
+                                "Found two apps with unspecified URI in both '{}' and '{}'",
+                                existing.base_dir,
+                                base_dir
+                            )
+                        } else {
+                            format!(
+                                "Duplicate app uri '{}' found in both '{}' and '{}'",
+                                key.as_ref().unwrap(),
+                                existing.base_dir,
+                                base_dir
+                            )
+                        };
+
+                        let error_response = ErrorResponse {
+                            status: Status::Fail,
+                            message: error_message,
+                            error: None,
+                        };
+                        return Ok(
+                            HttpResponse::BadRequest().json(error_response)
+                        );
                     }
+
+                    uri_to_pkg_info.insert(
+                        key,
+                        PkgsInfoInAppWithBaseDir {
+                            pkgs_info_in_app: base_dir_pkg_info.clone(),
+                            base_dir: base_dir.clone(),
+                        },
+                    );
                 }
             }
         }
@@ -152,7 +186,7 @@ pub async fn add_graph_connection_endpoint(
             {
                 let mut graph = predefined_graph.graph.clone();
 
-                // Add the connection using the converted BaseDirPkgInfo map.
+                // Add the connection using the converted PkgsInfoInApp map.
                 match graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),

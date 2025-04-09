@@ -46,6 +46,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Create a temporary directory for our test.
@@ -90,6 +91,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             &test_dir,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -259,6 +261,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
         // Create a temporary directory for our test.
@@ -303,6 +306,7 @@ mod tests {
         let inject_ret = inject_all_pkgs_for_mock(
             &test_dir,
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());

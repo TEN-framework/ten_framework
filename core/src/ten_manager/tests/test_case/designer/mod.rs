@@ -8,6 +8,7 @@ mod apps;
 mod builtin_function;
 mod builtin_function_install;
 mod dir_list;
+mod doc_link;
 mod env;
 mod get_apps;
 mod get_graphs;

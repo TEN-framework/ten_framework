@@ -6,6 +6,8 @@
 //
 mod check;
 pub mod connection;
+pub mod extension;
+pub mod graph_info;
 pub mod msg_conversion;
 pub mod node;
 
@@ -16,7 +18,7 @@ use connection::GraphConnection;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
     constants::{
         ERR_MSG_GRAPH_APP_FIELD_EMPTY, ERR_MSG_GRAPH_MIXED_APP_DECLARATIONS,
     },
@@ -230,7 +232,7 @@ impl Graph {
 
     pub fn check(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
@@ -250,7 +252,7 @@ impl Graph {
 
     pub fn check_for_single_app(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         assert!(installed_pkgs_of_all_apps.len() == 1);
 

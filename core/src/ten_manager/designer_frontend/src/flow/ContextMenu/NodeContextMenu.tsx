@@ -12,10 +12,24 @@ import {
   Trash2Icon,
   LogsIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
+import ContextMenu, {
+  EContextMenuItemType,
+  type IContextMenuItem,
+} from "@/flow/ContextMenu/ContextMenu";
+import { useDialogStore, useFlowStore, useWidgetStore } from "@/store";
+import { postDeleteNode } from "@/api/services/graphs";
+// eslint-disable-next-line max-len
+import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
+import {
+  EWidgetCategory,
+  EWidgetDisplayType,
+  type TerminalData,
+  type EditorData,
+} from "@/types/widgets";
+import { EGraphActions } from "@/types/graphs";
 
-import type { TerminalData, EditorData } from "@/types/widgets";
 import type { TCustomNode } from "@/types/flow";
 
 interface NodeContextMenuProps {
@@ -23,6 +37,8 @@ interface NodeContextMenuProps {
   x: number;
   y: number;
   node: TCustomNode;
+  baseDir?: string | null;
+  graphName?: string | null;
   onClose: () => void;
   onLaunchTerminal: (data: TerminalData) => void;
   onLaunchEditor: (data: EditorData) => void;
@@ -34,44 +50,83 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   x,
   y,
   node,
+  baseDir,
+  graphName,
   onClose,
   onLaunchTerminal,
   onLaunchEditor,
   onLaunchLogViewer,
 }) => {
   const { t } = useTranslation();
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { setNodesAndEdges } = useFlowStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
-  const items: ContextMenuItem[] = [
+  const items: IContextMenuItem[] = [
     {
-      label: t("action.edit") + " manifest.json",
+      _type: EContextMenuItemType.SUB_MENU_BUTTON,
+      label: t("action.edit") + " " + t("extensionStore.extension"),
       icon: <FilePenLineIcon />,
+      items: [
+        {
+          _type: EContextMenuItemType.BUTTON,
+          label: t("action.edit") + " manifest.json",
+          icon: <FilePenLineIcon />,
+          onClick: () => {
+            onClose();
+            if (node?.data.url)
+              onLaunchEditor({
+                title: `${node.data.name} manifest.json`,
+                content: "",
+                url: `${node.data.url}/manifest.json`,
+              });
+          },
+        },
+        {
+          _type: EContextMenuItemType.BUTTON,
+          label: t("action.edit") + " property.json",
+          icon: <FilePenLineIcon />,
+          onClick: () => {
+            onClose();
+            if (node?.data.url)
+              onLaunchEditor({
+                title: `${node.data.name} property.json`,
+                content: "",
+                url: `${node.data.url}/property.json`,
+              });
+          },
+        },
+      ],
+    },
+    {
+      _type: EContextMenuItemType.SEPARATOR,
+    },
+    {
+      _type: EContextMenuItemType.BUTTON,
+      label: t("action.update") + " " + t("popup.node.properties"),
+      icon: <FilePenLineIcon />,
+      disabled: !baseDir || !graphName,
       onClick: () => {
+        if (!baseDir || !graphName) return;
         onClose();
-        if (node?.data.url)
-          onLaunchEditor({
-            title: `${node.data.name} manifest.json`,
-            content: "",
-            url: `${node.data.url}/manifest.json`,
-          });
+        appendWidgetIfNotExists({
+          id: "update-node-property-widget-" + node.data.name,
+          category: EWidgetCategory.Graph,
+          display_type: EWidgetDisplayType.Popup,
+          metadata: {
+            type: EGraphActions.UPDATE_NODE_PROPERTY,
+            base_dir: baseDir,
+            graph_name: graphName,
+            node: node,
+          },
+        });
       },
     },
     {
-      label: t("action.edit") + " property.json",
-      icon: <FilePenLineIcon />,
-      onClick: () => {
-        onClose();
-        if (node?.data.url)
-          onLaunchEditor({
-            title: `${node.data.name} property.json`,
-            content: "",
-            url: `${node.data.url}/property.json`,
-          });
-      },
+      _type: EContextMenuItemType.SEPARATOR,
     },
     {
-      separator: true,
-    },
-    {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.launchTerminal"),
       icon: <TerminalIcon />,
       onClick: () => {
@@ -80,6 +135,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       },
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.launchLogViewer"),
       icon: <LogsIcon />,
       onClick: () => {
@@ -88,13 +144,57 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       },
     },
     {
-      separator: true,
+      _type: EContextMenuItemType.SEPARATOR,
     },
     {
+      _type: EContextMenuItemType.BUTTON,
       label: t("action.delete"),
+      disabled: !baseDir || !graphName,
       icon: <Trash2Icon />,
       onClick: () => {
         onClose();
+        appendDialog({
+          id: "delete-node-dialog-" + node.data.name,
+          title: t("action.delete"),
+          content: t("action.deleteNodeConfirmationWithName", {
+            name: node.data.name,
+          }),
+          variant: "destructive",
+          onCancel: async () => {
+            removeDialog("delete-node-dialog-" + node.data.name);
+          },
+          onConfirm: async () => {
+            if (!baseDir || !graphName) {
+              removeDialog("delete-node-dialog-" + node.data.name);
+              return;
+            }
+            try {
+              await postDeleteNode({
+                base_dir: baseDir,
+                graph_name: graphName,
+                node_name: node.data.name,
+                addon_name: node.data.addon,
+                extension_group_name: node.data.extension_group,
+              });
+              toast.success(t("popup.node.deleteNodeSuccess"), {
+                description: `${node.data.name}`,
+              });
+              const { nodes, edges } = await resetNodesAndEdgesByGraphName(
+                graphName,
+                baseDir
+              );
+              setNodesAndEdges(nodes, edges);
+            } catch (error: unknown) {
+              toast.error(t("action.deleteNodeFailed"), {
+                description:
+                  error instanceof Error ? error.message : "Unknown error",
+              });
+              console.error(error);
+            } finally {
+              removeDialog("delete-node-dialog-" + node.data.name);
+            }
+          },
+        });
       },
     },
   ];

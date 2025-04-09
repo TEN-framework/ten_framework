@@ -38,6 +38,7 @@ async fn test_get_help_text_success() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -84,6 +85,7 @@ async fn test_get_help_text_chinese() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -132,6 +134,7 @@ async fn test_get_help_text_language_fallback() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -178,6 +181,7 @@ async fn test_get_help_text_not_found() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
+        graphs_cache: HashMap::new(),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 

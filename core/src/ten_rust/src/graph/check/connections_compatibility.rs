@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    base_dir_pkg_info::BaseDirPkgInfo,
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::{
         connection::{GraphConnection, GraphDestination},
         Graph,
@@ -93,7 +93,7 @@ impl Graph {
 
     fn check_msg_flow_compatible(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         msg_name: &str,
         msg_type: &MsgType,
         src_msg_schema: Option<&TenSchema>,
@@ -176,7 +176,7 @@ impl Graph {
 
     fn check_cmd_flow_compatible(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         cmd_name: &str,
         src_cmd_schema: Option<&CmdSchema>,
         dests: &[GraphDestination],
@@ -242,7 +242,7 @@ impl Graph {
     /// * `Err` with compatibility error details otherwise
     fn check_connection_compatibility(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         connection: &GraphConnection,
         ignore_missing_apps: bool,
     ) -> Result<()> {
@@ -395,7 +395,7 @@ impl Graph {
     /// * `Err` with detailed compatibility error messages otherwise
     pub fn check_connections_compatibility(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, BaseDirPkgInfo>,
+        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         if self.connections.is_none() {

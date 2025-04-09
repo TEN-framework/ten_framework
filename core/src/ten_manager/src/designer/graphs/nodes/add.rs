@@ -9,11 +9,8 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use ten_rust::{
-    graph::{node::GraphNode, Graph},
-    pkg_info::{
-        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-        property::predefined_graph::PredefinedGraph,
-    },
+    graph::{graph_info::GraphInfo, node::GraphNode, Graph},
+    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
 };
 
 use crate::designer::{
@@ -43,7 +40,7 @@ pub struct AddGraphNodeResponsePayload {
 
 /// Adds a new extension node to a graph.
 fn add_extension_node_to_graph(
-    predefined_graph: &PredefinedGraph,
+    predefined_graph: &GraphInfo,
     node_name: &str,
     addon_name: &str,
     app_uri: &Option<String>,

@@ -20,7 +20,7 @@ mod tests {
             DesignerState,
         },
         output::TmanOutputCli,
-        pkg_info::get_all_pkgs::get_all_pkgs,
+        pkg_info::get_all_pkgs::get_all_pkgs_in_app,
     };
 
     #[actix_web::test]
@@ -30,10 +30,12 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
-        let _ = get_all_pkgs(
+        let _ = get_all_pkgs_in_app(
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             &"tests/test_data/app_with_uri".to_string(),
         );
 
@@ -93,10 +95,12 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         };
 
-        let _ = get_all_pkgs(
+        let _ = get_all_pkgs_in_app(
             &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
             &"tests/test_data/app_without_uri".to_string(),
         );
 

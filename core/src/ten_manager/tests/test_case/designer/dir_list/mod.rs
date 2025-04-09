@@ -55,6 +55,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         })));
 
         // Configure the `list_dir` route.
@@ -105,6 +106,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         })));
 
         // Configure the `list_dir` route.
@@ -147,6 +149,7 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
         })));
 
         let app = test::init_service(App::new().app_data(state.clone()).route(

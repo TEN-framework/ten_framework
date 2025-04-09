@@ -6,8 +6,17 @@
 //
 import z from "zod";
 
+export enum ETenPackageType {
+  Invalid = "invalid",
+  System = "system",
+  App = "app",
+  Extension = "extension",
+  Protocol = "protocol",
+  AddonLoader = "addon_loader",
+}
+
 export const TenPackageBaseSchema = z.object({
-  type: z.string(),
+  type: z.nativeEnum(ETenPackageType),
   name: z.string(),
 });
 
@@ -22,7 +31,7 @@ export const TenCloudStorePackageSchema = TenPackageBaseSchema.extend({
   dependencies: z.array(
     z.object({
       name: z.string(),
-      type: z.string(),
+      type: z.nativeEnum(ETenPackageType),
       version: z.string(),
     })
   ),
@@ -37,9 +46,9 @@ export const TenCloudStorePackageSchema = TenPackageBaseSchema.extend({
     .optional(),
 });
 
-export enum ETenPackageType {
-  Local = "local",
-  Default = "default",
+export enum EPackageSource {
+  Local = "local", // means the package is for local only
+  Default = "default", // means the package is from the cloud store
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -52,10 +61,10 @@ export interface IListTenLocalStorePackage
 
 export interface ITenPackageLocal extends IListTenLocalStorePackage {
   isInstalled: true;
-  _type: ETenPackageType.Local;
+  _type: EPackageSource.Local;
 }
 
 export interface ITenPackage extends IListTenCloudStorePackage {
   isInstalled?: boolean;
-  _type: ETenPackageType.Default;
+  _type: EPackageSource.Default;
 }

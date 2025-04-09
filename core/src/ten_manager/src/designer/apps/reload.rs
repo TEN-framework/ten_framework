@@ -11,7 +11,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    pkg_info::get_all_pkgs::get_all_pkgs,
+    pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,13 @@ pub async fn reload_app_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
-    let pkgs_cache = &mut state_write.pkgs_cache;
+
+    // Destructure to avoid multiple mutable borrows.
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
 
     if let Some(base_dir) = &request_payload.base_dir {
         // Case 1: base_dir is specified in the request payload.
@@ -50,7 +56,9 @@ pub async fn reload_app_endpoint(
         pkgs_cache.remove(base_dir);
 
         // Reload packages for this base_dir.
-        if let Err(err) = get_all_pkgs(pkgs_cache, base_dir) {
+        if let Err(err) =
+            get_all_pkgs_in_app(pkgs_cache, graphs_cache, base_dir)
+        {
             return Ok(HttpResponse::InternalServerError().json(
                 ErrorResponse::from_error(&err, "Failed to reload packages:"),
             ));
@@ -75,7 +83,9 @@ pub async fn reload_app_endpoint(
             pkgs_cache.remove(&base_dir);
 
             // Reload packages for this base_dir.
-            if let Err(err) = get_all_pkgs(pkgs_cache, &base_dir) {
+            if let Err(err) =
+                get_all_pkgs_in_app(pkgs_cache, graphs_cache, &base_dir)
+            {
                 return Ok(HttpResponse::InternalServerError().json(
                     ErrorResponse::from_error(
                         &err,
@@ -92,4 +102,3 @@ pub async fn reload_app_endpoint(
         meta: None,
     }))
 }
-

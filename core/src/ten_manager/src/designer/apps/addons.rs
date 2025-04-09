@@ -163,7 +163,7 @@ pub async fn get_app_addons_endpoint(
 
     let mut all_addons: Vec<GetAppAddonsSingleResponseData> = Vec::new();
 
-    // Get the BaseDirPkgInfo and extract only the requested packages from it.
+    // Get the PkgsInfoInApp and extract only the requested packages from it.
     if let Some(base_dir_pkg_info) =
         state_read.pkgs_cache.get(&request_payload.base_dir)
     {

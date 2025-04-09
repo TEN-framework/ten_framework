@@ -8,6 +8,7 @@ pub mod apps;
 pub mod builtin_function;
 pub mod common;
 pub mod dir_list;
+pub mod doc_link;
 pub mod env;
 pub mod exec;
 pub mod extensions;
@@ -34,7 +35,9 @@ use std::{
 
 use actix_web::web;
 
-use ten_rust::base_dir_pkg_info::BaseDirPkgInfo;
+use ten_rust::{
+    base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
+};
 
 use crate::config::TmanConfig;
 use crate::output::TmanOutput;
@@ -42,7 +45,8 @@ use crate::output::TmanOutput;
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
-    pub pkgs_cache: HashMap<String, BaseDirPkgInfo>,
+    pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
+    pub graphs_cache: HashMap<String, GraphInfo>,
 }
 
 pub fn configure_routes(
@@ -195,6 +199,10 @@ pub fn configure_routes(
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
+            )
+            .route(
+                "/doc-link",
+                web::post().to(doc_link::get_doc_link_endpoint),
             )
             .route(
                 "/registry/packages",

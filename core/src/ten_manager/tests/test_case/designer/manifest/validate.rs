@@ -28,6 +28,7 @@ async fn test_validate_manifest_valid() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -81,6 +82,7 @@ async fn test_validate_manifest_with_api() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -168,6 +170,7 @@ async fn test_validate_app_manifest_with_incorrect_api() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -257,6 +260,7 @@ async fn test_validate_app_manifest_with_correct_api() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -317,6 +321,7 @@ async fn test_validate_manifest_missing_required_fields() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -372,6 +377,7 @@ async fn test_validate_manifest_invalid_type() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -429,6 +435,7 @@ async fn test_validate_manifest_invalid_version_format() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.
@@ -486,6 +493,7 @@ async fn test_validate_manifest_invalid_json_syntax() {
         tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
+        graphs_cache: Default::default(),
     }));
 
     // Initialize test application with the endpoint.

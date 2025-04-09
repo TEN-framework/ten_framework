@@ -64,7 +64,7 @@ pub fn validate_node(
 
     let addon_app_base_dir = addon_app_base_dir.as_ref().unwrap();
 
-    // Find BaseDirPkgInfo using addon_app_base_dir.
+    // Find PkgsInfoInApp using addon_app_base_dir.
     let base_dir_pkg_info = match state.pkgs_cache.get(addon_app_base_dir) {
         Some(pkg_info) => pkg_info,
         None => {

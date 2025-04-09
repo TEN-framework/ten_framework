@@ -7,26 +7,29 @@
 use std::{collections::HashMap, path::Path, str::FromStr};
 
 use ten_rust::{
-    base_dir_pkg_info::BaseDirPkgInfo,
-    graph::Graph,
-    pkg_info::{
-        get_app_installed_pkgs, property::predefined_graph::PredefinedGraph,
-    },
+    base_dir_pkg_info::PkgsInfoInApp,
+    graph::{graph_info::GraphInfo, Graph},
+    pkg_info::get_app_installed_pkgs,
 };
 
 #[test]
 fn test_graph_check_extension_not_installed_1() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
-    let predefined_graph: PredefinedGraph = pkg_graph.clone();
+    let predefined_graph: GraphInfo = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct);
 
     let result = graph.check(&pkg_info_map);
@@ -37,16 +40,21 @@ fn test_graph_check_extension_not_installed_1() {
 #[test]
 fn test_graph_check_extension_not_installed_2() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
-    let predefined_graph: PredefinedGraph = pkg_graph.clone();
+    let predefined_graph: GraphInfo = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct);
 
     let result = graph.check(&pkg_info_map);
@@ -57,16 +65,21 @@ fn test_graph_check_extension_not_installed_2() {
 #[test]
 fn test_graph_check_predefined_graph_success() {
     let app_dir = "tests/test_data/graph_check_predefined_graph_success";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
-    let predefined_graph: PredefinedGraph = pkg_graph.clone();
+    let predefined_graph: GraphInfo = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check(&pkg_info_map);
@@ -76,16 +89,21 @@ fn test_graph_check_predefined_graph_success() {
 #[test]
 fn test_graph_check_all_msgs_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let app_pkg = pkg_info_struct.app_pkg_info.as_ref().unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
-    let predefined_graph: PredefinedGraph = pkg_graph.clone();
+    let predefined_graph: GraphInfo = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check(&pkg_info_map);
@@ -96,14 +114,19 @@ fn test_graph_check_all_msgs_schema_incompatible() {
 #[test]
 fn test_graph_check_single_app() {
     let app_dir = "tests/test_data/graph_check_single_app";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let graph_json_str =
         include_str!("../test_data/graph_check_single_app/graph.json");
     let graph = Graph::from_str(graph_json_str).unwrap();
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     // The schema of 'ext_c' is not found, but it's OK because we only check
@@ -115,14 +138,19 @@ fn test_graph_check_single_app() {
 #[test]
 fn test_graph_check_builtin_extension() {
     let app_dir = "tests/test_data/graph_check_builtin_extension";
-    let pkg_info_struct = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
+    let pkg_info_struct = get_app_installed_pkgs(
+        Path::new(app_dir),
+        true,
+        &mut Some(&mut HashMap::new()),
+    )
+    .unwrap();
     assert!(!pkg_info_struct.is_empty());
 
     let graph_json_str =
         include_str!("../test_data/graph_check_builtin_extension/graph.json");
     let graph = Graph::from_str(graph_json_str).unwrap();
 
-    let mut pkg_info_map: HashMap<String, BaseDirPkgInfo> = HashMap::new();
+    let mut pkg_info_map: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkg_info_map.insert("".to_string(), pkg_info_struct.clone());
 
     let result = graph.check_for_single_app(&pkg_info_map);

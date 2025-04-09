@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod binding;
 pub mod constants;
 pub mod hash;
 pub mod language;
@@ -24,7 +23,8 @@ use std::{collections::HashMap, path::Path};
 use anyhow::{anyhow, Result};
 
 use crate::{
-    base_dir_pkg_info::BaseDirPkgInfo, graph::Graph, schema::store::SchemaStore,
+    base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
+    schema::store::SchemaStore,
 };
 
 use constants::{
@@ -36,9 +36,7 @@ use manifest::{
     parse_manifest_in_folder, Manifest,
 };
 use pkg_type::PkgType;
-use property::{
-    parse_property_in_folder, predefined_graph::PredefinedGraph, Property,
-};
+use property::{parse_property_in_folder, Property};
 
 pub fn localhost() -> &'static str {
     "localhost"
@@ -102,7 +100,7 @@ impl PkgInfo {
         Ok(pkg_info)
     }
 
-    pub fn get_predefined_graphs(&self) -> Option<&Vec<PredefinedGraph>> {
+    pub fn get_predefined_graphs(&self) -> Option<&Vec<GraphInfo>> {
         if let Some(property) = &self.property {
             if let Some(ten) = &property._ten {
                 return ten.predefined_graphs.as_ref();
@@ -112,7 +110,7 @@ impl PkgInfo {
         None
     }
 
-    pub fn update_predefined_graph(&mut self, new_graph: &PredefinedGraph) {
+    pub fn update_predefined_graph(&mut self, new_graph: &GraphInfo) {
         if let Some(property) = &mut self.property {
             if let Some(ten) = &mut property._ten {
                 if let Some(predefined_graphs) = &mut ten.predefined_graphs {
@@ -162,28 +160,20 @@ impl PkgInfo {
 ///
 /// This function reads and parses the manifest.json and property.json files
 /// from the given path, then constructs a PkgInfo object with the parsed data.
-///
-/// # Arguments
-/// * `path` - The base directory of the package containing manifest.json and
-///   optionally property.json.
-/// * `is_installed` - Boolean flag indicating whether the package is already
-///   installed in the system.
-///
-/// # Returns
-/// * `Result<PkgInfo>` - The constructed package information on success, or an
-///   error if the manifest couldn't be parsed or the PkgInfo couldn't be
-///   created.
-///
-/// # Errors
-/// * Returns an error if manifest.json is missing or invalid.
-/// * Returns an error if property.json exists but is invalid.
-/// * Returns an error if PkgInfo creation fails.
 pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
+    parse_property: bool,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
-    let property = parse_property_in_folder(path)?;
+    let property = if parse_property {
+        assert!(graphs_cache.is_some());
+
+        parse_property_in_folder(path, graphs_cache.as_mut().unwrap())?
+    } else {
+        None
+    };
 
     let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
 
@@ -201,9 +191,12 @@ pub fn get_pkg_info_from_path(
 /// collected package.
 fn collect_pkg_info_from_path(
     path: &Path,
-    pkgs_info: &mut BaseDirPkgInfo,
+    pkgs_info: &mut PkgsInfoInApp,
+    parse_property: bool,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
 ) -> Result<()> {
-    let pkg_info = get_pkg_info_from_path(path, true)?;
+    let pkg_info =
+        get_pkg_info_from_path(path, true, parse_property, graphs_cache)?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
@@ -255,9 +248,13 @@ fn collect_pkg_info_from_path(
 }
 
 /// Retrieves information about all installed packages related to a specific
-/// application and stores this information in a BaseDirPkgInfo struct.
-pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
-    let mut pkgs_info = BaseDirPkgInfo {
+/// application and stores this information in a PkgsInfoInApp struct.
+pub fn get_app_installed_pkgs(
+    app_path: &Path,
+    parse_property: bool,
+    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+) -> Result<PkgsInfoInApp> {
+    let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,
         extension_pkg_info: None,
         protocol_pkg_info: None,
@@ -266,7 +263,12 @@ pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
     };
 
     // Process the manifest.json file in the root path.
-    collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
+    collect_pkg_info_from_path(
+        app_path,
+        &mut pkgs_info,
+        parse_property,
+        graphs_cache,
+    )?;
 
     if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
         if manifest.type_and_name.pkg_type != PkgType::App {
@@ -310,7 +312,12 @@ pub fn get_app_installed_pkgs(app_path: &Path) -> Result<BaseDirPkgInfo> {
                         // represents a valid TEN package, and this package is a
                         // _local_ dependency of app.
 
-                        collect_pkg_info_from_path(&path, &mut pkgs_info)?;
+                        collect_pkg_info_from_path(
+                            &path,
+                            &mut pkgs_info,
+                            parse_property,
+                            graphs_cache,
+                        )?;
                     }
                 }
             }
@@ -402,28 +409,4 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
     }
 
     to_be_replaced
-}
-
-/// Check the graph for current app.
-pub fn ten_rust_check_graph_for_app(
-    app_base_dir: &str,
-    graph_json: &str,
-    app_uri: &str,
-) -> Result<()> {
-    // Get all installed packages.
-    let app_path = Path::new(app_base_dir);
-    let pkgs_info = get_app_installed_pkgs(app_path)?;
-
-    // Create a map of all installed packages across all apps.
-    let mut installed_pkgs_of_all_apps: HashMap<String, BaseDirPkgInfo> =
-        HashMap::new();
-
-    // Insert packages for this app.
-    installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
-
-    // Parse the graph JSON.
-    // let graph = Graph::from_str(graph_json)?;
-    let graph: Graph = serde_json::from_str(graph_json)?;
-
-    graph.check_for_single_app(&installed_pkgs_of_all_apps)
 }

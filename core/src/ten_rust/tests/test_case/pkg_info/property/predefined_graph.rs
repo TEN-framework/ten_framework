@@ -6,14 +6,16 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use std::collections::HashMap;
 
-    use ten_rust::pkg_info::property::Property;
+    use ten_rust::pkg_info::property::parse_property_from_str;
 
     #[test]
     fn test_property_predefined_graph_deserialize() {
         let property_json_str = include_str!("test_data_embed/property.json");
-        let property = Property::from_str(property_json_str).unwrap();
+        let property =
+            parse_property_from_str(property_json_str, &mut HashMap::new())
+                .unwrap();
         assert!(property._ten.is_some());
 
         let predefined_graphs = property
