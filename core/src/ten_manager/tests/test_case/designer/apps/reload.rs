@@ -12,12 +12,12 @@ mod tests {
     use actix_web::{http::StatusCode, test, web, App};
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
     use ten_manager::designer::apps::reload::{
         reload_app_endpoint, ReloadPkgsRequestPayload,
     };
-    use ten_manager::designer::mock::inject_all_pkgs_for_mock;
     use ten_manager::designer::response::{ErrorResponse, Status};
     use ten_manager::designer::DesignerState;
     use ten_manager::output::TmanOutputCli;

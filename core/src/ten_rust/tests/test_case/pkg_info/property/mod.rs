@@ -13,15 +13,10 @@ mod tests {
         fs::{self},
     };
 
-    use serde_json::Map;
     use tempfile::tempdir;
     use ten_rust::{
         graph::msg_conversion::{MsgConversionMode, MsgConversionType},
-        pkg_info::{
-            constants::TEN_FIELD_IN_PROPERTY,
-            localhost,
-            property::{parse_property_from_str, Property, TenInProperty},
-        },
+        pkg_info::{localhost, property::parse_property_from_str},
     };
 
     #[test]
@@ -35,14 +30,16 @@ mod tests {
         }
         "#;
 
+        let mut graphs_cache = HashMap::new();
+
         let property =
-            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
+            parse_property_from_str(json_data, &mut graphs_cache).unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
 
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
-        assert!(ten_in_property.predefined_graphs.is_some());
+        assert!(graphs_cache.is_empty());
         assert!(ten_in_property.additional_fields.is_empty());
         assert_eq!(property.all_fields.len(), 1); // Should contain _ten field.
         assert!(property.all_fields.contains_key("_ten"));
@@ -61,13 +58,15 @@ mod tests {
         }
         "#;
 
+        let mut graphs_cache = HashMap::new();
+
         let property =
-            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
+            parse_property_from_str(json_data, &mut graphs_cache).unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
-        assert!(ten_in_property.predefined_graphs.is_some());
+        assert!(graphs_cache.is_empty());
         assert_eq!(
             ten_in_property
                 .additional_fields
@@ -85,90 +84,18 @@ mod tests {
     }
 
     #[test]
-    fn test_dump_property_to_file() {
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("property.json");
-
-        let ten_in_property = TenInProperty {
-            predefined_graphs: Some(vec![]),
-            uri: Some(String::from("http://example.com")),
-            additional_fields: HashMap::new(),
-        };
-
-        // Create a property with all_fields containing _ten data.
-        let mut all_fields = Map::new();
-        all_fields.insert(
-            TEN_FIELD_IN_PROPERTY.to_string(),
-            serde_json::to_value(&ten_in_property).unwrap(),
-        );
-
-        let property = Property {
-            _ten: Some(ten_in_property),
-            all_fields,
-        };
-
-        property.dump_property_to_file(&file_path).unwrap();
-
-        let saved_content = fs::read_to_string(file_path).unwrap();
-        let expected_content = r#"
-        {
-            "_ten": {
-                "predefined_graphs": [],
-                "uri": "http://example.com"
-            }
-        }
-        "#
-        .trim();
-
-        let saved_json: serde_json::Value =
-            serde_json::from_str(&saved_content).unwrap();
-        let expected_json: serde_json::Value =
-            serde_json::from_str(expected_content).unwrap();
-
-        assert_eq!(saved_json, expected_json);
-    }
-
-    #[test]
-    fn test_parse_and_dump_property_with_additional_fields() {
-        let json_data = r#"
-        {
-            "_ten": {
-                "predefined_graphs": [],
-                "uri": "http://example.com",
-                "extra_field_1": "value1"
-            },
-            "global_field_1": "global_value1"
-        }
-        "#;
-
-        let property =
-            parse_property_from_str(json_data, &mut HashMap::new()).unwrap();
-
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("property.json");
-
-        property.dump_property_to_file(&file_path).unwrap();
-
-        let saved_content = fs::read_to_string(file_path).unwrap();
-        let saved_json: serde_json::Value =
-            serde_json::from_str(&saved_content).unwrap();
-        let original_json: serde_json::Value =
-            serde_json::from_str(json_data).unwrap();
-
-        assert_eq!(saved_json, original_json);
-    }
-
-    #[test]
     fn test_dump_property_without_localhost_app_in_graph() {
+        let mut graphs_cache = HashMap::new();
+
         let json_str = include_str!("test_data_embed/property.json");
 
         let property =
-            parse_property_from_str(json_str, &mut HashMap::new()).unwrap();
+            parse_property_from_str(json_str, &mut graphs_cache).unwrap();
         assert!(property._ten.is_some());
 
-        let ten = property._ten.as_ref().unwrap();
-        let predefined_graphs = ten.predefined_graphs.as_ref().unwrap();
-        let nodes = &predefined_graphs.first().as_ref().unwrap().graph.nodes;
+        let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
+
+        let nodes = &graph_info.graph.nodes;
         let node = nodes.first().unwrap();
         assert_eq!(node.get_app_uri(), None);
 
@@ -187,20 +114,15 @@ mod tests {
             "test_data_embed/dump_property_with_msg_conversion.json"
         );
 
+        let mut graphs_cache = HashMap::new();
+
         let property =
-            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
+            parse_property_from_str(prop_str, &mut graphs_cache).unwrap();
         assert!(property._ten.is_some());
 
-        let ten = property._ten.as_ref().unwrap();
-        let predefined_graphs = ten.predefined_graphs.as_ref().unwrap();
-        let connections = &predefined_graphs
-            .first()
-            .as_ref()
-            .unwrap()
-            .graph
-            .connections
-            .as_ref()
-            .unwrap();
+        let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
+
+        let connections = &graph_info.graph.connections.as_ref().unwrap();
         let connection = connections.first().unwrap();
         let cmd = connection.cmd.as_ref().unwrap();
         assert_eq!(cmd.len(), 1);

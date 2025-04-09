@@ -11,12 +11,12 @@ mod tests {
 
     use actix_web::{test, web, App};
 
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
     use ten_manager::designer::apps::unload::{
         unload_app_endpoint, UnloadAppRequestPayload,
     };
-    use ten_manager::designer::mock::inject_all_pkgs_for_mock;
     use ten_manager::designer::response::{ApiResponse, ErrorResponse, Status};
     use ten_manager::designer::DesignerState;
     use ten_manager::output::TmanOutputCli;

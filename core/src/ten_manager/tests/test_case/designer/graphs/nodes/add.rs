@@ -23,13 +23,14 @@ mod tests {
                 add_graph_node_endpoint, AddGraphNodeRequestPayload,
                 AddGraphNodeResponsePayload,
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::{constants::PROPERTY_JSON_FILENAME, localhost};
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_add_graph_node_invalid_graph() {

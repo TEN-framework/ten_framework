@@ -20,11 +20,12 @@ mod tests {
             graphs::update::{
                 update_graph_endpoint, GraphUpdateRequestPayload,
             },
-            mock::inject_all_pkgs_for_mock,
             DesignerState,
         },
         output::TmanOutputCli,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_update_graph_success() {

@@ -25,12 +25,13 @@ use ten_manager::{
                 GetGraphsResponseData,
             },
         },
-        mock::inject_all_pkgs_for_mock,
         response::ApiResponse,
         DesignerState,
     },
     output::TmanOutputCli,
 };
+
+use crate::test_case::mock::inject_all_pkgs_for_mock;
 
 #[actix_rt::test]
 async fn test_cmd_designer_graphs_app_property_not_exist() {

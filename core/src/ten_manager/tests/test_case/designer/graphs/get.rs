@@ -20,12 +20,13 @@ mod tests {
                 get_graphs_endpoint, GetGraphsRequestPayload,
                 GetGraphsResponseData,
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse},
             DesignerState,
         },
         output::TmanOutputCli,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_get_graphs_success() {

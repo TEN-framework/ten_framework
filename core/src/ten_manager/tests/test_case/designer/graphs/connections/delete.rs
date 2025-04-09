@@ -21,7 +21,6 @@ mod tests {
                 DeleteGraphConnectionRequestPayload,
                 DeleteGraphConnectionResponsePayload,
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
@@ -30,6 +29,8 @@ mod tests {
     use ten_rust::pkg_info::{
         message::MsgType, predefined_graphs::pkg_predefined_graphs_find,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_delete_graph_connection_invalid_graph() {

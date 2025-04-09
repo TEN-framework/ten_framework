@@ -25,13 +25,14 @@ mod tests {
                 DesignerApi, DesignerApiCmdLike, DesignerApiDataLike,
                 DesignerPropertyAttributes,
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse},
             DesignerState,
         },
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::value_type::ValueType;
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_get_extensions_success() {

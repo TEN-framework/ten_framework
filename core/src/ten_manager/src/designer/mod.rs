@@ -19,7 +19,6 @@ pub mod help_text;
 pub mod locale;
 pub mod manifest;
 pub mod messages;
-pub mod mock;
 pub mod preferences;
 pub mod property;
 pub mod registry;

@@ -23,13 +23,14 @@ mod tests {
                     DeleteGraphNodeResponsePayload,
                 },
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_delete_graph_node_invalid_graph() {

@@ -17,10 +17,11 @@ mod tests {
         get_app_addons_endpoint, GetAppAddonsRequestPayload,
         GetAppAddonsSingleResponseData,
     };
-    use ten_manager::designer::mock::inject_all_pkgs_for_mock;
     use ten_manager::designer::response::ApiResponse;
     use ten_manager::designer::DesignerState;
     use ten_manager::output::TmanOutputCli;
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_get_addons() {
