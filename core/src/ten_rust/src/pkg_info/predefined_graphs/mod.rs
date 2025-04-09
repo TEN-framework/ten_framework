@@ -10,8 +10,6 @@ use crate::graph::{
     connection::GraphConnection, graph_info::GraphInfo, node::GraphNode, Graph,
 };
 
-use super::pkg_type::PkgType;
-
 pub fn pkg_predefined_graphs_find<F>(
     pkg_predefined_graphs: Option<&Vec<GraphInfo>>,
     predicate: F,
@@ -41,7 +39,7 @@ pub fn get_pkg_predefined_graph_from_nodes_and_connections(
             connections: Some(connections.to_vec()),
         },
         app_base_dir: None,
-        belonging_pkg_type: PkgType::Invalid,
+        belonging_pkg_type: None,
         belonging_pkg_name: None,
     })
 }
