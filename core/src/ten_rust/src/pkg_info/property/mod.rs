@@ -13,6 +13,7 @@ use std::{
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use uuid::Uuid;
 
 use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
@@ -53,7 +54,7 @@ pub struct Property {
 /// completes the property configuration to ensure it meets all requirements.
 pub fn parse_property_from_str(
     s: &str,
-    _graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
 ) -> Result<Property> {
     let mut property: Property = serde_json::from_str(s)?;
 
@@ -62,6 +63,16 @@ pub fn parse_property_from_str(
         let ten_in_property: TenInProperty =
             serde_json::from_value(ten_value.clone())?;
         property._ten = Some(ten_in_property);
+
+        // Copy predefined_graphs to graphs_cache with UUID keys.
+        if let Some(ref ten) = property._ten {
+            if let Some(graphs) = &ten.predefined_graphs {
+                for graph in graphs {
+                    let uuid = Uuid::new_v4().to_string();
+                    graphs_cache.insert(uuid, graph.clone());
+                }
+            }
+        }
     }
 
     property.validate_and_complete()?;
