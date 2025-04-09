@@ -66,7 +66,6 @@ export const DocRefPopup = (props: {
     <Popup
       id={DOC_REF_POPUP_ID}
       title={t("popup.doc.title")}
-      resizable
       contentClassName="p-0 flex flex-col h-full w-full"
       initialPosition="bottom-right"
       width={400}
