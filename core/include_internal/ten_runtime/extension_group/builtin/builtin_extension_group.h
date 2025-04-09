@@ -11,6 +11,7 @@
 
 typedef struct ten_addon_t ten_addon_t;
 typedef struct ten_env_t ten_env_t;
+typedef struct ten_addon_manager_t ten_addon_manager_t;
 
 typedef struct ten_extension_group_create_extensions_done_ctx_t {
   ten_list_t results;
@@ -27,4 +28,4 @@ TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_destroy_instance(
     void *context);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_manager_add_builtin_extension_group(
-    void);
+    ten_addon_manager_t *manager);

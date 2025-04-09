@@ -9,6 +9,7 @@
 #include "ten_runtime/ten_config.h"
 
 typedef struct ten_env_t ten_env_t;
+typedef struct ten_addon_manager_t ten_addon_manager_t;
 
 TEN_RUNTIME_PRIVATE_API void
 ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
@@ -26,4 +27,5 @@ TEN_RUNTIME_PRIVATE_API void
 ten_builtin_test_extension_ten_env_notify_on_deinit_done(ten_env_t *ten_env,
                                                          void *user_data);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_manager_add_builtin_test_extension(void);
+TEN_RUNTIME_PRIVATE_API void ten_addon_manager_add_builtin_test_extension(
+    ten_addon_manager_t *manager);

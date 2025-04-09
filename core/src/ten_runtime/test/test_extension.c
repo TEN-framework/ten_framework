@@ -402,9 +402,9 @@ static void ten_builtin_test_extension_addon_register_handler(
 // This is the phase 1 of the addon registration process: adding a function,
 // which will perform the actual registration in the phase 2, into the
 // `addon_manager`.
-void ten_addon_manager_add_builtin_test_extension(void) {
-  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-  TEN_ASSERT(manager, "Should not happen.");
+void ten_addon_manager_add_builtin_test_extension(
+    ten_addon_manager_t *manager) {
+  TEN_ASSERT(manager, "Invalid argument.");
 
   ten_addon_manager_add_addon(
       manager, "extension", TEN_STR_TEN_TEST_EXTENSION,
