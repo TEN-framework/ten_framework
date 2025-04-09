@@ -28,7 +28,7 @@ import { GlobalDialogs } from "@/components/GlobalDialogs";
 import Dock from "@/components/Dock";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { EWidgetDisplayType } from "@/types/widgets";
-import { GlobalPopups } from "@/components/Popup/Global";
+import { GlobalPopups } from "@/components/Popup";
 import { BackstageWidgets } from "@/components/Widget/BackstageWidgets";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/api/services/common";
