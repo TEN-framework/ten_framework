@@ -86,7 +86,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         id: `${data.url}-${Date.now()}`,
         category: EWidgetCategory.Editor,
         metadata: data,
-        display_type: EWidgetDisplayType.Popup,
+        display_type: EWidgetDisplayType.Dock,
       });
     };
 

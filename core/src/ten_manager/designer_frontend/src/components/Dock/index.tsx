@@ -378,7 +378,9 @@ function DockerHeaderTabElement(props: {
 }) {
   const { widget, selected, hasUnsavedChanges, onClose, onPopout, onSelect } =
     props;
-  const category = widget.category;
+  const title =
+    (widget.metadata as unknown as { title?: string })?.title ??
+    widget.category;
   const { t } = useTranslation();
 
   return (
@@ -397,7 +399,7 @@ function DockerHeaderTabElement(props: {
           )}
           onClick={() => onSelect?.(widget.id)}
         >
-          {category}
+          {title}
           {hasUnsavedChanges && (
             <span className="text-foreground/50 text-sm font-sans">*</span>
           )}
