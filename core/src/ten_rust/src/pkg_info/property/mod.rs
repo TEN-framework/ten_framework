@@ -64,9 +64,11 @@ pub fn parse_property_from_str(
             serde_json::from_value(ten_value.clone())?;
         property._ten = Some(ten_in_property);
 
-        // Validate all GraphInfo items before adding them to graphs_cache.
+        // Validate predefined_graphs if they exist.
         if let Some(ref ten) = property._ten {
             if let Some(graphs) = &ten.predefined_graphs {
+                validate_predefined_graphs(graphs)?;
+
                 // Create a temporary cache to store validated graphs.
                 let mut temp_graphs_cache = HashMap::new();
 
@@ -77,7 +79,7 @@ pub fn parse_property_from_str(
                     graph_clone.validate_and_complete()?;
 
                     let uuid = Uuid::new_v4().to_string();
-                    temp_graphs_cache.insert(uuid, graph.clone());
+                    temp_graphs_cache.insert(uuid, graph_clone);
                 }
 
                 // If all validations passed, add all graphs to the real cache.
@@ -89,23 +91,36 @@ pub fn parse_property_from_str(
     }
 
     property.validate_and_complete()?;
+
     Ok(property)
+}
+
+/// Validates that all predefined graphs have unique names.
+fn validate_predefined_graphs(graphs: &[GraphInfo]) -> Result<()> {
+    // Check for duplicate graph names in a separate scope to limit the
+    // lifetime of the HashSet to just this validation step
+    let mut seen_graph_names = std::collections::HashSet::new();
+
+    for graph in graphs.iter() {
+        // Note: We're storing references to graph names, which is correct.
+        if !seen_graph_names.insert(&graph.name) {
+            return Err(anyhow::anyhow!(
+                "Duplicate predefined graph name detected: '{}'. \
+                Each predefined_graph must have a unique 'name'.",
+                graph.name
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 impl Property {
     /// Validates and completes the property configuration.
     ///
     /// This method ensures that the property configuration is valid and
-    /// complete. If the `_ten` field is present, it delegates validation to
-    /// the `TenInProperty` struct's own validation method.
-    ///
-    /// # Returns
-    /// - `Ok(())` if validation succeeds.
-    /// - `Err` containing the validation error if validation fails.
+    /// complete.
     pub fn validate_and_complete(&mut self) -> Result<()> {
-        if let Some(_ten) = &mut self._ten {
-            _ten.validate_and_complete()?;
-        }
         Ok(())
     }
 
@@ -166,42 +181,6 @@ pub struct TenInProperty {
 
     #[serde(flatten)]
     pub additional_fields: HashMap<String, Value>,
-}
-
-impl TenInProperty {
-    /// Validates and completes the TEN property configuration.
-    ///
-    /// This method performs two main tasks:
-    /// 1. Validates that all predefined graphs have unique names.
-    /// 2. Ensures each predefined graph is valid by calling its own validation
-    ///    method.
-    /// 3. Sets a default URI (localhost) if none is specified.
-    ///
-    /// # Returns
-    /// * `Ok(())` if validation passes and completion is successful.
-    /// * `Err` with a descriptive message if validation fails
-    pub fn validate_and_complete(&mut self) -> Result<()> {
-        if let Some(graphs) = &mut self.predefined_graphs {
-            // Check for duplicate graph names in a separate scope to limit the
-            // lifetime of the HashSet to just this validation step
-            {
-                let mut seen_graph_names = std::collections::HashSet::new();
-                for graph in graphs.iter() {
-                    // Note: We're storing references to graph names, which is
-                    // correct.
-                    if !seen_graph_names.insert(&graph.name) {
-                        return Err(anyhow::anyhow!(
-                            "Duplicate predefined graph name detected: '{}'. \
-                            Each predefined_graph must have a unique 'name'.",
-                            graph.name
-                        ));
-                    }
-                }
-            }
-        }
-
-        Ok(())
-    }
 }
 
 pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
