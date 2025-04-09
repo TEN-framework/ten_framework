@@ -32,8 +32,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        let property =
-            parse_property_from_str(json_data, &mut graphs_cache).unwrap();
+        let property = parse_property_from_str(
+            json_data,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
@@ -60,8 +66,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        let property =
-            parse_property_from_str(json_data, &mut graphs_cache).unwrap();
+        let property = parse_property_from_str(
+            json_data,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         assert!(property._ten.is_some());
         let ten_in_property = property._ten.unwrap();
@@ -89,8 +101,14 @@ mod tests {
 
         let json_str = include_str!("test_data_embed/property.json");
 
-        let property =
-            parse_property_from_str(json_str, &mut graphs_cache).unwrap();
+        let property = parse_property_from_str(
+            json_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(property._ten.is_some());
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
@@ -116,8 +134,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        let property =
-            parse_property_from_str(prop_str, &mut graphs_cache).unwrap();
+        let property = parse_property_from_str(
+            prop_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(property._ten.is_some());
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();

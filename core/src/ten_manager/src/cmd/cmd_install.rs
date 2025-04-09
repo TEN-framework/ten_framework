@@ -420,8 +420,13 @@ pub async fn execute_cmd(
     let mut installing_pkg_type: Option<PkgType> = None;
     let mut installing_pkg_name: Option<String> = None;
 
-    let app_pkg_to_work_with =
-        get_pkg_info_from_path(&app_dir_to_work_with, true, false, &mut None)?;
+    let app_pkg_to_work_with = get_pkg_info_from_path(
+        &app_dir_to_work_with,
+        true,
+        false,
+        &mut None,
+        None,
+    )?;
 
     // We need to start looking for dependencies outward from the cwd package,
     // and the cwd package itself is considered a candidate.
@@ -493,6 +498,7 @@ pub async fn execute_cmd(
             false,
             false,
             &mut None,
+            None,
         )?;
 
         installing_pkg_type = Some(
@@ -782,6 +788,7 @@ do you want to continue?",
                     true,
                     false,
                     &mut None,
+                    None,
                 )?;
 
                 write_installing_pkg_into_manifest_file(
@@ -801,6 +808,7 @@ do you want to continue?",
                     true,
                     false,
                     &mut None,
+                    None,
                 )?;
 
                 write_installing_pkg_into_manifest_file(

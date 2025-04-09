@@ -165,12 +165,19 @@ pub fn get_pkg_info_from_path(
     is_installed: bool,
     parse_property: bool,
     graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+    app_base_dir: Option<String>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
     let property = if parse_property {
         assert!(graphs_cache.is_some());
 
-        parse_property_in_folder(path, graphs_cache.as_mut().unwrap())?
+        parse_property_in_folder(
+            path,
+            graphs_cache.as_mut().unwrap(),
+            app_base_dir,
+            Some(manifest.type_and_name.pkg_type),
+            Some(manifest.type_and_name.name.clone()),
+        )?
     } else {
         None
     };
@@ -194,9 +201,15 @@ fn collect_pkg_info_from_path(
     pkgs_info: &mut PkgsInfoInApp,
     parse_property: bool,
     graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+    app_base_dir: Option<String>,
 ) -> Result<()> {
-    let pkg_info =
-        get_pkg_info_from_path(path, true, parse_property, graphs_cache)?;
+    let pkg_info = get_pkg_info_from_path(
+        path,
+        true,
+        parse_property,
+        graphs_cache,
+        app_base_dir,
+    )?;
 
     if let Some(manifest) = &pkg_info.manifest {
         match manifest.type_and_name.pkg_type {
@@ -268,6 +281,7 @@ pub fn get_app_installed_pkgs(
         &mut pkgs_info,
         parse_property,
         graphs_cache,
+        Some(app_path.to_string_lossy().to_string()),
     )?;
 
     if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
@@ -317,6 +331,7 @@ pub fn get_app_installed_pkgs(
                             &mut pkgs_info,
                             parse_property,
                             graphs_cache,
+                            Some(app_path.to_string_lossy().to_string()),
                         )?;
                     }
                 }

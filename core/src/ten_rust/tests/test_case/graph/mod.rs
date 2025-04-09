@@ -37,7 +37,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        parse_property_from_str(property_json_str, &mut graphs_cache).unwrap();
+        parse_property_from_str(
+            property_json_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
         let graph = &graph_info.graph;
@@ -54,7 +61,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        parse_property_from_str(property_str, &mut graphs_cache).unwrap();
+        parse_property_from_str(
+            property_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
         let result =
@@ -83,7 +97,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        parse_property_from_str(property_str, &mut graphs_cache).unwrap();
+        parse_property_from_str(
+            property_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
         let graph = &graph_info.graph;
@@ -100,7 +121,14 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        parse_property_from_str(property_str, &mut graphs_cache).unwrap();
+        parse_property_from_str(
+            property_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
         let graph = &graph_info.graph;
@@ -117,7 +145,13 @@ mod tests {
 
         let mut graphs_cache = HashMap::new();
 
-        let property = parse_property_from_str(property_str, &mut graphs_cache);
+        let property = parse_property_from_str(
+            property_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        );
 
         // 'localhost' is not allowed in graph definition.
         assert!(property.is_err());
@@ -169,8 +203,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_connection_app_localhost.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // 'localhost' is not allowed in graph definition.
         assert!(property.is_err());
@@ -187,8 +226,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_app_in_nodes_not_all_declared.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // Either all nodes should have 'app' declared, or none should, but not
         // a mix of both.
@@ -206,8 +250,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_app_in_connections_not_all_declared.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // The 'app' can not be none, as it has been declared in nodes.
         assert!(property.is_err());
@@ -222,8 +271,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_app_in_connections_should_not_declared.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // The 'app' should not be declared, as not any node has declared it.
         assert!(property.is_err());
@@ -238,8 +292,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_app_in_dest_not_all_declared.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // The 'app' can not be none, as it has been declared in nodes.
         assert!(property.is_err());
@@ -254,8 +313,13 @@ mod tests {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_app_in_dest_should_not_declared.json"
         );
-        let property =
-            parse_property_from_str(property_str, &mut HashMap::new());
+        let property = parse_property_from_str(
+            property_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        );
 
         // The 'app' should not be declared, as not any node has declared it.
         assert!(property.is_err());
