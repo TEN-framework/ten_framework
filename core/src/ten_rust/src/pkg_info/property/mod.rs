@@ -64,12 +64,25 @@ pub fn parse_property_from_str(
             serde_json::from_value(ten_value.clone())?;
         property._ten = Some(ten_in_property);
 
-        // Copy predefined_graphs to graphs_cache with UUID keys.
+        // Validate all GraphInfo items before adding them to graphs_cache.
         if let Some(ref ten) = property._ten {
             if let Some(graphs) = &ten.predefined_graphs {
+                // Create a temporary cache to store validated graphs.
+                let mut temp_graphs_cache = HashMap::new();
+
+                // Validate each graph before adding to temporary cache.
                 for graph in graphs {
+                    // Create a clone to validate.
+                    let mut graph_clone = graph.clone();
+                    graph_clone.validate_and_complete()?;
+
                     let uuid = Uuid::new_v4().to_string();
-                    graphs_cache.insert(uuid, graph.clone());
+                    temp_graphs_cache.insert(uuid, graph.clone());
+                }
+
+                // If all validations passed, add all graphs to the real cache.
+                for (uuid, graph) in temp_graphs_cache {
+                    graphs_cache.insert(uuid, graph);
                 }
             }
         }
@@ -184,11 +197,6 @@ impl TenInProperty {
                         ));
                     }
                 }
-            }
-
-            // Validate each individual graph.
-            for graph in graphs {
-                graph.validate_and_complete()?;
             }
         }
 
