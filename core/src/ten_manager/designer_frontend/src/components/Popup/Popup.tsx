@@ -33,6 +33,8 @@ export interface IPopupBaseProps {
   children: React.ReactNode;
   className?: string;
   resizable?: boolean;
+  onResizing?: () => void;
+  onResized?: () => void;
   collapsible?: boolean;
   /** @deprecated */
   autoFocus?: boolean;
@@ -77,10 +79,13 @@ export const Popup = (props: IPopupBaseProps) => {
     onCollapseToggle,
     initialPosition = "center",
     onTabIdUpdate,
+    onResizing,
+    onResized,
   } = props;
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isResized, setIsResized] = React.useState(false);
+  const [isResizing, setIsResizing] = React.useState(false);
 
   const popupRef = React.useRef<HTMLDivElement>(null);
 
@@ -316,6 +321,7 @@ export const Popup = (props: IPopupBaseProps) => {
           },
           contentClassName
         )}
+        style={{ pointerEvents: isResizing ? "none" : "auto" }}
       >
         {children}
       </motion.div>
@@ -331,6 +337,14 @@ export const Popup = (props: IPopupBaseProps) => {
           dragElastic={0}
           dragMomentum={false}
           onDrag={handleResizeY}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
         />
       )}
       {/* right resize handler */}
@@ -344,6 +358,14 @@ export const Popup = (props: IPopupBaseProps) => {
           dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
           dragElastic={0}
           onDrag={handleResizeX}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
         />
       )}
       {/* right bottom resize handler */}
@@ -357,6 +379,14 @@ export const Popup = (props: IPopupBaseProps) => {
           dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
           dragElastic={0}
           onDrag={handleResizeXY}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
         />
       )}
     </motion.div>

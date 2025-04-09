@@ -72,6 +72,7 @@ export const DocRefPopup = (props: {
       height={windowSize?.height ? windowSize?.height - 100 : 400}
       onTabIdUpdate={handleTabIdUpdate}
       onClose={handleClosePopup}
+      resizable
     >
       <PopupInnerTabs>
         {tabs.map((tab, idx) => (
