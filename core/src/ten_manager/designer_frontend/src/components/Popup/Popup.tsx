@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X, XIcon } from "lucide-react";
 import {
   motion,
   useDragControls,
@@ -27,7 +27,7 @@ import { ECustomEventName } from "@/utils/popup";
 const POPUP_MIN_HEIGHT = 100;
 const POPUP_MIN_WIDTH = 100;
 
-export const Popup = (props: {
+export interface IPopupBaseProps {
   id: string;
   title: string | React.ReactNode;
   children: React.ReactNode;
@@ -55,7 +55,10 @@ export const Popup = (props: {
     | "top-right"
     | "bottom-left"
     | "bottom-right";
-}) => {
+  onTabIdUpdate?: (tabId: string) => void;
+}
+
+export const Popup = (props: IPopupBaseProps) => {
   const {
     id,
     children,
@@ -73,6 +76,7 @@ export const Popup = (props: {
     onClose,
     onCollapseToggle,
     initialPosition = "center",
+    onTabIdUpdate,
   } = props;
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -134,16 +138,23 @@ export const Popup = (props: {
     }
   }, [onClose, id, removeWidget]);
 
-  const handleBringToFront = React.useCallback(() => {
-    const highestZIndex = Math.max(
-      ...Array.from(document.querySelectorAll(".popup")).map(
-        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
-      )
-    );
-    if (popupRef.current) {
-      popupRef.current.style.zIndex = (highestZIndex + 1).toString();
-    }
-  }, []);
+  const handleBringToFront = React.useCallback(
+    (tab_id?: string) => {
+      const highestZIndex = Math.max(
+        ...Array.from(document.querySelectorAll(".popup")).map(
+          (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
+        )
+      );
+      if (tab_id) {
+        onTabIdUpdate?.(tab_id);
+      }
+      if (popupRef.current) {
+        if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
+        popupRef.current.style.zIndex = (highestZIndex + 1).toString();
+      }
+    },
+    [onTabIdUpdate]
+  );
 
   React.useEffect(() => {
     if (popupRef.current) {
@@ -176,7 +187,7 @@ export const Popup = (props: {
   React.useEffect(() => {
     const bringToFrontEvent = (event: CustomEvent) => {
       if (event.detail.id === id) {
-        handleBringToFront();
+        handleBringToFront(event.detail.tab_id);
       }
     };
 
@@ -202,7 +213,9 @@ export const Popup = (props: {
       dragMomentum={false}
       dragControls={dragControls}
       dragListener={false}
-      onMouseDown={handleBringToFront}
+      onMouseDown={() => {
+        handleBringToFront();
+      }}
       className={cn(
         "popup",
         "fixed text-sm overflow-hidden",
@@ -347,5 +360,84 @@ export const Popup = (props: {
         />
       )}
     </motion.div>
+  );
+};
+
+export const PopupInnerTabs = (props: {
+  children?: React.ReactNode;
+  className?: string;
+}) => {
+  const { children, className } = props;
+
+  return (
+    <ul
+      className={cn(
+        "w-full h-8 flex items-center overflow-x-auto overflow-y-hidden",
+        "scroll-p-1",
+        "bg-border dark:bg-popover",
+        className
+      )}
+    >
+      {children}
+    </ul>
+  );
+};
+
+export const PopupInnerTab = (props: {
+  id: string | number;
+  children?: React.ReactNode | string;
+  className?: string;
+  isActive?: boolean;
+  onClose?: (id: string | number) => void;
+  onClick?: (id: string | number) => void;
+}) => {
+  const { id, children, className, isActive, onClose, onClick } = props;
+
+  return (
+    <li
+      className={cn(
+        "w-fit flex items-center gap-2 px-2 py-1 text-xs cursor-pointer",
+        "border-b-2 border-transparent",
+        {
+          "text-primary border-purple-900": isActive,
+        },
+        "hover:text-primary",
+        className
+      )}
+      onClick={() => onClick?.(id)}
+    >
+      <div className={cn("truncate max-w-[150px]")}>{children}</div>
+      {onClose && (
+        <XIcon
+          className="size-3 ml-1 text-foreground hover:text-destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose?.(id);
+          }}
+        />
+      )}
+    </li>
+  );
+};
+
+export const PopupInnerTabContent = (props: {
+  children?: React.ReactNode;
+  className?: string;
+  isActive?: boolean;
+}) => {
+  const { children, className, isActive } = props;
+
+  return (
+    <div
+      className={cn(
+        "w-full h-[calc(100%-32px)]",
+        {
+          ["hidden"]: !isActive,
+        },
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 };

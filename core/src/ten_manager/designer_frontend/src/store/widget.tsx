@@ -9,7 +9,7 @@ import { devtools } from "zustand/middleware";
 
 import {
   EWidgetCategory,
-  type EWidgetDisplayType,
+  EWidgetDisplayType,
   type IWidget,
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
@@ -20,7 +20,9 @@ export const useWidgetStore = create<{
   widgets: IWidget[];
   appendWidget: (widget: IWidget) => void;
   appendWidgetIfNotExists: (widget: IWidget) => void;
+  appendTabWidget: (widget: IWidget) => void;
   removeWidget: (widgetId: string) => void;
+  removeTabWidget: (widgetId: string, subId: string) => void;
   removeWidgets: (widgetIds: string[]) => void;
   updateWidgetDisplayType: (
     widgetId: string,
@@ -80,9 +82,28 @@ export const useWidgetStore = create<{
       }));
       dispatchBringToFrontPopup(widget.id);
     },
+    appendTabWidget: (widget: IWidget) => {
+      set((state) => ({
+        widgets: state.widgets.find(
+          (w) =>
+            w.id === widget.id &&
+            w.display_type === EWidgetDisplayType.PopupTab &&
+            w?.sub_id === widget?.sub_id
+        )
+          ? state.widgets
+          : [...state.widgets, widget],
+      }));
+      dispatchBringToFrontPopup(widget.id, widget.sub_id);
+    },
     removeWidget: (widgetId: string) =>
       set((state) => ({
         widgets: state.widgets.filter((w) => w.id !== widgetId),
+      })),
+    removeTabWidget: (widgetId: string, subId: string) =>
+      set((state) => ({
+        widgets: state.widgets.filter(
+          (w) => w.id !== widgetId || w.sub_id !== subId
+        ),
       })),
     removeWidgets: (widgetIds: string[]) =>
       set((state) => ({

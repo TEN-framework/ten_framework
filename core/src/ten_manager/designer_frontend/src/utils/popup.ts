@@ -32,12 +32,13 @@ export const dispatchCustomNodeActionPopup = (
   }
 };
 
-export const dispatchBringToFrontPopup = (widgetId: string) => {
+export const dispatchBringToFrontPopup = (widgetId: string, tabId?: string) => {
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent(ECustomEventName.BringToFrontPopup, {
         detail: {
           id: widgetId,
+          tab_id: tabId,
         },
       })
     );

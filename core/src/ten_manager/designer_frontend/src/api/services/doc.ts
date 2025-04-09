@@ -5,17 +5,19 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+
 import {
   makeAPIRequest,
   prepareReqUrl,
   getQueryHookCache,
 } from "@/api/services/utils";
-import { ENDPOINT_HELP_TEXT, EHelpTextKey } from "@/api/endpoints";
+import { ENDPOINT_DOC_LINK } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
-import { localeStringToEnum } from "@/api/services/utils";
+import { EDocLinkKey } from "@/types/doc";
+import { localeStringToEnum, getShortLocale } from "@/api/services/utils";
 
-export const retrieveHelpText = async (key: string, locale?: string) => {
-  const template = ENDPOINT_HELP_TEXT.helpText[ENDPOINT_METHOD.POST];
+export const retrieveDocLink = async (key: EDocLinkKey, locale?: string) => {
+  const template = ENDPOINT_DOC_LINK.retrieveDocLink[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: { key, locale: localeStringToEnum(locale) },
   });
@@ -24,13 +26,21 @@ export const retrieveHelpText = async (key: string, locale?: string) => {
 };
 
 // TODO: refine this hook(post should not be used)
-export const useHelpText = (key: EHelpTextKey, locale?: string) => {
-  const template = ENDPOINT_HELP_TEXT.helpText[ENDPOINT_METHOD.POST];
+export const useDocLink = (key: EDocLinkKey, locale?: string) => {
+  const template = ENDPOINT_DOC_LINK.retrieveDocLink[ENDPOINT_METHOD.POST];
   const url = prepareReqUrl(template) + `${key}/${localeStringToEnum(locale)}`;
   const queryHookCache = getQueryHookCache();
 
-  const [data, setData] = React.useState<string | null>(() => {
-    const [cachedData, cachedDataIsExpired] = queryHookCache.get<string>(url);
+  const [data, setData] = React.useState<{
+    key: string;
+    locale: string;
+    text: string;
+  } | null>(() => {
+    const [cachedData, cachedDataIsExpired] = queryHookCache.get<{
+      key: string;
+      locale: string;
+      text: string;
+    }>(url);
     if (!cachedData || cachedDataIsExpired) {
       return null;
     }
@@ -42,8 +52,8 @@ export const useHelpText = (key: EHelpTextKey, locale?: string) => {
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await retrieveHelpText(key, locale);
-      setData(res?.text || null);
+      const res = await retrieveDocLink(key, locale);
+      setData(res);
       queryHookCache.set(url, res, {
         ttl: 1000 * 60 * 60 * 24, // 1 day
       });
@@ -60,7 +70,7 @@ export const useHelpText = (key: EHelpTextKey, locale?: string) => {
   }, [fetchData]);
 
   return {
-    data: data,
+    data: { ...data, shortLocale: getShortLocale(data?.locale) },
     error,
     isLoading,
     mutate: fetchData,

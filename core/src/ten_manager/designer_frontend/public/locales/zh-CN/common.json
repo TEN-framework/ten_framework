@@ -21,7 +21,8 @@
       "manageLoadedApps": "管理已加载应用",
       "runApp": "运行应用",
       "openAppFolder": "打开应用文件夹",
-      "createApp": "创建应用"
+      "createApp": "创建应用",
+      "about": "关于应用"
     },
     "menuGraph": {
       "title": "图谱",
@@ -29,7 +30,8 @@
       "autoLayout": "自动布局",
       "selectLoadedApp": "选择已加载应用",
       "addNode": "添加节点",
-      "addConnection": "添加连接"
+      "addConnection": "添加连接",
+      "about": "关于图谱"
     },
     "menuHelp": {
       "title": "帮助",
@@ -37,12 +39,13 @@
     },
     "menuDesigner": {
       "title": "设计器",
-      "about": "关于 TEN Manager Designer",
+      "about": "关于设计器",
       "preferences": "偏好设置"
     },
     "menuExtension": {
       "title": "扩展",
-      "openExtensionStore": "打开扩展商店"
+      "openExtensionStore": "打开扩展商店",
+      "about": "关于扩展"
     },
     "language": {
       "title": "语言",
@@ -123,6 +126,9 @@
       "title": "连接",
       "filters": "过滤器"
     },
+    "node": {
+      "properties": "属性"
+    },
     "logViewer": {
       "title": "日志查看器",
       "appInstall": "应用安装"
@@ -154,9 +160,6 @@
       "appNameDescription": "输入应用的名称。",
       "baseDirDescription": "选择应用的基础目录。"
     },
-    "node": {
-      "properties": "属性"
-    },
     "graph": {
       "title": "节点",
       "titleAddNode": "添加节点",
@@ -183,6 +186,9 @@
       "messageName": "消息名称",
       "addConnection": "添加连接",
       "titleUpdateNodePropertyByName": "更新节点 [{{name}}] 属性"
+    },
+    "doc": {
+      "title": "文档"
     }
   },
   "dock": {
@@ -207,6 +213,7 @@
     "noResults": "无结果"
   },
   "extensionStore": {
+    "extension": "扩展",
     "title": "扩展商店",
     "readOnly": "只读",
     "compatible": "兼容性",
@@ -236,8 +243,7 @@
     "versionHistory": "版本历史",
     "selectVersion": "选择版本",
     "versionLatest": "最新",
-    "localAddonTip": "(本地)",
-    "extension": "扩展"
+    "localAddonTip": "(本地)"
   },
   "statusBar": {
     "appsLoadedWithCount": "已加载 {{count}} 个应用",

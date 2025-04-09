@@ -21,7 +21,8 @@
       "manageLoadedApps": "Manage Loaded App(s)",
       "runApp": "Run App",
       "openAppFolder": "Open App Folder",
-      "createApp": "Create App"
+      "createApp": "Create App",
+      "about": "About App"
     },
     "menuGraph": {
       "title": "Graph",
@@ -29,7 +30,8 @@
       "autoLayout": "Auto Layout",
       "selectLoadedApp": "Select a Loaded App",
       "addNode": "Add Node",
-      "addConnection": "Add Connection"
+      "addConnection": "Add Connection",
+      "about": "About Graph"
     },
     "menuHelp": {
       "title": "Help",
@@ -37,12 +39,13 @@
     },
     "menuDesigner": {
       "title": "Designer",
-      "about": "About TEN Manager Designer",
+      "about": "About Designer",
       "preferences": "Preferences"
     },
     "menuExtension": {
       "title": "Extensions",
-      "openExtensionStore": "Open Extension Store"
+      "openExtensionStore": "Open Extension Store",
+      "about": "About Extensions"
     },
     "language": {
       "title": "Language",
@@ -183,6 +186,9 @@
       "messageName": "Message Name",
       "addConnection": "Add Connection",
       "titleUpdateNodePropertyByName": "Update [{{name}}] Property"
+    },
+    "doc": {
+      "title": "Documentation"
     }
   },
   "dock": {
