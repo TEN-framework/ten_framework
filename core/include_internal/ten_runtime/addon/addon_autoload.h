@@ -17,11 +17,9 @@ typedef struct ten_app_t ten_app_t;
 
 typedef void (*ten_addon_register_func_t)(void *register_ctx);
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_load_all_from_app_base_dir(
+TEN_RUNTIME_PRIVATE_API bool
+ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
     const char *app_base_dir, ten_error_t *err);
-
-TEN_RUNTIME_PRIVATE_API bool ten_addon_load_all_from_ten_package_base_dirs(
-    ten_list_t *ten_package_base_dirs, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API bool
 ten_addon_try_load_specific_addon_using_native_addon_loader(

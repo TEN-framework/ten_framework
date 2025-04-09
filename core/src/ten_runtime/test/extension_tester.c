@@ -89,8 +89,6 @@ ten_extension_tester_t *ten_extension_tester_create(
   ten_signature_set(&self->signature, TEN_EXTENSION_TESTER_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_list_init(&self->addon_base_dirs);
-
   self->on_init = on_init;
   self->on_start = on_start;
   self->on_stop = on_stop;
@@ -177,16 +175,6 @@ void ten_extension_tester_init_test_app_property_from_json(
                            property_json_str);
 }
 
-void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
-                                             const char *addon_base_dir) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(addon_base_dir, "Invalid argument.");
-
-  ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
-}
-
 static void ten_extension_tester_destroy_test_target(
     ten_extension_tester_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -233,7 +221,6 @@ void ten_extension_tester_destroy(ten_extension_tester_t *self) {
   ten_thread_join(self->test_app_thread, -1);
 
   ten_extension_tester_destroy_test_target(self);
-  ten_list_clear(&self->addon_base_dirs);
 
   ten_string_deinit(&self->test_app_property_json);
 

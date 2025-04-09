@@ -629,12 +629,12 @@
         "main.py"
       ],
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/large_json_python/large_json_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/large_json_python/large_json_python_app/ten_packages/system/ten_runtime_python/interface",
-        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/large_json_python/large_json_python_app/",
-        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/large_json_python/large_json_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/aio_http_server_python/aio_http_server_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/aio_http_server_python/aio_http_server_python_app/ten_packages/system/ten_runtime_python/interface",
+        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/aio_http_server_python/aio_http_server_python_app/",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/aio_http_server_python/aio_http_server_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
         "PYTHONMALLOC": "malloc"
       },
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/large_json_python/large_json_python_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/aio_http_server_python/aio_http_server_python_app",
     },
     {
       "name": "app (python) (cppdbg, attach)",
@@ -833,14 +833,20 @@
       "request": "launch",
       "program": "/usr/bin/python3",
       "args": [
-        "tests/test_recv_msg_during_starting.py"
+        "-m",
+        "pytest",
+        "-s",
+        "tests/"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
       "env": {
         "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
         "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so",
         "PYTHONMALLOC": "malloc",
-        "PYTHONDEVMODE": "1"
+        "PYTHONDEVMODE": "1",
+        "TEN_ENABLE_MEMORY_TRACKING": "true",
+        "MALLOC_CHECK_": "3",
+        "ASAN_OPTIONS": "detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1"
       },
     },
     {

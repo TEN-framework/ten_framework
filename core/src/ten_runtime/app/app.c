@@ -21,7 +21,6 @@
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/container/list_str.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
@@ -130,7 +129,6 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   TEN_ASSERT(self->ten_env, "Should not happen.");
 
   TEN_STRING_INIT(self->base_dir);
-  ten_list_init(&self->ten_package_base_dirs);
 
   self->path_table = ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO_APP, self);
 
@@ -191,17 +189,10 @@ void ten_app_destroy(ten_app_t *self) {
   ten_event_destroy(self->belonging_thread_is_set);
 
   ten_string_deinit(&self->base_dir);
-  ten_list_clear(&self->ten_package_base_dirs);
 
   ten_path_table_destroy(self->path_table);
 
   TEN_FREE(self);
-}
-
-void ten_app_add_ten_package_base_dir(ten_app_t *self, const char *base_dir) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, false), "Invalid argument.");
-
-  ten_list_push_str_back(&self->ten_package_base_dirs, base_dir);
 }
 
 bool ten_app_run(ten_app_t *self, bool run_in_background,

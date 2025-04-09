@@ -22,15 +22,11 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
-#include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_runtime/global/global.h"
-#include "include_internal/ten_runtime/global/signal.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/container/list_node_str.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/module.h"
 #include "ten_utils/lib/path.h"
@@ -243,8 +239,8 @@ done:
   }
 }
 
-bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
-                                          ten_error_t *err) {
+bool ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
+    const char *app_base_dir, ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
 
   bool success = true;
@@ -293,45 +289,6 @@ bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
   }
 
 done:
-  return success;
-}
-
-bool ten_addon_load_all_from_ten_package_base_dirs(
-    ten_list_t *ten_package_base_dirs, ten_error_t *err) {
-  TEN_ASSERT(ten_package_base_dirs, "Invalid argument.");
-
-  bool success = true;
-
-  ten_list_foreach (ten_package_base_dirs, iter) {
-    ten_string_t *ten_package_base_dir = ten_str_listnode_get(iter.node);
-    TEN_ASSERT(ten_package_base_dir &&
-                   ten_string_check_integrity(ten_package_base_dir),
-               "Should not happen.");
-
-    TEN_LOGI("Load dynamic libraries under path: %s",
-             ten_string_get_raw_str(ten_package_base_dir));
-
-    TEN_ADDON_TYPE addon_type = TEN_ADDON_TYPE_INVALID;
-    ten_string_t addon_name;
-    TEN_STRING_INIT(addon_name);
-
-    // Construct `manifest.json` path.
-    ten_string_t manifest_json_file_path;
-    ten_string_init_from_string(&manifest_json_file_path, ten_package_base_dir);
-    ten_path_join_c_str(&manifest_json_file_path, TEN_STR_MANIFEST_JSON);
-
-    // Get type and name from manifest file.
-    ten_manifest_get_type_and_name(
-        ten_string_get_raw_str(&manifest_json_file_path), &addon_type,
-        &addon_name, err);
-
-    ten_string_deinit(&manifest_json_file_path);
-
-    ten_addon_load_from_base_dir(ten_string_get_raw_str(ten_package_base_dir));
-
-    ten_string_deinit(&addon_name);
-  }
-
   return success;
 }
 
@@ -403,12 +360,21 @@ static bool ten_addon_register_specific_addon(
 bool ten_addon_try_load_specific_addon_using_native_addon_loader(
     const char *app_base_dir, TEN_ADDON_TYPE addon_type,
     const char *addon_name) {
-  if (ten_addon_load_specific_addon_using_native_addon_loader(
-          app_base_dir, addon_type, addon_name, NULL)) {
-    if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL,
-                                           NULL)) {
+  // First, check whether the phase 2 registering function of the addon we want
+  // to handle has already been added to the addon manager. If it has, proceed
+  // directly with the phase 2 registration. Otherwise, start from phase 1.
+  if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL, NULL)) {
+    // If the addon is not registered, try to load it using the native addon
+    // loader (phase 1).
+    bool success = ten_addon_load_specific_addon_using_native_addon_loader(
+        app_base_dir, addon_type, addon_name, NULL);
+    if (!success) {
       return false;
     }
+
+    // If the addon is loaded successfully, try to register it again (phase 2).
+    return ten_addon_register_specific_addon(addon_type, addon_name, NULL,
+                                             NULL);
   }
 
   return true;

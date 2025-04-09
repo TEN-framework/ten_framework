@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
@@ -308,7 +309,22 @@ static ten_addon_t builtin_extension_group_addon = {
     NULL,
 };
 
-void ten_builtin_extension_group_addon_register(void) {
+// Addon registration phase 2: actually registering the addon into the addon
+// store.
+static void ten_builtin_extension_group_register_handler(void *register_ctx) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
-                                     &builtin_extension_group_addon, NULL);
+                                     &builtin_extension_group_addon,
+                                     register_ctx);
+}
+
+// This is the phase 1 of the addon registration process: adding a function,
+// which will perform the actual registration in the phase 2, into the
+// `addon_manager`.
+void ten_addon_manager_add_builtin_extension_group(
+    ten_addon_manager_t *manager) {
+  TEN_ASSERT(manager, "Invalid argument.");
+
+  ten_addon_manager_add_addon(manager, "extension_group",
+                              TEN_STR_DEFAULT_EXTENSION_GROUP,
+                              ten_builtin_extension_group_register_handler);
 }

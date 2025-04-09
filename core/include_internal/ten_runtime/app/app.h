@@ -121,8 +121,6 @@ typedef struct ten_app_t {
   ten_schema_store_t schema_store;
   ten_string_t base_dir;
 
-  ten_list_t ten_package_base_dirs;
-
   ten_path_table_t *path_table;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
@@ -165,6 +163,3 @@ TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit(ten_app_t *self);
 TEN_RUNTIME_PRIVATE_API bool ten_app_on_deinit_done(ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_configure_done(ten_env_t *ten_env);
-
-TEN_RUNTIME_PRIVATE_API void ten_app_add_ten_package_base_dir(
-    ten_app_t *self, const char *base_dir);

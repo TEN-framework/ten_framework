@@ -45,8 +45,6 @@ struct ten_extension_tester_t {
     } graph;
   } test_target;
 
-  ten_list_t addon_base_dirs;
-
   ten_string_t test_app_property_json;
 
   ten_extension_tester_on_init_func_t on_init;

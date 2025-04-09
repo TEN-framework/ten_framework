@@ -218,30 +218,41 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
     ten_string_set_from_c_str(&self->uri, TEN_STR_LOCALHOST);
   }
 
-  // @{
-  // Addon initialization phase 1: loading.
+  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+  TEN_ASSERT(manager, "Should not happen.");
+
+  // Addon registration phase 1: adding a function, which will perform the
+  // actual registration in the phase 2, into the `addon_manager`.
+  //
+  // When these two builtin addons execute their phase 2 registration depends on
+  // whether they are used during runtime. If they are used, the addon-loader
+  // will handle their phase 2 registration process.
+  ten_addon_manager_add_builtin_extension_group(manager);
+  ten_addon_manager_add_builtin_test_extension(manager);
+
+  // Addon registration phase 1: adding a function, which will perform the
+  // actual registration in the phase 2, into the `addon_manager`.
+  ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
+      ten_string_get_raw_str(&self->base_dir), &err);
+
   int lock_operation_rc = ten_addon_store_lock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_addon_load_all_from_app_base_dir(ten_string_get_raw_str(&self->base_dir),
-                                       &err);
-  ten_addon_load_all_from_ten_package_base_dirs(&self->ten_package_base_dirs,
-                                                &err);
-
-  // Addon initialization phase 2: registering.
-  ten_builtin_extension_group_addon_register();
-  ten_builtin_test_extension_addon_register();
-
-  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
   register_ctx->app = self;
 
-  ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
+  // Addon registration phase 2: actually registering the addon into the addon
+  // store.
+  //
+  // Addonloader addons do not implement the on_init() function, so after the
+  // following method is called, all addon loaders will be registered and added
+  // to the addon store.
+  ten_addon_manager_register_all_addon_loaders(manager, register_ctx);
+
   ten_addon_register_ctx_destroy(register_ctx);
 
   lock_operation_rc = ten_addon_store_unlock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-  // @}
 
   // Create addon loader singleton instances.
   ten_addon_loader_addons_create_singleton_instance(

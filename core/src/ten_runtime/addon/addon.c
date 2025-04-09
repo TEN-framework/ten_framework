@@ -358,6 +358,9 @@ static void ten_addon_unregister_all_except_addon_loader_addon(void) {
   ten_addon_unregister_all_extension();
   ten_addon_unregister_all_extension_group();
   ten_addon_unregister_all_protocol();
+
+  // Destroy the addon manager to avoid memory leak.
+  ten_addon_manager_destroy(ten_addon_manager_get_instance());
 }
 
 void ten_addon_unregister_all_and_cleanup(void) {
