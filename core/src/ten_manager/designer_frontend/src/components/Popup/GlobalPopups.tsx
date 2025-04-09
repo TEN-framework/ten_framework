@@ -16,21 +16,21 @@ import TerminalPopup from "@/components/Popup/TerminalPopup";
 import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
-import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
-import { AboutPopup } from "@/components/Popup/AboutPopup";
-import { PreferencesPopup } from "@/components/Popup/PreferencesPopup";
+import { GraphSelectPopup } from "@/components/Popup/Default/GraphSelect";
+import { AboutPopup } from "@/components/Popup/Default/About";
+import { PreferencesPopup } from "@/components/Popup/Default/Preferences";
 import {
   AppFolderPopup,
   LoadedAppsPopup,
   AppRunPopup,
   AppCreatePopup,
-} from "@/components/Popup/AppPopup";
+} from "@/components/Popup/Default/App";
 import {
   ExtensionStorePopup,
   ExtensionPopup,
-} from "@/components/Popup/ExtensionPopup";
-import { GraphPopup } from "@/components/Popup/GraphPopup";
+} from "@/components/Popup/Default/Extension";
 import { DocRefPopup } from "@/components/Popup/Default/DocRef";
+import { GraphPopup } from "@/components/Popup/GraphPopup";
 import { groupWidgetsById } from "@/components/Popup/utils";
 
 export function GlobalPopups() {
