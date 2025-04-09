@@ -10,9 +10,6 @@
 
 #include <stdbool.h>
 
-#define TEN_REGISTER_ADDON_AS_EXTENSION(NAME, ADDON) \
-  TEN_ADDON_REGISTER(extension, NAME, ADDON)
-
 typedef struct ten_addon_t ten_addon_t;
 typedef struct ten_addon_host_t ten_addon_host_t;
 

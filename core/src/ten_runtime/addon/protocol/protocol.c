@@ -49,9 +49,10 @@ ten_addon_t *ten_addon_unregister_protocol(const char *name) {
 
 ten_addon_host_t *ten_addon_register_protocol(const char *name,
                                               const char *base_dir,
-                                              ten_addon_t *addon) {
+                                              ten_addon_t *addon,
+                                              void *register_ctx) {
   return ten_addon_register(TEN_ADDON_TYPE_PROTOCOL, name, base_dir, addon,
-                            NULL);
+                            register_ctx);
 }
 
 static bool ten_addon_protocol_match_protocol(ten_addon_host_t *self,

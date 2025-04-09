@@ -15,9 +15,6 @@ typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
 typedef struct ten_addon_loader_t ten_addon_loader_t;
 
-#define TEN_REGISTER_ADDON_AS_ADDON_LOADER(ADDON_LOADER_NAME, ADDON) \
-  TEN_ADDON_REGISTER(addon_loader, ADDON_LOADER_NAME, ADDON)
-
 typedef void (*ten_addon_loader_on_all_singleton_instances_created_cb_t)(
     ten_env_t *ten_env, void *cb_data);
 
