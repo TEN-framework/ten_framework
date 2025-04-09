@@ -25,7 +25,7 @@ import CustomNode from "@/flow/CustomNode";
 import CustomEdge from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
-import { TerminalData } from "@/components/Popup/TerminalPopup";
+import { TerminalData } from "@/components/Popup/Terminal";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
@@ -86,7 +86,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         id: `${data.url}-${Date.now()}`,
         category: EWidgetCategory.Editor,
         metadata: data,
-        display_type: EWidgetDisplayType.Popup,
+        display_type: EWidgetDisplayType.Dock,
       });
     };
 

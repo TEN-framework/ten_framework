@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { SaveIcon, PinIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import EditorWidget, {
   type TEditorOnClose,
 } from "@/components/Widget/EditorWidget";
@@ -85,7 +85,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({
 
   return (
     <>
-      <Popup
+      <PopupBase
         id={id}
         title={
           <div className="flex items-center gap-1.5">
@@ -118,7 +118,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({
         ]}
       >
         <EditorWidget id={id} data={data} ref={editorRef} />
-      </Popup>
+      </PopupBase>
     </>
   );
 };
