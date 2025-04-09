@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { BlocksIcon } from "lucide-react";
+import { BlocksIcon, InfoIcon } from "lucide-react";
 
 import {
   NavigationMenuContent,
@@ -13,6 +13,7 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import {
@@ -21,7 +22,11 @@ import {
   EWidgetCategory,
 } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
-import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
+import {
+  DOC_REF_POPUP_ID,
+  EXTENSION_STORE_POPUP_ID,
+} from "@/constants/widgets";
+import { EDocLinkKey } from "@/types/doc";
 
 export const ExtensionMenu = (props: {
   disableMenuClick?: boolean;
@@ -31,7 +36,7 @@ export const ExtensionMenu = (props: {
   const { disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
 
   const onOpenExtensionStore = () => {
     appendWidgetIfNotExists({
@@ -40,6 +45,19 @@ export const ExtensionMenu = (props: {
       display_type: EWidgetDisplayType.Popup,
       metadata: {
         type: EDefaultWidgetType.ExtensionStore,
+      },
+    });
+  };
+
+  const openAbout = () => {
+    appendTabWidget({
+      id: DOC_REF_POPUP_ID,
+      sub_id: EDocLinkKey.Extension,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.PopupTab,
+      metadata: {
+        type: EDefaultWidgetType.DocRef,
+        doc_link_key: EDocLinkKey.Extension,
       },
     });
   };
@@ -72,6 +90,17 @@ export const ExtensionMenu = (props: {
           >
             <BlocksIcon />
             {t("header.menuExtension.openExtensionStore")}
+          </Button>
+        </NavigationMenuLink>
+        <Separator className="w-full" />
+        <NavigationMenuLink asChild>
+          <Button
+            className="w-full justify-start"
+            variant="ghost"
+            onClick={openAbout}
+          >
+            <InfoIcon />
+            {t("header.menuExtension.about")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>

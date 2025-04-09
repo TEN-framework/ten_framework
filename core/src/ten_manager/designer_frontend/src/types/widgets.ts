@@ -8,6 +8,7 @@ import { z } from "zod";
 import { IListTenCloudStorePackage } from "@/types/extension";
 import { EConnectionType, EGraphActions } from "@/types/graphs";
 import { TCustomNode } from "@/types/flow";
+import { EDocLinkKey } from "@/types/doc";
 
 export interface TerminalData {
   title: string;
@@ -38,6 +39,7 @@ export interface CustomConnectionData {
 export enum EWidgetDisplayType {
   Popup = "popup",
   Dock = "dock",
+  PopupTab = "popup_tab",
 }
 
 export enum EWidgetCategory {
@@ -52,6 +54,7 @@ export enum EWidgetCategory {
 
 export interface IWidgetBase {
   id: string;
+  sub_id?: string;
   display_type: EWidgetDisplayType;
 }
 
@@ -140,6 +143,7 @@ export enum EDefaultWidgetType {
   ExtensionStore = "extension_store",
   Preferences = "preferences",
   AppCreate = "app_create",
+  DocRef = "doc_ref",
 }
 
 export interface IDefaultWidget<T extends { type: EDefaultWidgetType }>
@@ -165,6 +169,7 @@ export type IWidget =
       type: EDefaultWidgetType;
       base_dir?: string;
       scripts?: string[];
+      doc_link_key?: EDocLinkKey;
     }>
   | IExtensionWidget
   | IGraphWidget<{

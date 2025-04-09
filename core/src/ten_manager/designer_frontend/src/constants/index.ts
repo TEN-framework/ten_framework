@@ -35,3 +35,6 @@ export const TEN_PATH_WS_EXEC = "/api/designer/v1/ws/exec";
 export const TEN_FRAMEWORK_GH_FULL_NAME = "Ten-framework/ten-framework";
 export const TEN_FRAMEWORK_GH_OWNER = "Ten-framework";
 export const TEN_FRAMEWORK_GH_REPO = "ten-framework";
+
+// --- Doc
+export const TEN_DOC_URL = "https://doc.theten.ai/";

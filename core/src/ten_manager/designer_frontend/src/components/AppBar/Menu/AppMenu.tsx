@@ -4,7 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { FolderPlusIcon, FolderCogIcon, FolderOpenIcon } from "lucide-react";
+import {
+  FolderPlusIcon,
+  FolderCogIcon,
+  FolderOpenIcon,
+  InfoIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -13,6 +18,7 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store";
@@ -25,7 +31,9 @@ import {
   APP_FOLDER_POPUP_ID,
   APPS_MANAGER_POPUP_ID,
   APP_CREATE_POPUP_ID,
+  DOC_REF_POPUP_ID,
 } from "@/constants/widgets";
+import { EDocLinkKey } from "@/types/doc";
 
 export function AppMenu(props: {
   disableMenuClick?: boolean;
@@ -36,7 +44,7 @@ export function AppMenu(props: {
 
   const { t } = useTranslation();
 
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
@@ -67,6 +75,19 @@ export function AppMenu(props: {
       display_type: EWidgetDisplayType.Popup,
       metadata: {
         type: EDefaultWidgetType.AppCreate,
+      },
+    });
+  };
+
+  const openAbout = () => {
+    appendTabWidget({
+      id: DOC_REF_POPUP_ID,
+      sub_id: EDocLinkKey.App,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.PopupTab,
+      metadata: {
+        type: EDefaultWidgetType.DocRef,
+        doc_link_key: EDocLinkKey.App,
       },
     });
   };
@@ -120,6 +141,17 @@ export function AppMenu(props: {
             >
               <FolderCogIcon className="w-4 h-4 me-2" />
               {t("header.menuApp.manageLoadedApps")}
+            </Button>
+          </NavigationMenuLink>
+          <Separator className="w-full" />
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={openAbout}
+            >
+              <InfoIcon className="w-4 h-4 me-2" />
+              {t("header.menuApp.about")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>
