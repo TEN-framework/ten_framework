@@ -13,7 +13,7 @@ import {
   PopupInnerTabs,
   PopupInnerTab,
   PopupInnerTabContent,
-} from "@/components/Popup";
+} from "@/components/Popup/Base";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { DOC_REF_POPUP_ID } from "@/constants/widgets";
 import { IDefaultWidget, EDefaultWidgetType } from "@/types/widgets";

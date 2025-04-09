@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { SaveIcon, PinIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import EditorWidget, {
   type TEditorOnClose,
 } from "@/components/Widget/EditorWidget";

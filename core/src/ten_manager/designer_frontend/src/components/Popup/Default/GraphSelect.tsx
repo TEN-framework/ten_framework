@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CheckIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import {
   Select,
   SelectContent,

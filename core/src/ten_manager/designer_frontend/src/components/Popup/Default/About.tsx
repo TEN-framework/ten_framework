@@ -6,7 +6,7 @@
 //
 import { useTranslation, Trans } from "react-i18next";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";

@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon, XIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";

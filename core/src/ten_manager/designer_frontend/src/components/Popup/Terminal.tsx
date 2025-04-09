@@ -8,7 +8,7 @@ import React, { useRef } from "react";
 import { PinIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";

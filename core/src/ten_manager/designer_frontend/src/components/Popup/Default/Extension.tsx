@@ -7,7 +7,7 @@
 import { useTranslation } from "react-i18next";
 import { PinIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 import { useWidgetStore } from "@/store/widget";
 import {
