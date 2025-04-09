@@ -129,14 +129,6 @@ impl Property {
     /// This method writes the `all_fields` map directly to the specified file
     /// path. This preserves the original order of fields in the
     /// `property.json` file.
-    ///
-    /// # Arguments
-    /// * `property_file_path` - The path where the property JSON file should be
-    ///   written.
-    ///
-    /// # Returns
-    /// * `Ok(())` if the file was successfully written.
-    /// * `Err` containing the error if serialization or file writing fails.
     pub fn dump_property_to_file(
         &self,
         property_file_path: &PathBuf,
