@@ -7,7 +7,7 @@
 import { useTranslation } from "react-i18next";
 import { PinIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 import { useWidgetStore } from "@/store/widget";
 import {
@@ -29,7 +29,7 @@ export const ExtensionStorePopup = () => {
   const windowSize = getCurrentWindowSize();
 
   return (
-    <Popup
+    <PopupBase
       id={EXTENSION_STORE_POPUP_ID}
       title={t("extensionStore.title")}
       onClose={() => removeWidget(EXTENSION_STORE_POPUP_ID)}
@@ -48,7 +48,7 @@ export const ExtensionStorePopup = () => {
       ]}
     >
       <ExtensionStoreWidget />
-    </Popup>
+    </PopupBase>
   );
 };
 
@@ -62,7 +62,7 @@ export const ExtensionPopup = (props: {
   const { t } = useTranslation();
 
   return (
-    <Popup
+    <PopupBase
       id={id}
       title={t("extensionStore.extensionTitle", { name })}
       onClose={() => removeWidget(id)}
@@ -72,6 +72,6 @@ export const ExtensionPopup = (props: {
       resizable
     >
       <ExtensionWidget versions={versions} name={name} />
-    </Popup>
+    </PopupBase>
   );
 };

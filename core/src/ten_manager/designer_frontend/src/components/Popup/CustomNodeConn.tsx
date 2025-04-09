@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon, XIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup/Base";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";
@@ -52,7 +52,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
   }, [source, target]);
 
   return (
-    <Popup
+    <PopupBase
       id={id}
       title={titleMemo}
       onClose={() => onClose?.()}
@@ -67,7 +67,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
           <CustomNodeConnPopupContent source={source} filters={filters} />
         )}
       </div>
-    </Popup>
+    </PopupBase>
   );
 };
 

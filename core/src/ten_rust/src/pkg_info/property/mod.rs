@@ -13,6 +13,7 @@ use std::{
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use uuid::Uuid;
 
 use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
@@ -53,7 +54,7 @@ pub struct Property {
 /// completes the property configuration to ensure it meets all requirements.
 pub fn parse_property_from_str(
     s: &str,
-    _graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<String, GraphInfo>,
 ) -> Result<Property> {
     let mut property: Property = serde_json::from_str(s)?;
 
@@ -62,26 +63,64 @@ pub fn parse_property_from_str(
         let ten_in_property: TenInProperty =
             serde_json::from_value(ten_value.clone())?;
         property._ten = Some(ten_in_property);
+
+        // Validate predefined_graphs if they exist.
+        if let Some(ref ten) = property._ten {
+            if let Some(graphs) = &ten.predefined_graphs {
+                validate_predefined_graphs(graphs)?;
+
+                // Create a temporary cache to store validated graphs.
+                let mut temp_graphs_cache = HashMap::new();
+
+                // Validate each graph before adding to temporary cache.
+                for graph in graphs {
+                    // Create a clone to validate.
+                    let mut graph_clone = graph.clone();
+                    graph_clone.validate_and_complete()?;
+
+                    let uuid = Uuid::new_v4().to_string();
+                    temp_graphs_cache.insert(uuid, graph_clone);
+                }
+
+                // If all validations passed, add all graphs to the real cache.
+                for (uuid, graph) in temp_graphs_cache {
+                    graphs_cache.insert(uuid, graph);
+                }
+            }
+        }
     }
 
     property.validate_and_complete()?;
+
     Ok(property)
+}
+
+/// Validates that all predefined graphs have unique names.
+fn validate_predefined_graphs(graphs: &[GraphInfo]) -> Result<()> {
+    // Check for duplicate graph names in a separate scope to limit the
+    // lifetime of the HashSet to just this validation step
+    let mut seen_graph_names = std::collections::HashSet::new();
+
+    for graph in graphs.iter() {
+        // Note: We're storing references to graph names, which is correct.
+        if !seen_graph_names.insert(&graph.name) {
+            return Err(anyhow::anyhow!(
+                "Duplicate predefined graph name detected: '{}'. \
+                Each predefined_graph must have a unique 'name'.",
+                graph.name
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 impl Property {
     /// Validates and completes the property configuration.
     ///
     /// This method ensures that the property configuration is valid and
-    /// complete. If the `_ten` field is present, it delegates validation to
-    /// the `TenInProperty` struct's own validation method.
-    ///
-    /// # Returns
-    /// - `Ok(())` if validation succeeds.
-    /// - `Err` containing the validation error if validation fails.
+    /// complete.
     pub fn validate_and_complete(&mut self) -> Result<()> {
-        if let Some(_ten) = &mut self._ten {
-            _ten.validate_and_complete()?;
-        }
         Ok(())
     }
 
@@ -90,14 +129,6 @@ impl Property {
     /// This method writes the `all_fields` map directly to the specified file
     /// path. This preserves the original order of fields in the
     /// `property.json` file.
-    ///
-    /// # Arguments
-    /// * `property_file_path` - The path where the property JSON file should be
-    ///   written.
-    ///
-    /// # Returns
-    /// * `Ok(())` if the file was successfully written.
-    /// * `Err` containing the error if serialization or file writing fails.
     pub fn dump_property_to_file(
         &self,
         property_file_path: &PathBuf,
@@ -142,47 +173,6 @@ pub struct TenInProperty {
 
     #[serde(flatten)]
     pub additional_fields: HashMap<String, Value>,
-}
-
-impl TenInProperty {
-    /// Validates and completes the TEN property configuration.
-    ///
-    /// This method performs two main tasks:
-    /// 1. Validates that all predefined graphs have unique names.
-    /// 2. Ensures each predefined graph is valid by calling its own validation
-    ///    method.
-    /// 3. Sets a default URI (localhost) if none is specified.
-    ///
-    /// # Returns
-    /// * `Ok(())` if validation passes and completion is successful.
-    /// * `Err` with a descriptive message if validation fails
-    pub fn validate_and_complete(&mut self) -> Result<()> {
-        if let Some(graphs) = &mut self.predefined_graphs {
-            // Check for duplicate graph names in a separate scope to limit the
-            // lifetime of the HashSet to just this validation step
-            {
-                let mut seen_graph_names = std::collections::HashSet::new();
-                for graph in graphs.iter() {
-                    // Note: We're storing references to graph names, which is
-                    // correct.
-                    if !seen_graph_names.insert(&graph.name) {
-                        return Err(anyhow::anyhow!(
-                            "Duplicate predefined graph name detected: '{}'. \
-                            Each predefined_graph must have a unique 'name'.",
-                            graph.name
-                        ));
-                    }
-                }
-            }
-
-            // Validate each individual graph.
-            for graph in graphs {
-                graph.validate_and_complete()?;
-            }
-        }
-
-        Ok(())
-    }
 }
 
 pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
