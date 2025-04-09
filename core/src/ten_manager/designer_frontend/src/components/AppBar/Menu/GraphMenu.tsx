@@ -10,6 +10,7 @@ import {
   MoveIcon,
   PackagePlusIcon,
   GitPullRequestCreateIcon,
+  InfoIcon,
 } from "lucide-react";
 
 import {
@@ -22,13 +23,14 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
-import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+import { DOC_REF_POPUP_ID, GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 import {
   EDefaultWidgetType,
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
+import { EDocLinkKey } from "@/types/doc";
 
 export function GraphMenu(props: {
   onAutoLayout: () => void;
@@ -39,7 +41,7 @@ export function GraphMenu(props: {
   const { onAutoLayout, disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
 
   const onOpenExistingGraph = () => {
@@ -67,6 +69,19 @@ export function GraphMenu(props: {
         base_dir: currentWorkspace.baseDir,
         graph_name: currentWorkspace?.graphName || undefined,
         app_uri: currentWorkspace?.appUri || undefined,
+      },
+    });
+  };
+
+  const openAbout = () => {
+    appendTabWidget({
+      id: DOC_REF_POPUP_ID,
+      sub_id: EDocLinkKey.Graph,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.PopupTab,
+      metadata: {
+        type: EDefaultWidgetType.DocRef,
+        doc_link_key: EDocLinkKey.Graph,
       },
     });
   };
@@ -132,6 +147,17 @@ export function GraphMenu(props: {
           >
             <GitPullRequestCreateIcon />
             {t("header.menuGraph.addConnection")}
+          </Button>
+        </NavigationMenuLink>
+        <Separator className="w-full" />
+        <NavigationMenuLink asChild>
+          <Button
+            className="w-full justify-start"
+            variant="ghost"
+            onClick={openAbout}
+          >
+            <InfoIcon />
+            {t("header.menuGraph.about")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>

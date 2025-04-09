@@ -30,46 +30,74 @@ import {
   ExtensionPopup,
 } from "@/components/Popup/ExtensionPopup";
 import { GraphPopup } from "@/components/Popup/GraphPopup";
+import { DocRefPopup } from "@/components/Popup/Default/DocRef";
+import { groupWidgetsById } from "@/components/Popup/utils";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
 
   const [
     ,
-    editorWidgetsMemo,
-    terminalWidgetsMemo,
-    customConnectionWidgetsMemo,
-    logViewerWidgetsMemo,
-    defaultWidgetsMemo,
-    extensionWidgetsMemo,
-    graphWidgetsMemo,
+    [editorWidgetsMemo],
+    [terminalWidgetsMemo],
+    [customConnectionWidgetsMemo],
+    [logViewerWidgetsMemo],
+    [defaultWidgetsMemo, defaultSubTabWidgetsMemo],
+    [extensionWidgetsMemo],
+    [graphWidgetsMemo],
   ] = React.useMemo(() => {
-    const popupWidgets = widgets.filter(
-      (widget) => widget.display_type === EWidgetDisplayType.Popup
+    // get all widgets that are either popup or popup tab
+    const popupAndSubTabWidgets = widgets.filter((widget) =>
+      [EWidgetDisplayType.Popup, EWidgetDisplayType.PopupTab].includes(
+        widget.display_type
+      )
     );
-    const editorWidgets = popupWidgets.filter(
+    // 1. group editor widgets by id
+    const editorRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Editor
     );
-    const terminalWidgets = popupWidgets.filter(
+    const editorWidgets = groupWidgetsById(editorRawWidgets);
+
+    // 2. group terminal widgets by id
+    const terminalRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Terminal
     );
-    const customConnectionWidgets = popupWidgets.filter(
+    const terminalWidgets = groupWidgetsById(terminalRawWidgets);
+
+    // 3. group custom connection widgets by id
+    const customConnectionRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.CustomConnection
     );
-    const logViewerWidgets = popupWidgets.filter(
+    const customConnectionWidgets = groupWidgetsById(
+      customConnectionRawWidgets
+    );
+
+    // 4. group log viewer widgets by id
+    const logViewerRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.LogViewer
     );
-    const defaultWidgets = popupWidgets.filter(
+    const logViewerWidgets = groupWidgetsById(logViewerRawWidgets);
+
+    // 5. group default widgets by id
+    const defaultRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Default
     );
-    const extensionWidgets = popupWidgets.filter(
+    const defaultWidgets = groupWidgetsById(defaultRawWidgets);
+
+    // 6. group extension widgets by id
+    const extensionRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Extension
     );
-    const graphWidgets = popupWidgets.filter(
+    const extensionWidgets = groupWidgetsById(extensionRawWidgets);
+
+    // 7. group graph widgets by id
+    const graphRawWidgets = popupAndSubTabWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Graph
     );
+    const graphWidgets = groupWidgetsById(graphRawWidgets);
+
     return [
-      popupWidgets,
+      popupAndSubTabWidgets,
       editorWidgets,
       terminalWidgets,
       customConnectionWidgets,
@@ -143,6 +171,21 @@ export function GlobalPopups() {
             );
           case EDefaultWidgetType.Preferences:
             return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
+          case EDefaultWidgetType.DocRef:
+            return <DocRefPopup key={`DocRefPopup-${widget.id}`} />;
+        }
+      })}
+      {defaultSubTabWidgetsMemo.map((widgets) => {
+        if (widgets.length === 0) return null;
+        const firstWidget = widgets[0];
+        switch (firstWidget.metadata.type) {
+          case EDefaultWidgetType.DocRef:
+            return (
+              <DocRefPopup
+                key={`DocRefPopup-${firstWidget.id}`}
+                tabs={widgets}
+              />
+            );
         }
       })}
       {extensionWidgetsMemo.map((widget) => (

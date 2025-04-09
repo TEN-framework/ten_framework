@@ -9,6 +9,7 @@ import useSWR, { type SWRResponse, type SWRConfiguration } from "swr";
 import logger from "@/logger";
 import type { IReqTemplate } from "@/api/endpoints";
 import type { ENDPOINT_METHOD } from "@/api/endpoints/constant";
+import { EPreferencesLocale } from "@/types/apps";
 
 export const prepareReqUrl = (
   reqTemplate: IReqTemplate<ENDPOINT_METHOD, unknown>,
@@ -235,4 +236,24 @@ export const getQueryHookCache = () => {
     queryHookCache = new QueryHookCache();
   }
   return queryHookCache;
+};
+
+export const localeStringToEnum = (locale?: string) => {
+  switch (locale) {
+    case "zh-CN":
+      return EPreferencesLocale.ZH_CN;
+    case "zh-TW":
+      return EPreferencesLocale.ZH_TW;
+    case "ja-JP":
+      return EPreferencesLocale.JA_JP;
+    case "en-US":
+    default:
+      return EPreferencesLocale.EN_US;
+  }
+};
+
+export const getShortLocale = (locale?: string) => {
+  const inputLocale = locale ?? EPreferencesLocale.EN_US;
+
+  return inputLocale.split("-")?.[0]?.toLowerCase();
 };

@@ -21,7 +21,8 @@
       "manageLoadedApps": "読み込まれたアプリを管理",
       "runApp": "アプリを実行",
       "openAppFolder": "アプリフォルダを開く",
-      "createApp": "アプリを作成"
+      "createApp": "アプリを作成",
+      "about": "アプリについて"
     },
     "menuGraph": {
       "title": "グラフ",
@@ -29,7 +30,8 @@
       "autoLayout": "自動レイアウト",
       "selectLoadedApp": "読み込まれたアプリを選択",
       "addNode": "ノードを追加",
-      "addConnection": "接続を追加"
+      "addConnection": "接続を追加",
+      "about": "グラフについて"
     },
     "menuHelp": {
       "title": "ヘルプ",
@@ -37,12 +39,13 @@
     },
     "menuDesigner": {
       "title": "デザイナー",
-      "about": "TEN Manager Designerについて",
+      "about": "デザイナーについて",
       "preferences": "設定"
     },
     "menuExtension": {
       "title": "拡張機能",
-      "openExtensionStore": "拡張機能ストアを開く"
+      "openExtensionStore": "拡張機能ストアを開く",
+      "about": "拡張機能について"
     },
     "language": {
       "title": "言語",
@@ -123,6 +126,9 @@
       "title": "接続",
       "filters": "フィルター"
     },
+    "node": {
+      "properties": "プロパティ"
+    },
     "logViewer": {
       "title": "ログビューア",
       "appInstall": "アプリのインストール"
@@ -154,9 +160,6 @@
       "appNameDescription": "アプリの名前を入力してください。",
       "baseDirDescription": "アプリのベースディレクトリを選択してください。"
     },
-    "node": {
-      "properties": "プロパティ"
-    },
     "graph": {
       "title": "ノード",
       "titleAddNode": "ノードを追加",
@@ -183,6 +186,9 @@
       "messageName": "メッセージ名",
       "addConnection": "接続を追加",
       "titleUpdateNodePropertyByName": "[{{name}}] プロパティを更新"
+    },
+    "doc": {
+      "title": "ドキュメント"
     }
   },
   "dock": {
@@ -207,6 +213,7 @@
     "noResults": "結果がありません。"
   },
   "extensionStore": {
+    "extension": "拡張機能",
     "title": "拡張機能ストア",
     "readOnly": "読み取り専用",
     "compatible": "互換性あり",
@@ -236,8 +243,7 @@
     "versionHistory": "バージョン履歴",
     "selectVersion": "バージョンを選択",
     "versionLatest": "最新",
-    "localAddonTip": "（ローカル）",
-    "extension": "拡張機能"
+    "localAddonTip": "（ローカル）"
   },
   "statusBar": {
     "appsLoadedWithCount": "{{count}}個のアプリが読み込まれています",

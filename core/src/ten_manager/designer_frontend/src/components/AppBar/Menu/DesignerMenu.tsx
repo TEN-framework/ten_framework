@@ -82,10 +82,10 @@ export function DesignerMenu(props: {
             <Button
               className="w-full justify-start max-w-(--breakpoint-sm)"
               variant="ghost"
-              onClick={openAbout}
+              onClick={openPreferences}
             >
-              <InfoIcon />
-              {t("header.menuDesigner.about")}
+              <SettingsIcon />
+              {t("header.menuDesigner.preferences")}
             </Button>
           </NavigationMenuLink>
           <Separator className="w-full" />
@@ -93,10 +93,10 @@ export function DesignerMenu(props: {
             <Button
               className="w-full justify-start max-w-(--breakpoint-sm)"
               variant="ghost"
-              onClick={openPreferences}
+              onClick={openAbout}
             >
-              <SettingsIcon />
-              {t("header.menuDesigner.preferences")}
+              <InfoIcon />
+              {t("header.menuDesigner.about")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>
