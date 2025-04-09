@@ -10,7 +10,6 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fmt;
-use std::str::FromStr;
 use std::sync::OnceLock;
 
 use crate::designer::{
@@ -27,10 +26,17 @@ const SUPPORTED_LOCALES: [Locale; 3] =
 
 /// Enum for doc link keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
 pub enum DocLinkKey {
+    #[serde(rename = "graph")]
     Graph,
 
+    #[serde(rename = "app")]
+    App,
+
+    #[serde(rename = "extension")]
+    Extension,
+
+    #[serde(rename = "unknown")]
     #[serde(other)]
     Unknown,
 }
@@ -39,18 +45,9 @@ impl fmt::Display for DocLinkKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DocLinkKey::Graph => write!(f, "graph"),
+            DocLinkKey::App => write!(f, "app"),
+            DocLinkKey::Extension => write!(f, "extension"),
             DocLinkKey::Unknown => write!(f, "unknown"),
-        }
-    }
-}
-
-impl FromStr for DocLinkKey {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "graph" => Ok(DocLinkKey::Graph),
-            _ => Ok(DocLinkKey::Unknown),
         }
     }
 }
