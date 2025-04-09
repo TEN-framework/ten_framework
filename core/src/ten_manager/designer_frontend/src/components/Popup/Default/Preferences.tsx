@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import {
@@ -46,7 +46,7 @@ export const PreferencesPopup = () => {
   };
 
   return (
-    <Popup
+    <PopupBase
       id={PREFERENCES_POPUP_ID}
       title={t("header.menuDesigner.preferences")}
     >
@@ -66,7 +66,7 @@ export const PreferencesPopup = () => {
           <PreferencesLogTab onCancel={onClose} />
         </TabsContent>
       </Tabs>
-    </Popup>
+    </PopupBase>
   );
 };
 

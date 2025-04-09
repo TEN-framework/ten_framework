@@ -9,11 +9,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
-  Popup,
+  PopupBase,
   PopupInnerTabs,
   PopupInnerTab,
   PopupInnerTabContent,
-} from "@/components/Popup/Popup";
+} from "@/components/Popup";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { DOC_REF_POPUP_ID } from "@/constants/widgets";
 import { IDefaultWidget, EDefaultWidgetType } from "@/types/widgets";
@@ -63,7 +63,7 @@ export const DocRefPopup = (props: {
   if (!tabs) return null;
 
   return (
-    <Popup
+    <PopupBase
       id={DOC_REF_POPUP_ID}
       title={t("popup.doc.title")}
       contentClassName="p-0 flex flex-col h-full w-full"
@@ -100,7 +100,7 @@ export const DocRefPopup = (props: {
           />
         </PopupInnerTabContent>
       ))}
-    </Popup>
+    </PopupBase>
   );
 };
 

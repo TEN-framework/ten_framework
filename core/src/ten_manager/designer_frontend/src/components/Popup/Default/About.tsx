@@ -6,7 +6,7 @@
 //
 import { useTranslation, Trans } from "react-i18next";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
@@ -16,7 +16,7 @@ export const AboutPopup = () => {
   const { t } = useTranslation();
 
   return (
-    <Popup id={ABOUT_POPUP_ID} title={t("header.menuDesigner.about")}>
+    <PopupBase id={ABOUT_POPUP_ID} title={t("header.menuDesigner.about")}>
       <div className="flex flex-col gap-2 h-full w-full">
         <p
           className={cn(
@@ -57,7 +57,7 @@ export const AboutPopup = () => {
           </li>
         </ul>
       </div>
-    </Popup>
+    </PopupBase>
   );
 };
 

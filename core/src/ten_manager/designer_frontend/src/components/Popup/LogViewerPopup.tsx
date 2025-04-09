@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PinIcon, OctagonXIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import {
   EWidgetCategory,
@@ -64,7 +64,7 @@ export function LogViewerPopup(props: {
   }, [backstageWidgets, data?.scriptType, data?.script, id]);
 
   return (
-    <Popup
+    <PopupBase
       id={id}
       title={
         <div className="flex items-center gap-1.5">
@@ -101,6 +101,6 @@ export function LogViewerPopup(props: {
       ]}
     >
       <LogViewerFrontStageWidget id={id} options={data?.options} />
-    </Popup>
+    </PopupBase>
   );
 }

@@ -7,7 +7,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import { useWidgetStore } from "@/store/widget";
 import {
   GraphAddConnectionWidget,
@@ -57,7 +57,7 @@ export const GraphPopup = (props: {
   }, [metadata.type, metadata.node]);
 
   return (
-    <Popup
+    <PopupBase
       id={id}
       title={titleMemo}
       onClose={handleClose}
@@ -92,6 +92,6 @@ export const GraphPopup = (props: {
             }}
           />
         )}
-    </Popup>
+    </PopupBase>
   );
 };

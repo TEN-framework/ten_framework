@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { PlayIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import {
   Select,
   SelectContent,
@@ -98,7 +98,7 @@ export const AppFolderPopup = () => {
   };
 
   return (
-    <Popup
+    <PopupBase
       id={APP_FOLDER_POPUP_ID}
       title={t("header.menuApp.openAppFolder")}
       resizable
@@ -110,7 +110,7 @@ export const AppFolderPopup = () => {
         onSave={handleSave}
         onCancel={() => removeWidget(APP_FOLDER_POPUP_ID)}
       />
-    </Popup>
+    </PopupBase>
   );
 };
 
@@ -118,9 +118,13 @@ export const LoadedAppsPopup = () => {
   const { t } = useTranslation();
 
   return (
-    <Popup id={APPS_MANAGER_POPUP_ID} title={t("popup.apps.manager")} resizable>
+    <PopupBase
+      id={APPS_MANAGER_POPUP_ID}
+      title={t("popup.apps.manager")}
+      resizable
+    >
       <AppsManagerWidget />
-    </Popup>
+    </PopupBase>
   );
 };
 
@@ -167,7 +171,7 @@ export const AppRunPopup = (props: {
   }
 
   return (
-    <Popup id={id} title={t("popup.apps.run")} width={600} maxWidth={600}>
+    <PopupBase id={id} title={t("popup.apps.run")} width={600} maxWidth={600}>
       <div className="flex flex-col gap-2 w-full h-full">
         <div className="flex flex-col gap-2">
           <Label htmlFor="runapp_base_dir">{t("popup.apps.baseDir")}</Label>
@@ -200,7 +204,7 @@ export const AppRunPopup = (props: {
           </Button>
         </div>
       </div>
-    </Popup>
+    </PopupBase>
   );
 };
 
@@ -215,11 +219,15 @@ export const AppCreatePopup = (props: { id?: string }) => {
   };
 
   return (
-    <Popup id={APP_CREATE_POPUP_ID} title={t("popup.apps.create")} width={384}>
+    <PopupBase
+      id={APP_CREATE_POPUP_ID}
+      title={t("popup.apps.create")}
+      width={384}
+    >
       <AppTemplateWidget
         onCreated={handleCreated}
         className="w-full max-w-sm"
       />
-    </Popup>
+    </PopupBase>
   );
 };

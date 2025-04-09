@@ -60,7 +60,7 @@ export interface IPopupBaseProps {
   onTabIdUpdate?: (tabId: string) => void;
 }
 
-export const Popup = (props: IPopupBaseProps) => {
+export const PopupBase = (props: IPopupBaseProps) => {
   const {
     id,
     children,

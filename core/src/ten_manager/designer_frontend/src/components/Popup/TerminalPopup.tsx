@@ -8,7 +8,7 @@ import React, { useRef } from "react";
 import { PinIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
@@ -48,7 +48,7 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
   };
 
   return (
-    <Popup
+    <PopupBase
       id={id}
       title={data.title}
       onClose={onClose}
@@ -68,7 +68,7 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
       ]}
     >
       <TerminalWidget ref={terminalRef} id={id} data={data} onClose={onClose} />
-    </Popup>
+    </PopupBase>
   );
 };
 

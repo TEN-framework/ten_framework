@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CheckIcon } from "lucide-react";
 
-import { Popup } from "@/components/Popup/Popup";
+import { PopupBase } from "@/components/Popup";
 import {
   Select,
   SelectContent,
@@ -133,7 +133,7 @@ export function GraphSelectPopup() {
   }, [error, errorApps]);
 
   return (
-    <Popup
+    <PopupBase
       id={GRAPH_SELECT_POPUP_ID}
       title={t("popup.selectGraph.title")}
       resizable={false}
@@ -232,6 +232,6 @@ export function GraphSelectPopup() {
           <Button onClick={handleSave}>{t("action.save")}</Button>
         </div>
       </div>
-    </Popup>
+    </PopupBase>
   );
 }
