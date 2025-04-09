@@ -156,14 +156,6 @@ void *ten_builtin_test_app_thread_main(void *args) {
 
   test_app->user_data = tester;
 
-  ten_list_foreach (&tester->addon_base_dirs, iter) {
-    ten_string_t *addon_base_dir = ten_str_listnode_get(iter.node);
-    TEN_ASSERT(addon_base_dir, "Should not happen.");
-
-    ten_app_add_ten_package_base_dir(test_app,
-                                     ten_string_get_raw_str(addon_base_dir));
-  }
-
   bool rc = ten_app_run(test_app, false, &err);
   TEN_ASSERT(rc, "Should not happen.");
 

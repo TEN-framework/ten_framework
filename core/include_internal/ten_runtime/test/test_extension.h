@@ -10,8 +10,6 @@
 
 typedef struct ten_env_t ten_env_t;
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_manager_add_builtin_test_extension(void);
-
 TEN_RUNTIME_PRIVATE_API void
 ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
                                                        void *user_data);
@@ -27,3 +25,5 @@ ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
 TEN_RUNTIME_PRIVATE_API void
 ten_builtin_test_extension_ten_env_notify_on_deinit_done(ten_env_t *ten_env,
                                                          void *user_data);
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_manager_add_builtin_test_extension(void);

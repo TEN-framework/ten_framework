@@ -223,22 +223,28 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   int lock_operation_rc = ten_addon_store_lock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_addon_load_all_from_app_base_dir(ten_string_get_raw_str(&self->base_dir),
-                                       &err);
-  ten_addon_load_all_from_ten_package_base_dirs(&self->ten_package_base_dirs,
-                                                &err);
+  ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
+      ten_string_get_raw_str(&self->base_dir), &err);
 
+  // Addon registration phase 1: adding a function, which will perform the
+  // actual registration in the phase 2, into the `addon_manager`.
   ten_addon_manager_add_builtin_extension_group();
   ten_addon_manager_add_builtin_test_extension();
 
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+  TEN_ASSERT(manager, "Should not happen.");
+
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
   register_ctx->app = self;
 
-  // Addonloader addons do not implement the on_init() function, so after
-  // the following method is called, all addon loaders will be registered and
-  // added to the addon store.
+  // Addon registration phase 2: actually registering the addon into the addon
+  // store.
+  //
+  // Addonloader addons do not implement the on_init() function, so after the
+  // following method is called, all addon loaders will be registered and added
+  // to the addon store.
   ten_addon_manager_register_all_addon_loaders(manager, register_ctx);
+
   ten_addon_register_ctx_destroy(register_ctx);
 
   lock_operation_rc = ten_addon_store_unlock_all_type();

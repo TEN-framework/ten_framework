@@ -309,12 +309,17 @@ static ten_addon_t builtin_extension_group_addon = {
     NULL,
 };
 
+// Addon registration phase 2: actually registering the addon into the addon
+// store.
 static void ten_builtin_extension_group_register_handler(void *register_ctx) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
                                      &builtin_extension_group_addon,
                                      register_ctx);
 }
 
+// This is the phase 1 of the addon registration process: adding a function,
+// which will perform the actual registration in the phase 2, into the
+// `addon_manager`.
 void ten_addon_manager_add_builtin_extension_group(void) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   ten_addon_manager_add_addon(manager, "extension_group",
