@@ -13,7 +13,7 @@ use ten_rust::{
     graph::node::GraphNode,
     pkg_info::{
         pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-        predefined_graphs::pkg_predefined_graphs_find,
+        predefined_graphs::pkg_predefined_graphs_find_mut,
     },
 };
 
@@ -48,18 +48,30 @@ pub async fn delete_graph_node_endpoint(
     // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().unwrap();
 
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
     // Get the packages for this base_dir.
     if let Some(base_dir_pkg_info) =
-        state_write.pkgs_cache.get_mut(&request_payload.base_dir)
+        pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
-            // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == request_payload.graph_name,
-            ) {
+            // Get the specified graph from graphs_cache.
+            if let Some(predefined_graph) =
+                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
+                    g.name == request_payload.graph_name
+                        && (g.app_base_dir.is_some()
+                            && g.app_base_dir.as_ref().unwrap()
+                                == &request_payload.base_dir)
+                        && (g.belonging_pkg_type.is_some()
+                            && g.belonging_pkg_type.unwrap() == PkgType::App)
+                })
+            {
                 let mut graph = predefined_graph.graph.clone();
 
                 // Delete the extension node.

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
@@ -10,7 +12,7 @@ use crate::graph::{
     connection::GraphConnection, graph_info::GraphInfo, node::GraphNode, Graph,
 };
 
-pub fn pkg_predefined_graphs_find<F>(
+pub fn pkg_predefined_graphs_find_old<F>(
     pkg_predefined_graphs: Option<&Vec<GraphInfo>>,
     predicate: F,
 ) -> Option<&GraphInfo>
@@ -23,6 +25,38 @@ where
             pkg_predefined_graphs.iter().find(predicate)
         }
     }
+}
+
+pub fn pkg_predefined_graphs_find<F>(
+    graphs_cache: &HashMap<String, GraphInfo>,
+    predicate: F,
+) -> Option<&GraphInfo>
+where
+    F: Fn(&GraphInfo) -> bool,
+{
+    graphs_cache.iter().find_map(|(_, graph)| {
+        if predicate(graph) {
+            Some(graph)
+        } else {
+            None
+        }
+    })
+}
+
+pub fn pkg_predefined_graphs_find_mut<F>(
+    graphs_cache: &mut HashMap<String, GraphInfo>,
+    predicate: F,
+) -> Option<&mut GraphInfo>
+where
+    F: Fn(&mut GraphInfo) -> bool,
+{
+    graphs_cache.iter_mut().find_map(|(_, graph)| {
+        if predicate(graph) {
+            Some(graph)
+        } else {
+            None
+        }
+    })
 }
 
 pub fn get_pkg_predefined_graph_from_nodes_and_connections(

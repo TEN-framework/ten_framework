@@ -10,6 +10,7 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
+use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
@@ -108,39 +109,36 @@ pub async fn get_graph_connections_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    if let Some(base_dir_pkg_info) =
-        &state_read.pkgs_cache.get(&request_payload.base_dir)
+    // If the app package has predefined graphs, find the one with the
+    // specified graph_name.
+    if let Some(predefined_graph) =
+        pkg_predefined_graphs_find(&state_read.graphs_cache, |g| {
+            g.name == request_payload.graph_name
+                && (g.app_base_dir.is_some()
+                    && g.app_base_dir.as_ref().unwrap()
+                        == &request_payload.base_dir)
+                && (g.belonging_pkg_type.is_some()
+                    && g.belonging_pkg_type.unwrap() == PkgType::App)
+        })
     {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            let graph_name = request_payload.graph_name.clone();
+        // Convert the connections field to RespConnection.
+        let connections: Option<_> =
+            predefined_graph.graph.connections.as_ref();
+        let resp_connections: Vec<GraphConnectionsSingleResponseData> =
+            match connections {
+                Some(connections) => {
+                    connections.iter().map(|conn| conn.clone().into()).collect()
+                }
+                None => vec![],
+            };
 
-            // If the app package has predefined graphs, find the one with the
-            // specified graph_name.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == graph_name,
-            ) {
-                // Convert the connections field to RespConnection.
-                let connections: Option<_> =
-                    predefined_graph.graph.connections.as_ref();
-                let resp_connections: Vec<GraphConnectionsSingleResponseData> =
-                    match connections {
-                        Some(connections) => connections
-                            .iter()
-                            .map(|conn| conn.clone().into())
-                            .collect(),
-                        None => vec![],
-                    };
+        let response = ApiResponse {
+            status: Status::Ok,
+            data: resp_connections,
+            meta: None,
+        };
 
-                let response = ApiResponse {
-                    status: Status::Ok,
-                    data: resp_connections,
-                    meta: None,
-                };
-
-                return Ok(HttpResponse::Ok().json(response));
-            }
-        }
+        return Ok(HttpResponse::Ok().json(response));
     }
 
     let error_response = ErrorResponse {
