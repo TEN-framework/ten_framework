@@ -8,15 +8,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { PopupBase } from "@/components/Popup/Base";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import { DOC_REF_POPUP_ID } from "@/constants/widgets";
 import { IDefaultWidget } from "@/types/widgets";
 import { useDocLink } from "@/api/services/doc";
 import { EDocLinkKey } from "@/types/doc";
-import { getCurrentWindowSize } from "@/utils/popup";
 import { TEN_DOC_URL } from "@/constants";
-import { useWidgetStore } from "@/store/widget";
 
 export const DocRefPopupTitle = (props: { name: string }) => {
   const { name } = props;
@@ -33,10 +29,13 @@ export const DocRefPopupContent = (props: { widget: IDefaultWidget }) => {
 
   if (!doc_link_key) return null;
 
-  return <DocRefTabContent locale={i18n.language} queryKey={doc_link_key} />;
+  return <DocRefRemoteContent locale={i18n.language} queryKey={doc_link_key} />;
 };
 
-const DocRefTabContent = (props: { locale: string; queryKey: EDocLinkKey }) => {
+const DocRefRemoteContent = (props: {
+  locale: string;
+  queryKey: EDocLinkKey;
+}) => {
   const { locale, queryKey } = props;
 
   const { data, error, isLoading } = useDocLink(queryKey, locale);

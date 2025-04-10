@@ -5,22 +5,15 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { PinIcon } from "lucide-react";
 
 import { PopupBase } from "@/components/Popup/Base";
-import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 import { useWidgetStore } from "@/store/widget";
 import {
   ExtensionStoreWidget,
   ExtensionWidget,
 } from "@/components/Widget/ExtensionWidget";
-import {
-  EWidgetDisplayType,
-  IExtensionWidgetData,
-  IWidget,
-} from "@/types/widgets";
+import { IExtensionWidgetData, IWidget } from "@/types/widgets";
 import { IListTenCloudStorePackage } from "@/types/extension";
-import { getCurrentWindowSize } from "@/utils/popup";
 
 export const ExtensionStorePopupTitle = () => {
   const { t } = useTranslation();
@@ -30,41 +23,6 @@ export const ExtensionStorePopupTitle = () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const ExtensionStorePopupContent = (_props: { widget: IWidget }) => {
   return <ExtensionStoreWidget />;
-};
-
-/** @deprecated */
-export const ExtensionStorePopup = () => {
-  const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
-  const { t } = useTranslation();
-
-  const handlePinToDock = () => {
-    updateWidgetDisplayType(EXTENSION_STORE_POPUP_ID, EWidgetDisplayType.Dock);
-  };
-
-  const windowSize = getCurrentWindowSize();
-
-  return (
-    <PopupBase
-      id={EXTENSION_STORE_POPUP_ID}
-      title={t("extensionStore.title")}
-      onClose={() => removeWidget(EXTENSION_STORE_POPUP_ID)}
-      width={340}
-      height={windowSize?.height ? windowSize?.height - 100 : 400}
-      contentClassName="p-0"
-      resizable
-      initialPosition="top-left"
-      customActions={[
-        {
-          id: "pin-to-dock",
-          label: t("action.pinToDock"),
-          Icon: PinIcon,
-          onClick: handlePinToDock,
-        },
-      ]}
-    >
-      <ExtensionStoreWidget />
-    </PopupBase>
-  );
 };
 
 export const ExtensionPopupTitle = (props: { name: string }) => {

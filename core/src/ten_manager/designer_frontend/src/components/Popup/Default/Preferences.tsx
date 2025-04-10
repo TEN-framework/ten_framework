@@ -10,7 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { PopupBase } from "@/components/Popup/Base";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import {
@@ -25,7 +24,6 @@ import {
 import { Input } from "@/components/ui/Input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/lib/utils";
-import { PREFERENCES_POPUP_ID } from "@/constants/widgets";
 import { useAppStore, useWidgetStore } from "@/store";
 import {
   PREFERENCES_SCHEMA_LOG,
@@ -68,40 +66,6 @@ export const PreferencesWidgetContent = (props: { widget: IWidget }) => {
         <PreferencesLogTab onCancel={onClose} />
       </TabsContent>
     </Tabs>
-  );
-};
-
-/** @deprecated */
-export const PreferencesPopup = () => {
-  const { t } = useTranslation();
-  const { removeWidget } = useWidgetStore();
-
-  const onClose = () => {
-    removeWidget(PREFERENCES_POPUP_ID);
-  };
-
-  return (
-    <PopupBase
-      id={PREFERENCES_POPUP_ID}
-      title={t("header.menuDesigner.preferences")}
-    >
-      <Tabs defaultValue={EPreferencesTabs.GENERAL} className="w-full h-full">
-        <TabsList className={cn("grid w-full grid-cols-2 min-w-[400px]")}>
-          <TabsTrigger value={EPreferencesTabs.GENERAL}>
-            {t("preferences.general.title")}
-          </TabsTrigger>
-          <TabsTrigger value={EPreferencesTabs.LOG}>
-            {t("preferences.log.title")}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value={EPreferencesTabs.GENERAL}>
-          <PreferencesGeneralTab />
-        </TabsContent>
-        <TabsContent value={EPreferencesTabs.LOG}>
-          <PreferencesLogTab onCancel={onClose} />
-        </TabsContent>
-      </Tabs>
-    </PopupBase>
   );
 };
 
