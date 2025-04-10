@@ -13,7 +13,6 @@ import { EDocLinkKey } from "@/types/doc";
 export enum EWidgetDisplayType {
   Popup = "popup",
   Dock = "dock",
-  PopupTab = "popup_tab",
 }
 
 export enum EWidgetCategory {
@@ -28,7 +27,10 @@ export enum EWidgetCategory {
 
 // 0. Widget Base
 
-export interface IWidgetBase<T> {
+export interface IWidgetBase<
+  T,
+  A extends IWidgetActions<T> = IWidgetActions<T>,
+> {
   // The container id of the groups(of tabs/widgets)
   // container > group > widget
   container_id: string;
@@ -42,6 +44,21 @@ export interface IWidgetBase<T> {
   title?: string | React.ReactNode;
   // The metadata of the tab/widget
   metadata: T;
+  actions?: A;
+}
+
+export type TWidgetCustomAction = {
+  id: string;
+  label: string | React.ReactNode;
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactNode;
+  onClick: () => void | Promise<void>;
+};
+
+export interface IWidgetActions<T> {
+  onClose?: () => void | Promise<void>;
+  onSubmit?: (data: T) => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
+  custom_actions?: TWidgetCustomAction[];
 }
 
 // 1. Terminal Widget

@@ -16,6 +16,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+} from "@/components/ui/ContextMenu";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -23,62 +30,147 @@ import {
 } from "@/components/ui/Tooltip";
 import { useWidgetStore } from "@/store";
 import { ECustomEventName } from "@/utils/popup";
+import { TWidgetCustomAction } from "@/types/widgets";
 
-const POPUP_MIN_HEIGHT = 100;
-const POPUP_MIN_WIDTH = 100;
+const POPUP_MIN_HEIGHT = 200;
+const POPUP_MIN_WIDTH = 340;
 
 export interface IPopupBaseProps {
   id: string;
-  title: string | React.ReactNode;
+  title?: string | React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  resizable?: boolean;
-  onResizing?: () => void;
-  onResized?: () => void;
-  collapsible?: boolean;
-  /** @deprecated */
-  autoFocus?: boolean;
-  customActions?: {
-    id: string;
-    label: string;
-    Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactNode;
-    onClick: () => void;
-  }[];
   contentClassName?: string;
-  width?: number;
-  height?: number;
+  defaultWidth?: number;
+  defaultHeight?: number;
   maxWidth?: number;
   maxHeight?: number;
-  onClose?: () => Promise<void> | void;
-  onCollapseToggle?: (isCollapsed: boolean) => void;
   initialPosition?:
     | "center"
     | "top-left"
     | "top-right"
     | "bottom-left"
     | "bottom-right";
-  onTabIdUpdate?: (tabId: string) => void;
+  customActions?: TWidgetCustomAction[];
+  onResizing?: () => void;
+  onResized?: () => void;
+  onClose?: () => Promise<void> | void;
+  onCollapseToggle?: (isCollapsed: boolean) => void;
 }
+
+export const PopupTabsBar = (props: {
+  children?: React.ReactNode;
+  className?: string;
+}) => {
+  const { children, className } = props;
+
+  return (
+    <ul
+      className={cn(
+        "w-full h-8 flex items-center overflow-x-auto overflow-y-hidden",
+        "scroll-p-1",
+        "bg-border dark:bg-popover",
+        className
+      )}
+    >
+      {children}
+    </ul>
+  );
+};
+
+export const PopupTabsBarItem = (props: {
+  id: string;
+  children?: React.ReactNode | string;
+  className?: string;
+  isActive?: boolean;
+  onSelect?: (id: string) => void;
+  onClose?: (id: string) => void;
+  actions?: TWidgetCustomAction[];
+}) => {
+  const { id, children, onClose, isActive, actions, className, onSelect } =
+    props;
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <li
+          className={cn(
+            "w-fit flex items-center gap-2 px-2 py-1 text-xs cursor-pointer",
+            "border-b-2 border-transparent",
+            {
+              "text-primary border-purple-900": isActive,
+            },
+            "hover:text-primary",
+            className
+          )}
+          onClick={() => onSelect?.(id)}
+        >
+          <div className={cn("truncate max-w-[150px]")}>{children}</div>
+          {onClose && (
+            <XIcon
+              className="size-3 ml-1 text-foreground hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose?.(id);
+              }}
+            />
+          )}
+        </li>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {actions?.map((action) => (
+          <ContextMenuItem key={action.id} inset onClick={action.onClick}>
+            {action.label}
+          </ContextMenuItem>
+        ))}
+        {actions && actions.length > 0 && onClose && <ContextMenuSeparator />}
+        {onClose && (
+          <ContextMenuItem inset onClick={() => onClose?.(id)}>
+            Close
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+};
+
+export const PopupTabsBarContent = (props: {
+  children?: React.ReactNode;
+  className?: string;
+  isActive?: boolean;
+}) => {
+  const { children, className, isActive } = props;
+
+  return (
+    <div
+      className={cn(
+        "w-full h-[calc(100%-32px)]",
+        {
+          ["hidden"]: !isActive,
+        },
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
 
 export const PopupBase = (props: IPopupBaseProps) => {
   const {
     id,
     children,
     className,
-    title,
-    resizable = false,
-    collapsible = true,
-    autoFocus = false,
-    customActions,
+    title = null,
     contentClassName,
-    width,
-    height,
+    defaultWidth = POPUP_MIN_WIDTH,
+    defaultHeight = POPUP_MIN_HEIGHT,
     maxWidth = Infinity,
     maxHeight = Infinity,
+    customActions,
+    initialPosition = "center",
     onClose,
     onCollapseToggle,
-    initialPosition = "center",
-    onTabIdUpdate,
     onResizing,
     onResized,
   } = props;
@@ -92,12 +184,14 @@ export const PopupBase = (props: IPopupBaseProps) => {
   const { removeWidget } = useWidgetStore();
   const dragControls = useDragControls();
   const popupHeight = useMotionValue(
-    height ||
+    defaultHeight ||
       popupRef.current?.getBoundingClientRect().height ||
       POPUP_MIN_HEIGHT
   );
   const popupWidth = useMotionValue(
-    width || popupRef.current?.getBoundingClientRect().width || POPUP_MIN_WIDTH
+    defaultWidth ||
+      popupRef.current?.getBoundingClientRect().width ||
+      POPUP_MIN_WIDTH
   );
 
   const preResizeCallback = React.useCallback(() => {
@@ -143,23 +237,20 @@ export const PopupBase = (props: IPopupBaseProps) => {
     }
   }, [onClose, id, removeWidget]);
 
-  const handleBringToFront = React.useCallback(
-    (tab_id?: string) => {
-      const highestZIndex = Math.max(
-        ...Array.from(document.querySelectorAll(".popup")).map(
-          (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
-        )
-      );
-      if (tab_id) {
-        onTabIdUpdate?.(tab_id);
-      }
-      if (popupRef.current) {
-        if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
-        popupRef.current.style.zIndex = (highestZIndex + 1).toString();
-      }
-    },
-    [onTabIdUpdate]
-  );
+  const handleBringToFront = React.useCallback((tab_id?: string) => {
+    const highestZIndex = Math.max(
+      ...Array.from(document.querySelectorAll(".popup")).map(
+        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
+      )
+    );
+    // if (tab_id) {
+    //   onTabIdUpdate?.(tab_id);
+    // }
+    if (popupRef.current) {
+      if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
+      popupRef.current.style.zIndex = (highestZIndex + 1).toString();
+    }
+  }, []);
 
   React.useEffect(() => {
     if (popupRef.current) {
@@ -182,12 +273,9 @@ export const PopupBase = (props: IPopupBaseProps) => {
         popupRef.current.style.top = `${innerHeight - rect.height - 40}px`;
       }
       handleBringToFront();
-      if (autoFocus) {
-        popupRef.current.focus();
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFocus, initialPosition]);
+  }, [initialPosition]);
 
   React.useEffect(() => {
     const bringToFrontEvent = (event: CustomEvent) => {
@@ -239,8 +327,8 @@ export const PopupBase = (props: IPopupBaseProps) => {
               width: popupWidth,
             }
           : {
-              height: (!isCollapsed && height) || "auto",
-              width: width || "auto",
+              height: (!isCollapsed && defaultHeight) || "auto",
+              width: defaultWidth || "auto",
             }),
         ...(maxWidth !== Infinity && { maxWidth }),
         ...(maxHeight !== Infinity && { maxHeight }),
@@ -254,7 +342,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
           "bg-slate-100/80 dark:bg-gray-900/80",
           "rounded-t-lg",
           {
-            ["border-b border-border/50"]: collapsible && !isCollapsed,
+            ["border-b border-border/50"]: !isCollapsed,
           }
         )}
       >
@@ -265,7 +353,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
         ) : (
           title
         )}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 ml-auto">
           {customActions?.map((action) => (
             <TooltipProvider>
               <Tooltip>
@@ -285,23 +373,23 @@ export const PopupBase = (props: IPopupBaseProps) => {
               </Tooltip>
             </TooltipProvider>
           ))}
-          {collapsible && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto p-1.5 transition-colors cursor-pointer"
-              onClick={() => {
-                setIsCollapsed(!isCollapsed);
-                onCollapseToggle?.(isCollapsed);
-              }}
-            >
-              {isCollapsed ? (
-                <ChevronDown className="opacity-70" />
-              ) : (
-                <ChevronUp className="opacity-70" />
-              )}
-            </Button>
-          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto p-1.5 transition-colors cursor-pointer"
+            onClick={() => {
+              setIsCollapsed(!isCollapsed);
+              onCollapseToggle?.(isCollapsed);
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronDown className="opacity-70" />
+            ) : (
+              <ChevronUp className="opacity-70" />
+            )}
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -316,7 +404,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
         className={cn(
           "p-2.5 overflow-hidden flex w-full",
           {
-            ["py-0 h-0 opacity-0"]: collapsible && isCollapsed,
+            ["py-0 h-0 opacity-0"]: isCollapsed,
             ["h-full opacity-100"]: !isCollapsed,
           },
           contentClassName
@@ -325,149 +413,67 @@ export const PopupBase = (props: IPopupBaseProps) => {
       >
         {children}
       </motion.div>
+
       {/* bottom resize handler */}
-      {resizable && (
-        <motion.div
-          className={cn(
-            "absolute bottom-0 left-0 right-1",
-            "h-0.5 cursor-ns-resize bg-transparent"
-          )}
-          drag="y"
-          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-          dragElastic={0}
-          dragMomentum={false}
-          onDrag={handleResizeY}
-          onMouseDown={() => {
-            setIsResizing(true);
-            onResizing?.();
-          }}
-          onDragEnd={() => {
-            setIsResizing(false);
-            onResized?.();
-          }}
-        />
-      )}
+      <motion.div
+        className={cn(
+          "absolute bottom-0 left-0 right-1",
+          "h-0.5 cursor-ns-resize bg-transparent"
+        )}
+        drag="y"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        dragMomentum={false}
+        onDrag={handleResizeY}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
       {/* right resize handler */}
-      {resizable && (
-        <motion.div
-          className={cn(
-            "absolute right-0 top-0 bottom-1",
-            "w-0.5 cursor-ew-resize bg-transparent"
-          )}
-          drag="x"
-          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-          dragElastic={0}
-          onDrag={handleResizeX}
-          onMouseDown={() => {
-            setIsResizing(true);
-            onResizing?.();
-          }}
-          onDragEnd={() => {
-            setIsResizing(false);
-            onResized?.();
-          }}
-        />
-      )}
+      <motion.div
+        className={cn(
+          "absolute right-0 top-0 bottom-1",
+          "w-0.5 cursor-ew-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResizeX}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
       {/* right bottom resize handler */}
-      {resizable && (
-        <motion.div
-          className={cn(
-            "absolute right-0 bottom-0",
-            "size-1 cursor-se-resize bg-transparent"
-          )}
-          drag="x"
-          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-          dragElastic={0}
-          onDrag={handleResizeXY}
-          onMouseDown={() => {
-            setIsResizing(true);
-            onResizing?.();
-          }}
-          onDragEnd={() => {
-            setIsResizing(false);
-            onResized?.();
-          }}
-        />
-      )}
+      <motion.div
+        className={cn(
+          "absolute right-0 bottom-0",
+          "size-1 cursor-se-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResizeXY}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
     </motion.div>
-  );
-};
-
-export const PopupInnerTabs = (props: {
-  children?: React.ReactNode;
-  className?: string;
-}) => {
-  const { children, className } = props;
-
-  return (
-    <ul
-      className={cn(
-        "w-full h-8 flex items-center overflow-x-auto overflow-y-hidden",
-        "scroll-p-1",
-        "bg-border dark:bg-popover",
-        className
-      )}
-    >
-      {children}
-    </ul>
-  );
-};
-
-export const PopupInnerTab = (props: {
-  id: string | number;
-  children?: React.ReactNode | string;
-  className?: string;
-  isActive?: boolean;
-  onClose?: (id: string | number) => void;
-  onClick?: (id: string | number) => void;
-}) => {
-  const { id, children, className, isActive, onClose, onClick } = props;
-
-  return (
-    <li
-      className={cn(
-        "w-fit flex items-center gap-2 px-2 py-1 text-xs cursor-pointer",
-        "border-b-2 border-transparent",
-        {
-          "text-primary border-purple-900": isActive,
-        },
-        "hover:text-primary",
-        className
-      )}
-      onClick={() => onClick?.(id)}
-    >
-      <div className={cn("truncate max-w-[150px]")}>{children}</div>
-      {onClose && (
-        <XIcon
-          className="size-3 ml-1 text-foreground hover:text-destructive"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose?.(id);
-          }}
-        />
-      )}
-    </li>
-  );
-};
-
-export const PopupInnerTabContent = (props: {
-  children?: React.ReactNode;
-  className?: string;
-  isActive?: boolean;
-}) => {
-  const { children, className, isActive } = props;
-
-  return (
-    <div
-      className={cn(
-        "w-full h-[calc(100%-32px)]",
-        {
-          ["hidden"]: !isActive,
-        },
-        className
-      )}
-    >
-      {children}
-    </div>
   );
 };

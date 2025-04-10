@@ -10,11 +10,21 @@ import { useTranslation } from "react-i18next";
 
 import { PopupBase } from "@/components/Popup/Base";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
-import { EWidgetDisplayType, ITerminalWidgetData } from "@/types/widgets";
+import {
+  EWidgetDisplayType,
+  ITerminalWidget,
+  ITerminalWidgetData,
+} from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
+
+export const TerminalPopupContent = (props: { widget: ITerminalWidget }) => {
+  const { widget } = props;
+
+  return <TerminalWidget id={widget.widget_id} data={widget.metadata} />;
+};
 
 interface TerminalPopupProps {
   id: string;

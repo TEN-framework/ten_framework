@@ -87,11 +87,11 @@ export const useWidgetStore = create<{
     },
     removeWidget: (widgetId: string) =>
       set((state) => ({
-        widgets: state.widgets.filter((w) => w.id !== widgetId),
+        widgets: state.widgets.filter((w) => w.widget_id !== widgetId),
       })),
     removeWidgets: (widgetIds: string[]) =>
       set((state) => ({
-        widgets: state.widgets.filter((w) => !widgetIds.includes(w.id)),
+        widgets: state.widgets.filter((w) => !widgetIds.includes(w.widget_id)),
       })),
     updateWidgetDisplayType: (
       widgetId: string,
@@ -107,7 +107,7 @@ export const useWidgetStore = create<{
     updateEditorStatus: (widgetId: string, isEditing: boolean) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
-          w.id === widgetId && w.category === EWidgetCategory.Editor
+          w.widget_id === widgetId && w.category === EWidgetCategory.Editor
             ? { ...w, isEditing }
             : w
         ),
@@ -121,20 +121,22 @@ export const useWidgetStore = create<{
       })),
     appendBackstageWidgetIfNotExists: (widget: IWidget) =>
       set((state) => ({
-        backstageWidgets: state.backstageWidgets.find((w) => w.id === widget.id)
+        backstageWidgets: state.backstageWidgets.find(
+          (w) => w.widget_id === widget.widget_id
+        )
           ? state.backstageWidgets
           : [...state.backstageWidgets, widget],
       })),
     removeBackstageWidget: (widgetId: string) =>
       set((state) => ({
         backstageWidgets: state.backstageWidgets.filter(
-          (w) => w.id !== widgetId
+          (w) => w.widget_id !== widgetId
         ),
       })),
     removeBackstageWidgets: (widgetIds: string[]) =>
       set((state) => ({
         backstageWidgets: state.backstageWidgets.filter(
-          (w) => !widgetIds.includes(w.id)
+          (w) => !widgetIds.includes(w.widget_id)
         ),
       })),
 

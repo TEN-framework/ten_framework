@@ -35,6 +35,9 @@ import {
 import type { IListTenCloudStorePackage } from "@/types/extension";
 import { useListTenCloudStorePackages } from "@/api/services/extension";
 import { postReloadApps } from "@/api/services/apps";
+import { GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
 
 export const ExtensionTooltipContent = (props: {
   item: IListTenCloudStorePackage;
@@ -175,9 +178,14 @@ export const ExtensionDetails = (props: {
       return;
     }
     appendWidgetIfNotExists({
-      id: "ext-install-" + selectedVersionItemMemo.hash,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_LOG_VIEWER_ID,
+      widget_id: "ext-install-" + selectedVersionItemMemo.hash,
+
       category: EWidgetCategory.LogViewer,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LogViewerPopupTitle />,
       metadata: {
         wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
         scriptType: ELogViewerScriptType.INSTALL,

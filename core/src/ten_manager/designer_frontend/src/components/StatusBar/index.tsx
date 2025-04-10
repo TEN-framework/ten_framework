@@ -25,9 +25,14 @@ import {
 } from "@/types/widgets";
 import {
   APPS_MANAGER_POPUP_ID,
+  APPS_MANAGER_WIDGET_ID,
   GRAPH_SELECT_POPUP_ID,
+  CONTAINER_DEFAULT_ID,
+  GRAPH_SELECT_WIDGET_ID,
 } from "@/constants/widgets";
 import { useWidgetStore, useAppStore } from "@/store";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
+import { LoadedAppsPopupTitle } from "../Popup/Default/App";
 
 export default function StatusBar(props: { className?: string }) {
   const { className } = props;
@@ -60,9 +65,14 @@ const StatusApps = () => {
 
   const openAppsManagerPopup = () => {
     appendWidgetIfNotExists({
-      id: APPS_MANAGER_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APPS_MANAGER_WIDGET_ID,
+      widget_id: APPS_MANAGER_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LoadedAppsPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppsManager,
       },
@@ -133,9 +143,14 @@ const StatusWorkspace = () => {
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GRAPH_SELECT_WIDGET_ID,
+      widget_id: GRAPH_SELECT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphSelectPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
       },

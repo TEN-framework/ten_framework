@@ -36,7 +36,42 @@ import { LanguageToggle } from "@/components/LangSwitch";
 import { ModeToggle } from "@/components/ModeToggle";
 import { useTheme } from "@/components/use-theme";
 import { updatePreferencesField } from "@/api/services/common";
+import type { IWidget } from "@/types/widgets";
 
+export const PreferencesWidgetTitle = () => {
+  const { t } = useTranslation();
+  return t("header.menuDesigner.preferences");
+};
+
+export const PreferencesWidgetContent = (props: { widget: IWidget }) => {
+  const { t } = useTranslation();
+  const { removeWidget } = useWidgetStore();
+
+  const onClose = () => {
+    removeWidget(props.widget.widget_id);
+  };
+
+  return (
+    <Tabs defaultValue={EPreferencesTabs.GENERAL} className="w-full">
+      <TabsList className={cn("grid w-full grid-cols-2")}>
+        <TabsTrigger value={EPreferencesTabs.GENERAL}>
+          {t("preferences.general.title")}
+        </TabsTrigger>
+        <TabsTrigger value={EPreferencesTabs.LOG}>
+          {t("preferences.log.title")}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent className="h-full" value={EPreferencesTabs.GENERAL}>
+        <PreferencesGeneralTab />
+      </TabsContent>
+      <TabsContent className="h-full" value={EPreferencesTabs.LOG}>
+        <PreferencesLogTab onCancel={onClose} />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+/** @deprecated */
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
   const { removeWidget } = useWidgetStore();
@@ -50,7 +85,7 @@ export const PreferencesPopup = () => {
       id={PREFERENCES_POPUP_ID}
       title={t("header.menuDesigner.preferences")}
     >
-      <Tabs defaultValue={EPreferencesTabs.GENERAL} className="w-full">
+      <Tabs defaultValue={EPreferencesTabs.GENERAL} className="w-full h-full">
         <TabsList className={cn("grid w-full grid-cols-2 min-w-[400px]")}>
           <TabsTrigger value={EPreferencesTabs.GENERAL}>
             {t("preferences.general.title")}
@@ -168,7 +203,10 @@ export const PreferencesLogTab = (props: {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col h-full gap-4"
+      >
         <FormField
           control={form.control}
           name="logviewer_line_size"
@@ -190,7 +228,7 @@ export const PreferencesLogTab = (props: {
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 mt-auto">
           <Button type="button" variant="outline" onClick={props.onCancel}>
             {t("preferences.cancel")}
           </Button>

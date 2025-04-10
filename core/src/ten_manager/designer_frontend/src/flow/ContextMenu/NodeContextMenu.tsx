@@ -31,6 +31,12 @@ import {
 import { EGraphActions } from "@/types/graphs";
 
 import type { TCustomNode } from "@/types/flow";
+import {
+  GRAPH_ACTIONS_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+} from "@/constants/widgets";
+import { GROUP_GRAPH_ID } from "@/constants/widgets";
+import { GraphPopupTitle } from "@/components/Popup/Graph";
 
 interface NodeContextMenuProps {
   visible: boolean;
@@ -110,9 +116,19 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
         if (!baseDir || !graphName) return;
         onClose();
         appendWidgetIfNotExists({
-          id: "update-node-property-widget-" + node.data.name,
+          container_id: CONTAINER_DEFAULT_ID,
+          group_id: GROUP_GRAPH_ID,
+          widget_id: GRAPH_ACTIONS_WIDGET_ID + `-update-` + node.data.name,
+
           category: EWidgetCategory.Graph,
           display_type: EWidgetDisplayType.Popup,
+
+          title: (
+            <GraphPopupTitle
+              type={EGraphActions.UPDATE_NODE_PROPERTY}
+              node={node}
+            />
+          ),
           metadata: {
             type: EGraphActions.UPDATE_NODE_PROPERTY,
             base_dir: baseDir,

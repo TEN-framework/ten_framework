@@ -23,7 +23,16 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
-import { DOC_REF_POPUP_ID, GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+import {
+  DOC_REF_POPUP_ID,
+  GRAPH_SELECT_POPUP_ID,
+  CONTAINER_DEFAULT_ID,
+  GRAPH_SELECT_WIDGET_ID,
+  GROUP_DOC_REF_ID,
+  DOC_REF_WIDGET_ID,
+  GROUP_GRAPH_ID,
+  GRAPH_ACTIONS_WIDGET_ID,
+} from "@/constants/widgets";
 import {
   EDefaultWidgetType,
   EWidgetCategory,
@@ -31,6 +40,9 @@ import {
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
 import { EDocLinkKey } from "@/types/doc";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
+import { DocRefPopupTitle } from "@/components/Popup/Default/DocRef";
+import { GraphPopupTitle } from "@/components/Popup/Graph";
 
 export function GraphMenu(props: {
   onAutoLayout: () => void;
@@ -46,9 +58,14 @@ export function GraphMenu(props: {
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GRAPH_SELECT_WIDGET_ID,
+      widget_id: GRAPH_SELECT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphSelectPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
       },
@@ -58,12 +75,17 @@ export function GraphMenu(props: {
   const onGraphAct = (type: EGraphActions) => () => {
     if (!currentWorkspace?.baseDir) return;
     appendWidgetIfNotExists({
-      id:
-        `graph-add-` +
-        `${type}-popup-` +
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_GRAPH_ID,
+      widget_id:
+        GRAPH_ACTIONS_WIDGET_ID +
+        `-${type}-` +
         `${currentWorkspace.baseDir}-${currentWorkspace?.graphName}`,
+
       category: EWidgetCategory.Graph,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphPopupTitle type={type} />,
       metadata: {
         type,
         base_dir: currentWorkspace.baseDir,
@@ -74,11 +96,15 @@ export function GraphMenu(props: {
   };
 
   const openAbout = () => {
-    appendTabWidget({
-      id: DOC_REF_POPUP_ID,
-      sub_id: EDocLinkKey.Graph,
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_DOC_REF_ID,
+      widget_id: DOC_REF_WIDGET_ID + "-" + EDocLinkKey.Graph,
+
       category: EWidgetCategory.Default,
-      display_type: EWidgetDisplayType.PopupTab,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <DocRefPopupTitle name={EDocLinkKey.Graph} />,
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.Graph,

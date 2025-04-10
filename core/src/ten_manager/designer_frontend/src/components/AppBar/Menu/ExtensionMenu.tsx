@@ -25,8 +25,14 @@ import { useWidgetStore } from "@/store/widget";
 import {
   DOC_REF_POPUP_ID,
   EXTENSION_STORE_POPUP_ID,
+  CONTAINER_DEFAULT_ID,
+  EXTENSION_STORE_WIDGET_ID,
+  DOC_REF_WIDGET_ID,
+  GROUP_DOC_REF_ID,
 } from "@/constants/widgets";
 import { EDocLinkKey } from "@/types/doc";
+import { ExtensionStorePopupTitle } from "@/components/Popup/Default/Extension";
+import { DocRefPopupTitle } from "@/components/Popup/Default/DocRef";
 
 export const ExtensionMenu = (props: {
   disableMenuClick?: boolean;
@@ -40,9 +46,14 @@ export const ExtensionMenu = (props: {
 
   const onOpenExtensionStore = () => {
     appendWidgetIfNotExists({
-      id: EXTENSION_STORE_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: EXTENSION_STORE_WIDGET_ID,
+      widget_id: EXTENSION_STORE_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <ExtensionStorePopupTitle />,
       metadata: {
         type: EDefaultWidgetType.ExtensionStore,
       },
@@ -50,11 +61,15 @@ export const ExtensionMenu = (props: {
   };
 
   const openAbout = () => {
-    appendTabWidget({
-      id: DOC_REF_POPUP_ID,
-      sub_id: EDocLinkKey.Extension,
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_DOC_REF_ID,
+      widget_id: DOC_REF_WIDGET_ID + "-" + EDocLinkKey.Extension,
+
       category: EWidgetCategory.Default,
-      display_type: EWidgetDisplayType.PopupTab,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <DocRefPopupTitle name={EDocLinkKey.Extension} />,
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.Extension,

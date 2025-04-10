@@ -25,7 +25,11 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
-import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+import {
+  GRAPH_SELECT_POPUP_ID,
+  GRAPH_SELECT_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+} from "@/constants/widgets";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import {
@@ -35,6 +39,7 @@ import {
   IListTenLocalStorePackage,
   EPackageSource,
 } from "@/types/extension";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
 
 export const ExtensionStoreWidget = (props: {
   className?: string;
@@ -230,9 +235,14 @@ export const ExtensionStoreWidget = (props: {
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GRAPH_SELECT_WIDGET_ID,
+      widget_id: GRAPH_SELECT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphSelectPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
       },

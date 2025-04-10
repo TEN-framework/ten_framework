@@ -16,7 +16,9 @@ export function BackstageWidgets() {
       {backstageWidgets.map((widget) => {
         switch (widget.category) {
           case EWidgetCategory.LogViewer:
-            return <LogViewerBackstageWidget key={widget.id} {...widget} />;
+            return (
+              <LogViewerBackstageWidget key={widget.widget_id} {...widget} />
+            );
           default:
             return null;
         }

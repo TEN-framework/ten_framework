@@ -37,12 +37,20 @@ import {
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
 import { ECustomEventName } from "@/utils/popup";
+import { CustomNodeConnPopupTitle } from "@/components/Popup/CustomNodeConn";
 
 import type { TCustomEdge, TCustomNode } from "@/types/flow";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
+import {
+  CONTAINER_DEFAULT_ID,
+  GROUP_CUSTOM_CONNECTION_ID,
+  GROUP_LOG_VIEWER_ID,
+  GROUP_TERMINAL_ID,
+} from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -74,10 +82,15 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
     const launchTerminal = (data: ITerminalWidgetData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
       appendWidget({
-        id: newPopup.id,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_TERMINAL_ID,
+        widget_id: newPopup.id,
+
         category: EWidgetCategory.Terminal,
-        metadata: newPopup.data,
         display_type: EWidgetDisplayType.Popup,
+
+        title: data.title,
+        metadata: newPopup.data,
       });
     };
 
@@ -105,23 +118,33 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const filters = metadata?.filters;
       console.log("filters", filters);
       appendWidgetIfNotExists({
-        id,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_CUSTOM_CONNECTION_ID,
+        widget_id: id,
+
         category: EWidgetCategory.CustomConnection,
-        metadata: { id, source, target, filters },
         display_type: EWidgetDisplayType.Popup,
+
+        title: <CustomNodeConnPopupTitle source={source} target={target} />,
+        metadata: { id, source, target, filters },
       });
     };
 
     const launchLogViewer = () => {
       appendWidgetIfNotExists({
-        id: `logViewer-${Date.now()}`,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: `logViewer-${Date.now()}`,
+
         category: EWidgetCategory.LogViewer,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle />,
         metadata: {
           wsUrl: "",
           scriptType: ELogViewerScriptType.DEFAULT,
           script: {},
         },
-        display_type: EWidgetDisplayType.Popup,
       });
     };
 

@@ -15,10 +15,31 @@ import EditorWidget, {
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 
-import type { IEditorWidgetData } from "@/types/widgets";
+import type { IEditorWidget, IEditorWidgetData } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
+
+export const EditorPopupTitle = (props: {
+  title: string;
+  hasUnsavedChanges?: boolean;
+}) => {
+  const { title, hasUnsavedChanges } = props;
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-medium text-foreground/90 font-sans">{title}</span>
+      <span className="text-foreground/50 text-sm font-sans">
+        {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
+      </span>
+    </div>
+  );
+};
+
+export const EditorPopupContent = (props: { widget: IEditorWidget }) => {
+  const { widget } = props;
+  return <EditorWidget id={widget.widget_id} data={widget.metadata} />;
+};
 
 interface EditorPopupProps {
   id: string;

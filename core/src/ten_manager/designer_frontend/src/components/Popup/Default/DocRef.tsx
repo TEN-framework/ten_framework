@@ -8,93 +8,32 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import {
-  PopupBase,
-  PopupInnerTabs,
-  PopupInnerTab,
-  PopupInnerTabContent,
-} from "@/components/Popup/Base";
+import { PopupBase } from "@/components/Popup/Base";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { DOC_REF_POPUP_ID } from "@/constants/widgets";
-import { IDefaultWidget, EDefaultWidgetType } from "@/types/widgets";
+import { IDefaultWidget } from "@/types/widgets";
 import { useDocLink } from "@/api/services/doc";
 import { EDocLinkKey } from "@/types/doc";
 import { getCurrentWindowSize } from "@/utils/popup";
 import { TEN_DOC_URL } from "@/constants";
 import { useWidgetStore } from "@/store/widget";
 
-export const DocRefPopup = (props: { tabs?: IDefaultWidget[] }) => {
-  const { tabs } = props;
+export const DocRefPopupTitle = (props: { name: string }) => {
+  const { name } = props;
+  const { t } = useTranslation();
 
-  const [activeTabId, setActiveTabId] = React.useState<string>(
-    tabs?.[tabs.length - 1]?.sub_id || ""
-  );
+  return t("popup.doc.title", { name });
+};
 
-  const { t, i18n } = useTranslation();
-  const { removeTabWidget, removeWidget } = useWidgetStore();
-  const windowSize = getCurrentWindowSize();
+export const DocRefPopupContent = (props: { widget: IDefaultWidget }) => {
+  const { widget } = props;
+  const { doc_link_key } = widget.metadata;
 
-  const handleTabIdUpdate = React.useCallback(
-    (tabId?: string) => {
-      setActiveTabId(tabId || tabs?.[tabs.length - 1]?.sub_id || "");
-    },
-    [tabs]
-  );
+  const { i18n } = useTranslation();
 
-  const handleCloseTab = React.useCallback(
-    (id: string, subId: string) => {
-      removeTabWidget(id, subId);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  if (!doc_link_key) return null;
 
-  const handleClosePopup = React.useCallback(() => {
-    removeWidget(DOC_REF_POPUP_ID);
-  }, [removeWidget]);
-
-  if (!tabs) return null;
-
-  return (
-    <PopupBase
-      id={DOC_REF_POPUP_ID}
-      title={t("popup.doc.title")}
-      contentClassName="p-0 flex flex-col h-full w-full"
-      initialPosition="bottom-right"
-      width={400}
-      height={windowSize?.height ? windowSize?.height - 100 : 400}
-      onTabIdUpdate={handleTabIdUpdate}
-      onClose={handleClosePopup}
-      resizable
-    >
-      <PopupInnerTabs>
-        {tabs.map((tab, idx) => (
-          <PopupInnerTab
-            key={tab?.sub_id || idx}
-            id={tab?.sub_id || ""}
-            onClick={() => {
-              setActiveTabId(tab.sub_id || "");
-            }}
-            onClose={() => handleCloseTab(tab.id, tab.sub_id || "")}
-            isActive={activeTabId === tab.sub_id}
-          >
-            {tab.metadata?.doc_link_key}
-          </PopupInnerTab>
-        ))}
-      </PopupInnerTabs>
-      {tabs?.map((tab, idx) => (
-        <PopupInnerTabContent
-          key={tab?.sub_id || idx}
-          isActive={activeTabId === tab?.sub_id}
-        >
-          <DocRefTabContent
-            locale={i18n.language}
-            queryKey={tab?.metadata?.doc_link_key as EDocLinkKey}
-          />
-        </PopupInnerTabContent>
-      ))}
-    </PopupBase>
-  );
+  return <DocRefTabContent locale={i18n.language} queryKey={doc_link_key} />;
 };
 
 const DocRefTabContent = (props: { locale: string; queryKey: EDocLinkKey }) => {

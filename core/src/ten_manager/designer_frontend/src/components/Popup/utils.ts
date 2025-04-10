@@ -6,25 +6,27 @@
 //
 import { EWidgetDisplayType, type IWidget } from "@/types/widgets";
 
-export const groupWidgetsById = <T extends IWidget>(
-  widgets: T[]
-): [T[], T[][]] => {
-  const singleWidgets = widgets.filter(
+export type TGroupedWidgets<T> = Record<string, Record<string, T[]>>;
+
+export const groupWidgetsById = (
+  widgets: IWidget[]
+): TGroupedWidgets<IWidget> => {
+  const popupWidgets = widgets.filter(
     (widget) => widget.display_type === EWidgetDisplayType.Popup
   );
-  const tabWidgets = widgets.filter(
-    (widget) => widget.display_type === EWidgetDisplayType.PopupTab
-  );
-  const groupedWidgets = tabWidgets.reduce(
-    (acc, widget) => {
-      if (acc[widget.id]) {
-        acc[widget.id].push(widget);
-      } else {
-        acc[widget.id] = [widget];
+
+  return popupWidgets.reduce(
+    (prev: TGroupedWidgets<IWidget>, curr: IWidget) => {
+      const { container_id, group_id } = curr;
+      if (!prev[container_id]) {
+        prev[container_id] = {};
       }
-      return acc;
+      if (!prev[container_id][group_id]) {
+        prev[container_id][group_id] = [];
+      }
+      prev[container_id][group_id].push(curr);
+      return prev;
     },
-    {} as Record<string, T[]>
+    {} as TGroupedWidgets<IWidget>
   );
-  return [singleWidgets, Object.values(groupedWidgets)];
 };

@@ -41,6 +41,15 @@ import {
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import { postReloadApps } from "@/api/services/apps";
+import {
+  EXTENSION_STORE_WIDGET_ID,
+  EXTENSION_WIDGET_ID,
+  GROUP_EXTENSION_ID,
+  GROUP_LOG_VIEWER_ID,
+} from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
+import { ExtensionPopupTitle } from "@/components/Popup/Default/Extension";
 
 export const ExtensionList = (props: {
   items: (ITenPackage | ITenPackageLocal)[];
@@ -130,9 +139,14 @@ export const ExtensionBaseItem = React.forwardRef<
         return;
       }
       appendWidgetIfNotExists({
-        id: "ext-install-" + item.hash,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: "ext-install-" + item.hash,
+
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle />,
         metadata: {
           wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
           scriptType: ELogViewerScriptType.INSTALL,
@@ -260,9 +274,14 @@ export const ExtensionStoreItem = (props: {
 
   const handleClick = () => {
     appendWidgetIfNotExists({
-      id: `extension-${item.name}`,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_EXTENSION_ID,
+      widget_id: EXTENSION_WIDGET_ID + "-" + item.name,
+
       category: EWidgetCategory.Extension,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <ExtensionPopupTitle name={item.name} />,
       metadata: {
         name: item.name,
         versions: versions || [],

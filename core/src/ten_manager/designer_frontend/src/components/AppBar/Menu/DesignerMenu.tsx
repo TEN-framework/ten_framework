@@ -22,7 +22,14 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
-import { ABOUT_POPUP_ID, PREFERENCES_POPUP_ID } from "@/constants/widgets";
+import {
+  ABOUT_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+  PREFERENCES_WIDGET_ID,
+  GROUP_ABOUT_ID,
+} from "@/constants/widgets";
+import { AboutWidgetTitle } from "@/components/Popup/Default/About";
+import { PreferencesWidgetTitle } from "@/components/Popup/Default/Preferences";
 
 export function DesignerMenu(props: {
   disableMenuClick?: boolean;
@@ -37,9 +44,14 @@ export function DesignerMenu(props: {
 
   const openAbout = () => {
     appendWidgetIfNotExists({
-      id: ABOUT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_ABOUT_ID,
+      widget_id: ABOUT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <AboutWidgetTitle />,
       metadata: {
         type: EDefaultWidgetType.About,
       },
@@ -48,9 +60,14 @@ export function DesignerMenu(props: {
 
   const openPreferences = () => {
     appendWidgetIfNotExists({
-      id: PREFERENCES_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: PREFERENCES_WIDGET_ID,
+      widget_id: PREFERENCES_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <PreferencesWidgetTitle />,
       metadata: {
         type: EDefaultWidgetType.Preferences,
       },

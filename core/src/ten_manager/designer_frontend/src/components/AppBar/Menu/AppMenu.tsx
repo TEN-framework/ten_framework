@@ -32,8 +32,20 @@ import {
   APPS_MANAGER_POPUP_ID,
   APP_CREATE_POPUP_ID,
   DOC_REF_POPUP_ID,
+  CONTAINER_DEFAULT_ID,
+  APP_FOLDER_WIDGET_ID,
+  APP_CREATE_WIDGET_ID,
+  APPS_MANAGER_WIDGET_ID,
+  DOC_REF_WIDGET_ID,
+  GROUP_DOC_REF_ID,
 } from "@/constants/widgets";
 import { EDocLinkKey } from "@/types/doc";
+import {
+  AppCreatePopupTitle,
+  AppFolderPopupTitle,
+  LoadedAppsPopupTitle,
+} from "@/components/Popup/Default/App";
+import { DocRefPopupTitle } from "@/components/Popup/Default/DocRef";
 
 export function AppMenu(props: {
   disableMenuClick?: boolean;
@@ -48,9 +60,14 @@ export function AppMenu(props: {
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
-      id: APP_FOLDER_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APP_FOLDER_WIDGET_ID,
+      widget_id: APP_FOLDER_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <AppFolderPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppFolder,
       },
@@ -59,9 +76,14 @@ export function AppMenu(props: {
 
   const openAppsManagerPopup = () => {
     appendWidgetIfNotExists({
-      id: APPS_MANAGER_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APPS_MANAGER_WIDGET_ID,
+      widget_id: APPS_MANAGER_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LoadedAppsPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppsManager,
       },
@@ -70,9 +92,14 @@ export function AppMenu(props: {
 
   const openAppCreatePopup = () => {
     appendWidgetIfNotExists({
-      id: APP_CREATE_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APP_CREATE_WIDGET_ID,
+      widget_id: APP_CREATE_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <AppCreatePopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppCreate,
       },
@@ -80,11 +107,15 @@ export function AppMenu(props: {
   };
 
   const openAbout = () => {
-    appendTabWidget({
-      id: DOC_REF_POPUP_ID,
-      sub_id: EDocLinkKey.App,
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_DOC_REF_ID,
+      widget_id: DOC_REF_WIDGET_ID + "-" + EDocLinkKey.App,
+
       category: EWidgetCategory.Default,
-      display_type: EWidgetDisplayType.PopupTab,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <DocRefPopupTitle name={EDocLinkKey.App} />,
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.App,

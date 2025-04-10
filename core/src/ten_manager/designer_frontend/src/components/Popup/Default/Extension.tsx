@@ -14,10 +14,25 @@ import {
   ExtensionStoreWidget,
   ExtensionWidget,
 } from "@/components/Widget/ExtensionWidget";
-import { EWidgetDisplayType } from "@/types/widgets";
+import {
+  EWidgetDisplayType,
+  IExtensionWidgetData,
+  IWidget,
+} from "@/types/widgets";
 import { IListTenCloudStorePackage } from "@/types/extension";
 import { getCurrentWindowSize } from "@/utils/popup";
 
+export const ExtensionStorePopupTitle = () => {
+  const { t } = useTranslation();
+  return t("extensionStore.title");
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const ExtensionStorePopupContent = (_props: { widget: IWidget }) => {
+  return <ExtensionStoreWidget />;
+};
+
+/** @deprecated */
 export const ExtensionStorePopup = () => {
   const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
   const { t } = useTranslation();
@@ -52,6 +67,20 @@ export const ExtensionStorePopup = () => {
   );
 };
 
+export const ExtensionPopupTitle = (props: { name: string }) => {
+  const { name } = props;
+  const { t } = useTranslation();
+  return t("extensionStore.extensionTitle", { name });
+};
+
+export const ExtensionPopupContent = (props: { widget: IWidget }) => {
+  const { widget } = props;
+  const { versions, name } = widget.metadata as IExtensionWidgetData;
+
+  return <ExtensionWidget versions={versions} name={name} />;
+};
+
+/** @deprecated */
 export const ExtensionPopup = (props: {
   id: string;
   name: string;

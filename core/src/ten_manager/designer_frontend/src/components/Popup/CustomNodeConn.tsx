@@ -21,16 +21,58 @@ import {
 } from "@/components/DataTable/ConnectionTable";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
-import type { ICustomConnectionWidgetData } from "@/types/widgets";
+import type {
+  ICustomConnectionWidgetData,
+  ICustomConnectionWidget,
+} from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
 
 const DEFAULT_WIDTH = 800;
 const SUPPORTED_FILTERS = ["type"];
 
+export const CustomNodeConnPopupTitle = (props: {
+  source: string;
+  target?: string;
+}) => {
+  const { source, target } = props;
+  const { t } = useTranslation();
+
+  const titleMemo = React.useMemo(() => {
+    if (source && !target) {
+      return t("popup.customNodeConn.srcTitle", { source });
+    }
+    if (source && target) {
+      return t("popup.customNodeConn.connectTitle", { source, target });
+    }
+    return t("popup.customNodeConn.title");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source, target]);
+
+  return titleMemo;
+};
+
+export const CustomNodeConnPopupContent = (props: {
+  widget: ICustomConnectionWidget;
+}) => {
+  const { widget } = props;
+  const { source, target, filters } = widget.metadata;
+
+  return (
+    <div className="flex flex-col gap-2 w-full h-[328px]">
+      {source && target && (
+        <EdgeInfoContent source={source} target={target} filters={filters} />
+      )}
+      {source && !target && (
+        <CustomNodeConnContent source={source} filters={filters} />
+      )}
+    </div>
+  );
+};
+
 export interface CustomNodeConnPopupProps extends ICustomConnectionWidgetData {
   onClose?: () => void;
 }
-
+/** @deprecated */
 const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
   id,
   source,
@@ -64,7 +106,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
           <EdgeInfoContent source={source} target={target} filters={filters} />
         )}
         {source && !target && (
-          <CustomNodeConnPopupContent source={source} filters={filters} />
+          <CustomNodeConnContent source={source} filters={filters} />
         )}
       </div>
     </PopupBase>
@@ -156,7 +198,7 @@ function EdgeInfoContent(props: {
   );
 }
 
-function CustomNodeConnPopupContent(props: {
+function CustomNodeConnContent(props: {
   source: string;
   filters?: {
     type?: EConnectionType;

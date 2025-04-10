@@ -16,10 +16,73 @@ import {
   type ILogViewerWidget,
 } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
+import { GROUP_LOG_VIEWER_ID, GROUP_TERMINAL_ID } from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
+export const LogViewerPopupTitle = (props: {
+  title?: string | React.ReactNode;
+}) => {
+  const { title } = props;
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-medium text-foreground/90 font-sans">
+        {title || t("popup.logViewer.title")}
+      </span>
+    </div>
+  );
+};
+
+export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
+  const { widget } = props;
+
+  const { t } = useTranslation();
+  const {
+    updateWidgetDisplayType,
+    removeWidget,
+    backstageWidgets,
+    appendBackstageWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
+
+  React.useEffect(() => {
+    const targetBackstageWidget = backstageWidgets.find(
+      (w) => w.widget_id === widget.widget_id
+    ) as ILogViewerWidget | undefined;
+
+    if (
+      !targetBackstageWidget &&
+      widget.metadata.scriptType &&
+      widget.metadata.script
+    ) {
+      appendBackstageWidgetIfNotExists({
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: widget.widget_id,
+
+        category: EWidgetCategory.LogViewer,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle title={widget.metadata.options?.title} />,
+        metadata: widget.metadata,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backstageWidgets, widget.metadata.scriptType, widget.metadata.script]);
+
+  return (
+    <LogViewerFrontStageWidget
+      id={widget.widget_id}
+      options={widget.metadata.options}
+    />
+  );
+};
+
+/** @deprecated */
 export function LogViewerPopup(props: {
   id: string;
   data: ILogViewerWidget["metadata"];
@@ -48,15 +111,20 @@ export function LogViewerPopup(props: {
   };
 
   React.useEffect(() => {
-    const targetBackstageWidget = backstageWidgets.find((w) => w.id === id) as
-      | ILogViewerWidget
-      | undefined;
+    const targetBackstageWidget = backstageWidgets.find(
+      (w) => w.widget_id === id
+    ) as ILogViewerWidget | undefined;
 
     if (!targetBackstageWidget && data?.scriptType && data?.script) {
       appendBackstageWidgetIfNotExists({
-        id,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_TERMINAL_ID,
+        widget_id: id,
+
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle title={data?.options?.title} />,
         metadata: data,
       });
     }

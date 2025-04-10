@@ -79,7 +79,13 @@ import {
   EWidgetCategory,
   ELogViewerScriptType,
 } from "@/types/widgets";
-import { APP_FOLDER_POPUP_ID } from "@/constants/widgets";
+import {
+  APP_FOLDER_POPUP_ID,
+  APP_FOLDER_WIDGET_ID,
+  APP_RUN_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+  GROUP_LOG_VIEWER_ID,
+} from "@/constants/widgets";
 import {
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
   TEN_PATH_WS_BUILTIN_FUNCTION,
@@ -91,6 +97,11 @@ import {
   AppCreateReqSchema,
 } from "@/types/apps";
 import { AppFileManager } from "@/components/FileManager/AppFolder";
+import {
+  AppFolderPopupTitle,
+  AppRunPopupTitle,
+} from "@/components/Popup/Default/App";
+import { LogViewerPopupTitle } from "../Popup/LogViewer";
 
 export const AppsManagerWidget = (props: { className?: string }) => {
   const [isUnloading, setIsUnloading] = React.useState<boolean>(false);
@@ -104,9 +115,14 @@ export const AppsManagerWidget = (props: { className?: string }) => {
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
-      id: APP_FOLDER_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APP_FOLDER_WIDGET_ID,
+      widget_id: APP_FOLDER_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <AppFolderPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppFolder,
       },
@@ -174,9 +190,14 @@ export const AppsManagerWidget = (props: { className?: string }) => {
 
   const handleAppInstallAll = (baseDir: string) => {
     appendWidgetIfNotExists({
-      id: "app-install-" + Date.now(),
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_LOG_VIEWER_ID,
+      widget_id: "app-install-" + Date.now(),
+
       category: EWidgetCategory.LogViewer,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LogViewerPopupTitle />,
       metadata: {
         wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
         scriptType: ELogViewerScriptType.INSTALL_ALL,
@@ -197,9 +218,14 @@ export const AppsManagerWidget = (props: { className?: string }) => {
 
   const handleRunApp = (baseDir: string, scripts: string[]) => {
     appendWidgetIfNotExists({
-      id: "app-run-" + baseDir,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APP_RUN_WIDGET_ID,
+      widget_id: APP_RUN_WIDGET_ID + "-" + baseDir,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <AppRunPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppRun,
         base_dir: baseDir,
