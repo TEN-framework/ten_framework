@@ -27,7 +27,8 @@ mod tests {
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::{
-        message::MsgType, predefined_graphs::pkg_predefined_graphs_find,
+        message::MsgType, pkg_type::PkgType,
+        predefined_graphs::pkg_predefined_graphs_find,
     };
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -248,46 +249,39 @@ mod tests {
         assert_eq!(response.status, Status::Ok);
         assert!(response.data.success);
 
-        // Verify the connection was actually removed from the data
+        // Verify the connection was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(base_dir_pkg_info) =
-            state_read.pkgs_cache.get(&temp_dir_path)
+
+        let DesignerState { graphs_cache, .. } = &*state_read;
+
+        if let Some(predefined_graph) =
+            pkg_predefined_graphs_find(graphs_cache, |g| {
+                g.name == "default_with_app_uri"
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            })
         {
-            if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-                if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                    app_pkg.get_predefined_graphs(),
-                    |g| g.name == "default_with_app_uri",
-                ) {
-                    // Check if the connection is gone.
-                    let connection_exists = predefined_graph
-                        .graph
-                        .connections
-                        .as_ref()
-                        .is_some_and(|connections| {
-                            connections.iter().any(|conn| {
-                                conn.extension == "extension_1"
-                                    && conn.app.as_ref().is_some_and(|app| {
-                                        app == "http://example.com:8000"
-                                    })
-                                    && conn.cmd.as_ref().is_some_and(|cmds| {
-                                        cmds.iter().any(|cmd| {
-                                            cmd.name == "hello_world"
-                                        })
-                                    })
+            // Check if the connection is gone.
+            let connection_exists = predefined_graph
+                .graph
+                .connections
+                .as_ref()
+                .is_some_and(|connections| {
+                    connections.iter().any(|conn| {
+                        conn.extension == "extension_1"
+                            && conn.app.as_ref().is_some_and(|app| {
+                                app == "http://example.com:8000"
                             })
-                        });
-                    assert!(
-                        !connection_exists,
-                        "Connection should have been deleted"
-                    );
-                } else {
-                    panic!("Graph 'default_with_app_uri' not found");
-                }
-            } else {
-                panic!("App package not found");
-            }
+                            && conn.cmd.as_ref().is_some_and(|cmds| {
+                                cmds.iter().any(|cmd| cmd.name == "hello_world")
+                            })
+                    })
+                });
+            assert!(!connection_exists, "Connection should have been deleted");
         } else {
-            panic!("Base directory not found");
+            panic!("Graph 'default_with_app_uri' not found");
         }
 
         // Read the updated property.json file.

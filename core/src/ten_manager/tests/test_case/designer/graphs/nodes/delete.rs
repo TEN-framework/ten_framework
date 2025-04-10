@@ -28,7 +28,7 @@ mod tests {
         },
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
+    use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_old;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -299,7 +299,7 @@ mod tests {
             state_read.pkgs_cache.get(&temp_dir_path)
         {
             if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-                if let Some(predefined_graph) = pkg_predefined_graphs_find(
+                if let Some(predefined_graph) = pkg_predefined_graphs_find_old(
                     app_pkg.get_predefined_graphs(),
                     |g| g.name == "default_with_app_uri",
                 ) {
