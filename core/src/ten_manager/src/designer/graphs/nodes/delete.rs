@@ -13,7 +13,7 @@ use ten_rust::{
     graph::node::GraphNode,
     pkg_info::{
         pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-        predefined_graphs::pkg_predefined_graphs_find,
+        predefined_graphs::pkg_predefined_graphs_find_old,
     },
 };
 
@@ -56,7 +56,7 @@ pub async fn delete_graph_node_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
+            if let Some(predefined_graph) = pkg_predefined_graphs_find_old(
                 app_pkg.get_predefined_graphs(),
                 |g| g.name == request_payload.graph_name,
             ) {

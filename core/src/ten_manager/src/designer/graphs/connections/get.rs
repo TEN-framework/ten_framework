@@ -10,7 +10,7 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
-use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
+use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_old;
 
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -116,7 +116,7 @@ pub async fn get_graph_connections_endpoint(
 
             // If the app package has predefined graphs, find the one with the
             // specified graph_name.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
+            if let Some(predefined_graph) = pkg_predefined_graphs_find_old(
                 app_pkg.get_predefined_graphs(),
                 |g| g.name == graph_name,
             ) {
