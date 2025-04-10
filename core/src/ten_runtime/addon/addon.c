@@ -27,6 +27,7 @@
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -238,24 +239,43 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
                           false),
                "Should not happen.");
 
+    ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
+
+    ten_error_t err;
+    TEN_ERROR_INIT(err);
+
     // First, try to load it using the built-in native addon loader (i.e.,
     // `dlopen`).
     if (!ten_addon_try_load_specific_addon_using_native_addon_loader(
-            ten_string_get_raw_str(&app->base_dir), addon_type, addon_name)) {
+            ten_string_get_raw_str(&app->base_dir), addon_type, addon_name,
+            register_ctx, &err)) {
       TEN_LOGI(
           "Unable to load addon %s:%s using native addon loader, will try "
-          "other methods.",
-          ten_addon_type_to_string(addon_type), addon_name);
-    }
+          "other methods. error: %s",
+          ten_addon_type_to_string(addon_type), addon_name,
+          ten_error_message(&err));
 
-    if (!ten_addon_try_load_specific_addon_using_all_addon_loaders(
-            addon_type, addon_name)) {
-      TEN_LOGI("Unable to load addon %s:%s using all installed addon loaders.",
-               ten_addon_type_to_string(addon_type), addon_name);
+      ten_addon_try_load_specific_addon_using_all_addon_loaders(addon_type,
+                                                                addon_name);
+
+      // The specific addon_name addon could be loaded by one of the addon
+      // loaders. Register the addon again.
+      if (!ten_addon_manager_register_specific_addon(
+              ten_addon_manager_get_instance(), addon_type, addon_name,
+              register_ctx)) {
+        TEN_LOGI(
+            "Unable to load addon %s:%s using all installed addon loaders. "
+            "error: %s",
+            ten_addon_type_to_string(addon_type), addon_name,
+            ten_error_message(&err));
+      }
     }
 
     // Find again.
     addon_host = ten_addon_store_find_by_type(addon_type, addon_name);
+
+    ten_addon_register_ctx_destroy(register_ctx);
+    ten_error_deinit(&err);
   }
 
   lock_operation_rc = ten_addon_store_unlock_by_type(addon_type);
@@ -296,13 +316,15 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
 
   addon_host = ten_addon_host_create(addon_type);
 
-  if (register_ctx) {
-    // If `register_ctx` exists, its content will be used to assist in the addon
-    // registration process.
-    ten_addon_register_ctx_t *register_ctx_ =
-        (ten_addon_register_ctx_t *)register_ctx;
-    addon_host->user_data = register_ctx_->app;
-  }
+  ten_addon_register_ctx_t *register_ctx_ =
+      (ten_addon_register_ctx_t *)register_ctx;
+  TEN_ASSERT(register_ctx_, "Invalid argument.");
+
+  ten_app_t *app = register_ctx_->app;
+  TEN_ASSERT(app, "Should not happen.");
+  // TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  addon_host->attached_app = app;
 
   ten_addon_store_t *addon_store = NULL;
   switch (addon_type) {

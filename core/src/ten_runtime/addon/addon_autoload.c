@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 
 #include "include_internal/ten_runtime/addon/common/common.h"
+#include "ten_utils/macro/mark.h"
 
 #if defined(OS_LINUX)
 #define _GNU_SOURCE
@@ -338,15 +339,16 @@ done:
   return success;
 }
 
-static bool ten_addon_register_specific_addon(
-    TEN_ADDON_TYPE addon_type, const char *addon_name,
-    ten_addon_register_ctx_t *register_ctx, ten_error_t *err) {
+static bool ten_addon_register_specific_addon(TEN_ADDON_TYPE addon_type,
+                                              const char *addon_name,
+                                              void *register_ctx,
+                                              ten_error_t *err) {
   TEN_ASSERT(addon_name, "Invalid argument.");
 
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
 
   bool success = ten_addon_manager_register_specific_addon(
-      manager, addon_type, addon_name, (void *)register_ctx);
+      manager, addon_type, addon_name, register_ctx);
 
   if (!success && err) {
     ten_error_set(err, TEN_ERROR_CODE_GENERIC,
@@ -358,29 +360,32 @@ static bool ten_addon_register_specific_addon(
 }
 
 bool ten_addon_try_load_specific_addon_using_native_addon_loader(
-    const char *app_base_dir, TEN_ADDON_TYPE addon_type,
-    const char *addon_name) {
+    const char *app_base_dir, TEN_ADDON_TYPE addon_type, const char *addon_name,
+    void *register_ctx, ten_error_t *err) {
+  TEN_ASSERT(register_ctx, "Invalid argument.");
+
   // First, check whether the phase 2 registering function of the addon we want
   // to handle has already been added to the addon manager. If it has, proceed
   // directly with the phase 2 registration. Otherwise, start from phase 1.
-  if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL, NULL)) {
+  if (!ten_addon_register_specific_addon(addon_type, addon_name, register_ctx,
+                                         err)) {
     // If the addon is not registered, try to load it using the native addon
     // loader (phase 1).
     bool success = ten_addon_load_specific_addon_using_native_addon_loader(
-        app_base_dir, addon_type, addon_name, NULL);
+        app_base_dir, addon_type, addon_name, err);
     if (!success) {
       return false;
     }
 
     // If the addon is loaded successfully, try to register it again (phase 2).
-    return ten_addon_register_specific_addon(addon_type, addon_name, NULL,
-                                             NULL);
+    return ten_addon_register_specific_addon(addon_type, addon_name,
+                                             register_ctx, err);
   }
 
   return true;
 }
 
-bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
+void ten_addon_try_load_specific_addon_using_all_addon_loaders(
     TEN_ADDON_TYPE addon_type, const char *addon_name) {
   ten_addon_loader_singleton_store_lock();
 
@@ -397,8 +402,6 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
   }
 
   ten_addon_loader_singleton_store_unlock();
-
-  return true;
 }
 
 #endif

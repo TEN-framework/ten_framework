@@ -27,7 +27,10 @@
     }                                                                            \
   };                                                                             \
   namespace {                                                                    \
-  void ____ten_addon_##NAME##_register_handler__(void *register_ctx) {           \
+  void ____ten_addon_##NAME##_register_handler__(TEN_ADDON_TYPE addon_type,      \
+                                                 ten_string_t *addon_name,       \
+                                                 void *register_ctx,             \
+                                                 void *user_data) {              \
     auto *addon_instance = new NAME##_default_extension_addon_t();               \
     ten_string_t *base_dir =                                                     \
         ten_path_get_module_path(/* NOLINTNEXTLINE */                            \
@@ -44,7 +47,7 @@
     ten_addon_manager_t *manager = ten_addon_manager_get_instance();             \
     bool success = ten_addon_manager_add_addon(                                  \
         manager, "extension", #NAME,                                             \
-        ____ten_addon_##NAME##_register_handler__);                              \
+        ____ten_addon_##NAME##_register_handler__, NULL, NULL);                  \
     if (!success) {                                                              \
       TEN_LOGF("Failed to register addon: %s", #NAME);                           \
       /* NOLINTNEXTLINE(concurrency-mt-unsafe) */                                \

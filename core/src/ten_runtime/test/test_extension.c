@@ -394,7 +394,8 @@ static ten_addon_t ten_builtin_test_extension_addon = {
 // Addon registration phase 2: actually registering the addon into the addon
 // store.
 static void ten_builtin_test_extension_addon_register_handler(
-    void *register_ctx) {
+    TEN_UNUSED TEN_ADDON_TYPE addon_type, TEN_UNUSED ten_string_t *addon_name,
+    void *register_ctx, void *user_data) {
   ten_addon_register_extension(TEN_STR_TEN_TEST_EXTENSION, NULL,
                                &ten_builtin_test_extension_addon, register_ctx);
 }
@@ -408,5 +409,5 @@ void ten_addon_manager_add_builtin_test_extension(
 
   ten_addon_manager_add_addon(
       manager, "extension", TEN_STR_TEN_TEST_EXTENSION,
-      ten_builtin_test_extension_addon_register_handler);
+      ten_builtin_test_extension_addon_register_handler, NULL, NULL);
 }

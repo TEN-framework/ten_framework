@@ -23,9 +23,9 @@ ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
 
 TEN_RUNTIME_PRIVATE_API bool
 ten_addon_try_load_specific_addon_using_native_addon_loader(
-    const char *app_base_dir, TEN_ADDON_TYPE addon_type,
-    const char *addon_name);
+    const char *app_base_dir, TEN_ADDON_TYPE addon_type, const char *addon_name,
+    void *register_ctx, ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API bool
+TEN_RUNTIME_PRIVATE_API void
 ten_addon_try_load_specific_addon_using_all_addon_loaders(
     TEN_ADDON_TYPE addon_type, const char *addon_name);

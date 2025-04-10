@@ -64,7 +64,7 @@ void ten_addon_host_init(ten_addon_host_t *self) {
   self->manifest_info = NULL;
   self->property_info = NULL;
 
-  self->user_data = NULL;
+  self->attached_app = NULL;
 }
 
 void ten_addon_host_destroy(ten_addon_host_t *self) {
@@ -77,6 +77,8 @@ void ten_addon_host_destroy(ten_addon_host_t *self) {
 
   ten_value_deinit(&self->manifest);
   ten_value_deinit(&self->property);
+
+  self->attached_app = NULL;
 
   if (self->manifest_info) {
     ten_metadata_info_destroy(self->manifest_info);

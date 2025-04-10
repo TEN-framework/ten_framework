@@ -20,6 +20,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
+#include "ten_runtime/addon/addon_manager.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
@@ -42,6 +43,10 @@ void tenGoAddonCreateInstance(ten_go_handle_t go_addon,
 void tenGoAddonDestroyInstance(ten_go_handle_t go_instance);
 
 void tenGoAddonOnDestroy(ten_go_handle_t go_addon);
+
+void tenGoAddonManagerCallRegisterHandler(TEN_ADDON_TYPE addon_type,
+                                          const char *addon_name,
+                                          void *register_ctx);
 
 bool ten_go_addon_check_integrity(ten_go_addon_t *self) {
   TEN_ASSERT(self, "Should not happen.");
@@ -320,7 +325,7 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
 ten_go_error_t ten_go_addon_register_extension(const void *addon_name,
                                                int addon_name_len,
                                                uintptr_t go_addon,
-                                               uintptr_t *register_ctx,
+                                               uintptr_t register_ctx,
                                                uintptr_t *bridge_addr) {
   TEN_ASSERT(addon_name && addon_name_len > 0 && go_addon && bridge_addr,
              "Invalid argument.");
@@ -328,11 +333,48 @@ ten_go_error_t ten_go_addon_register_extension(const void *addon_name,
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  ten_go_addon_t *addon_bridge =
-      ten_go_addon_register(addon_name, addon_name_len, go_addon,
-                            TEN_ADDON_TYPE_EXTENSION, register_ctx);
+  ten_go_addon_t *addon_bridge = ten_go_addon_register(
+      addon_name, addon_name_len, go_addon, TEN_ADDON_TYPE_EXTENSION,
+      // NOLINTNEXTLINE(performance-no-int-to-ptr)
+      (void *)register_ctx);
 
   *bridge_addr = (uintptr_t)addon_bridge;
+
+  return cgo_error;
+}
+
+static void ten_go_addon_register_func(TEN_ADDON_TYPE addon_type,
+                                       ten_string_t *addon_name,
+                                       void *register_ctx, void *user_data) {
+  tenGoAddonManagerCallRegisterHandler(
+      addon_type, ten_string_get_raw_str(addon_name), register_ctx);
+}
+
+ten_go_error_t ten_go_addon_manager_add_extension_addon(const void *addon_name,
+                                                        int addon_name_len) {
+  TEN_ASSERT(addon_name && addon_name_len > 0, "Invalid argument.");
+
+  ten_string_t addon_name_str;
+  ten_string_init_from_c_str_with_size(&addon_name_str, addon_name,
+                                       addon_name_len);
+
+  ten_addon_manager_t *addon_manager = ten_addon_manager_get_instance();
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_error_t error;
+  TEN_ERROR_INIT(error);
+
+  bool rc = ten_addon_manager_add_addon(
+      addon_manager, "extension", ten_string_get_raw_str(&addon_name_str),
+      ten_go_addon_register_func, NULL, &error);
+  if (!rc) {
+    ten_go_error_from_error(&cgo_error, &error);
+  }
+
+  ten_error_deinit(&error);
+  ten_string_deinit(&addon_name_str);
 
   return cgo_error;
 }

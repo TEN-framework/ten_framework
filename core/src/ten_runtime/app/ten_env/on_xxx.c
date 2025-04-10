@@ -238,8 +238,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   int lock_operation_rc = ten_addon_store_lock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
-  register_ctx->app = self;
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(self);
 
   // Addon registration phase 2: actually registering the addon into the addon
   // store.
