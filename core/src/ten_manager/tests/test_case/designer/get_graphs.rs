@@ -76,10 +76,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     )
     .await;
 
-    let request_payload = GetGraphsRequestPayload {
-        base_dir: "tests/test_data/cmd_designer_graphs_app_property_not_exist"
-            .to_string(),
-    };
+    let request_payload = GetGraphsRequestPayload {};
 
     let req = test::TestRequest::post()
         .uri("/api/designer/v1/graphs")
