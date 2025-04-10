@@ -71,7 +71,7 @@ class graph_failed_to_create_extension__test_extension_default_extension_addon_t
 
 void ____ten_addon_graph_failed_to_create_extension__test_extension_register_handler__(
     TEN_UNUSED TEN_ADDON_TYPE addon_type, TEN_UNUSED ten_string_t *addon_name,
-    void *register_ctx, void *user_data) {
+    void *register_ctx, TEN_UNUSED void *user_data) {
   auto *addon_instance =
       new graph_failed_to_create_extension__test_extension_default_extension_addon_t();
   ten_string_t *base_dir =

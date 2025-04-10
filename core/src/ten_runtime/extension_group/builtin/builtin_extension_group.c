@@ -313,7 +313,7 @@ static ten_addon_t builtin_extension_group_addon = {
 // store.
 static void ten_builtin_extension_group_register_handler(
     TEN_UNUSED TEN_ADDON_TYPE addon_type, TEN_UNUSED ten_string_t *addon_name,
-    void *register_ctx, void *user_data) {
+    void *register_ctx, TEN_UNUSED void *user_data) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
                                      &builtin_extension_group_addon,
                                      register_ctx);

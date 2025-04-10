@@ -15,8 +15,9 @@
 
 #define TEN_ADDON_REGISTER(TYPE, NAME, ADDON)                                  \
   static void ____ten_addon_##NAME##_##TYPE##_addon_register_handler__(        \
-      TEN_ADDON_TYPE addon_type, ten_string_t *addon_name, void *register_ctx, \
-      void *user_data) {                                                       \
+      TEN_UNUSED TEN_ADDON_TYPE addon_type,                                    \
+      TEN_UNUSED ten_string_t *addon_name, void *register_ctx,                 \
+      TEN_UNUSED void *user_data) {                                            \
     ten_string_t *base_dir = ten_path_get_module_path(                         \
         (void *)____ten_addon_##NAME##_##TYPE##_addon_register_handler__);     \
     ten_addon_register_##TYPE(#NAME, ten_string_get_raw_str(base_dir),         \

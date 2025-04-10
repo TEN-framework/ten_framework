@@ -31,6 +31,7 @@
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 void tenGoAddonOnInit(ten_go_handle_t go_addon, ten_go_handle_t go_ten_env);
 
@@ -345,7 +346,8 @@ ten_go_error_t ten_go_addon_register_extension(const void *addon_name,
 
 static void ten_go_addon_register_func(TEN_ADDON_TYPE addon_type,
                                        ten_string_t *addon_name,
-                                       void *register_ctx, void *user_data) {
+                                       void *register_ctx,
+                                       TEN_UNUSED void *user_data) {
   tenGoAddonManagerCallRegisterHandler(
       addon_type, ten_string_get_raw_str(addon_name), register_ctx);
 }

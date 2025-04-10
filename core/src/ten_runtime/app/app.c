@@ -120,8 +120,6 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   ten_value_init_object_with_move(&self->property, NULL);
   ten_schema_store_init(&self->schema_store);
 
-  ten_addon_store_init(&self->protocol_store);
-
   TEN_STRING_INIT(self->uri);
 
   self->in_msgs_lock = ten_mutex_create();
@@ -173,8 +171,6 @@ void ten_app_destroy(ten_app_t *self) {
   }
 
   ten_schema_store_deinit(&self->schema_store);
-
-  ten_addon_store_deinit(&self->protocol_store);
 
   ten_mutex_destroy(self->in_msgs_lock);
   ten_list_clear(&self->in_msgs);

@@ -9,8 +9,6 @@
 #include <string>
 
 #include "include_internal/ten_runtime/addon/addon.h"
-#include "include_internal/ten_runtime/addon/addon_host.h"
-#include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"

@@ -322,6 +322,9 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
 
   ten_app_t *app = register_ctx_->app;
   TEN_ASSERT(app, "Should not happen.");
+  // TODO(xilin): This function should be called on the app thread according to
+  // the register_ctx->app.
+
   // TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   addon_host->attached_app = app;
