@@ -26,7 +26,7 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
   type TerminalData,
-  type EditorData,
+  type IEditorWidgetData,
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
 
@@ -41,7 +41,7 @@ interface NodeContextMenuProps {
   graphName?: string | null;
   onClose: () => void;
   onLaunchTerminal: (data: TerminalData) => void;
-  onLaunchEditor: (data: EditorData) => void;
+  onLaunchEditor: (data: IEditorWidgetData) => void;
   onLaunchLogViewer?: () => void;
 }
 

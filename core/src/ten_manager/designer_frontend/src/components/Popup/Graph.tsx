@@ -17,19 +17,13 @@ import {
 import { EGraphActions } from "@/types/graphs";
 
 import type { IGraphWidget } from "@/types/widgets";
-import type { TCustomNode } from "@/types/flow";
 
 const DEFAULT_WIDTH = 400;
 const DEFAULT_HEIGHT = 300;
 
 export const GraphPopup = (props: {
   id: string;
-  metadata: IGraphWidget<{
-    type: EGraphActions;
-    base_dir: string;
-    graph_name?: string;
-    node?: TCustomNode;
-  }>["metadata"];
+  metadata: IGraphWidget["metadata"];
 }) => {
   const { id, metadata } = props;
 

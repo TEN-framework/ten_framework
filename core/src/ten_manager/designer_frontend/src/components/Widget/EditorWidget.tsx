@@ -20,11 +20,11 @@ import { ThemeProviderContext } from "@/components/theme-context";
 import { useDialogStore } from "@/store/dialog";
 import { useWidgetStore } from "@/store/widget";
 
-import type { EditorData } from "@/types/widgets";
+import type { IEditorWidgetData } from "@/types/widgets";
 
 export interface EditorWidgetProps {
   id: string;
-  data: EditorData;
+  data: IEditorWidgetData;
 }
 
 export type TEditorOnClose = {

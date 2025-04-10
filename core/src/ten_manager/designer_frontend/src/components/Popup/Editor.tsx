@@ -15,14 +15,14 @@ import EditorWidget, {
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 
-import type { EditorData } from "@/types/widgets";
+import type { IEditorWidgetData } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
 interface EditorPopupProps {
   id: string;
-  data: EditorData;
+  data: IEditorWidgetData;
   onClose: () => void;
   hasUnsavedChanges?: boolean;
 }

@@ -20,9 +20,7 @@ export const useWidgetStore = create<{
   widgets: IWidget[];
   appendWidget: (widget: IWidget) => void;
   appendWidgetIfNotExists: (widget: IWidget) => void;
-  appendTabWidget: (widget: IWidget) => void;
   removeWidget: (widgetId: string) => void;
-  removeTabWidget: (widgetId: string, subId: string) => void;
   removeWidgets: (widgetIds: string[]) => void;
   updateWidgetDisplayType: (
     widgetId: string,
@@ -76,34 +74,20 @@ export const useWidgetStore = create<{
       set((state) => ({ widgets: [...state.widgets, widget] })),
     appendWidgetIfNotExists: (widget: IWidget) => {
       set((state) => ({
-        widgets: state.widgets.find((w) => w.id === widget.id)
-          ? state.widgets
-          : [...state.widgets, widget],
-      }));
-      dispatchBringToFrontPopup(widget.id);
-    },
-    appendTabWidget: (widget: IWidget) => {
-      set((state) => ({
         widgets: state.widgets.find(
           (w) =>
-            w.id === widget.id &&
-            w.display_type === EWidgetDisplayType.PopupTab &&
-            w?.sub_id === widget?.sub_id
+            w.container_id === widget.container_id &&
+            w.group_id === widget.group_id &&
+            w.widget_id === widget.widget_id
         )
           ? state.widgets
           : [...state.widgets, widget],
       }));
-      dispatchBringToFrontPopup(widget.id, widget.sub_id);
+      dispatchBringToFrontPopup(widget.widget_id, widget.group_id);
     },
     removeWidget: (widgetId: string) =>
       set((state) => ({
         widgets: state.widgets.filter((w) => w.id !== widgetId),
-      })),
-    removeTabWidget: (widgetId: string, subId: string) =>
-      set((state) => ({
-        widgets: state.widgets.filter(
-          (w) => w.id !== widgetId || w.sub_id !== subId
-        ),
       })),
     removeWidgets: (widgetIds: string[]) =>
       set((state) => ({
@@ -115,7 +99,7 @@ export const useWidgetStore = create<{
     ) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
-          w.id === widgetId ? { ...w, display_type: displayType } : w
+          w.widget_id === widgetId ? { ...w, display_type: displayType } : w
         ),
       })),
 

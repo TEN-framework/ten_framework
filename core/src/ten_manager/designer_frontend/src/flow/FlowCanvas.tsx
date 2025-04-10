@@ -25,14 +25,14 @@ import CustomNode from "@/flow/CustomNode";
 import CustomEdge from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
-import { TerminalData } from "@/components/Popup/Terminal";
+import { ITerminalWidgetData } from "@/components/Popup/Terminal";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
 import {
   EWidgetDisplayType,
   EWidgetCategory,
-  type EditorData,
+  type IEditorWidgetData,
   ELogViewerScriptType,
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
@@ -71,7 +71,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       node?: TCustomNode;
     }>({ visible: false, x: 0, y: 0 });
 
-    const launchTerminal = (data: TerminalData) => {
+    const launchTerminal = (data: ITerminalWidgetData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
       appendWidget({
         id: newPopup.id,
@@ -81,7 +81,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       });
     };
 
-    const launchEditor = (data: EditorData) => {
+    const launchEditor = (data: IEditorWidgetData) => {
       appendWidgetIfNotExists({
         id: `${data.url}-${Date.now()}`,
         category: EWidgetCategory.Editor,

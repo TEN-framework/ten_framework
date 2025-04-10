@@ -20,13 +20,13 @@ import {
   TEN_PATH_WS_TERMINAL,
 } from "@/constants";
 
-import type { TerminalData } from "@/types/widgets";
+import type { ITerminalWidgetData } from "@/types/widgets";
 
 import "@xterm/xterm/css/xterm.css";
 
 export interface ITerminalWidgetProps {
   id: string;
-  data: TerminalData;
+  data: ITerminalWidgetData;
   onClose?: () => void;
 }
 

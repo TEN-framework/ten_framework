@@ -23,14 +23,7 @@ import { getCurrentWindowSize } from "@/utils/popup";
 import { TEN_DOC_URL } from "@/constants";
 import { useWidgetStore } from "@/store/widget";
 
-export const DocRefPopup = (props: {
-  tabs?: IDefaultWidget<{
-    type: EDefaultWidgetType;
-    base_dir?: string;
-    scripts?: string[];
-    doc_link_key?: string;
-  }>[];
-}) => {
+export const DocRefPopup = (props: { tabs?: IDefaultWidget[] }) => {
   const { tabs } = props;
 
   const [activeTabId, setActiveTabId] = React.useState<string>(

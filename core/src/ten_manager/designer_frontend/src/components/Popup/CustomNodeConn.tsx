@@ -21,13 +21,13 @@ import {
 } from "@/components/DataTable/ConnectionTable";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
-import type { CustomConnectionData } from "@/types/widgets";
+import type { ICustomConnectionWidgetData } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
 
 const DEFAULT_WIDTH = 800;
 const SUPPORTED_FILTERS = ["type"];
 
-export interface CustomNodeConnPopupProps extends CustomConnectionData {
+export interface CustomNodeConnPopupProps extends ICustomConnectionWidgetData {
   onClose?: () => void;
 }
 
