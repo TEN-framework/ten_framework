@@ -72,48 +72,6 @@ export const CustomNodeConnPopupContent = (props: {
 export interface CustomNodeConnPopupProps extends ICustomConnectionWidgetData {
   onClose?: () => void;
 }
-/** @deprecated */
-const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
-  id,
-  source,
-  target,
-  filters,
-  onClose,
-}) => {
-  const { t } = useTranslation();
-
-  const titleMemo = React.useMemo(() => {
-    if (source && !target) {
-      return t("popup.customNodeConn.srcTitle", { source });
-    }
-    if (source && target) {
-      return t("popup.customNodeConn.connectTitle", { source, target });
-    }
-    return t("popup.customNodeConn.title");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, target]);
-
-  return (
-    <PopupBase
-      id={id}
-      title={titleMemo}
-      onClose={() => onClose?.()}
-      width={DEFAULT_WIDTH}
-      resizable
-    >
-      <div className="flex flex-col gap-2 w-full h-[328px]">
-        {source && target && (
-          <EdgeInfoContent source={source} target={target} filters={filters} />
-        )}
-        {source && !target && (
-          <CustomNodeConnContent source={source} filters={filters} />
-        )}
-      </div>
-    </PopupBase>
-  );
-};
-
-export default CustomNodeConnPopup;
 
 function EdgeInfoContent(props: {
   source: string;
