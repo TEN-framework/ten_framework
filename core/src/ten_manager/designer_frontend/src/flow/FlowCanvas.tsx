@@ -67,7 +67,12 @@ interface FlowCanvasProps {
 
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
   ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, className }) => {
-    const { appendWidget, appendWidgetIfNotExists } = useWidgetStore();
+    const {
+      appendWidget,
+      appendWidgetIfNotExists,
+      removeBackstageWidget,
+      removeLogViewerHistory,
+    } = useWidgetStore();
     const { currentWorkspace } = useAppStore();
 
     const [contextMenu, setContextMenu] = useState<{
@@ -131,10 +136,11 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
     };
 
     const launchLogViewer = () => {
+      const widgetId = `logViewer-${Date.now()}`;
       appendWidgetIfNotExists({
         container_id: CONTAINER_DEFAULT_ID,
         group_id: GROUP_LOG_VIEWER_ID,
-        widget_id: `logViewer-${Date.now()}`,
+        widget_id: widgetId,
 
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
@@ -144,6 +150,12 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           wsUrl: "",
           scriptType: ELogViewerScriptType.DEFAULT,
           script: {},
+        },
+        actions: {
+          onClose: () => {
+            removeBackstageWidget(widgetId);
+            removeLogViewerHistory(widgetId);
+          },
         },
       });
     };

@@ -109,7 +109,11 @@ export const AppsManagerWidget = (props: { className?: string }) => {
 
   const { t } = useTranslation();
   const { data: loadedApps, isLoading, error, mutate } = useApps();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
   const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
@@ -189,10 +193,11 @@ export const AppsManagerWidget = (props: { className?: string }) => {
   };
 
   const handleAppInstallAll = (baseDir: string) => {
+    const widgetId = "app-install-" + Date.now();
     appendWidgetIfNotExists({
       container_id: CONTAINER_DEFAULT_ID,
       group_id: GROUP_LOG_VIEWER_ID,
-      widget_id: "app-install-" + Date.now(),
+      widget_id: widgetId,
 
       category: EWidgetCategory.LogViewer,
       display_type: EWidgetDisplayType.Popup,
@@ -211,6 +216,12 @@ export const AppsManagerWidget = (props: { className?: string }) => {
         },
         postActions: () => {
           postReloadApps(baseDir);
+        },
+      },
+      actions: {
+        onClose: () => {
+          removeBackstageWidget(widgetId);
+          removeLogViewerHistory(widgetId);
         },
       },
     });

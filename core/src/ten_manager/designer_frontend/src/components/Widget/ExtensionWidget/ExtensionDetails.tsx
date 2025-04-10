@@ -132,7 +132,11 @@ export const ExtensionDetails = (props: {
   }, [addons, name]);
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
 
   const osArchMemo = React.useMemo(() => {
@@ -177,10 +181,11 @@ export const ExtensionDetails = (props: {
     if (!currentWorkspace.baseDir || !selectedVersionItemMemo) {
       return;
     }
+    const widgetId = "ext-install-" + selectedVersionItemMemo.hash;
     appendWidgetIfNotExists({
       container_id: CONTAINER_DEFAULT_ID,
       group_id: GROUP_LOG_VIEWER_ID,
-      widget_id: "ext-install-" + selectedVersionItemMemo.hash,
+      widget_id: widgetId,
 
       category: EWidgetCategory.LogViewer,
       display_type: EWidgetDisplayType.Popup,
@@ -205,6 +210,12 @@ export const ExtensionDetails = (props: {
           if (currentWorkspace.baseDir) {
             postReloadApps(currentWorkspace.baseDir);
           }
+        },
+      },
+      actions: {
+        onClose: () => {
+          removeBackstageWidget(widgetId);
+          removeLogViewerHistory(widgetId);
         },
       },
     });

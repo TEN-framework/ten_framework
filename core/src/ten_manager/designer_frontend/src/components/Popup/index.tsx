@@ -33,13 +33,13 @@ const PopupWithTabs = (props: {
 
   const { removeWidgets } = useWidgetStore();
 
-  const handleClose = React.useCallback(async () => {
+  const handleClose = async () => {
     const widgetOnCloseActions = widgets
       .map((widget) => widget.actions?.onClose)
       .filter((action) => action !== undefined);
-    await Promise.all(widgetOnCloseActions);
+    await Promise.all(widgetOnCloseActions.map((action) => action()));
     removeWidgets(widgets.map((widget) => widget.widget_id));
-  }, [removeWidgets, widgets]);
+  };
 
   const globalCustomActions = React.useMemo(() => {
     if (widgets.length > 1) return undefined;

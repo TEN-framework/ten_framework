@@ -149,7 +149,7 @@ export interface ILogViewerWidgetOptions {
 
 export interface ILogViewerWidgetData<T extends ELogViewerScriptType> {
   wsUrl: string;
-  onStop?: () => void;
+  // onStop?: () => void;
   scriptType: T;
   script: z.infer<(typeof LogViewerScriptSchemaMap)[T]>;
   options?: ILogViewerWidgetOptions;

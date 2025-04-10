@@ -10,6 +10,7 @@ import { devtools } from "zustand/middleware";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
+  TWidgetCustomAction,
   type IWidget,
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
@@ -25,6 +26,10 @@ export const useWidgetStore = create<{
   updateWidgetDisplayType: (
     widgetId: string,
     displayType: EWidgetDisplayType
+  ) => void;
+  appendWidgetCustomAction: (
+    widgetId: string,
+    action: TWidgetCustomAction
   ) => void;
 
   // editor ---
@@ -101,6 +106,24 @@ export const useWidgetStore = create<{
         widgets: state.widgets.map((w) =>
           w.widget_id === widgetId ? { ...w, display_type: displayType } : w
         ),
+      })),
+    appendWidgetCustomAction: (widgetId: string, action: TWidgetCustomAction) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) => {
+          if (w.widget_id === widgetId) {
+            if (w.actions) {
+              w.actions.custom_actions = [
+                ...(w.actions.custom_actions || []),
+                action,
+              ];
+            } else {
+              w.actions = {
+                custom_actions: [action],
+              };
+            }
+          }
+          return w;
+        }),
       })),
 
     // editor ---

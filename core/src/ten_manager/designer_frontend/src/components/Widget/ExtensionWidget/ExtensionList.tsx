@@ -126,7 +126,11 @@ export const ExtensionBaseItem = React.forwardRef<
   const { item, className, isInstalled, _type, readOnly, ...rest } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
   const { mutate } = useListTenCloudStorePackages();
 
@@ -138,10 +142,11 @@ export const ExtensionBaseItem = React.forwardRef<
       if (!baseDir || !item) {
         return;
       }
+      const widgetId = "ext-install-" + item.hash;
       appendWidgetIfNotExists({
         container_id: CONTAINER_DEFAULT_ID,
         group_id: GROUP_LOG_VIEWER_ID,
-        widget_id: "ext-install-" + item.hash,
+        widget_id: widgetId,
 
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
@@ -164,6 +169,12 @@ export const ExtensionBaseItem = React.forwardRef<
           postActions: () => {
             mutate();
             postReloadApps(baseDir);
+          },
+        },
+        actions: {
+          onClose: () => {
+            removeBackstageWidget(widgetId);
+            removeLogViewerHistory(widgetId);
           },
         },
       });

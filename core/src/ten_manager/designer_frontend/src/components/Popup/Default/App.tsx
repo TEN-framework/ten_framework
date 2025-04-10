@@ -7,7 +7,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, OctagonXIcon } from "lucide-react";
 
 import { PopupBase } from "@/components/Popup/Base";
 import {
@@ -139,7 +139,12 @@ export const AppRunPopupContent = (props: { widget: IDefaultWidget }) => {
 
   const { t } = useTranslation();
 
-  const { removeWidget, appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    removeWidget,
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
 
   const [selectedScript, setSelectedScript] = React.useState<
     string | undefined
@@ -165,9 +170,23 @@ export const AppRunPopupContent = (props: { widget: IDefaultWidget }) => {
           base_dir: baseDir,
           name: selectedScript,
         },
-        onStop: () => {
-          console.log("app-start-widget-closed", baseDir, selectedScript);
+      },
+      actions: {
+        onClose: () => {
+          removeBackstageWidget(widget.widget_id);
+          removeLogViewerHistory(widget.widget_id);
         },
+        // custom_actions: [
+        //   {
+        //     id: "app-start-widget-closed",
+        //     label: "app-start-widget-closed",
+        //     Icon: OctagonXIcon,
+        //     onClick: () => {
+        //       console.log("app-start-widget-closed");
+        //       console.log(baseDir, selectedScript);
+        //     },
+        //   },
+        // ],
       },
     });
   };
