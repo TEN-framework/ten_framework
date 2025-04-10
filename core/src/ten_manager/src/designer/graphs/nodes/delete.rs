@@ -62,7 +62,7 @@ pub async fn delete_graph_node_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from graphs_cache.
-            if let Some(predefined_graph) =
+            if let Some(graph_info) =
                 pkg_predefined_graphs_find_mut(graphs_cache, |g| {
                     g.name == request_payload.graph_name
                         && (g.app_base_dir.is_some()
@@ -72,21 +72,14 @@ pub async fn delete_graph_node_endpoint(
                             && g.belonging_pkg_type.unwrap() == PkgType::App)
                 })
             {
-                let mut graph = predefined_graph.graph.clone();
-
                 // Delete the extension node.
-                match graph.delete_extension_node(
+                match graph_info.graph.delete_extension_node(
                     request_payload.node_name.clone(),
                     request_payload.addon_name.clone(),
                     request_payload.app_uri.clone(),
                     request_payload.extension_group_name.clone(),
                 ) {
                     Ok(_) => {
-                        // Update the predefined_graph in the app_pkg.
-                        let mut new_graph = predefined_graph.clone();
-                        new_graph.graph = graph;
-                        app_pkg.update_predefined_graph(&new_graph);
-
                         // Update property.json file to remove the graph node.
                         if let Some(property) = &mut app_pkg.property {
                             // Create the GraphNode we want to remove.
