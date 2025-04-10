@@ -58,8 +58,14 @@ mod tests {
             }
         }
         "#;
-        let app_property =
-            parse_property_from_str(prop_str, &mut HashMap::new()).unwrap();
+        let app_property = parse_property_from_str(
+            prop_str,
+            &mut HashMap::new(),
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         // Create ext1 PkgInfo with valid API schema for message communication.
         let ext1_manifest_json_str =

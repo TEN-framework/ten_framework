@@ -17,6 +17,7 @@ use uuid::Uuid;
 
 use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
+    pkg_type::PkgType,
     utils::read_file_to_string,
 };
 use crate::graph::{graph_info::GraphInfo, is_app_default_loc_or_none};
@@ -55,6 +56,9 @@ pub struct Property {
 pub fn parse_property_from_str(
     s: &str,
     graphs_cache: &mut HashMap<String, GraphInfo>,
+    app_base_dir: Option<String>,
+    belonging_pkg_type: Option<PkgType>,
+    belonging_pkg_name: Option<String>,
 ) -> Result<Property> {
     let mut property: Property = serde_json::from_str(s)?;
 
@@ -76,6 +80,11 @@ pub fn parse_property_from_str(
                 for graph in graphs {
                     // Create a clone to validate.
                     let mut graph_clone = graph.clone();
+
+                    graph_clone.belonging_pkg_type = belonging_pkg_type;
+                    graph_clone.belonging_pkg_name = belonging_pkg_name.clone();
+                    graph_clone.app_base_dir = app_base_dir.clone();
+
                     graph_clone.validate_and_complete()?;
 
                     let uuid = Uuid::new_v4().to_string();
@@ -200,6 +209,9 @@ pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
 fn parse_property_from_file<P: AsRef<Path>>(
     property_file_path: P,
     graphs_cache: &mut HashMap<String, GraphInfo>,
+    app_base_dir: Option<String>,
+    belonging_pkg_type: Option<PkgType>,
+    belonging_pkg_name: Option<String>,
 ) -> Result<Option<Property>> {
     if !property_file_path.as_ref().exists() {
         return Ok(None);
@@ -218,21 +230,35 @@ fn parse_property_from_file<P: AsRef<Path>>(
     let content = read_file_to_string(property_file_path)?;
 
     // Parse the content and validate the property structure.
-    parse_property_from_str(&content, graphs_cache).map(Some)
+    parse_property_from_str(
+        &content,
+        graphs_cache,
+        app_base_dir,
+        belonging_pkg_type,
+        belonging_pkg_name,
+    )
+    .map(Some)
 }
 
 pub fn parse_property_in_folder(
     folder_path: &Path,
     graphs_cache: &mut HashMap<String, GraphInfo>,
+    app_base_dir: Option<String>,
+    belonging_pkg_type: Option<PkgType>,
+    belonging_pkg_name: Option<String>,
 ) -> Result<Option<Property>> {
     // Path to the property.json file.
     let property_path = folder_path.join(PROPERTY_JSON_FILENAME);
 
     // Read and parse the property.json file.
-    let property = parse_property_from_file(&property_path, graphs_cache)
-        .with_context(|| {
-            format!("Failed to load {}.", property_path.display())
-        })?;
+    let property = parse_property_from_file(
+        &property_path,
+        graphs_cache,
+        app_base_dir,
+        belonging_pkg_type,
+        belonging_pkg_name,
+    )
+    .with_context(|| format!("Failed to load {}.", property_path.display()))?;
 
     Ok(property)
 }

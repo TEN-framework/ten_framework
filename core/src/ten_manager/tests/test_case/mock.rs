@@ -34,7 +34,14 @@ pub fn inject_all_pkgs_for_mock(
 
     for metadata_json in all_pkgs_json {
         let manifest = Manifest::from_str(&metadata_json.0)?;
-        let property = parse_property_from_str(&metadata_json.1, graphs_cache)?;
+
+        let property = parse_property_from_str(
+            &metadata_json.1,
+            graphs_cache,
+            Some(base_dir.to_string()),
+            Some(manifest.type_and_name.pkg_type),
+            Some(manifest.type_and_name.name.clone()),
+        )?;
 
         let pkg_info = PkgInfo::from_metadata(&manifest, &Some(property))?;
 

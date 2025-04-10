@@ -20,7 +20,6 @@ mod tests {
                 AddGraphConnectionRequestPayload,
                 AddGraphConnectionResponsePayload,
             },
-            mock::inject_all_pkgs_for_mock,
             response::ApiResponse,
             DesignerState,
         },
@@ -29,6 +28,8 @@ mod tests {
     use ten_rust::pkg_info::{
         constants::PROPERTY_JSON_FILENAME, message::MsgType,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_add_graph_connection_success_1() {

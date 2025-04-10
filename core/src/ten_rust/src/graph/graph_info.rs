@@ -24,7 +24,7 @@ pub struct GraphInfo {
     #[serde(skip)]
     pub app_base_dir: Option<String>,
     #[serde(skip)]
-    pub belonging_pkg_type: PkgType,
+    pub belonging_pkg_type: Option<PkgType>,
     #[serde(skip)]
     pub belonging_pkg_name: Option<String>,
 }

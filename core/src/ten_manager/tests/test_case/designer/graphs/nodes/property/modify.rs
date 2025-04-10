@@ -22,12 +22,13 @@ mod tests {
                 UpdateGraphNodePropertyRequestPayload,
                 UpdateGraphNodePropertyResponsePayload,
             },
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
         output::TmanOutputCli,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_update_graph_node_property_success() {

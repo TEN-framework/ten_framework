@@ -21,11 +21,12 @@ mod tests {
                 validate_graph_node_endpoint, ValidateGraphNodeRequestPayload,
                 ValidateGraphNodeResponsePayload,
             },
-            mock::inject_all_pkgs_for_mock,
             DesignerState,
         },
         output::TmanOutputCli,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_validate_graph_node_success() {

@@ -75,7 +75,8 @@ pub async fn execute_cmd(
 
     if command_data.get_identity {
         // Get the package info and output identity information.
-        let pkg_info = get_pkg_info_from_path(&cwd, true, false, &mut None)?;
+        let pkg_info =
+            get_pkg_info_from_path(&cwd, true, false, &mut None, None)?;
         let hash = pkg_info.gen_hash_hex();
 
         if let Some(manifest) = &pkg_info.manifest {
@@ -98,7 +99,8 @@ pub async fn execute_cmd(
         // Use the default output path, which is located in the `.ten/`
         // directory, ensuring that under normal circumstances, it will not be
         // uploaded to the git repository.
-        let pkg_info = get_pkg_info_from_path(&cwd, true, false, &mut None)?;
+        let pkg_info =
+            get_pkg_info_from_path(&cwd, true, false, &mut None, None)?;
         let output_pkg_file_name = get_tpkg_file_name(&pkg_info)?;
 
         // Create the output directory.

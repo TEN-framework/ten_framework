@@ -24,12 +24,13 @@ mod tests {
                 },
                 DesignerDestination, DesignerMessageFlow,
             },
-            mock::inject_all_pkgs_for_mock,
             response::ApiResponse,
             DesignerState,
         },
         output::TmanOutputCli,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_get_connections_success() {

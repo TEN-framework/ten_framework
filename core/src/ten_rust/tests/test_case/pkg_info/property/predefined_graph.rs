@@ -12,24 +12,24 @@ mod tests {
 
     #[test]
     fn test_property_predefined_graph_deserialize() {
+        let mut graphs_cache = HashMap::new();
+
         let property_json_str = include_str!("test_data_embed/property.json");
-        let property =
-            parse_property_from_str(property_json_str, &mut HashMap::new())
-                .unwrap();
+        let property = parse_property_from_str(
+            property_json_str,
+            &mut graphs_cache,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(property._ten.is_some());
 
-        let predefined_graphs = property
-            ._ten
-            .as_ref()
-            .unwrap()
-            .predefined_graphs
-            .as_ref()
-            .unwrap();
-        assert!(predefined_graphs.len() == 1);
+        assert!(graphs_cache.len() == 1);
 
-        let predefined_graph = predefined_graphs.first().unwrap().clone();
-        let property_json_value =
-            serde_json::to_value(&predefined_graph).unwrap();
+        let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
+
+        let property_json_value = serde_json::to_value(&graph_info).unwrap();
         assert_eq!(
             property_json_value.as_object().unwrap()["connections"]
                 .as_array()

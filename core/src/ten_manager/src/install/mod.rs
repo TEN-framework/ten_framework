@@ -263,6 +263,7 @@ fn update_package_manifest(
                                 false,
                                 false,
                                 &mut None,
+                                None,
                             ) {
                                 Ok(info) => info,
                                 Err(_) => {
