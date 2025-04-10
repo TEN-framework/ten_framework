@@ -12,13 +12,14 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::base_dir_pkg_info::PkgsInfoInAppWithBaseDir;
+use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_mut;
 use ten_rust::{
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
 };
 
-use crate::designer::graphs::util::find_predefined_graph;
 use crate::designer::{
     graphs::util::find_app_package_from_base_dir,
     response::{ApiResponse, ErrorResponse, Status},
@@ -173,21 +174,32 @@ pub async fn add_graph_connection_endpoint(
         }
     }
 
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
     // Get the packages for this base_dir.
     if let Some(base_dir_pkg_info) =
-        state_write.pkgs_cache.get_mut(&request_payload.base_dir)
+        pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
-            // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) =
-                find_predefined_graph(app_pkg, &request_payload.graph_name)
+            // Get the specified graph from graphs_cache.
+            if let Some(graph_info) =
+                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
+                    g.name == request_payload.graph_name
+                        && (g.app_base_dir.is_some()
+                            && g.app_base_dir.as_ref().unwrap()
+                                == &request_payload.base_dir)
+                        && (g.belonging_pkg_type.is_some()
+                            && g.belonging_pkg_type.unwrap() == PkgType::App)
+                })
             {
-                let mut graph = predefined_graph.graph.clone();
-
                 // Add the connection using the converted PkgsInfoInApp map.
-                match graph.add_connection(
+                match graph_info.graph.add_connection(
                     request_payload.src_app.clone(),
                     request_payload.src_extension.clone(),
                     request_payload.msg_type.clone(),
@@ -198,11 +210,6 @@ pub async fn add_graph_connection_endpoint(
                     request_payload.msg_conversion.clone(),
                 ) {
                     Ok(_) => {
-                        // Update the predefined_graph in the app_pkg.
-                        let mut new_graph = predefined_graph.clone();
-                        new_graph.graph = graph;
-                        app_pkg.update_predefined_graph(&new_graph);
-
                         // Update property.json file with the updated graph.
                         if let Some(property) = &mut app_pkg.property {
                             // Create a new connection object.

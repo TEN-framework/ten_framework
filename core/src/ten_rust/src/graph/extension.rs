@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
@@ -11,7 +13,7 @@ use crate::{
     pkg_info::{
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find_old,
+        predefined_graphs::pkg_predefined_graphs_find,
         PkgInfo,
     },
     schema::{
@@ -22,24 +24,26 @@ use crate::{
     },
 };
 
+use super::graph_info::GraphInfo;
+
 /// Retrieves all extension nodes from a specified graph.
 pub fn get_extension_nodes_in_graph(
+    base_dir: &String,
     graph_name: &String,
-    app_pkg: &PkgInfo,
+    graphs_cache: &HashMap<String, GraphInfo>,
 ) -> Result<Vec<GraphNode>> {
-    if app_pkg.property.is_none() {
-        return Err(anyhow::anyhow!(
-            "Property information is missing".to_string(),
-        ));
-    }
-
-    // Look for the graph by name in the predefined_graphs of the app package.
-    if let Some(predefined_graph) = pkg_predefined_graphs_find_old(
-        app_pkg.get_predefined_graphs(),
-        |graph| graph.name == *graph_name,
-    ) {
+    // Look for the graph by name in the graphs_cache.
+    if let Some(graph_info) =
+        pkg_predefined_graphs_find(graphs_cache, |graph| {
+            graph.name == *graph_name
+                && (graph.app_base_dir.is_some()
+                    && graph.app_base_dir.as_ref().unwrap() == base_dir)
+                && (graph.belonging_pkg_type.is_some()
+                    && graph.belonging_pkg_type.unwrap() == PkgType::App)
+        })
+    {
         // Collect all extension nodes from the graph.
-        let extension_nodes: Vec<_> = predefined_graph
+        let extension_nodes: Vec<_> = graph_info
             .graph
             .nodes
             .iter()
