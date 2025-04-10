@@ -138,8 +138,9 @@ export const PopupTabsBarContent = (props: {
   children?: React.ReactNode;
   className?: string;
   isActive?: boolean;
+  fullHeight?: boolean;
 }) => {
-  const { children, className, isActive } = props;
+  const { children, className, isActive, fullHeight } = props;
 
   return (
     <div
@@ -147,6 +148,7 @@ export const PopupTabsBarContent = (props: {
         "w-full h-[calc(100%-32px)]",
         {
           ["hidden"]: !isActive,
+          ["h-full"]: fullHeight,
         },
         className
       )}
@@ -403,13 +405,15 @@ export const PopupBase = (props: IPopupBaseProps) => {
       <motion.div
         className={cn(
           "p-2.5 overflow-hidden flex w-full",
+          "h-full opacity-100",
           {
             ["py-0 h-0 opacity-0"]: isCollapsed,
-            ["h-full opacity-100"]: !isCollapsed,
           },
           contentClassName
         )}
-        style={{ pointerEvents: isResizing ? "none" : "auto" }}
+        style={{
+          pointerEvents: isResizing ? "none" : "auto",
+        }}
       >
         {children}
       </motion.div>

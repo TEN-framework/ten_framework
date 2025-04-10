@@ -59,7 +59,7 @@ const PopupWithTabs = (props: {
       onClose={handleClose}
       customActions={globalCustomActions}
       title={globalTitle}
-      contentClassName={cn("p-0 flex flex-col h-full w-full")}
+      contentClassName={cn("p-0 flex flex-col")}
     >
       <PopupTabs widgets={widgets} />
     </PopupBase>
@@ -134,6 +134,7 @@ const PopupTabs = (props: { widgets: IWidget[] }) => {
           <PopupTabsBarContent
             key={"PopupTabsBarContent" + widget.widget_id}
             isActive={widget.widget_id === activeWidgetId}
+            fullHeight={widgets.length === 1}
           >
             <Renderer widget={widget} />
           </PopupTabsBarContent>
