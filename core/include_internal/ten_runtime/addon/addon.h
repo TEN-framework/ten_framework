@@ -46,6 +46,10 @@ typedef enum TEN_ADDON_CONTEXT_FLOW {
 } TEN_ADDON_CONTEXT_FLOW;
 
 typedef struct ten_addon_context_t {
+  TEN_ADDON_TYPE addon_type;
+  ten_string_t addon_name;
+  ten_string_t instance_name;
+
   TEN_ADDON_CONTEXT_FLOW flow;
   union {
     ten_app_t *app;
@@ -101,12 +105,15 @@ TEN_RUNTIME_API void ten_addon_unregister_all_and_cleanup_after_app_close(
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_get_store(void);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_create_instance_async(
-    ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    const char *instance_name, ten_addon_context_t *addon_context);
+    ten_env_t *ten_env, ten_addon_context_t *addon_context);
 
 TEN_RUNTIME_API const char *ten_addon_type_to_string(TEN_ADDON_TYPE type);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_context_t *ten_addon_context_create(void);
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_context_set_creation_info(
+    ten_addon_context_t *self, TEN_ADDON_TYPE addon_type,
+    const char *addon_name, const char *instance_name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_context_destroy(
     ten_addon_context_t *self);

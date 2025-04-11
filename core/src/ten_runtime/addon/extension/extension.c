@@ -125,6 +125,8 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
   // to extension thread.
   if (ten_extension_thread_call_by_me(extension_group->extension_thread)) {
     ten_addon_context_t *addon_context = ten_addon_context_create();
+    ten_addon_context_set_creation_info(addon_context, TEN_ADDON_TYPE_EXTENSION,
+                                        addon_name, instance_name);
     addon_context->flow =
         TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
     addon_context->flow_target.extension_thread =
@@ -132,9 +134,7 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
     addon_context->create_instance_done_cb = cb;
     addon_context->create_instance_done_cb_data = cb_data;
 
-    bool rc = ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION,
-                                              addon_name, instance_name,
-                                              addon_context);
+    bool rc = ten_addon_create_instance_async(ten_env, addon_context);
     if (!rc) {
       ten_addon_context_destroy(addon_context);
     }

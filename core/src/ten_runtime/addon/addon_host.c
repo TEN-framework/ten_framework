@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
@@ -138,11 +139,38 @@ ten_addon_context_t *ten_addon_context_create(void) {
   ten_addon_context_t *self = TEN_MALLOC(sizeof(ten_addon_context_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
+  self->addon_type = TEN_ADDON_TYPE_INVALID;
+  TEN_STRING_INIT(self->addon_name);
+  TEN_STRING_INIT(self->instance_name);
+
+  self->flow = TEN_ADDON_CONTEXT_FLOW_INVALID;
+
+  self->create_instance_done_cb = NULL;
+  self->create_instance_done_cb_data = NULL;
+
+  self->destroy_instance_done_cb = NULL;
+  self->destroy_instance_done_cb_data = NULL;
+
   return self;
+}
+
+void ten_addon_context_set_creation_info(ten_addon_context_t *self,
+                                         TEN_ADDON_TYPE addon_type,
+                                         const char *addon_name,
+                                         const char *instance_name) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(addon_name && instance_name, "Invalid argument.");
+
+  self->addon_type = addon_type;
+  ten_string_set_from_c_str(&self->addon_name, addon_name);
+  ten_string_set_from_c_str(&self->instance_name, instance_name);
 }
 
 void ten_addon_context_destroy(ten_addon_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
+
+  ten_string_deinit(&self->addon_name);
+  ten_string_deinit(&self->instance_name);
 
   TEN_FREE(self);
 }

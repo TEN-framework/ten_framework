@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 
+#include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/binding/common.h"
 #include "include_internal/ten_runtime/metadata/metadata.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
@@ -127,6 +128,11 @@ typedef struct ten_app_t {
   TelemetrySystem *telemetry_system;
   MetricHandle *metric_extension_thread_msg_queue_stay_time_us;
 #endif
+
+  ten_addon_store_t extension_store;
+  ten_addon_store_t extension_group_store;
+  ten_addon_store_t protocol_store;
+  ten_addon_store_t addon_loader_store;
 
   void *user_data;
 } ten_app_t;

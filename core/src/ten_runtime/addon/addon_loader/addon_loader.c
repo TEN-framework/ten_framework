@@ -74,14 +74,14 @@ bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
   // `ten_env`.
   if (ten_app_thread_call_by_me(app)) {
     ten_addon_context_t *addon_context = ten_addon_context_create();
+    ten_addon_context_set_creation_info(
+        addon_context, TEN_ADDON_TYPE_ADDON_LOADER, addon_name, instance_name);
     addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER;
     addon_context->flow_target.app = app;
     addon_context->create_instance_done_cb = cb;
     addon_context->create_instance_done_cb_data = cb_data;
 
-    bool rc = ten_addon_create_instance_async(
-        ten_env, TEN_ADDON_TYPE_ADDON_LOADER, addon_name, instance_name,
-        addon_context);
+    bool rc = ten_addon_create_instance_async(ten_env, addon_context);
     if (!rc) {
       ten_addon_context_destroy(addon_context);
     }

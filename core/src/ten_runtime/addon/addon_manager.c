@@ -9,6 +9,7 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/common/common.h"
+#include "ten_runtime/app/app.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
@@ -243,6 +244,7 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
 ten_addon_register_ctx_t *ten_addon_register_ctx_create(ten_app_t *app) {
   ten_addon_register_ctx_t *self = TEN_MALLOC(sizeof(ten_addon_register_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
 
   self->app = app;
 
