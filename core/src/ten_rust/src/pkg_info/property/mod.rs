@@ -140,13 +140,15 @@ fn validate_predefined_graphs(graphs: &[GraphInfo]) -> Result<()> {
     let mut seen_graph_names = std::collections::HashSet::new();
 
     for graph in graphs.iter() {
-        // Note: We're storing references to graph names, which is correct.
-        if !seen_graph_names.insert(&graph.name) {
-            return Err(anyhow::anyhow!(
-                "Duplicate predefined graph name detected: '{}'. \
-                Each predefined_graph must have a unique 'name'.",
-                graph.name
-            ));
+        if let Some(name) = &graph.name {
+            // Note: We're storing references to graph names, which is correct.
+            if !seen_graph_names.insert(name) {
+                return Err(anyhow::anyhow!(
+                    "Duplicate predefined graph name detected: '{}'. \
+                    Each predefined_graph must have a unique 'name'.",
+                    name
+                ));
+            }
         }
     }
 

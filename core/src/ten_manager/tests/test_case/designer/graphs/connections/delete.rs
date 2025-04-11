@@ -256,7 +256,10 @@ mod tests {
 
         if let Some(predefined_graph) =
             pkg_predefined_graphs_find(graphs_cache, |g| {
-                g.name == "default_with_app_uri"
+                g.name
+                    .as_ref()
+                    .map(|name| name == "default_with_app_uri")
+                    .unwrap_or(false)
                     && (g.app_base_dir.is_some()
                         && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
                     && (g.belonging_pkg_type.is_some()

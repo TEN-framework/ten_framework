@@ -20,7 +20,7 @@ pub struct GetGraphsRequestPayload {}
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetGraphsResponseData {
     pub uuid: String,
-    pub name: String,
+    pub name: Option<String>,
     pub auto_start: Option<bool>,
     pub base_dir: Option<String>,
 }

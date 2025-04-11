@@ -36,7 +36,11 @@ pub fn get_extension_nodes_in_graph(
     // Look for the graph by name in the graphs_cache.
     if let Some(graph_info) =
         pkg_predefined_graphs_find(graphs_cache, |graph| {
-            graph.name == *graph_name
+            graph
+                .name
+                .as_ref()
+                .map(|name| name == graph_name)
+                .unwrap_or(false)
                 && (graph.app_base_dir.is_some()
                     && graph.app_base_dir.as_ref().unwrap() == base_dir)
                 && (graph.belonging_pkg_type.is_some()
