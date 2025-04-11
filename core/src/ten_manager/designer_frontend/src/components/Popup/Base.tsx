@@ -29,7 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
 import { useWidgetStore } from "@/store";
-import { ECustomEventName } from "@/utils/popup";
+import { EEventName, eventPubSub } from "@/utils/events";
 import { TWidgetCustomAction } from "@/types/widgets";
 
 const POPUP_MIN_HEIGHT = 200;
@@ -239,15 +239,15 @@ export const PopupBase = (props: IPopupBaseProps) => {
     }
   }, [onClose, id, removeWidget]);
 
-  const handleBringToFront = React.useCallback((tab_id?: string) => {
+  const handleBringToFront = React.useCallback((widget_id?: string) => {
     const highestZIndex = Math.max(
       ...Array.from(document.querySelectorAll(".popup")).map(
         (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
       )
     );
-    // if (tab_id) {
-    //   onTabIdUpdate?.(tab_id);
-    // }
+    if (widget_id) {
+      // onWidgetIdUpdate?.(widget_id);
+    }
     if (popupRef.current) {
       if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
       popupRef.current.style.zIndex = (highestZIndex + 1).toString();
@@ -280,22 +280,17 @@ export const PopupBase = (props: IPopupBaseProps) => {
   }, [initialPosition]);
 
   React.useEffect(() => {
-    const bringToFrontEvent = (event: CustomEvent) => {
-      if (event.detail.id === id) {
-        handleBringToFront(event.detail.tab_id);
+    const { id: bringToFrontEventId } = eventPubSub.subscribe(
+      EEventName.BringToFront,
+      (event) => {
+        if (event.id === id) {
+          handleBringToFront(event.widget_id);
+        }
       }
-    };
-
-    window.addEventListener(
-      ECustomEventName.BringToFrontPopup,
-      bringToFrontEvent as EventListener
     );
 
     return () => {
-      window.removeEventListener(
-        ECustomEventName.BringToFrontPopup,
-        bringToFrontEvent as EventListener
-      );
+      eventPubSub.unsubById(EEventName.BringToFront, bringToFrontEventId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

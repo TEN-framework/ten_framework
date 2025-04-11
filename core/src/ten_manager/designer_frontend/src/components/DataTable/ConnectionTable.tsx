@@ -46,7 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import { cn } from "@/lib/utils";
-import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+import { dispatchCustomNodeActionPopup } from "@/utils/events";
 
 import { EConnectionType } from "@/types/graphs";
 
@@ -218,7 +218,10 @@ export const extensionConnectionColumns1: ColumnDef<TConnection>[] = [
             variant="outline"
             size="sm"
             onClick={() =>
-              dispatchCustomNodeActionPopup("connections", downstream)
+              dispatchCustomNodeActionPopup({
+                action: "connections",
+                source: downstream,
+              })
             }
           >
             <BlocksIcon className="w-3 h-3 me-1" />
@@ -249,7 +252,10 @@ export const extensionConnectionColumns2: ColumnDef<TConnection>[] = [
             variant="outline"
             size="sm"
             onClick={() =>
-              dispatchCustomNodeActionPopup("connections", upstream)
+              dispatchCustomNodeActionPopup({
+                action: "connections",
+                source: upstream,
+              })
             }
           >
             <BlocksIcon className="w-3 h-3 me-1" />

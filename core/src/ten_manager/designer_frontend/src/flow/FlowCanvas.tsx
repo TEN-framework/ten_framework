@@ -35,7 +35,7 @@ import {
   ITerminalWidgetData,
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
-import { ECustomEventName } from "@/utils/popup";
+import { EEventName, eventPubSub } from "@/utils/events";
 import { CustomNodeConnPopupTitle } from "@/components/Popup/CustomNodeConn";
 
 import type { TCustomEdge, TCustomNode } from "@/types/flow";
@@ -219,29 +219,25 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const handleClick = () => {
         closeContextMenu();
       };
-      const handleCustomNodeAction = (event: CustomEvent) => {
-        switch (event.detail.action) {
-          case "connections":
-            launchConnPopup(
-              event.detail.source,
-              event.detail.target,
-              event.detail.metadata
-            );
-            break;
-          default:
-            break;
-        }
-      };
+
       window.addEventListener("click", handleClick);
-      window.addEventListener(
-        ECustomEventName.CustomNodeAction,
-        handleCustomNodeAction as EventListener
+      const { id: customNodeActionPopupId } = eventPubSub.subscribe(
+        EEventName.CustomNodeActionPopup,
+        (data) => {
+          switch (data.action) {
+            case "connections":
+              launchConnPopup(data.source, data.target, data.metadata);
+              break;
+            default:
+              break;
+          }
+        }
       );
       return () => {
         window.removeEventListener("click", handleClick);
-        window.removeEventListener(
-          ECustomEventName.CustomNodeAction,
-          handleCustomNodeAction as EventListener
+        eventPubSub.unsubById(
+          EEventName.CustomNodeActionPopup,
+          customNodeActionPopupId
         );
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps

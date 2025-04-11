@@ -16,7 +16,7 @@ import {
 
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
-import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+import { dispatchCustomNodeActionPopup } from "@/utils/events";
 import CustomHandle from "@/flow/CustomHandle";
 import { EConnectionType } from "@/types/graphs";
 
@@ -105,11 +105,16 @@ const HandleGroupItem = (props: {
       target?: boolean;
     }) =>
     () => {
-      dispatchCustomNodeActionPopup("connections", data.name, undefined, {
-        filters: {
-          type,
-          source,
-          target,
+      dispatchCustomNodeActionPopup({
+        action: "connections",
+        source: data.name,
+        target: undefined,
+        metadata: {
+          filters: {
+            type,
+            source,
+            target,
+          },
         },
       });
     };

@@ -31,17 +31,6 @@ export interface EditorWidgetProps {
   data: IEditorWidgetData;
 }
 
-/** @deprecated */
-export type TEditorOnClose = {
-  postConfirm?: () => Promise<void>;
-  postCancel?: () => Promise<void>;
-  title?: string;
-  content?: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  hasUnsavedChanges?: boolean;
-};
-
 const EditorWidget = React.forwardRef<IEditorWidgetRef, EditorWidgetProps>(
   ({ id, data }, ref) => {
     const [fileContent, setFileContent] = useState(data.content);

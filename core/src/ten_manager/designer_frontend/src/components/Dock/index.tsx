@@ -33,8 +33,7 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
-import { useWidgetStore } from "@/store/widget";
-import { useDialogStore } from "@/store/dialog";
+import { useWidgetStore, useDialogStore } from "@/store";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
@@ -42,18 +41,12 @@ import {
   EDefaultWidgetType,
   IWidget,
   ILogViewerWidget,
+  IEditorWidgetRef,
 } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
-
-import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
-
-type TEditorRef = {
-  onClose: (onClose: TEditorOnClose) => void;
-  id: string;
-};
 
 export default function DockContainer(props: {
   position?: string;
@@ -79,7 +72,7 @@ export default function DockContainer(props: {
   const { appendDialog, removeDialog } = useDialogStore();
   const { t } = useTranslation();
 
-  const editorRef = React.useRef<TEditorRef | null>(null);
+  const editorRef = React.useRef<IEditorWidgetRef>(null);
 
   const dockWidgetsMemo = React.useMemo(
     () =>
@@ -90,27 +83,31 @@ export default function DockContainer(props: {
   );
 
   const selectedWidgetMemo = React.useMemo(
-    () => dockWidgetsMemo.find((widget) => widget.id === selectedWidgetId),
+    () =>
+      dockWidgetsMemo.find((widget) => widget.widget_id === selectedWidgetId),
     [dockWidgetsMemo, selectedWidgetId]
   );
 
   React.useEffect(() => {
     const selectedWidget = dockWidgetsMemo.find(
-      (widget) => widget.id === selectedWidgetId
+      (widget) => widget.widget_id === selectedWidgetId
     );
     if (dockWidgetsMemo.length > 0 && !selectedWidget) {
-      setSelectedWidgetId(dockWidgetsMemo[0].id);
+      setSelectedWidgetId(dockWidgetsMemo[0].widget_id);
     }
   }, [dockWidgetsMemo, selectedWidgetId]);
 
   const handlePopout = (id: string) => {
     const isEditor =
-      dockWidgetsMemo.find((w) => w.id === id)?.category ===
+      dockWidgetsMemo.find((w) => w.widget_id === id)?.category ===
       EWidgetCategory.Editor;
     if (isEditor) {
       const isEditing =
-        (dockWidgetsMemo.find((w) => w.id === id) as IEditorWidget | undefined)
-          ?.isEditing ?? false;
+        (
+          dockWidgetsMemo.find((w) => w.widget_id === id) as
+            | IEditorWidget
+            | undefined
+        )?.isEditing ?? false;
       (editorRef.current as TEditorRef)?.onClose({
         hasUnsavedChanges: isEditing,
         postConfirm: async () => {

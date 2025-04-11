@@ -15,7 +15,7 @@ import {
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
 import { PREFERENCES_SCHEMA_LOG } from "@/types/apps";
-import { dispatchBringToFrontPopup } from "@/utils/popup";
+import { dispatchBringToFront } from "@/utils/events";
 
 export const useWidgetStore = create<{
   widgets: IWidget[];
@@ -92,7 +92,10 @@ export const useWidgetStore = create<{
           ? state.widgets
           : [...state.widgets, widget],
       }));
-      dispatchBringToFrontPopup(widget.widget_id, widget.group_id);
+      dispatchBringToFront({
+        widget_id: widget.widget_id,
+        group_id: widget.group_id,
+      });
     },
     removeWidget: (widgetId: string) =>
       set((state) => ({

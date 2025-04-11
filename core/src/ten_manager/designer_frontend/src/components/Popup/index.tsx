@@ -38,6 +38,10 @@ const PopupWithTabs = (props: {
 }) => {
   const { widgets, groupId, containerId } = props;
 
+  const [activeWidgetId, setActiveWidgetId] = React.useState<string>(
+    widgets[0].widget_id
+  );
+
   const { removeWidgets, updateWidgetDisplayTypeBulk } = useWidgetStore();
   const { appendDialog, removeDialog } = useDialogStore();
   const { t } = useTranslation();
@@ -132,6 +136,10 @@ const PopupWithTabs = (props: {
     removeWidgets(widgets.map((widget) => widget.widget_id));
   };
 
+  const handleSelectWidget = React.useCallback((widget_id: string) => {
+    setActiveWidgetId(widget_id);
+  }, []);
+
   const globalCustomActions = React.useMemo(() => {
     if (widgets.length > 1)
       return [
@@ -163,7 +171,11 @@ const PopupWithTabs = (props: {
       title={globalTitle}
       contentClassName={cn("p-0 flex flex-col")}
     >
-      <PopupTabs widgets={widgets} />
+      <PopupTabs
+        widgets={widgets}
+        selectedWidgetId={activeWidgetId}
+        onSelectWidget={handleSelectWidget}
+      />
     </PopupBase>
   );
 };
@@ -194,14 +206,14 @@ const WidgetContentRenderMappings: Record<
   }>,
 };
 
-const PopupTabs = (props: { widgets: IWidget[] }) => {
-  const { widgets } = props;
+const PopupTabs = (props: {
+  widgets: IWidget[];
+  selectedWidgetId: string;
+  onSelectWidget: (widget_id: string) => void;
+}) => {
+  const { widgets, selectedWidgetId, onSelectWidget } = props;
 
   const { removeWidget } = useWidgetStore();
-
-  const [activeWidgetId, setActiveWidgetId] = React.useState<string>(
-    widgets[0].widget_id
-  );
 
   const showTabsBar = React.useMemo(() => {
     return widgets?.length > 1;
@@ -215,11 +227,18 @@ const PopupTabs = (props: { widgets: IWidget[] }) => {
             <PopupTabsBarItem
               key={"PopupTabsBarItem" + widget.widget_id}
               id={widget.widget_id}
-              isActive={widget.widget_id === activeWidgetId}
-              onSelect={(id) => setActiveWidgetId(id)}
+              isActive={widget.widget_id === selectedWidgetId}
+              onSelect={onSelectWidget}
               onClose={() => {
                 removeWidget(widget.widget_id);
-                setActiveWidgetId(widgets[0].widget_id);
+                if (selectedWidgetId === widget.widget_id) {
+                  const nextWidget = widgets.find(
+                    (w) => w.widget_id !== widget.widget_id
+                  );
+                  if (nextWidget) {
+                    onSelectWidget(nextWidget.widget_id);
+                  }
+                }
               }}
             >
               {widget.title}
@@ -235,7 +254,7 @@ const PopupTabs = (props: { widgets: IWidget[] }) => {
         return (
           <PopupTabsBarContent
             key={"PopupTabsBarContent" + widget.widget_id}
-            isActive={widget.widget_id === activeWidgetId}
+            isActive={widget.widget_id === selectedWidgetId}
             fullHeight={widgets.length === 1}
           >
             <Renderer widget={widget} />

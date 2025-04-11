@@ -12,7 +12,7 @@ import ContextMenu, {
   type IContextMenuItem,
   EContextMenuItemType,
 } from "@/flow/ContextMenu/ContextMenu";
-import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+import { dispatchCustomNodeActionPopup } from "@/utils/events";
 
 import type { TCustomEdge } from "@/types/flow";
 
@@ -39,7 +39,11 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
       label: t("action.viewDetails"),
       icon: <ListCollapseIcon />,
       onClick: () => {
-        dispatchCustomNodeActionPopup("connections", edge.source, edge.target);
+        dispatchCustomNodeActionPopup({
+          action: "connections",
+          source: edge.source,
+          target: edge.target,
+        });
         onClose();
       },
     },
