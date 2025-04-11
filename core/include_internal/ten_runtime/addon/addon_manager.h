@@ -20,6 +20,7 @@ typedef struct ten_addon_registration_t {
   TEN_ADDON_TYPE addon_type;
   ten_string_t addon_name;
   ten_addon_registration_func_t func;
+  void *user_data;
 } ten_addon_registration_t;
 
 typedef struct ten_addon_register_ctx_t {
@@ -50,8 +51,8 @@ TEN_RUNTIME_API bool ten_addon_manager_register_specific_addon(
     ten_addon_manager_t *self, TEN_ADDON_TYPE addon_type,
     const char *addon_name, void *register_ctx);
 
-TEN_RUNTIME_PRIVATE_API ten_addon_register_ctx_t *ten_addon_register_ctx_create(
-    void);
+TEN_RUNTIME_API ten_addon_register_ctx_t *ten_addon_register_ctx_create(
+    ten_app_t *app);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_register_ctx_destroy(
+TEN_RUNTIME_API void ten_addon_register_ctx_destroy(
     ten_addon_register_ctx_t *self);

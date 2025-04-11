@@ -13,6 +13,7 @@ from typing import Callable, Dict, Type, Optional
 
 from .addon import Addon
 from libten_runtime_python import (
+    _add_extension_addon_to_addon_manager,
     _register_addon_as_extension,
     _unregister_all_addons_and_cleanup,
 )
@@ -108,8 +109,8 @@ class _AddonManager:
         cls._registry.clear()
 
     @classmethod
-    def register_addon(cls, addon_name: str, register_ctx: object):
-        register_handler = cls._registry.pop(addon_name, None)
+    def _register_addon(cls, addon_name: str, register_ctx: object):
+        register_handler = cls._registry.get(addon_name, None)
         if register_handler:
             try:
                 register_handler(register_ctx)
@@ -183,6 +184,9 @@ def register_addon_as_extension(name: str, base_dir: Optional[str] = None):
 
         # Define the registration function name based on the addon name.
         _AddonManager._set_register_handler(name, register_handler)
+
+        # Add the addon to the native addon manager.
+        _add_extension_addon_to_addon_manager(name)
 
         # Return the original class without modification.
         return cls

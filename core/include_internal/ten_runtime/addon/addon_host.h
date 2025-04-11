@@ -40,7 +40,7 @@ typedef struct ten_addon_host_t {
 
   TEN_ADDON_TYPE type;
 
-  void *user_data;
+  ten_app_t *attached_app;
 } ten_addon_host_t;
 
 typedef struct ten_addon_host_on_destroy_instance_ctx_t {

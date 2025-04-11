@@ -59,12 +59,17 @@ static void ten_addon_registration_destroy(void *ptr) {
 bool ten_addon_manager_add_addon(ten_addon_manager_t *self,
                                  const char *addon_type_str,
                                  const char *addon_name,
-                                 ten_addon_registration_func_t func) {
+                                 ten_addon_registration_func_t func,
+                                 void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && addon_name && func, "Invalid argument.");
 
   TEN_ADDON_TYPE addon_type = ten_addon_type_from_string(addon_type_str);
   if (addon_type == TEN_ADDON_TYPE_INVALID) {
     TEN_LOGF("Invalid addon type: %s", addon_type_str);
+    if (error) {
+      ten_error_set(error, TEN_ERROR_CODE_INVALID_ARGUMENT,
+                    "Invalid addon type: %s", addon_type_str);
+    }
     return false;
   }
 
@@ -96,6 +101,7 @@ bool ten_addon_manager_add_addon(ten_addon_manager_t *self,
     ten_string_init_from_c_str_with_size(&reg->addon_name, addon_name,
                                          strlen(addon_name));
     reg->func = func;
+    reg->user_data = user_data;
 
     // Add to the registry.
     ten_list_push_ptr_back(&self->registry, reg,
@@ -135,7 +141,8 @@ void ten_addon_manager_register_all_addons(ten_addon_manager_t *self,
         (ten_addon_registration_t *)ten_ptr_listnode_get(node);
 
     if (reg && reg->func) {
-      reg->func(register_ctx);
+      reg->func(reg->addon_type, &reg->addon_name, register_ctx,
+                reg->user_data);
     }
 
     iter = ten_list_iterator_next(iter);
@@ -162,7 +169,8 @@ void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
           TEN_ADDON_TYPE_ADDON_LOADER,
           ten_string_get_raw_str(&reg->addon_name));
       if (!addon_host) {
-        reg->func(register_ctx);
+        reg->func(reg->addon_type, &reg->addon_name, register_ctx,
+                  reg->user_data);
       }
     }
 
@@ -189,7 +197,8 @@ void ten_addon_manager_register_all_protocols(ten_addon_manager_t *self,
       ten_addon_host_t *addon_host = ten_addon_store_find_by_type(
           TEN_ADDON_TYPE_PROTOCOL, ten_string_get_raw_str(&reg->addon_name));
       if (!addon_host) {
-        reg->func(register_ctx);
+        reg->func(reg->addon_type, &reg->addon_name, register_ctx,
+                  reg->user_data);
       }
     }
 
@@ -215,7 +224,7 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
         (ten_addon_registration_t *)ten_ptr_listnode_get(iter.node);
     if (reg && reg->addon_type == addon_type &&
         ten_string_is_equal_c_str(&reg->addon_name, addon_name)) {
-      reg->func(register_ctx);
+      reg->func(addon_type, &reg->addon_name, register_ctx, reg->user_data);
       success = true;
       break;
     }
@@ -231,9 +240,11 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
   return success;
 }
 
-ten_addon_register_ctx_t *ten_addon_register_ctx_create(void) {
+ten_addon_register_ctx_t *ten_addon_register_ctx_create(ten_app_t *app) {
   ten_addon_register_ctx_t *self = TEN_MALLOC(sizeof(ten_addon_register_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
+
+  self->app = app;
 
   return self;
 }
