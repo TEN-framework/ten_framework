@@ -4,14 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir};
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::graphs_cache_find_mut;
 use ten_rust::{
@@ -27,6 +25,7 @@ use crate::designer::{
 };
 
 use crate::graph::update_graph_connections_all_fields;
+use crate::pkg_info::create_uri_to_pkg_info_map;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
@@ -115,64 +114,6 @@ fn update_property_file(
     )
 }
 
-/// Creates a HashMap mapping app URIs to PkgsInfoInAppWithBaseDir.
-///
-/// This function processes all available apps to create a mapping from URIs to
-/// PkgsInfoInApp for use with graph connections and other operations.
-pub fn create_uri_to_pkg_info_map(
-    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir>, ErrorResponse> {
-    let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
-        HashMap::new();
-
-    // Process all available apps to map URIs to PkgsInfoInApp.
-    for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            if let Some(property) = &app_pkg.property {
-                if let Some(ten) = &property._ten {
-                    // Map the URI to the PkgsInfoInApp, using None if URI is
-                    // None.
-                    let key = ten.uri.clone();
-
-                    // Check if the key already exists.
-                    if let Some(existing) = uri_to_pkg_info.get(&key) {
-                        let error_message = if key.is_none() {
-                            format!(
-                                "Found two apps with unspecified URI in both '{}' and '{}'",
-                                existing.base_dir,
-                                base_dir
-                            )
-                        } else {
-                            format!(
-                                "Duplicate app uri '{}' found in both '{}' and '{}'",
-                                key.as_ref().unwrap(),
-                                existing.base_dir,
-                                base_dir
-                            )
-                        };
-
-                        return Err(ErrorResponse {
-                            status: Status::Fail,
-                            message: error_message,
-                            error: None,
-                        });
-                    }
-
-                    uri_to_pkg_info.insert(
-                        key,
-                        PkgsInfoInAppWithBaseDir {
-                            pkgs_info_in_app: base_dir_pkg_info.clone(),
-                            base_dir: base_dir.clone(),
-                        },
-                    );
-                }
-            }
-        }
-    }
-
-    Ok(uri_to_pkg_info)
-}
-
 pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -184,8 +125,13 @@ pub async fn add_graph_connection_endpoint(
     let uri_to_pkg_info =
         match create_uri_to_pkg_info_map(&state_write.pkgs_cache) {
             Ok(map) => map,
-            Err(error_response) => {
-                return Ok(HttpResponse::BadRequest().json(error_response))
+            Err(error_message) => {
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: error_message,
+                    error: None,
+                };
+                return Ok(HttpResponse::BadRequest().json(error_response));
             }
         };
 

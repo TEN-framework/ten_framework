@@ -22,7 +22,6 @@ use crate::designer::common::{
     get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
     get_designer_property_hashmap_from_pkg,
 };
-use crate::designer::graphs::connections::add::create_uri_to_pkg_info_map;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
@@ -101,15 +100,6 @@ pub async fn get_graph_nodes_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info =
-        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
-            Ok(map) => map,
-            Err(error_response) => {
-                return Ok(HttpResponse::BadRequest().json(error_response))
-            }
-        };
-
     // Get the first entry from pkgs_cache
     let base_dir_pkg_info =
         if let Some((_, pkg_info)) = state_read.pkgs_cache.iter().next() {
@@ -158,24 +148,8 @@ pub async fn get_graph_nodes_endpoint(
     let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
     for extension_graph_node in &extension_graph_nodes {
-        // First try to find pkg_info using the uri_to_pkg_info map.
-        let mut pkg_info =
-            get_pkg_info_for_extension(extension_graph_node, &uri_to_pkg_info);
-
-        // For backward compatibility with tests, if no pkg_info is found in
-        // uri_to_pkg_info, try to find it in extensions_slice
-        if pkg_info.is_none() {
-            pkg_info = extensions_slice.iter().find(|pkg| {
-                if let Some(manifest) = &pkg.manifest {
-                    manifest.type_and_name.pkg_type == PkgType::Extension
-                        && manifest.type_and_name.name
-                            == extension_graph_node.addon
-                } else {
-                    false
-                }
-            });
-        }
-
+        let pkg_info =
+            get_pkg_info_for_extension(extension_graph_node, extensions_slice);
         if let Some(pkg_info) = pkg_info {
             resp_extensions.push(GraphNodesSingleResponseData {
                 addon: extension_graph_node.addon.clone(),
