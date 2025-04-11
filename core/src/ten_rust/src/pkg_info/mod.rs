@@ -100,31 +100,6 @@ impl PkgInfo {
         Ok(pkg_info)
     }
 
-    pub fn get_predefined_graphs(&self) -> Option<&Vec<GraphInfo>> {
-        if let Some(property) = &self.property {
-            if let Some(ten) = &property._ten {
-                return ten.predefined_graphs.as_ref();
-            }
-        }
-
-        None
-    }
-
-    pub fn update_predefined_graph(&mut self, new_graph: &GraphInfo) {
-        if let Some(property) = &mut self.property {
-            if let Some(ten) = &mut property._ten {
-                if let Some(predefined_graphs) = &mut ten.predefined_graphs {
-                    if let Some(old_graph) = predefined_graphs
-                        .iter_mut()
-                        .find(|g| g.name == new_graph.name)
-                    {
-                        *old_graph = new_graph.clone();
-                    }
-                }
-            }
-        }
-    }
-
     pub fn get_dependency_by_type_and_name(
         &self,
         pkg_type: &str,
