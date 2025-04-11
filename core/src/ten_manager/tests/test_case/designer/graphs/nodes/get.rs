@@ -31,6 +31,7 @@ mod tests {
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::value_type::ValueType;
+    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -83,6 +84,29 @@ mod tests {
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
+        // Find the uuid of the "default" graph.
+        let graph_id = {
+            let state = designer_state.read().unwrap();
+            state
+                .graphs_cache
+                .iter()
+                .find_map(|(uuid, info)| {
+                    if info
+                        .name
+                        .as_ref()
+                        .map(|name| name == "default")
+                        .unwrap_or(false)
+                    {
+                        Some(*uuid)
+                    } else {
+                        None
+                    }
+                })
+                .expect("Default graph should exist")
+        };
+
+        let request_payload = GetGraphNodesRequestPayload { graph_id };
+
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/nodes",
@@ -90,11 +114,6 @@ mod tests {
             ),
         )
         .await;
-
-        let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes")
@@ -361,44 +380,6 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extensions_no_graph() {
-        let designer_state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
-        }));
-
-        let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/nodes",
-                web::post().to(get_graph_nodes_endpoint),
-            ),
-        )
-        .await;
-
-        let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "no_existing_graph".to_string(),
-        };
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/graphs/nodes")
-            .set_json(request_payload)
-            .to_request();
-        let resp = test::call_service(&app, req).await;
-
-        assert!(resp.status().is_client_error());
-
-        let body = test::read_body(resp).await;
-        let body_str = std::str::from_utf8(&body).unwrap();
-
-        let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
-
-        assert!(error.message.contains("Package information is missing"));
-    }
-
-    #[actix_web::test]
-    async fn test_get_extensions_has_wrong_addon() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -406,35 +387,10 @@ mod tests {
             graphs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json_str = vec![
-            (
-                include_str!("../test_data_embed/app_manifest.json")
-                    .to_string(),
-                include_str!("../test_data_embed/app_property.json")
-                    .to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
+        let all_pkgs_json_str = vec![(
+            include_str!("../test_data_embed/app_manifest.json").to_string(),
+            include_str!("../test_data_embed/app_property.json").to_string(),
+        )];
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
@@ -454,26 +410,23 @@ mod tests {
         )
         .await;
 
+        // Use a random UUID that doesn't exist in the graphs_cache.
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "addon_not_found".to_string(),
+            graph_id: Uuid::new_v4(),
         };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes")
             .set_json(request_payload)
             .to_request();
-
         let resp = test::call_service(&app, req).await;
 
-        assert!(resp.status().is_success());
+        assert!(!resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
-
-        let json: ApiResponse<Vec<GraphNodesSingleResponseData>> =
+        let error_response: ErrorResponse =
             serde_json::from_str(body_str).unwrap();
-        let pretty_json = serde_json::to_string_pretty(&json).unwrap();
-        println!("Response body: {}", pretty_json);
+        assert!(error_response.message.contains("not found in graph caches"));
     }
 }

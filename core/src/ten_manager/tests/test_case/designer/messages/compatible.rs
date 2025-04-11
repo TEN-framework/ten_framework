@@ -61,6 +61,29 @@ async fn test_get_compatible_messages_success() {
     );
     assert!(inject_ret.is_ok());
 
+    // Find the uuid of the "default" graph.
+    let graph_id = {
+        let graphs_cache = &designer_state.graphs_cache;
+        let graph_id = graphs_cache.iter().find_map(|(uuid, info)| {
+            if info
+                .name
+                .as_ref()
+                .map(|name| name == "default")
+                .unwrap_or(false)
+            {
+                Some(*uuid)
+            } else {
+                None
+            }
+        });
+
+        if graph_id.is_none() {
+            println!("ERROR: Could not find 'default' graph in graphs_cache!");
+        }
+
+        graph_id.expect("Default graph should exist")
+    };
+
     let designer_state = Arc::new(RwLock::new(designer_state));
 
     let app = test::init_service(
@@ -73,8 +96,7 @@ async fn test_get_compatible_messages_success() {
 
     // Define input data.
     let input_data = json!({
-      "base_dir": TEST_DIR,
-      "graph": "default",
+      "graph": graph_id,
       "extension_group": "extension_group_1",
       "extension": "extension_1",
       "msg_type": "cmd",
@@ -90,10 +112,14 @@ async fn test_get_compatible_messages_success() {
 
     // Call the service and get the response.
     let resp = test::call_service(&app, req).await;
-    assert!(resp.status().is_success());
+    println!("Response status: {:?}", resp.status());
 
+    let is_success = resp.status().is_success();
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
+    println!("Response body: {}", body_str);
+
+    assert!(is_success, "Response status is not success");
 
     let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
         serde_json::from_str(body_str).unwrap();
@@ -144,6 +170,26 @@ async fn test_get_compatible_messages_fail() {
     );
     assert!(inject_ret.is_ok());
 
+    // Find the uuid of the "default" graph.
+    let graph_id = {
+        let graphs_cache = &designer_state.graphs_cache;
+        graphs_cache
+            .iter()
+            .find_map(|(uuid, info)| {
+                if info
+                    .name
+                    .as_ref()
+                    .map(|name| name == "default")
+                    .unwrap_or(false)
+                {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            })
+            .expect("Default graph should exist")
+    };
+
     let designer_state = Arc::new(RwLock::new(designer_state));
 
     let app = test::init_service(
@@ -156,8 +202,7 @@ async fn test_get_compatible_messages_fail() {
 
     // Define input data.
     let input_data = json!({
-      "base_dir": TEST_DIR,
-      "graph": "default",
+      "graph": graph_id,
       "extension_group": "default_extension_group",
       "extension": "default_extension_cpp",
       "msg_type": "data",
@@ -211,6 +256,26 @@ async fn test_get_compatible_messages_cmd_has_required_success() {
     );
     assert!(inject_ret.is_ok());
 
+    // Find the uuid of the "default" graph.
+    let graph_id = {
+        let graphs_cache = &designer_state.graphs_cache;
+        graphs_cache
+            .iter()
+            .find_map(|(uuid, info)| {
+                if info
+                    .name
+                    .as_ref()
+                    .map(|name| name == "default")
+                    .unwrap_or(false)
+                {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            })
+            .expect("Default graph should exist")
+    };
+
     let designer_state = Arc::new(RwLock::new(designer_state));
 
     let app = test::init_service(
@@ -223,8 +288,7 @@ async fn test_get_compatible_messages_cmd_has_required_success() {
 
     // Define input data. This time we check cmd msg with required_fields.
     let input_data = json!({
-      "base_dir": TEST_DIR,
-      "graph": "default",
+      "graph": graph_id,
       "extension_group": "extension_group_1",
       "extension": "extension_1",
       "msg_type": "cmd",
