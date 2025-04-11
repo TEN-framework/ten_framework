@@ -35,7 +35,7 @@ pub async fn get_graphs_endpoint(
         .graphs_cache
         .iter()
         .map(|(uuid, graph_info)| GetGraphsResponseData {
-            uuid: uuid.clone(),
+            uuid: uuid.to_string(),
             name: graph_info.name.clone(),
             auto_start: graph_info.auto_start,
             base_dir: graph_info.app_base_dir.clone(),

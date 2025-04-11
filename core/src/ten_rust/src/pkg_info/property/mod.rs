@@ -55,7 +55,7 @@ pub struct Property {
 /// completes the property configuration to ensure it meets all requirements.
 pub fn parse_property_from_str(
     s: &str,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,
@@ -64,39 +64,68 @@ pub fn parse_property_from_str(
 
     // Extract _ten field from all_fields if it exists.
     if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY) {
-        let ten_in_property: TenInProperty =
-            serde_json::from_value(ten_value.clone())?;
-        property._ten = Some(ten_in_property);
+        // Process the _ten field manually instead of using
+        // serde_json::from_value directly. Create a TenInProperty with empty
+        // predefined_graphs.
+        let mut ten_in_property = TenInProperty {
+            predefined_graphs: None,
+            uri: None,
+            additional_fields: HashMap::new(),
+        };
 
-        // Validate predefined_graphs if they exist.
-        if let Some(ref ten) = property._ten {
-            if let Some(graphs) = &ten.predefined_graphs {
-                validate_predefined_graphs(graphs)?;
+        // Get other fields from ten_value using serde.
+        if let Value::Object(map) = ten_value {
+            // Extract and process predefined_graphs specially.
+            if let Some(Value::Array(graphs_array)) =
+                map.get("predefined_graphs")
+            {
+                let mut graph_infos = Vec::new();
 
-                // Create a temporary cache to store validated graphs.
-                let mut temp_graphs_cache = HashMap::new();
-
-                // Validate each graph before adding to temporary cache.
-                for graph in graphs {
-                    // Create a clone to validate.
-                    let mut graph_clone = graph.clone();
-
-                    graph_clone.belonging_pkg_type = belonging_pkg_type;
-                    graph_clone.belonging_pkg_name = belonging_pkg_name.clone();
-                    graph_clone.app_base_dir = app_base_dir.clone();
-
-                    graph_clone.validate_and_complete()?;
-
-                    let uuid = Uuid::new_v4().to_string();
-                    temp_graphs_cache.insert(uuid, graph_clone);
+                for graph_value in graphs_array {
+                    let graph: GraphInfo =
+                        serde_json::from_value(graph_value.clone())?;
+                    graph_infos.push(graph);
                 }
 
-                // If all validations passed, add all graphs to the real cache.
-                for (uuid, graph) in temp_graphs_cache {
-                    graphs_cache.insert(uuid, graph);
+                validate_predefined_graphs(&graph_infos)?;
+
+                let mut temp_graphs_cache = HashMap::new();
+                let mut graph_uuids = Vec::new();
+
+                for mut graph in graph_infos {
+                    graph.validate_and_complete()?;
+
+                    graph.belonging_pkg_type = belonging_pkg_type;
+                    graph.belonging_pkg_name = belonging_pkg_name.clone();
+                    graph.app_base_dir = app_base_dir.clone();
+
+                    let uuid = Uuid::new_v4();
+                    temp_graphs_cache.insert(uuid, graph);
+                    graph_uuids.push(uuid);
+                }
+
+                graphs_cache.extend(temp_graphs_cache);
+                ten_in_property.predefined_graphs = Some(graph_uuids);
+            }
+
+            // Handle uri if present
+            if let Some(uri_value) = map.get("uri") {
+                if let Some(uri_str) = uri_value.as_str() {
+                    ten_in_property.uri = Some(uri_str.to_string());
+                }
+            }
+
+            // Handle all other fields as additional_fields
+            for (key, value) in map {
+                if key != "predefined_graphs" && key != "uri" {
+                    ten_in_property
+                        .additional_fields
+                        .insert(key.to_string(), value.clone());
                 }
             }
         }
+
+        property._ten = Some(ten_in_property);
     }
 
     property.validate_and_complete()?;
@@ -166,8 +195,8 @@ impl Property {
 /// property.json file of a package.
 ///
 /// # Fields
-/// * `predefined_graphs` - Optional list of predefined graphs that the package
-///   provides.
+/// * `predefined_graphs` - Optional list of UUIDs that reference graphs in the
+///   graphs_cache. These graphs are predefined by the package.
 /// * `uri` - Optional URI for the application. If not specified, defaults to
 ///   localhost.
 /// * `additional_fields` - Captures any additional fields in the TEN
@@ -175,7 +204,7 @@ impl Property {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TenInProperty {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub predefined_graphs: Option<Vec<GraphInfo>>,
+    pub predefined_graphs: Option<Vec<Uuid>>,
 
     #[serde(skip_serializing_if = "is_app_default_loc_or_none")]
     pub uri: Option<String>,
@@ -208,7 +237,7 @@ pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
 ///   or an error if the file cannot be read or the content is invalid.
 fn parse_property_from_file<P: AsRef<Path>>(
     property_file_path: P,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,
@@ -242,7 +271,7 @@ fn parse_property_from_file<P: AsRef<Path>>(
 
 pub fn parse_property_in_folder(
     folder_path: &Path,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use anyhow::Result;
+use uuid::Uuid;
 
 use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 use ten_rust::graph::graph_info::GraphInfo;
@@ -19,7 +20,7 @@ use ten_rust::pkg_info::PkgInfo;
 pub fn inject_all_pkgs_for_mock(
     base_dir: &str,
     pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     all_pkgs_json: Vec<(String, String)>,
 ) -> Result<()> {
     if pkgs_cache.contains_key(base_dir) {

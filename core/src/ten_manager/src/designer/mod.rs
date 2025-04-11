@@ -33,6 +33,7 @@ use std::{
 };
 
 use actix_web::web;
+use uuid::Uuid;
 
 use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
@@ -45,7 +46,7 @@ pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
-    pub graphs_cache: HashMap<String, GraphInfo>,
+    pub graphs_cache: HashMap<Uuid, GraphInfo>,
 }
 
 pub fn configure_routes(
@@ -106,10 +107,6 @@ pub fn configure_routes(
             )
             // Graphs endpoints.
             .route("/graphs", web::post().to(graphs::get::get_graphs_endpoint))
-            .route(
-                "/graphs",
-                web::put().to(graphs::update::update_graph_endpoint),
-            )
             // Graph nodes endpoints.
             .route(
                 "/graphs/nodes",
