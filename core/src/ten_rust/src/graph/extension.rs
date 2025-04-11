@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::collections::HashMap;
+
 use anyhow::Result;
+use uuid::Uuid;
 
 use crate::{
     graph::node::GraphNode,
@@ -30,7 +31,7 @@ use super::graph_info::GraphInfo;
 pub fn get_extension_nodes_in_graph(
     base_dir: &String,
     graph_name: &String,
-    graphs_cache: &HashMap<String, GraphInfo>,
+    graphs_cache: &HashMap<Uuid, GraphInfo>,
 ) -> Result<Vec<GraphNode>> {
     // Look for the graph by name in the graphs_cache.
     if let Some(graph_info) =

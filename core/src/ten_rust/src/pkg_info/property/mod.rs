@@ -55,7 +55,7 @@ pub struct Property {
 /// completes the property configuration to ensure it meets all requirements.
 pub fn parse_property_from_str(
     s: &str,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,
@@ -87,7 +87,7 @@ pub fn parse_property_from_str(
 
                     graph_clone.validate_and_complete()?;
 
-                    let uuid = Uuid::new_v4().to_string();
+                    let uuid = Uuid::new_v4();
                     temp_graphs_cache.insert(uuid, graph_clone);
                 }
 
@@ -208,7 +208,7 @@ pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
 ///   or an error if the file cannot be read or the content is invalid.
 fn parse_property_from_file<P: AsRef<Path>>(
     property_file_path: P,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,
@@ -242,7 +242,7 @@ fn parse_property_from_file<P: AsRef<Path>>(
 
 pub fn parse_property_in_folder(
     folder_path: &Path,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     app_base_dir: Option<String>,
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,

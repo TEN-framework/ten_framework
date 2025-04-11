@@ -1,19 +1,20 @@
-use std::collections::HashMap;
-
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::collections::HashMap;
+
 use anyhow::Result;
+use uuid::Uuid;
 
 use crate::graph::{
     connection::GraphConnection, graph_info::GraphInfo, node::GraphNode, Graph,
 };
 
 pub fn pkg_predefined_graphs_find<F>(
-    graphs_cache: &HashMap<String, GraphInfo>,
+    graphs_cache: &HashMap<Uuid, GraphInfo>,
     predicate: F,
 ) -> Option<&GraphInfo>
 where
@@ -29,7 +30,7 @@ where
 }
 
 pub fn pkg_predefined_graphs_find_mut<F>(
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     predicate: F,
 ) -> Option<&mut GraphInfo>
 where

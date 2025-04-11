@@ -21,6 +21,7 @@ pub mod value_type;
 use std::{collections::HashMap, path::Path};
 
 use anyhow::{anyhow, Result};
+use uuid::Uuid;
 
 use crate::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
@@ -139,7 +140,7 @@ pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
     parse_property: bool,
-    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+    graphs_cache: &mut Option<&mut HashMap<Uuid, GraphInfo>>,
     app_base_dir: Option<String>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
@@ -175,7 +176,7 @@ fn collect_pkg_info_from_path(
     path: &Path,
     pkgs_info: &mut PkgsInfoInApp,
     parse_property: bool,
-    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+    graphs_cache: &mut Option<&mut HashMap<Uuid, GraphInfo>>,
     app_base_dir: Option<String>,
 ) -> Result<()> {
     let pkg_info = get_pkg_info_from_path(
@@ -240,7 +241,7 @@ fn collect_pkg_info_from_path(
 pub fn get_app_installed_pkgs(
     app_path: &Path,
     parse_property: bool,
-    graphs_cache: &mut Option<&mut HashMap<String, GraphInfo>>,
+    graphs_cache: &mut Option<&mut HashMap<Uuid, GraphInfo>>,
 ) -> Result<PkgsInfoInApp> {
     let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,

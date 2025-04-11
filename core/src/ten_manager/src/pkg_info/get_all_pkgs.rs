@@ -7,6 +7,8 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Result;
+use uuid::Uuid;
+
 use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
     pkg_info::get_app_installed_pkgs,
@@ -19,7 +21,7 @@ use ten_rust::{
 /// it fetches the package information and stores it in the cache.
 pub fn get_all_pkgs_in_app(
     pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     base_dir: &String,
 ) -> Result<()> {
     // Check whether the package information for the specified base_dir already

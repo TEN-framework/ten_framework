@@ -6,6 +6,8 @@
 //
 use std::{collections::HashMap, path::Path, str::FromStr};
 
+use uuid::Uuid;
+
 use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp,
     graph::{graph_info::GraphInfo, Graph},
@@ -14,7 +16,7 @@ use ten_rust::{
 
 #[test]
 fn test_graph_check_extension_not_installed_1() {
-    let mut graphs_cache: HashMap<String, GraphInfo> = HashMap::new();
+    let mut graphs_cache: HashMap<Uuid, GraphInfo> = HashMap::new();
 
     let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
     let pkg_info_struct = get_app_installed_pkgs(
@@ -39,7 +41,7 @@ fn test_graph_check_extension_not_installed_1() {
 
 #[test]
 fn test_graph_check_extension_not_installed_2() {
-    let mut graphs_cache: HashMap<String, GraphInfo> = HashMap::new();
+    let mut graphs_cache: HashMap<Uuid, GraphInfo> = HashMap::new();
 
     let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
     let pkg_info_struct = get_app_installed_pkgs(
@@ -63,7 +65,7 @@ fn test_graph_check_extension_not_installed_2() {
 
 #[test]
 fn test_graph_check_predefined_graph_success() {
-    let mut graphs_cache: HashMap<String, GraphInfo> = HashMap::new();
+    let mut graphs_cache: HashMap<Uuid, GraphInfo> = HashMap::new();
 
     let app_dir = "tests/test_data/graph_check_predefined_graph_success";
     let pkg_info_struct = get_app_installed_pkgs(
@@ -86,7 +88,7 @@ fn test_graph_check_predefined_graph_success() {
 
 #[test]
 fn test_graph_check_all_msgs_schema_incompatible() {
-    let mut graphs_cache: HashMap<String, GraphInfo> = HashMap::new();
+    let mut graphs_cache: HashMap<Uuid, GraphInfo> = HashMap::new();
 
     let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
     let pkg_info_struct = get_app_installed_pkgs(
