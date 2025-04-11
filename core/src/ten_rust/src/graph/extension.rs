@@ -14,7 +14,6 @@ use crate::{
     pkg_info::{
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find,
         PkgInfo,
     },
     schema::{
@@ -29,24 +28,11 @@ use super::graph_info::GraphInfo;
 
 /// Retrieves all extension nodes from a specified graph.
 pub fn get_extension_nodes_in_graph(
-    base_dir: &String,
-    graph_name: &String,
+    graph_id: &Uuid,
     graphs_cache: &HashMap<Uuid, GraphInfo>,
 ) -> Result<Vec<GraphNode>> {
-    // Look for the graph by name in the graphs_cache.
-    if let Some(graph_info) =
-        pkg_predefined_graphs_find(graphs_cache, |graph| {
-            graph
-                .name
-                .as_ref()
-                .map(|name| name == graph_name)
-                .unwrap_or(false)
-                && (graph.app_base_dir.is_some()
-                    && graph.app_base_dir.as_ref().unwrap() == base_dir)
-                && (graph.belonging_pkg_type.is_some()
-                    && graph.belonging_pkg_type.unwrap() == PkgType::App)
-        })
-    {
+    // Look for the graph by ID in the graphs_cache.
+    if let Some(graph_info) = graphs_cache.get(graph_id) {
         // Collect all extension nodes from the graph.
         let extension_nodes: Vec<_> = graph_info
             .graph
@@ -59,8 +45,8 @@ pub fn get_extension_nodes_in_graph(
         Ok(extension_nodes)
     } else {
         Err(anyhow::anyhow!(
-            "Graph '{}' not found in predefined graphs of the app",
-            graph_name
+            "Graph with ID '{}' not found in graph caches",
+            graph_id
         ))
     }
 }

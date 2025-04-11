@@ -132,17 +132,31 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
-        App::new().app_data(web::Data::new(designer_state)).route(
-            "/api/designer/v1/graphs/connections",
-            web::post().to(get_graph_connections_endpoint),
-        ),
+        App::new()
+            .app_data(web::Data::new(designer_state.clone()))
+            .route(
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections_endpoint),
+            ),
     )
     .await;
 
     let request_payload = GetGraphConnectionsRequestPayload {
-        base_dir: "tests/test_data/cmd_designer_connections_has_msg_conversion"
-            .to_string(),
-        graph_name: "default".to_string(),
+        graph_id: {
+            let state_read = designer_state.read().unwrap();
+            state_read
+                .graphs_cache
+                .iter()
+                .find_map(|(uuid, graph)| {
+                    if graph.name.as_ref().is_some_and(|name| name == "default")
+                    {
+                        Some(*uuid)
+                    } else {
+                        None
+                    }
+                })
+                .expect("No graph with name 'default' found")
+        },
     };
 
     let req = test::TestRequest::post()
