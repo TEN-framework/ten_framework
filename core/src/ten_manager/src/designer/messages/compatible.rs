@@ -12,17 +12,24 @@ use uuid::Uuid;
 
 use ten_rust::{
     graph::extension::{
-        get_compatible_cmd_extension, get_compatible_data_like_msg_extension,
-        get_extension, get_extension_nodes_in_graph,
-        get_pkg_info_for_extension, CompatibleExtensionAndMsg,
+        get_compatible_cmd_extension, get_compatible_cmd_extension_with_slice,
+        get_compatible_data_like_msg_extension,
+        get_compatible_data_like_msg_extension_with_slice, get_extension,
+        get_extension_nodes_in_graph, get_pkg_info_for_extension,
+        CompatibleExtensionAndMsg,
     },
-    pkg_info::message::{MsgDirection, MsgType},
+    pkg_info::{
+        message::{MsgDirection, MsgType},
+        pkg_type::PkgType,
+    },
 };
 
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
+
+use crate::designer::graphs::connections::add::create_uri_to_pkg_info_map;
 
 /// Represents the request payload for retrieving compatible messages.
 ///
@@ -92,6 +99,15 @@ pub async fn get_compatible_messages_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info =
+        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
+            Ok(map) => map,
+            Err(error_response) => {
+                return Ok(HttpResponse::BadRequest().json(error_response))
+            }
+        };
 
     // Get the first entry from pkgs_cache
     let base_dir_pkg_info =
@@ -163,7 +179,22 @@ pub async fn get_compatible_messages_endpoint(
     let mut desired_msg_dir = msg_dir.clone();
     desired_msg_dir.toggle();
 
-    let pkg_info = get_pkg_info_for_extension(extension, extensions_slice);
+    // First try to find pkg_info using the uri_to_pkg_info map.
+    let mut pkg_info = get_pkg_info_for_extension(extension, &uri_to_pkg_info);
+
+    // For backward compatibility with tests, if no pkg_info is found in
+    // uri_to_pkg_info, try to find it in extensions_slice
+    if pkg_info.is_none() {
+        pkg_info = extensions_slice.iter().find(|pkg| {
+            if let Some(manifest) = &pkg.manifest {
+                manifest.type_and_name.pkg_type == PkgType::Extension
+                    && manifest.type_and_name.name == extension.addon
+            } else {
+                false
+            }
+        });
+    }
+
     if pkg_info.is_none() {
         let error_response = ErrorResponse::from_error(
             &anyhow::anyhow!("Extension not found"),
@@ -192,28 +223,41 @@ pub async fn get_compatible_messages_endpoint(
                     }
                 });
 
-            let results = match get_compatible_cmd_extension(
+            // First try with uri_to_pkg_info
+            if let Ok(results) = get_compatible_cmd_extension(
                 &extensions,
-                extensions_slice,
+                &uri_to_pkg_info,
                 &desired_msg_dir,
                 src_cmd_schema,
                 request_payload.msg_name.as_str(),
             ) {
-                Ok(results) => results,
-                Err(err) => {
-                    let error_response = ErrorResponse::from_error(
-                        &err,
-                        format!(
-                            "Failed to find compatible cmd/{}:",
-                            request_payload.msg_name
-                        )
-                        .as_str(),
-                    );
-                    return Ok(HttpResponse::NotFound().json(error_response));
+                results
+            } else {
+                // If that fails, for backward compatibility with tests, try
+                // with extensions_slice
+                match get_compatible_cmd_extension_with_slice(
+                    &extensions,
+                    extensions_slice,
+                    &desired_msg_dir,
+                    src_cmd_schema,
+                    request_payload.msg_name.as_str(),
+                ) {
+                    Ok(results) => results,
+                    Err(err) => {
+                        let error_response = ErrorResponse::from_error(
+                            &err,
+                            format!(
+                                "Failed to find compatible cmd/{}:",
+                                request_payload.msg_name
+                            )
+                            .as_str(),
+                        );
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
+                    }
                 }
-            };
-
-            results
+            }
         }
         _ => {
             let src_msg_schema =
@@ -247,29 +291,43 @@ pub async fn get_compatible_messages_endpoint(
                     }
                 });
 
-            let results = match get_compatible_data_like_msg_extension(
+            // First try with uri_to_pkg_info
+            if let Ok(results) = get_compatible_data_like_msg_extension(
                 &extensions,
-                extensions_slice,
+                &uri_to_pkg_info,
                 &desired_msg_dir,
                 src_msg_schema,
                 &msg_ty,
                 request_payload.msg_name.clone(),
             ) {
-                Ok(results) => results,
-                Err(err) => {
-                    let error_response = ErrorResponse::from_error(
-                        &err,
-                        format!(
-                            "Failed to find compatible {}:",
-                            request_payload.msg_name
-                        )
-                        .as_str(),
-                    );
-                    return Ok(HttpResponse::NotFound().json(error_response));
+                results
+            } else {
+                // If that fails, for backward compatibility with tests, try
+                // with extensions_slice
+                match get_compatible_data_like_msg_extension_with_slice(
+                    &extensions,
+                    extensions_slice,
+                    &desired_msg_dir,
+                    src_msg_schema,
+                    &msg_ty,
+                    request_payload.msg_name.clone(),
+                ) {
+                    Ok(results) => results,
+                    Err(err) => {
+                        let error_response = ErrorResponse::from_error(
+                            &err,
+                            format!(
+                                "Failed to find compatible {}:",
+                                request_payload.msg_name
+                            )
+                            .as_str(),
+                        );
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
+                    }
                 }
-            };
-
-            results
+            }
         }
     };
 

@@ -11,9 +11,9 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::base_dir_pkg_info::PkgsInfoInAppWithBaseDir;
+use ten_rust::base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir};
 use ten_rust::pkg_info::pkg_type::PkgType;
-use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_mut;
+use ten_rust::pkg_info::predefined_graphs::graphs_cache_find_mut;
 use ten_rust::{
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
@@ -115,19 +115,18 @@ fn update_property_file(
     )
 }
 
-pub async fn add_graph_connection_endpoint(
-    request_payload: web::Json<AddGraphConnectionRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
-
-    // Create a hash map from app URIs to PkgsInfoInApp for use with
-    // add_connection.
+/// Creates a HashMap mapping app URIs to PkgsInfoInAppWithBaseDir.
+///
+/// This function processes all available apps to create a mapping from URIs to
+/// PkgsInfoInApp for use with graph connections and other operations.
+pub fn create_uri_to_pkg_info_map(
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir>, ErrorResponse> {
     let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
         HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp.
-    for (base_dir, base_dir_pkg_info) in state_write.pkgs_cache.iter() {
+    for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
                 if let Some(ten) = &property._ten {
@@ -152,14 +151,11 @@ pub async fn add_graph_connection_endpoint(
                             )
                         };
 
-                        let error_response = ErrorResponse {
+                        return Err(ErrorResponse {
                             status: Status::Fail,
                             message: error_message,
                             error: None,
-                        };
-                        return Ok(
-                            HttpResponse::BadRequest().json(error_response)
-                        );
+                        });
                     }
 
                     uri_to_pkg_info.insert(
@@ -173,6 +169,25 @@ pub async fn add_graph_connection_endpoint(
             }
         }
     }
+
+    Ok(uri_to_pkg_info)
+}
+
+pub async fn add_graph_connection_endpoint(
+    request_payload: web::Json<AddGraphConnectionRequestPayload>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
+) -> Result<impl Responder, actix_web::Error> {
+    let mut state_write = state.write().unwrap();
+
+    // Create a hash map from app URIs to PkgsInfoInApp for use with
+    // add_connection.
+    let uri_to_pkg_info =
+        match create_uri_to_pkg_info_map(&state_write.pkgs_cache) {
+            Ok(map) => map,
+            Err(error_response) => {
+                return Ok(HttpResponse::BadRequest().json(error_response))
+            }
+        };
 
     let DesignerState {
         pkgs_cache,
@@ -188,19 +203,17 @@ pub async fn add_graph_connection_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from graphs_cache.
-            if let Some(graph_info) =
-                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
-                    g.name
-                        .as_ref()
-                        .map(|name| name == &request_payload.graph_name)
-                        .unwrap_or(false)
-                        && (g.app_base_dir.is_some()
-                            && g.app_base_dir.as_ref().unwrap()
-                                == &request_payload.base_dir)
-                        && (g.belonging_pkg_type.is_some()
-                            && g.belonging_pkg_type.unwrap() == PkgType::App)
-                })
-            {
+            if let Some(graph_info) = graphs_cache_find_mut(graphs_cache, |g| {
+                g.name
+                    .as_ref()
+                    .map(|name| name == &request_payload.graph_name)
+                    .unwrap_or(false)
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap()
+                            == &request_payload.base_dir)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            }) {
                 // Add the connection using the converted PkgsInfoInApp map.
                 match graph_info.graph.add_connection(
                     request_payload.src_app.clone(),

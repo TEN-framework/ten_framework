@@ -29,7 +29,7 @@ mod tests {
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::{
-        pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
+        pkg_type::PkgType, predefined_graphs::graphs_cache_find,
     };
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -300,18 +300,16 @@ mod tests {
 
         let DesignerState { graphs_cache, .. } = &*state_read;
 
-        if let Some(graph_info) =
-            pkg_predefined_graphs_find(graphs_cache, |g| {
-                g.name
-                    .as_ref()
-                    .map(|name| name == "default_with_app_uri")
-                    .unwrap_or(false)
-                    && (g.app_base_dir.is_some()
-                        && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
-                    && (g.belonging_pkg_type.is_some()
-                        && g.belonging_pkg_type.unwrap() == PkgType::App)
-            })
-        {
+        if let Some(graph_info) = graphs_cache_find(graphs_cache, |g| {
+            g.name
+                .as_ref()
+                .map(|name| name == "default_with_app_uri")
+                .unwrap_or(false)
+                && (g.app_base_dir.is_some()
+                    && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
+                && (g.belonging_pkg_type.is_some()
+                    && g.belonging_pkg_type.unwrap() == PkgType::App)
+        }) {
             // Check if the node is gone.
             let node_exists = graph_info.graph.nodes.iter().any(|node| {
                 node.type_and_name.name == "test_delete_node"

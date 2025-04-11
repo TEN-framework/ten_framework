@@ -28,7 +28,7 @@ mod tests {
     };
     use ten_rust::pkg_info::{
         message::MsgType, pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find,
+        predefined_graphs::graphs_cache_find,
     };
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -254,18 +254,16 @@ mod tests {
 
         let DesignerState { graphs_cache, .. } = &*state_read;
 
-        if let Some(predefined_graph) =
-            pkg_predefined_graphs_find(graphs_cache, |g| {
-                g.name
-                    .as_ref()
-                    .map(|name| name == "default_with_app_uri")
-                    .unwrap_or(false)
-                    && (g.app_base_dir.is_some()
-                        && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
-                    && (g.belonging_pkg_type.is_some()
-                        && g.belonging_pkg_type.unwrap() == PkgType::App)
-            })
-        {
+        if let Some(predefined_graph) = graphs_cache_find(graphs_cache, |g| {
+            g.name
+                .as_ref()
+                .map(|name| name == "default_with_app_uri")
+                .unwrap_or(false)
+                && (g.app_base_dir.is_some()
+                    && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
+                && (g.belonging_pkg_type.is_some()
+                    && g.belonging_pkg_type.unwrap() == PkgType::App)
+        }) {
             // Check if the connection is gone.
             let connection_exists = predefined_graph
                 .graph

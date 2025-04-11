@@ -13,7 +13,7 @@ use crate::graph::{
     connection::GraphConnection, graph_info::GraphInfo, node::GraphNode, Graph,
 };
 
-pub fn pkg_predefined_graphs_find<F>(
+pub fn graphs_cache_find<F>(
     graphs_cache: &HashMap<Uuid, GraphInfo>,
     predicate: F,
 ) -> Option<&GraphInfo>
@@ -29,7 +29,7 @@ where
     })
 }
 
-pub fn pkg_predefined_graphs_find_mut<F>(
+pub fn graphs_cache_find_mut<F>(
     graphs_cache: &mut HashMap<Uuid, GraphInfo>,
     predicate: F,
 ) -> Option<&mut GraphInfo>
