@@ -104,28 +104,27 @@ pub async fn get_compatible_messages_endpoint(
             return Ok(HttpResponse::NotFound().json(error_response));
         }
 
-        // Get the app package directly for finding the graph.
-        let app_pkg = base_dir_pkg_info.app_pkg_info.as_ref().unwrap();
-
         // Get extension package information directly, if available.
         let extensions_slice = base_dir_pkg_info.get_extensions();
 
-        let extensions =
-            match get_extension_nodes_in_graph(&request_payload.graph, app_pkg)
-            {
-                Ok(exts) => exts,
-                Err(err) => {
-                    let error_response = ErrorResponse::from_error(
-                        &err,
-                        format!(
-                            "Error fetching runtime extensions for graph '{}'",
-                            request_payload.graph
-                        )
-                        .as_str(),
-                    );
-                    return Ok(HttpResponse::NotFound().json(error_response));
-                }
-            };
+        let extensions = match get_extension_nodes_in_graph(
+            &request_payload.base_dir,
+            &request_payload.graph,
+            &state_read.graphs_cache,
+        ) {
+            Ok(exts) => exts,
+            Err(err) => {
+                let error_response = ErrorResponse::from_error(
+                    &err,
+                    format!(
+                        "Error fetching runtime extensions for graph '{}'",
+                        request_payload.graph
+                    )
+                    .as_str(),
+                );
+                return Ok(HttpResponse::NotFound().json(error_response));
+            }
+        };
 
         let extension = match get_extension(
             &extensions,
