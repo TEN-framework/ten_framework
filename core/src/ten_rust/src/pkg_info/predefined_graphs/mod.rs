@@ -12,21 +12,6 @@ use crate::graph::{
     connection::GraphConnection, graph_info::GraphInfo, node::GraphNode, Graph,
 };
 
-pub fn pkg_predefined_graphs_find_old<F>(
-    pkg_predefined_graphs: Option<&Vec<GraphInfo>>,
-    predicate: F,
-) -> Option<&GraphInfo>
-where
-    F: Fn(&&GraphInfo) -> bool,
-{
-    match pkg_predefined_graphs {
-        None => None,
-        Some(pkg_predefined_graphs) => {
-            pkg_predefined_graphs.iter().find(predicate)
-        }
-    }
-}
-
 pub fn pkg_predefined_graphs_find<F>(
     graphs_cache: &HashMap<String, GraphInfo>,
     predicate: F,

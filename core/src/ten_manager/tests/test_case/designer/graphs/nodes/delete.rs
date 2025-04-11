@@ -28,7 +28,9 @@ mod tests {
         },
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_old;
+    use ten_rust::pkg_info::{
+        pkg_type::PkgType, predefined_graphs::pkg_predefined_graphs_find,
+    };
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -295,29 +297,26 @@ mod tests {
 
         // Verify the node was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(base_dir_pkg_info) =
-            state_read.pkgs_cache.get(&temp_dir_path)
+
+        let DesignerState { graphs_cache, .. } = &*state_read;
+
+        if let Some(graph_info) =
+            pkg_predefined_graphs_find(graphs_cache, |g| {
+                g.name == "default_with_app_uri"
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            })
         {
-            if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-                if let Some(predefined_graph) = pkg_predefined_graphs_find_old(
-                    app_pkg.get_predefined_graphs(),
-                    |g| g.name == "default_with_app_uri",
-                ) {
-                    // Check if the node is gone.
-                    let node_exists =
-                        predefined_graph.graph.nodes.iter().any(|node| {
-                            node.type_and_name.name == "test_delete_node"
-                                && node.addon == "test_addon"
-                        });
-                    assert!(!node_exists, "Node should have been deleted");
-                } else {
-                    panic!("Graph 'default_with_app_uri' not found");
-                }
-            } else {
-                panic!("App package not found");
-            }
+            // Check if the node is gone.
+            let node_exists = graph_info.graph.nodes.iter().any(|node| {
+                node.type_and_name.name == "test_delete_node"
+                    && node.addon == "test_addon"
+            });
+            assert!(!node_exists, "Node should have been deleted");
         } else {
-            panic!("Base directory not found");
+            panic!("Graph 'default_with_app_uri' not found");
         }
 
         let updated_property_content =

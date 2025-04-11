@@ -10,12 +10,15 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use ten_rust::{
     graph::node::GraphNode,
-    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
+    pkg_info::{
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+        predefined_graphs::pkg_predefined_graphs_find_mut,
+    },
 };
 
 use crate::designer::{
     graphs::nodes::validate::{validate_node_request, GraphNodeValidatable},
-    graphs::util::{find_app_package_from_base_dir, find_predefined_graph},
+    graphs::util::find_app_package_from_base_dir,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
@@ -104,27 +107,38 @@ pub async fn update_graph_node_property_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
     // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) = state_write
-        .pkgs_cache
-        .get_mut(&request_payload.graph_app_base_dir)
+    if let Some(base_dir_pkg_info) =
+        pkgs_cache.get_mut(&request_payload.graph_app_base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
-            // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) =
-                find_predefined_graph(app_pkg, &request_payload.graph_name)
+            // Get the specified graph from graphs_cache.
+            if let Some(graph_info) =
+                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
+                    g.name == request_payload.graph_name
+                        && (g.app_base_dir.is_some()
+                            && g.app_base_dir.as_ref().unwrap()
+                                == &request_payload.graph_app_base_dir)
+                        && (g.belonging_pkg_type.is_some()
+                            && g.belonging_pkg_type.unwrap() == PkgType::App)
+                })
             {
                 // Find the node in the graph
-                let node_found =
-                    predefined_graph.graph.nodes.iter().any(|node| {
-                        node.type_and_name.name == request_payload.node_name
-                            && node.addon == request_payload.addon_name
-                            && node.extension_group
-                                == request_payload.extension_group_name
-                            && node.app == request_payload.app_uri
-                    });
+                let node_found = graph_info.graph.nodes.iter().any(|node| {
+                    node.type_and_name.name == request_payload.node_name
+                        && node.addon == request_payload.addon_name
+                        && node.extension_group
+                            == request_payload.extension_group_name
+                        && node.app == request_payload.app_uri
+                });
 
                 if !node_found {
                     let error_response = ErrorResponse {

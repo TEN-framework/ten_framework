@@ -9,13 +9,16 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use ten_rust::{
-    graph::{graph_info::GraphInfo, node::GraphNode, Graph},
-    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
+    graph::{graph_info::GraphInfo, node::GraphNode},
+    pkg_info::{
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+        predefined_graphs::pkg_predefined_graphs_find_mut,
+    },
 };
 
 use crate::designer::{
     graphs::nodes::validate::{validate_node_request, GraphNodeValidatable},
-    graphs::util::{find_app_package_from_base_dir, find_predefined_graph},
+    graphs::util::find_app_package_from_base_dir,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
@@ -40,22 +43,20 @@ pub struct AddGraphNodeResponsePayload {
 
 /// Adds a new extension node to a graph.
 fn add_extension_node_to_graph(
-    predefined_graph: &GraphInfo,
+    graph_info: &mut GraphInfo,
     node_name: &str,
     addon_name: &str,
     app_uri: &Option<String>,
-) -> Result<Graph, String> {
-    let mut graph = predefined_graph.graph.clone();
-
+) -> Result<(), String> {
     // Add the extension node.
-    match graph.add_extension_node(
+    match graph_info.graph.add_extension_node(
         node_name.to_string(),
         addon_name.to_string(),
         app_uri.clone(),
         None,
         None,
     ) {
-        Ok(_) => Ok(graph),
+        Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
@@ -145,31 +146,38 @@ pub async fn add_graph_node_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
     // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) = state_write
-        .pkgs_cache
-        .get_mut(&request_payload.graph_app_base_dir)
+    if let Some(base_dir_pkg_info) =
+        pkgs_cache.get_mut(&request_payload.graph_app_base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
-            // Get the specified graph from predefined_graphs.
-            if let Some(predefined_graph) =
-                find_predefined_graph(app_pkg, &request_payload.graph_name)
+            // Get the specified graph from graphs_cache.
+            if let Some(graph_info) =
+                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
+                    g.name == request_payload.graph_name
+                        && (g.app_base_dir.is_some()
+                            && g.app_base_dir.as_ref().unwrap()
+                                == &request_payload.graph_app_base_dir)
+                        && (g.belonging_pkg_type.is_some()
+                            && g.belonging_pkg_type.unwrap() == PkgType::App)
+                })
             {
-                // Add the node to the graph
+                // Add the node to the graph.
                 match add_extension_node_to_graph(
-                    predefined_graph,
+                    graph_info,
                     &request_payload.node_name,
                     &request_payload.addon_name,
                     &request_payload.app_uri,
                 ) {
-                    Ok(graph) => {
-                        // Update the predefined_graph in the app_pkg.
-                        let mut new_graph = predefined_graph.clone();
-                        new_graph.graph = graph;
-                        app_pkg.update_predefined_graph(&new_graph);
-
+                    Ok(_) => {
                         // Create the graph node.
                         let new_node = create_extension_node(
                             &request_payload.node_name,
