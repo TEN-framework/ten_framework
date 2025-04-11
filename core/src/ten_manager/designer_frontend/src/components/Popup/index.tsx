@@ -5,8 +5,10 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { PinIcon } from "lucide-react";
 
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useDialogStore } from "@/store";
 import { TerminalPopupContent } from "@/components/Popup/Terminal";
 import { CustomNodeConnPopupContent } from "@/components/Popup/CustomNodeConn";
 import { LogViewerPopupContent } from "@/components/Popup/LogViewer";
@@ -21,7 +23,12 @@ import {
   PopupTabsBarContent,
 } from "@/components/Popup/Base";
 import { groupWidgetsById } from "@/components/Popup/utils";
-import { EWidgetCategory, IWidget } from "@/types/widgets";
+import {
+  EWidgetCategory,
+  EWidgetDisplayType,
+  EWidgetPredefinedCheck,
+  IWidget,
+} from "@/types/widgets";
 import { cn } from "@/lib/utils";
 
 const PopupWithTabs = (props: {
@@ -31,21 +38,116 @@ const PopupWithTabs = (props: {
 }) => {
   const { widgets, groupId, containerId } = props;
 
-  const { removeWidgets } = useWidgetStore();
+  const { removeWidgets, updateWidgetDisplayTypeBulk } = useWidgetStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { t } = useTranslation();
 
-  const handleClose = async () => {
+  const handleClose = async (type: "close" | "pin-to-dock" = "close") => {
+    // Check the predefined checks
+    const predefinedChecks = widgets
+      .map((widget) => widget.actions?.checks)
+      .filter((checks) => checks !== undefined)
+      .flat();
+    const uniqueChecks: {
+      check: EWidgetPredefinedCheck;
+      passed: boolean | undefined;
+    }[] = [...new Set(predefinedChecks)].map((check) => ({
+      check,
+      passed: undefined,
+    }));
+    for (const check of uniqueChecks) {
+      switch (check.check) {
+        case EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES:
+          // eslint-disable-next-line no-case-declarations
+          const editorWidgets = widgets.filter(
+            (widget) => widget.category === EWidgetCategory.Editor
+          );
+          if (editorWidgets.length > 0) {
+            const hasUnsavedChanges = editorWidgets.some(
+              (widget) => widget.metadata.isContentChanged
+            );
+            check.passed = !hasUnsavedChanges;
+          } else {
+            check.passed = true;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    if (
+      uniqueChecks.some(
+        (check) =>
+          check.check === EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES &&
+          check.passed === false
+      )
+    ) {
+      console.warn("Some widgets are not ready to be closed");
+      const dialogId = containerId + groupId + "close-popup-dialog";
+      appendDialog({
+        id: dialogId,
+        title: t("action.confirm"),
+        content:
+          type === "pin-to-dock"
+            ? t("popup.editor.confirmPinToDock")
+            : t("popup.editor.confirmCloseAllTabs"),
+        confirmLabel:
+          type === "pin-to-dock" ? t("action.pinToDock") : t("action.discard"),
+        cancelLabel: t("action.cancel"),
+        onConfirm: async () => {
+          if (type === "pin-to-dock") {
+            updateWidgetDisplayTypeBulk(
+              widgets.map((widget) => widget.widget_id),
+              EWidgetDisplayType.Dock
+            );
+            return;
+          }
+          removeDialog(dialogId);
+        },
+        postConfirm: async () => {
+          if (type === "pin-to-dock") {
+            return;
+          }
+          removeWidgets(widgets.map((widget) => widget.widget_id));
+        },
+      });
+      return; // Do not execute the onClose actions
+    }
+
+    if (type === "pin-to-dock") {
+      updateWidgetDisplayTypeBulk(
+        widgets.map((widget) => widget.widget_id),
+        EWidgetDisplayType.Dock
+      );
+      return;
+    }
+
+    // Execute the onClose actions
     const widgetOnCloseActions = widgets
       .map((widget) => widget.actions?.onClose)
       .filter((action) => action !== undefined);
     await Promise.all(widgetOnCloseActions.map((action) => action()));
+
+    // Remove the widgets
     removeWidgets(widgets.map((widget) => widget.widget_id));
   };
 
   const globalCustomActions = React.useMemo(() => {
-    if (widgets.length > 1) return undefined;
+    if (widgets.length > 1)
+      return [
+        {
+          id: "pin-to-dock-" + groupId,
+          label: t("action.pinToDock"),
+          Icon: PinIcon,
+          onClick: () => {
+            handleClose("pin-to-dock");
+          },
+        },
+      ];
     const firstWidget = widgets[0];
     return firstWidget.actions?.custom_actions;
-  }, [widgets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, widgets]);
 
   const globalTitle = React.useMemo(() => {
     if (widgets.length > 1) return undefined;

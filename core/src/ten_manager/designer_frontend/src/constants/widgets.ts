@@ -31,6 +31,7 @@ export const GROUP_GRAPH_ID = "group-graph";
 export const GROUP_CUSTOM_CONNECTION_ID = "group-custom-conn";
 export const GROUP_TERMINAL_ID = "group-terminal";
 export const GROUP_LOG_VIEWER_ID = "group-log-viewer";
+export const GROUP_EDITOR_ID = "group-editor";
 
 export const EXTENSION_STORE_POPUP_ID = EXTENSION_STORE_WIDGET_ID + "-popup";
 export const GRAPH_SELECT_POPUP_ID = GRAPH_SELECT_WIDGET_ID + "-popup";

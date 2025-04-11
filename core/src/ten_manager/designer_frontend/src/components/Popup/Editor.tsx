@@ -6,31 +6,33 @@
 //
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { SaveIcon, PinIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup/Base";
-import EditorWidget, {
-  type TEditorOnClose,
-} from "@/components/Widget/EditorWidget";
-import { EWidgetDisplayType } from "@/types/widgets";
+import EditorWidget from "@/components/Widget/EditorWidget";
 import { useWidgetStore } from "@/store/widget";
 
-import type { IEditorWidget, IEditorWidgetData } from "@/types/widgets";
-
-const DEFAULT_WIDTH = 800;
-const DEFAULT_HEIGHT = 400;
+import type { IEditorWidget, IEditorWidgetRef } from "@/types/widgets";
 
 export const EditorPopupTitle = (props: {
   title: string;
-  hasUnsavedChanges?: boolean;
+  widgetId: string;
 }) => {
-  const { title, hasUnsavedChanges } = props;
+  const { title, widgetId } = props;
+
+  const { widgets } = useWidgetStore();
+
+  const targetWidget = widgets.find(
+    (widget) => widget.widget_id === widgetId
+  ) as IEditorWidget;
+
+  const isEditing = targetWidget?.metadata?.isContentChanged;
+
   const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-1.5">
       <span className="font-medium text-foreground/90 font-sans">{title}</span>
       <span className="text-foreground/50 text-sm font-sans">
-        {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
+        {isEditing ? `(${t("action.unsaved")})` : ""}
       </span>
     </div>
   );
@@ -38,110 +40,12 @@ export const EditorPopupTitle = (props: {
 
 export const EditorPopupContent = (props: { widget: IEditorWidget }) => {
   const { widget } = props;
-  return <EditorWidget id={widget.widget_id} data={widget.metadata} />;
+  const { refs, ...rest } = widget.metadata;
+  const ref = React.useRef<IEditorWidgetRef>(null);
+
+  if (refs && widget.widget_id) {
+    refs[widget.widget_id] = ref;
+  }
+
+  return <EditorWidget id={widget.widget_id} data={rest} ref={ref} />;
 };
-
-interface EditorPopupProps {
-  id: string;
-  data: IEditorWidgetData;
-  onClose: () => void;
-  hasUnsavedChanges?: boolean;
-}
-
-type TEditorPopupRefActions = {
-  onClose: ({
-    postConfirm,
-    postCancel,
-    title,
-    content,
-    hasUnsavedChanges,
-  }: TEditorOnClose) => void;
-};
-
-const EditorPopup: React.FC<EditorPopupProps> = ({
-  id,
-  data,
-  onClose,
-  hasUnsavedChanges = false,
-}) => {
-  const editorRef = React.useRef<TEditorPopupRefActions>(null);
-  const { t } = useTranslation();
-  const { updateWidgetDisplayType } = useWidgetStore();
-
-  const handleSave = () => {
-    editorRef.current?.onClose({
-      hasUnsavedChanges,
-      postConfirm: async () => {},
-      postCancel: async () => {},
-    });
-  };
-
-  const handlePinToDock = () => {
-    editorRef.current?.onClose({
-      title: t("action.confirm"),
-      content: t("popup.editor.confirmSaveChanges"),
-      hasUnsavedChanges,
-      postConfirm: async () => {
-        updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
-      },
-      postCancel: async () => {
-        updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
-      },
-    });
-  };
-
-  const handleClose = () => {
-    editorRef.current?.onClose({
-      title: t("action.confirm"),
-      content: t("popup.editor.confirmSaveChanges"),
-      hasUnsavedChanges,
-      postConfirm: async () => {
-        await onClose();
-      },
-      postCancel: async () => {
-        await onClose();
-      },
-    });
-  };
-
-  return (
-    <>
-      <PopupBase
-        id={id}
-        title={
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium text-foreground/90 font-sans">
-              {data.title}
-            </span>
-            <span className="text-foreground/50 text-sm font-sans">
-              {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
-            </span>
-          </div>
-        }
-        onClose={handleClose}
-        resizable={true}
-        width={DEFAULT_WIDTH}
-        height={DEFAULT_HEIGHT}
-        contentClassName="p-0"
-        customActions={[
-          {
-            id: "save-file",
-            label: t("action.save"),
-            Icon: SaveIcon,
-            onClick: handleSave,
-          },
-          {
-            id: "pin-to-dock",
-            label: t("action.pinToDock"),
-            Icon: PinIcon,
-            onClick: handlePinToDock,
-          },
-        ]}
-      >
-        <EditorWidget id={id} data={data} ref={editorRef} />
-      </PopupBase>
-    </>
-  );
-};
-
-export default EditorPopup;

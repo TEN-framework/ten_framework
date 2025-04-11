@@ -5,6 +5,8 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { z } from "zod";
+import { type editor as MonacoEditor } from "monaco-editor";
+
 import { IListTenCloudStorePackage } from "@/types/extension";
 import { EConnectionType, EGraphActions } from "@/types/graphs";
 import { TCustomNode } from "@/types/flow";
@@ -54,10 +56,15 @@ export type TWidgetCustomAction = {
   onClick: () => void | Promise<void>;
 };
 
+export enum EWidgetPredefinedCheck {
+  EDITOR_UNSAVED_CHANGES = "editor_unsaved_changes",
+}
+
 export interface IWidgetActions<T> {
   onClose?: () => void | Promise<void>;
   onSubmit?: (data: T) => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
+  checks?: EWidgetPredefinedCheck[];
   custom_actions?: TWidgetCustomAction[];
 }
 
@@ -71,12 +78,30 @@ export interface ITerminalWidget extends IWidgetBase<ITerminalWidgetData> {
   category: EWidgetCategory.Terminal;
 }
 
+export type TEditorCheck = {
+  postConfirm?: () => void | Promise<void>;
+  postCancel?: () => void | Promise<void>;
+  title?: string;
+  content?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+};
+
+export interface IEditorWidgetRef {
+  id: string;
+  isEditing?: boolean;
+  editor?: MonacoEditor.IStandaloneCodeEditor | null;
+  check?: (options: TEditorCheck) => void;
+  save?: () => void;
+}
+
 // 2. Editor Widget
 export interface IEditorWidgetData {
   title: string;
   url: string; // The url (path) of the editor to display.
   content: string; // The content of the editor to display.
-  isEditing?: boolean;
+  isContentChanged?: boolean;
+  refs?: Record<string, React.RefObject<IEditorWidgetRef>>;
 }
 
 export interface IEditorWidget extends IWidgetBase<IEditorWidgetData> {

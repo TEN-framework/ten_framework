@@ -11,6 +11,8 @@ import {
   TerminalIcon,
   Trash2Icon,
   LogsIcon,
+  SaveIcon,
+  PinIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,8 +27,10 @@ import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget"
 import {
   EWidgetCategory,
   EWidgetDisplayType,
-  type TerminalData,
+  type ITerminalWidgetData,
   type IEditorWidgetData,
+  type IEditorWidgetRef,
+  EWidgetPredefinedCheck,
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
 
@@ -34,9 +38,11 @@ import type { TCustomNode } from "@/types/flow";
 import {
   GRAPH_ACTIONS_WIDGET_ID,
   CONTAINER_DEFAULT_ID,
+  GROUP_EDITOR_ID,
 } from "@/constants/widgets";
 import { GROUP_GRAPH_ID } from "@/constants/widgets";
 import { GraphPopupTitle } from "@/components/Popup/Graph";
+import { EditorPopupTitle } from "@/components/Popup/Editor";
 
 interface NodeContextMenuProps {
   visible: boolean;
@@ -46,8 +52,7 @@ interface NodeContextMenuProps {
   baseDir?: string | null;
   graphName?: string | null;
   onClose: () => void;
-  onLaunchTerminal: (data: TerminalData) => void;
-  onLaunchEditor: (data: IEditorWidgetData) => void;
+  onLaunchTerminal: (data: ITerminalWidgetData) => void;
   onLaunchLogViewer?: () => void;
 }
 
@@ -60,13 +65,59 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   graphName,
   onClose,
   onLaunchTerminal,
-  onLaunchEditor,
   onLaunchLogViewer,
 }) => {
   const { t } = useTranslation();
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { appendWidgetIfNotExists, updateWidgetDisplayType } = useWidgetStore();
+
+  const editorRefMappings = React.useRef<
+    Record<string, React.RefObject<IEditorWidgetRef>>
+  >({});
+
+  const launchEditor = (data: IEditorWidgetData) => {
+    const widgetId = `${data.url}-${Date.now()}`;
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_EDITOR_ID,
+      widget_id: widgetId,
+
+      category: EWidgetCategory.Editor,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <EditorPopupTitle title={data.title} widgetId={widgetId} />,
+      metadata: data,
+      actions: {
+        checks: [EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES],
+        custom_actions: [
+          {
+            id: "save-file",
+            label: t("action.save"),
+            Icon: SaveIcon,
+            onClick: () => {
+              editorRefMappings?.current?.[widgetId]?.current?.save?.();
+            },
+          },
+          {
+            id: "pin-to-dock",
+            label: t("action.pinToDock"),
+            Icon: PinIcon,
+            onClick: () => {
+              onClose();
+              editorRefMappings?.current?.[widgetId]?.current?.check?.({
+                title: t("action.confirm"),
+                content: t("popup.editor.confirmSaveChanges"),
+                postConfirm: async () => {
+                  updateWidgetDisplayType(widgetId, EWidgetDisplayType.Dock);
+                },
+              });
+            },
+          },
+        ],
+      },
+    });
+  };
 
   const items: IContextMenuItem[] = [
     {
@@ -81,10 +132,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           onClick: () => {
             onClose();
             if (node?.data.url)
-              onLaunchEditor({
+              launchEditor({
                 title: `${node.data.name} manifest.json`,
                 content: "",
                 url: `${node.data.url}/manifest.json`,
+                refs: editorRefMappings.current,
               });
           },
         },
@@ -95,10 +147,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           onClick: () => {
             onClose();
             if (node?.data.url)
-              onLaunchEditor({
+              launchEditor({
                 title: `${node.data.name} property.json`,
                 content: "",
                 url: `${node.data.url}/property.json`,
+                refs: editorRefMappings.current,
               });
           },
         },

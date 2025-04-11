@@ -25,15 +25,14 @@ import CustomNode from "@/flow/CustomNode";
 import CustomEdge from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
-import { ITerminalWidgetData } from "@/components/Popup/Terminal";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
 import {
   EWidgetDisplayType,
   EWidgetCategory,
-  type IEditorWidgetData,
   ELogViewerScriptType,
+  ITerminalWidgetData,
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
 import { ECustomEventName } from "@/utils/popup";
@@ -96,15 +95,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
         title: data.title,
         metadata: newPopup.data,
-      });
-    };
-
-    const launchEditor = (data: IEditorWidgetData) => {
-      appendWidgetIfNotExists({
-        id: `${data.url}-${Date.now()}`,
-        category: EWidgetCategory.Editor,
-        metadata: data,
-        display_type: EWidgetDisplayType.Dock,
       });
     };
 
@@ -172,7 +162,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             graphName={currentWorkspace?.graphName}
             onClose={closeContextMenu}
             onLaunchTerminal={launchTerminal}
-            onLaunchEditor={launchEditor}
             onLaunchLogViewer={launchLogViewer}
           />
         );

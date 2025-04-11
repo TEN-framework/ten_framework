@@ -27,13 +27,17 @@ export const useWidgetStore = create<{
     widgetId: string,
     displayType: EWidgetDisplayType
   ) => void;
+  updateWidgetDisplayTypeBulk: (
+    widgetIds: string[],
+    displayType: EWidgetDisplayType
+  ) => void;
   appendWidgetCustomAction: (
     widgetId: string,
     action: TWidgetCustomAction
   ) => void;
 
   // editor ---
-  updateEditorStatus: (widgetId: string, isEditing: boolean) => void;
+  updateEditorStatus: (widgetId: string, isContentChanged: boolean) => void;
 
   // backstage(ws) ---
   backstageWidgets: IWidget[];
@@ -107,6 +111,17 @@ export const useWidgetStore = create<{
           w.widget_id === widgetId ? { ...w, display_type: displayType } : w
         ),
       })),
+    updateWidgetDisplayTypeBulk: (
+      widgetIds: string[],
+      displayType: EWidgetDisplayType
+    ) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) =>
+          widgetIds.includes(w.widget_id)
+            ? { ...w, display_type: displayType }
+            : w
+        ),
+      })),
     appendWidgetCustomAction: (widgetId: string, action: TWidgetCustomAction) =>
       set((state) => ({
         widgets: state.widgets.map((w) => {
@@ -127,11 +142,11 @@ export const useWidgetStore = create<{
       })),
 
     // editor ---
-    updateEditorStatus: (widgetId: string, isEditing: boolean) =>
+    updateEditorStatus: (widgetId: string, isContentChanged: boolean) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
           w.widget_id === widgetId && w.category === EWidgetCategory.Editor
-            ? { ...w, isEditing }
+            ? { ...w, metadata: { ...w.metadata, isContentChanged } }
             : w
         ),
       })),
