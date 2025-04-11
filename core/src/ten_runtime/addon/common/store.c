@@ -31,6 +31,16 @@ void ten_addon_store_init(ten_addon_store_t *store) {
   ten_list_init(&store->store);
 }
 
+void ten_addon_store_deinit(ten_addon_store_t *store) {
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(store->lock, "Should not happen.");
+
+  TEN_ASSERT(ten_list_is_empty(&store->store), "Should not happen.");
+
+  ten_mutex_destroy(store->lock);
+  store->lock = NULL;
+}
+
 static void ten_addon_host_remove_from_store(ten_addon_host_t *addon_host) {
   TEN_ASSERT(addon_host, "Invalid argument.");
 

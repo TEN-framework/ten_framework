@@ -6,7 +6,6 @@
 //
 #include <cinttypes>
 #include <cstring>
-#include <string>
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/metadata.h"
@@ -211,13 +210,12 @@ class python_addon_loader_t : public ten::addon_loader_t {
     // Import the specified Python module.
     bool import_status =
         ten_py_import_module(ten_string_get_raw_str(full_module_name));
+    if (!import_status) {
+      TEN_LOGD("[Python addon loader] Failed to import module %s",
+               ten_string_get_raw_str(full_module_name));
+    }
 
     ten_string_destroy(full_module_name);
-
-    // Register the addon if necessary.
-    if (import_status) {
-      register_single_addon(addon_type, addon_name);
-    }
 
     ten_py_gil_state_release(ten_py_gil_state);
 
@@ -293,17 +291,20 @@ class python_addon_loader_t : public ten::addon_loader_t {
   // Start the debugpy server according to the environment variable and wait for
   // the debugger to connect.
   static void start_debugpy_server_if_needed() {
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *enable_python_debug = getenv("TEN_ENABLE_PYTHON_DEBUG");
     if (enable_python_debug == nullptr ||
         strcmp(enable_python_debug, "true") != 0) {
       return;
     }
 
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *python_debug_host = getenv("TEN_PYTHON_DEBUG_HOST");
     if (python_debug_host == nullptr) {
       python_debug_host = "localhost";
     }
 
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *python_debug_port = getenv("TEN_PYTHON_DEBUG_PORT");
     if (python_debug_port == nullptr) {
       python_debug_port = "5678";
@@ -384,17 +385,6 @@ class python_addon_loader_t : public ten::addon_loader_t {
     ten_py_run_simple_string(
         "from ten import _AddonManager\n"
         "_AddonManager.register_all_addons(None)\n");
-  }
-
-  static void register_single_addon(TEN_ADDON_TYPE addon_type,
-                                    const char *addon_name) {
-    (void)addon_type;
-
-    std::string register_script =
-        "from ten import _AddonManager\n"
-        "_AddonManager.register_addon('" +
-        std::string(addon_name) + "', None)\n";
-    ten_py_run_simple_string(register_script.c_str());
   }
 
   static void load_python_lib() {

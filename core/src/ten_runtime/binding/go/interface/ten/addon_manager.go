@@ -21,15 +21,15 @@ import (
 type AddonManager struct {
 	// Define a registry map to store addon registration functions.
 	// The key is the addonName (string), and the value is a function that takes
-	// a registerCtx (interface{}) and returns an error.
-	registry map[string]func(interface{}) error
+	// a registerCtx (cHandle) and returns an error.
+	registry map[string]func(cHandle) error
 
 	registryMutex sync.RWMutex
 }
 
 func newAddonManager() *AddonManager {
 	return &AddonManager{
-		registry: make(map[string]func(interface{}) error),
+		registry: make(map[string]func(cHandle) error),
 	}
 }
 
@@ -46,7 +46,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 	}
 
 	// Define the registration function that will be stored in the registry.
-	registerHandler := func(registerCtx interface{}) error {
+	registerHandler := func(registerCtx cHandle) error {
 		addonWrapper := &addon{
 			Addon: instance,
 		}
@@ -58,13 +58,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 			unsafe.Pointer(unsafe.StringData(addonName)),
 			C.int(len(addonName)),
 			cHandle(addonID),
-			// In the current use of the TEN framework's GO environment, there
-			// is no need to pass any `register_ctx` object into the register
-			// handler of the GO addon. Therefore, for now, simply passing `nil`
-			// is sufficient. If needed in the future, we can consider what
-			// information should be passed to the register handler of the GO
-			// addon.
-			nil,
+			registerCtx,
 			&bridge,
 		)
 
@@ -95,22 +89,11 @@ func (am *AddonManager) RegisterAddonAsExtension(
 
 	am.registry[addonName] = registerHandler
 
-	return nil
-}
-
-// RegisterAllAddons executes all registered addon registration functions.
-func (am *AddonManager) RegisterAllAddons(registerCtx interface{}) error {
-	am.registryMutex.Lock()
-	defer am.registryMutex.Unlock()
-
-	for name, registerHandler := range am.registry {
-		if err := registerHandler(registerCtx); err != nil {
-			return fmt.Errorf("Failed to register addon %s: %w", name, err)
-		}
-	}
-
-	// Clear the registry to free up memory.
-	am.registry = make(map[string]func(interface{}) error)
+	// Register the addon to the native addon manager.
+	C.ten_go_addon_manager_add_extension_addon(
+		unsafe.Pointer(unsafe.StringData(addonName)),
+		C.int(len(addonName)),
+	)
 
 	return nil
 }
@@ -122,7 +105,22 @@ func RegisterAddonAsExtension(addonName string, instance Addon) error {
 	return defaultAddonManager.RegisterAddonAsExtension(addonName, instance)
 }
 
-// RegisterAllAddons executes all registered addon registration functions.
-func RegisterAllAddons(registerCtx interface{}) error {
-	return defaultAddonManager.RegisterAllAddons(registerCtx)
+//export tenGoAddonManagerCallRegisterHandler
+func tenGoAddonManagerCallRegisterHandler(
+	addonType C.int,
+	addonName *C.char,
+	registerCtx C.uintptr_t,
+) {
+	defaultAddonManager.registryMutex.RLock()
+	defer defaultAddonManager.registryMutex.RUnlock()
+
+	registerHandler, exists := defaultAddonManager.registry[C.GoString(addonName)]
+
+	if !exists {
+		panic(
+			fmt.Sprintf("Addon '%s' is not registered", C.GoString(addonName)),
+		)
+	}
+
+	registerHandler(cHandle(registerCtx))
 }

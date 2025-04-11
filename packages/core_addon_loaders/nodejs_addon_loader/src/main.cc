@@ -405,6 +405,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       Context::Scope context_scope(this_ptr->setup_->context());
 
       std::string js_code =
+          "global.ten_runtime_nodejs.AddonManager.getInstance().deinit();"
           "global.gc();"
           "console.log('gc done');";
 
@@ -478,12 +479,10 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       Context::Scope context_scope(this_ptr->setup_->context());
 
       std::string js_code =
-          "if "
-          "(global.ten_runtime_nodejs.AddonManager._load_single_addon('" +
-          addon_name + "')) {" +
-          "global.ten_runtime_nodejs.AddonManager._register_single_addon("
+          "global.ten_runtime_nodejs.AddonManager.getInstance()."
+          "loadSingleAddon("
           "'" +
-          addon_name + "', null);" + "}";
+          addon_name + "');";
 
       // Convert the JavaScript code into a `v8::String`.
       v8::Local<v8::String> source =
@@ -581,16 +580,12 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       std::string js_code =
           "(() => {\n"
           "  const p = "
-          "global.ten_runtime_nodejs.AddonManager._load_single_addon("
+          "global.ten_runtime_nodejs.AddonManager.getInstance()."
+          "loadSingleAddon("
           "'" +
           addon_name +
           "');\n"
           "  p.then(() => {\n"
-          "    "
-          "global.ten_runtime_nodejs.AddonManager._register_single_addon("
-          "      '" +
-          addon_name +
-          "', null);\n"
           "    global.__registerAddonCompletedCallback();\n"
           "  }).catch((err) => {\n"
           "    console.error('Error registering addon:', err);\n"

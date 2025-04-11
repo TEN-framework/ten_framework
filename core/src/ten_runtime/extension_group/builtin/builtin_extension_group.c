@@ -311,7 +311,9 @@ static ten_addon_t builtin_extension_group_addon = {
 
 // Addon registration phase 2: actually registering the addon into the addon
 // store.
-static void ten_builtin_extension_group_register_handler(void *register_ctx) {
+static void ten_builtin_extension_group_register_handler(
+    TEN_UNUSED TEN_ADDON_TYPE addon_type, TEN_UNUSED ten_string_t *addon_name,
+    void *register_ctx, TEN_UNUSED void *user_data) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
                                      &builtin_extension_group_addon,
                                      register_ctx);
@@ -324,7 +326,7 @@ void ten_addon_manager_add_builtin_extension_group(
     ten_addon_manager_t *manager) {
   TEN_ASSERT(manager, "Invalid argument.");
 
-  ten_addon_manager_add_addon(manager, "extension_group",
-                              TEN_STR_DEFAULT_EXTENSION_GROUP,
-                              ten_builtin_extension_group_register_handler);
+  ten_addon_manager_add_addon(
+      manager, "extension_group", TEN_STR_DEFAULT_EXTENSION_GROUP,
+      ten_builtin_extension_group_register_handler, NULL, NULL);
 }
