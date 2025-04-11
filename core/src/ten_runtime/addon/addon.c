@@ -19,8 +19,10 @@
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
+#include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
@@ -192,10 +194,119 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
                                addon_host->addon->on_init);
 }
 
+static void ten_app_create_addon_instance_failed_task(void *self_, void *arg) {
+  ten_app_t *self = (ten_app_t *)self_;
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+
+  ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
+  TEN_ASSERT(addon_context, "Invalid argument.");
+  TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
+
+  addon_context->create_instance_done_cb(
+      self->ten_env, NULL, addon_context->create_instance_done_cb_data);
+
+  ten_addon_context_destroy(addon_context);
+}
+
+static void ten_engine_create_addon_instance_failed_task(void *self_,
+                                                         void *arg) {
+  ten_engine_t *self = (ten_engine_t *)self_;
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Invalid argument.");
+
+  ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
+  TEN_ASSERT(addon_context, "Invalid argument.");
+  TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
+
+  addon_context->create_instance_done_cb(
+      self->ten_env, NULL, addon_context->create_instance_done_cb_data);
+
+  ten_addon_context_destroy(addon_context);
+}
+
+static void ten_extension_thread_create_addon_instance_failed_task(void *self_,
+                                                                   void *arg) {
+  ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
+  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+             "Invalid argument.");
+
+  ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
+  TEN_ASSERT(addon_context, "Invalid argument.");
+  TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
+
+  ten_extension_group_t *extension_group = self->extension_group;
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
+             "Should not happen.");
+
+  addon_context->create_instance_done_cb(
+      extension_group->ten_env, NULL,
+      addon_context->create_instance_done_cb_data);
+
+  ten_addon_context_destroy(addon_context);
+}
+
+static void ten_app_notify_create_addon_instance_failed(
+    ten_app_t *self, ten_addon_context_t *addon_context) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(addon_context, "Invalid argument.");
+  TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
+
+  // Switch to the caller thread and call the callback function to notify
+  // the caller.
+  switch (addon_context->flow) {
+  case TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL:
+  case TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER: {
+    // Switch to the caller app thread and call the callback function to
+    // notify the caller.
+    ten_app_t *app = addon_context->flow_target.app;
+    TEN_ASSERT(app, "Should not happen.");
+
+    int rc = ten_runloop_post_task_tail(
+        ten_app_get_attached_runloop(app),
+        ten_app_create_addon_instance_failed_task, app, addon_context);
+    TEN_ASSERT(!rc, "Should not happen.");
+    break;
+  }
+
+  case TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_EXTENSION_GROUP:
+  case TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_PROTOCOL: {
+    // Switch to the caller engine thread and call the callback function to
+    // notify the caller.
+    ten_engine_t *engine = addon_context->flow_target.engine;
+    TEN_ASSERT(engine, "Should not happen.");
+
+    int rc = ten_runloop_post_task_tail(
+        ten_engine_get_attached_runloop(engine),
+        ten_engine_create_addon_instance_failed_task, engine, addon_context);
+    TEN_ASSERT(!rc, "Should not happen.");
+    break;
+  }
+  case TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION: {
+    // Switch to the caller extension thread and call the callback function
+    // to notify the caller.
+    ten_extension_thread_t *extension_thread =
+        addon_context->flow_target.extension_thread;
+    TEN_ASSERT(extension_thread, "Should not happen.");
+
+    int rc = ten_runloop_post_task_tail(
+        ten_extension_thread_get_attached_runloop(extension_thread),
+        ten_extension_thread_create_addon_instance_failed_task,
+        extension_thread, addon_context);
+    TEN_ASSERT(!rc, "Should not happen.");
+    break;
+  }
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
+  }
+}
+
 static void ten_app_create_addon_instance(ten_app_t *app,
                                           ten_addon_context_t *addon_context) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(addon_context, "Invalid argument.");
+  TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
 
   TEN_ADDON_TYPE addon_type = addon_context->addon_type;
   TEN_ASSERT(addon_type != TEN_ADDON_TYPE_INVALID, "Should not happen.");
@@ -259,10 +370,13 @@ static void ten_app_create_addon_instance(ten_app_t *app,
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   if (!addon_host) {
-    TEN_ASSERT(0,
-               "Failed to find addon %s:%s, please make sure the addon is "
-               "installed.",
-               ten_addon_type_to_string(addon_type), addon_name);
+    TEN_LOGE(
+        "Failed to find addon %s:%s, please make sure the addon is "
+        "installed.",
+        ten_addon_type_to_string(addon_type), addon_name);
+
+    ten_app_notify_create_addon_instance_failed(app, addon_context);
+    return;
   }
 
   ten_addon_host_create_instance_async(addon_host, instance_name,
