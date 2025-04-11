@@ -106,10 +106,6 @@ pub fn configure_routes(
             )
             // Graphs endpoints.
             .route("/graphs", web::post().to(graphs::get::get_graphs_endpoint))
-            .route(
-                "/graphs",
-                web::put().to(graphs::update::update_graph_endpoint),
-            )
             // Graph nodes endpoints.
             .route(
                 "/graphs/nodes",
