@@ -76,35 +76,36 @@ pub fn parse_property_from_str(
         // Get other fields from ten_value using serde.
         if let Value::Object(map) = ten_value {
             // Extract and process predefined_graphs specially.
-            if let Some(graphs_value) = map.get("predefined_graphs") {
-                if let Value::Array(graphs_array) = graphs_value {
-                    let mut graph_infos = Vec::new();
+            if let Some(Value::Array(graphs_array)) =
+                map.get("predefined_graphs")
+            {
+                let mut graph_infos = Vec::new();
 
-                    for graph_value in graphs_array {
-                        let graph: GraphInfo =
-                            serde_json::from_value(graph_value.clone())?;
-                        graph_infos.push(graph);
-                    }
-
-                    validate_predefined_graphs(&graph_infos)?;
-
-                    let mut temp_graphs_cache = HashMap::new();
-                    let mut graph_uuids = Vec::new();
-
-                    for mut graph in graph_infos {
-                        graph.validate_and_complete()?;
-
-                        let uuid = Uuid::new_v4();
-                        temp_graphs_cache.insert(uuid, graph);
-                        graph_uuids.push(uuid);
-                    }
-
-                    for (uuid, graph) in temp_graphs_cache {
-                        graphs_cache.insert(uuid, graph);
-                    }
-
-                    ten_in_property.predefined_graphs = Some(graph_uuids);
+                for graph_value in graphs_array {
+                    let graph: GraphInfo =
+                        serde_json::from_value(graph_value.clone())?;
+                    graph_infos.push(graph);
                 }
+
+                validate_predefined_graphs(&graph_infos)?;
+
+                let mut temp_graphs_cache = HashMap::new();
+                let mut graph_uuids = Vec::new();
+
+                for mut graph in graph_infos {
+                    graph.validate_and_complete()?;
+
+                    graph.belonging_pkg_type = belonging_pkg_type;
+                    graph.belonging_pkg_name = belonging_pkg_name.clone();
+                    graph.app_base_dir = app_base_dir.clone();
+
+                    let uuid = Uuid::new_v4();
+                    temp_graphs_cache.insert(uuid, graph);
+                    graph_uuids.push(uuid);
+                }
+
+                graphs_cache.extend(temp_graphs_cache);
+                ten_in_property.predefined_graphs = Some(graph_uuids);
             }
 
             // Handle uri if present
@@ -119,7 +120,7 @@ pub fn parse_property_from_str(
                 if key != "predefined_graphs" && key != "uri" {
                     ten_in_property
                         .additional_fields
-                        .insert(key.clone(), value.clone());
+                        .insert(key.to_string(), value.clone());
                 }
             }
         }
