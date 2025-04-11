@@ -96,19 +96,19 @@ mod tests {
         let expected_graphs = vec![
             GetGraphsResponseData {
                 uuid: "default".to_string(),
-                name: "default".to_string(),
+                name: Some("default".to_string()),
                 auto_start: Some(true),
                 base_dir: Some(TEST_DIR.to_string()),
             },
             GetGraphsResponseData {
                 uuid: "default_with_app_uri".to_string(),
-                name: "default_with_app_uri".to_string(),
+                name: Some("default_with_app_uri".to_string()),
                 auto_start: Some(true),
                 base_dir: Some(TEST_DIR.to_string()),
             },
             GetGraphsResponseData {
                 uuid: "addon_not_found".to_string(),
-                name: "addon_not_found".to_string(),
+                name: Some("addon_not_found".to_string()),
                 auto_start: Some(false),
                 base_dir: Some(TEST_DIR.to_string()),
             },

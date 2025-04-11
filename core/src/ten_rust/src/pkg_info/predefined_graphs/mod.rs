@@ -52,7 +52,7 @@ pub fn get_pkg_predefined_graph_from_nodes_and_connections(
     connections: &[GraphConnection],
 ) -> Result<GraphInfo> {
     Ok(GraphInfo {
-        name: graph_name.to_string(),
+        name: Some(graph_name.to_string()),
         auto_start: Some(auto_start),
         graph: Graph {
             nodes: nodes.to_vec(),

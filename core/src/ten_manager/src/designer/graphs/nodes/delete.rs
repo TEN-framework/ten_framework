@@ -64,7 +64,10 @@ pub async fn delete_graph_node_endpoint(
             // Get the specified graph from graphs_cache.
             if let Some(graph_info) =
                 pkg_predefined_graphs_find_mut(graphs_cache, |g| {
-                    g.name == request_payload.graph_name
+                    g.name
+                        .as_ref()
+                        .map(|name| name == &request_payload.graph_name)
+                        .unwrap_or(false)
                         && (g.app_base_dir.is_some()
                             && g.app_base_dir.as_ref().unwrap()
                                 == &request_payload.base_dir)
