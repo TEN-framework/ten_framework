@@ -6,7 +6,6 @@
 //
 #include <cinttypes>
 #include <cstring>
-#include <string>
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/metadata.h"
@@ -292,17 +291,20 @@ class python_addon_loader_t : public ten::addon_loader_t {
   // Start the debugpy server according to the environment variable and wait for
   // the debugger to connect.
   static void start_debugpy_server_if_needed() {
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *enable_python_debug = getenv("TEN_ENABLE_PYTHON_DEBUG");
     if (enable_python_debug == nullptr ||
         strcmp(enable_python_debug, "true") != 0) {
       return;
     }
 
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *python_debug_host = getenv("TEN_PYTHON_DEBUG_HOST");
     if (python_debug_host == nullptr) {
       python_debug_host = "localhost";
     }
 
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *python_debug_port = getenv("TEN_PYTHON_DEBUG_PORT");
     if (python_debug_port == nullptr) {
       python_debug_port = "5678";

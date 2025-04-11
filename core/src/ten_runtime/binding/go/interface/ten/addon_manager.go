@@ -117,7 +117,9 @@ func tenGoAddonManagerCallRegisterHandler(
 	registerHandler, exists := defaultAddonManager.registry[C.GoString(addonName)]
 
 	if !exists {
-		panic(fmt.Sprintf("Addon '%s' is not registered", C.GoString(addonName)))
+		panic(
+			fmt.Sprintf("Addon '%s' is not registered", C.GoString(addonName)),
+		)
 	}
 
 	registerHandler(cHandle(registerCtx))

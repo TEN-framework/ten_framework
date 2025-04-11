@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/binding/nodejs/addon/addon_manager.h"
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 #include "ten_runtime/addon/extension/extension.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct addon_manager_register_single_addon_ctx_t {
@@ -25,7 +26,7 @@ addon_manager_register_single_addon_ctx_create(
     void *register_ctx) {
   addon_manager_register_single_addon_ctx_t *ctx =
       TEN_MALLOC(sizeof(addon_manager_register_single_addon_ctx_t));
-  TEN_ASSERT(ctx, "Should not happen.");
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->addon_manager_bridge = addon_manager_bridge;
   ctx->addon_name = addon_name;
@@ -90,10 +91,8 @@ static bool ten_nodejs_addon_manager_check_integrity(
   return true;
 }
 
-static void invoke_addon_manager_js_register_single_addon(napi_env env,
-                                                          napi_value fn,
-                                                          void *context,
-                                                          void *data) {
+static void invoke_addon_manager_js_register_single_addon(
+    napi_env env, napi_value fn, TEN_UNUSED void *context, void *data) {
   addon_manager_register_single_addon_ctx_t *ctx = data;
   TEN_ASSERT(ctx, "Should not happen.");
 
@@ -199,7 +198,7 @@ static void ten_nodejs_addon_manager_destroy(ten_nodejs_addon_manager_t *self) {
 }
 
 static void ten_nodejs_addon_manager_finalize(napi_env env, void *data,
-                                              void *hint) {
+                                              TEN_UNUSED void *hint) {
   TEN_LOGI("TEN JS addon manager is finalized.");
 
   ten_nodejs_addon_manager_t *addon_manager_bridge = data;
@@ -327,7 +326,7 @@ static napi_value ten_nodejs_addon_manager_register_addon_as_extension(
   return js_undefined(env);
 }
 
-static void ten_nodejs_addon_register_func(TEN_ADDON_TYPE addon_type,
+static void ten_nodejs_addon_register_func(TEN_UNUSED TEN_ADDON_TYPE addon_type,
                                            ten_string_t *addon_name,
                                            void *register_ctx,
                                            void *user_data) {

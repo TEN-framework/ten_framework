@@ -241,7 +241,7 @@ done:
 }
 
 bool ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
-    const char *app_base_dir, ten_error_t *err) {
+    const char *app_base_dir, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
 
   bool success = true;

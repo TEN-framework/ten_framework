@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/binding/nodejs/addon/addon.h"
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
-#include "include_internal/ten_runtime/binding/nodejs/addon/addon_manager.h"
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 #include "include_internal/ten_runtime/binding/nodejs/common/tsfn.h"
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"

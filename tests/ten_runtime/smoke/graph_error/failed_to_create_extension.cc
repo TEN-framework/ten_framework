@@ -85,6 +85,7 @@ void ____ten_addon_graph_failed_to_create_extension__test_extension_register_han
       register_ctx);
   ten_string_destroy(base_dir);
 }
+
 TEN_CONSTRUCTOR(
     ____ten_addon_graph_failed_to_create_extension__test_extension_registrar____) {
   /* Add addon registration function into addon manager. */

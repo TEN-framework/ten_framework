@@ -13,7 +13,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 type Ctor<T> = {
-  new(): T;
+  new (): T;
   prototype: T;
 };
 
@@ -62,10 +62,7 @@ export class AddonManager {
     return AddonManager._instance;
   }
 
-  setRegisterHandler(
-    name: string,
-    handler: addonRegisterHandler,
-  ): void {
+  setRegisterHandler(name: string, handler: addonRegisterHandler): void {
     this._registry.set(name, handler);
   }
 
@@ -96,7 +93,7 @@ export class AddonManager {
     const dirs = fs.opendirSync(extension_folder);
     const loadPromises = [];
 
-    for (; ;) {
+    for (;;) {
       const entry = dirs.readSync();
       if (!entry) {
         break;
@@ -180,7 +177,6 @@ export function RegisterAddonAsExtension(
   name: string,
 ): <T extends Ctor<Addon>>(klass: T) => T {
   return function <T extends Ctor<Addon>>(klass: T): T {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function registerHandler(registerContext: unknown) {
       const addon_instance = new klass();
 
@@ -195,10 +191,7 @@ export function RegisterAddonAsExtension(
     addonManager.setRegisterHandler(name, registerHandler);
 
     // Register the addon to the native addon manager.
-    ten_addon.ten_nodejs_addon_manager_add_extension_addon(
-      addonManager,
-      name,
-    );
+    ten_addon.ten_nodejs_addon_manager_add_extension_addon(addonManager, name);
 
     console.log(`RegisterAddonAsExtension ${name} registered`);
 

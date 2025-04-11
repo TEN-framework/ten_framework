@@ -74,8 +74,8 @@ static void ten_extension_tester_on_test_extension_start_task(
   ten_extension_tester_on_test_extension_start(tester);
 }
 
-static void ten_extension_tester_on_test_extension_stop_task(void *self_,
-                                                             void *arg) {
+static void ten_extension_tester_on_test_extension_stop_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -140,8 +140,8 @@ static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
   }
 }
 
-void ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
-                                                            void *user_data) {
+void ten_builtin_test_extension_ten_env_notify_on_init_done(
+    ten_env_t *ten_env, TEN_UNUSED void *user_data) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -158,8 +158,8 @@ void ten_builtin_test_extension_ten_env_notify_on_start_done(
   TEN_ASSERT(rc, "Should not happen.");
 }
 
-void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
-                                                            void *user_data) {
+void ten_builtin_test_extension_ten_env_notify_on_stop_done(
+    ten_env_t *ten_env, TEN_UNUSED void *user_data) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -168,7 +168,7 @@ void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
 }
 
 void ten_builtin_test_extension_ten_env_notify_on_deinit_done(
-    ten_env_t *ten_env, void *user_data) {
+    ten_env_t *ten_env, TEN_UNUSED void *user_data) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -407,7 +407,7 @@ void ten_addon_manager_add_builtin_test_extension(
     ten_addon_manager_t *manager) {
   TEN_ASSERT(manager, "Invalid argument.");
 
-  ten_addon_manager_add_addon(
-      manager, "extension", TEN_STR_TEN_TEST_EXTENSION,
-      ten_builtin_test_extension_addon_register_handler, NULL, NULL);
+  ten_addon_manager_add_addon(manager, "extension", TEN_STR_TEN_TEST_EXTENSION,
+                              ten_builtin_test_extension_addon_register_handler,
+                              NULL, NULL);
 }

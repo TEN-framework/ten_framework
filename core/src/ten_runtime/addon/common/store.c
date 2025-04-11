@@ -23,6 +23,7 @@
 // The addon store should be initted only once.
 void ten_addon_store_init(ten_addon_store_t *store) {
   TEN_ASSERT(store, "Can not init empty addon store.");
+  TEN_ASSERT(!store->lock, "Should not happen.");
 
   store->lock = ten_mutex_create();
   TEN_ASSERT(store->lock, "Failed to create mutex.");
