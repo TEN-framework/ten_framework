@@ -30,12 +30,12 @@ use crate::designer::{
 /// message within a graph and find other messages that are compatible with it.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
+    /// ID of the graph to search for compatible messages.
+    pub graph_id: Uuid,
+
     /// Base directory path where the project files are located.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub base_dir: Option<String>,
-
-    /// ID of the graph to search for compatible messages.
-    pub graph_id: Uuid,
 
     /// Optional application name that contains the extension.
     #[serde(skip_serializing_if = "Option::is_none")]

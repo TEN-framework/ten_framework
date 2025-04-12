@@ -98,7 +98,7 @@ async fn test_get_compatible_messages_success() {
 
     // Define input data.
     let input_data = json!({
-      "graph": graph_id,
+      "graph_id": graph_id,
       "extension_group": "extension_group_1",
       "extension": "extension_1",
       "msg_type": "cmd",
@@ -206,7 +206,7 @@ async fn test_get_compatible_messages_fail() {
 
     // Define input data.
     let input_data = json!({
-      "graph": graph_id,
+      "graph_id": graph_id,
       "extension_group": "default_extension_group",
       "extension": "default_extension_cpp",
       "msg_type": "data",
@@ -294,7 +294,7 @@ async fn test_get_compatible_messages_cmd_has_required_success() {
 
     // Define input data. This time we check cmd msg with required_fields.
     let input_data = json!({
-      "graph": graph_id,
+      "graph_id": graph_id,
       "extension_group": "extension_group_1",
       "extension": "extension_1",
       "msg_type": "cmd",
