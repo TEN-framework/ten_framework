@@ -48,8 +48,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"
@@ -124,8 +123,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest_with_property_schema.json"
@@ -195,8 +193,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest_with_property_schema.json"
@@ -413,8 +410,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"

@@ -261,10 +261,9 @@ impl Graph {
                     &base_dir_pkg_info.pkgs_info_in_app.extension_pkgs_info
                 {
                     let found_pkg = extensions.iter().find(|pkg| {
-                        pkg.manifest.as_ref().is_some_and(|m| {
-                            m.type_and_name.pkg_type == PkgType::Extension
-                                && m.type_and_name.name == extension_name
-                        })
+                        pkg.manifest.type_and_name.pkg_type
+                            == PkgType::Extension
+                            && pkg.manifest.type_and_name.name == extension_name
                     });
 
                     if found_pkg.is_none() {

@@ -46,8 +46,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
                 include_str!("test_data_embed/extension_addon_1_manifest.json")
                     .to_string(),
@@ -56,8 +55,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_2"
+                    TEST_DIR, "/ten_packages/extension/extension_2"
                 ),
                 include_str!("test_data_embed/extension_addon_2_manifest.json")
                     .to_string(),
@@ -66,8 +64,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR.to_string(),
-                    "/ten_packages/extension/extension_3"
+                    TEST_DIR, "/ten_packages/extension/extension_3"
                 ),
                 include_str!("test_data_embed/extension_addon_3_manifest.json")
                     .to_string(),

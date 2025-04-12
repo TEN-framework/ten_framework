@@ -219,147 +219,145 @@ fn update_package_manifest(
     // If `Some(...)` is passed in, it indicates `local_path` mode.
     local_path_if_any: Option<String>,
 ) -> Result<()> {
-    if let Some(ref mut manifest) = base_pkg_info.manifest.as_mut() {
-        let mut is_present = false;
-        let mut deps_to_remove = Vec::new();
-        let mut updated_dependencies = Vec::new();
+    let mut is_present = false;
+    let mut deps_to_remove = Vec::new();
+    let mut updated_dependencies = Vec::new();
 
-        // Process the struct field dependencies first as a cache.
-        if let Some(ref dependencies) = manifest.dependencies {
-            for dep in dependencies.iter() {
-                match dep {
-                    ManifestDependency::RegistryDependency {
-                        pkg_type,
-                        name,
-                        ..
-                    } => {
-                        let manifest_dependency_type_and_name =
-                            PkgTypeAndName {
-                                pkg_type: *pkg_type,
-                                name: name.clone(),
-                            };
+    // Process the struct field dependencies first as a cache.
+    if let Some(ref dependencies) = base_pkg_info.manifest.dependencies {
+        for dep in dependencies.iter() {
+            match dep {
+                ManifestDependency::RegistryDependency {
+                    pkg_type,
+                    name,
+                    ..
+                } => {
+                    let manifest_dependency_type_and_name = PkgTypeAndName {
+                        pkg_type: *pkg_type,
+                        name: name.clone(),
+                    };
 
-                        if manifest_dependency_type_and_name
-                            == PkgTypeAndName::from(added_dependency)
-                        {
-                            if !added_dependency.is_local_dependency {
+                    if manifest_dependency_type_and_name
+                        == PkgTypeAndName::from(added_dependency)
+                    {
+                        if !added_dependency.is_local_dependency {
+                            is_present = true;
+                            updated_dependencies.push(dep.clone());
+                        } else {
+                            // The `manifest.json` specifies a registry
+                            // dependency, but a local dependency is being
+                            // added. Therefore, remove the original
+                            // dependency item from `manifest.json`.
+                            deps_to_remove.push(dep.clone());
+                        }
+                    } else {
+                        updated_dependencies.push(dep.clone());
+                    }
+                }
+                ManifestDependency::LocalDependency { path, .. } => {
+                    let manifest_dependency_pkg_info =
+                        match get_pkg_info_from_path(
+                            Path::new(&path),
+                            false,
+                            false,
+                            &mut None,
+                            None,
+                        ) {
+                            Ok(info) => info,
+                            Err(_) => {
+                                panic!(
+                                    "Failed to get package info from path: {}",
+                                    path
+                                );
+                            }
+                        };
+
+                    if manifest_dependency_pkg_info
+                        .manifest
+                        .type_and_name
+                        .pkg_type
+                        == get_pkg_type(added_dependency)
+                        && manifest_dependency_pkg_info
+                            .manifest
+                            .type_and_name
+                            .name
+                            == get_pkg_name(added_dependency)
+                    {
+                        if added_dependency.is_local_dependency {
+                            assert!(
+                                added_dependency
+                                    .local_dependency_path
+                                    .is_some(),
+                                "Should not happen."
+                            );
+
+                            if path
+                                == added_dependency
+                                    .local_dependency_path
+                                    .as_ref()
+                                    .unwrap()
+                            {
                                 is_present = true;
                                 updated_dependencies.push(dep.clone());
                             } else {
-                                // The `manifest.json` specifies a registry
-                                // dependency, but a local dependency is being
-                                // added. Therefore, remove the original
-                                // dependency item from `manifest.json`.
-                                deps_to_remove.push(dep.clone());
-                            }
-                        } else {
-                            updated_dependencies.push(dep.clone());
-                        }
-                    }
-                    ManifestDependency::LocalDependency { path, .. } => {
-                        let manifest_dependency_pkg_info =
-                            match get_pkg_info_from_path(
-                                Path::new(&path),
-                                false,
-                                false,
-                                &mut None,
-                                None,
-                            ) {
-                                Ok(info) => info,
-                                Err(_) => {
-                                    panic!(
-                                        "Failed to get package info from path: {}",
-                                        path
-                                    );
-                                }
-                            };
-
-                        if manifest_dependency_pkg_info
-                            .manifest
-                            .as_ref()
-                            .is_some_and(|m| {
-                                m.type_and_name.pkg_type
-                                    == get_pkg_type(added_dependency)
-                                    && m.type_and_name.name
-                                        == get_pkg_name(added_dependency)
-                            })
-                        {
-                            if added_dependency.is_local_dependency {
-                                assert!(
-                                    added_dependency
-                                        .local_dependency_path
-                                        .is_some(),
-                                    "Should not happen."
-                                );
-
-                                if path
-                                    == added_dependency
-                                        .local_dependency_path
-                                        .as_ref()
-                                        .unwrap()
-                                {
-                                    is_present = true;
-                                    updated_dependencies.push(dep.clone());
-                                } else {
-                                    // The `manifest.json` specifies a local
-                                    // dependency, but a different local
-                                    // dependency is being added. Therefore,
-                                    // remove the original dependency item from
-                                    // `manifest.json`.
-                                    deps_to_remove.push(dep.clone());
-                                }
-                            } else {
                                 // The `manifest.json` specifies a local
-                                // dependency, but a registry dependency is
-                                // being added. Therefore, remove the original
-                                // dependency item from `manifest.json`.
+                                // dependency, but a different local
+                                // dependency is being added. Therefore,
+                                // remove the original dependency item from
+                                // `manifest.json`.
                                 deps_to_remove.push(dep.clone());
                             }
                         } else {
-                            updated_dependencies.push(dep.clone());
+                            // The `manifest.json` specifies a local
+                            // dependency, but a registry dependency is
+                            // being added. Therefore, remove the original
+                            // dependency item from `manifest.json`.
+                            deps_to_remove.push(dep.clone());
                         }
+                    } else {
+                        updated_dependencies.push(dep.clone());
                     }
                 }
             }
         }
-
-        // If the added dependency does not exist in the `manifest.json`, add
-        // it.
-        let deps_to_add_option = if !is_present {
-            // If `local_path_if_any` has a value, create a local dependency.
-            if let Some(local_path) = &local_path_if_any {
-                let local_dep = ManifestDependency::LocalDependency {
-                    path: local_path.clone(),
-                    base_dir: "".to_string(),
-                };
-                updated_dependencies.push(local_dep.clone());
-                Some(vec![local_dep])
-            } else {
-                let registry_dep = ManifestDependency::from(added_dependency);
-                updated_dependencies.push(registry_dep.clone());
-                Some(vec![registry_dep])
-            }
-        } else {
-            None
-        };
-
-        // Update the dependencies field in the manifest struct.
-        manifest.dependencies = Some(updated_dependencies);
-
-        // Use the deps_to_remove for update_manifest_all_fields.
-        let deps_to_remove_option = if !deps_to_remove.is_empty() {
-            Some(&deps_to_remove)
-        } else {
-            None
-        };
-
-        update_manifest_all_fields(
-            &base_pkg_info.url,
-            &mut manifest.all_fields,
-            deps_to_add_option.as_ref(),
-            deps_to_remove_option,
-        )?;
     }
+
+    // If the added dependency does not exist in the `manifest.json`, add
+    // it.
+    let deps_to_add_option = if !is_present {
+        // If `local_path_if_any` has a value, create a local dependency.
+        if let Some(local_path) = &local_path_if_any {
+            let local_dep = ManifestDependency::LocalDependency {
+                path: local_path.clone(),
+                base_dir: "".to_string(),
+            };
+            updated_dependencies.push(local_dep.clone());
+            Some(vec![local_dep])
+        } else {
+            let registry_dep = ManifestDependency::from(added_dependency);
+            updated_dependencies.push(registry_dep.clone());
+            Some(vec![registry_dep])
+        }
+    } else {
+        None
+    };
+
+    // Update the dependencies field in the manifest struct.
+    base_pkg_info.manifest.dependencies = Some(updated_dependencies);
+
+    // Use the deps_to_remove for update_manifest_all_fields.
+    let deps_to_remove_option = if !deps_to_remove.is_empty() {
+        Some(&deps_to_remove)
+    } else {
+        None
+    };
+
+    update_manifest_all_fields(
+        &base_pkg_info.url,
+        &mut base_pkg_info.manifest.all_fields,
+        deps_to_add_option.as_ref(),
+        deps_to_remove_option,
+    )?;
 
     Ok(())
 }
@@ -579,26 +577,17 @@ pub fn compare_solver_results_with_installed_pkgs(
 
 // Helper function for accessing type and name and version
 fn get_pkg_type(pkg: &PkgInfo) -> PkgType {
-    pkg.manifest
-        .as_ref()
-        .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type)
+    pkg.manifest.type_and_name.pkg_type
 }
 
 fn get_pkg_name(pkg: &PkgInfo) -> String {
-    pkg.manifest
-        .as_ref()
-        .map_or("unknown".to_string(), |m| m.type_and_name.name.clone())
+    pkg.manifest.type_and_name.name.clone()
 }
 
 fn get_pkg_version(pkg: &PkgInfo) -> Version {
-    pkg.manifest
-        .as_ref()
-        .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone())
+    pkg.manifest.version.clone()
 }
 
 fn get_pkg_supports(pkg: &PkgInfo) -> Vec<ManifestSupport> {
-    pkg.manifest
-        .as_ref()
-        .and_then(|m| m.supports.as_ref())
-        .map_or_else(Vec::new, |s| s.clone())
+    pkg.manifest.supports.clone().unwrap_or_default()
 }

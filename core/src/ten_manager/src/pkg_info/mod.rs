@@ -48,9 +48,7 @@ pub fn get_pkg_in_app<'a>(
 
             match &pkgs_info_in_app.extension_pkgs_info {
                 Some(pkgs) => Ok(pkgs.iter().find(|pkg| {
-                    pkg.manifest.as_ref().is_some_and(|m| {
-                        m.type_and_name.name == *pkg_name.unwrap()
-                    })
+                    pkg.manifest.type_and_name.name == *pkg_name.unwrap()
                 })),
                 None => Ok(None),
             }
@@ -136,9 +134,7 @@ pub fn pkg_info_find_by_graph_info<'a>(
                                 pkgs_info_in_app.extension_pkgs_info.as_ref()
                             {
                                 Ok(extension_pkgs_info.iter().find(|pkg| {
-                                    pkg.manifest.as_ref().is_some_and(|m| {
-                                        m.type_and_name.name == *pkg_name
-                                    })
+                                    pkg.manifest.type_and_name.name == *pkg_name
                                 }))
                             } else {
                                 Err(anyhow!(
@@ -190,9 +186,7 @@ pub fn pkg_info_find_by_graph_info_mut<'a>(
                                 pkgs_info_in_app.extension_pkgs_info.as_mut()
                             {
                                 Ok(extension_pkgs_info.iter_mut().find(|pkg| {
-                                    pkg.manifest.as_ref().is_some_and(|m| {
-                                        m.type_and_name.name == *pkg_name
-                                    })
+                                    pkg.manifest.type_and_name.name == *pkg_name
                                 }))
                             } else {
                                 Err(anyhow!(

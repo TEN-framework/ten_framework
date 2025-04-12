@@ -191,7 +191,7 @@ pub fn configure_routes(
                 "/ws/terminal",
                 web::get().to(terminal::ws_terminal_endpoint),
             )
-            // Misc endpoints.
+            // Doc endpoints.
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
@@ -200,10 +200,12 @@ pub fn configure_routes(
                 "/doc-link",
                 web::post().to(doc_link::get_doc_link_endpoint),
             )
+            // Registry endpoints.
             .route(
                 "/registry/packages",
                 web::get().to(registry::packages::get_packages_endpoint),
             )
+            // Environment endpoints.
             .route("/env", web::get().to(env::get_env_endpoint)),
     );
 }

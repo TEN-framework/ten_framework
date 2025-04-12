@@ -45,7 +45,7 @@ pub fn localhost() -> &'static str {
 
 #[derive(Clone, Debug)]
 pub struct PkgInfo {
-    pub manifest: Option<Manifest>,
+    pub manifest: Manifest,
     pub property: Option<Property>,
 
     pub compatible_score: i32,
@@ -88,7 +88,7 @@ impl PkgInfo {
             url: url.to_string(),
             hash: String::new(),
 
-            manifest: Some(manifest.clone()),
+            manifest: manifest.clone(),
             property: property.clone(),
             schema_store: SchemaStore::from_manifest(manifest)?,
 
@@ -107,27 +107,23 @@ impl PkgInfo {
         pkg_type: &str,
         pkg_name: &str,
     ) -> Option<&ManifestDependency> {
-        if let Some(manifest) = &self.manifest {
-            if let Some(dependencies) = &manifest.dependencies {
-                return dependencies.iter().find(|dep| {
-                    match dep {
-                        ManifestDependency::RegistryDependency {
-                            pkg_type: dep_type,
-                            name,
-                            ..
-                        } => {
-                            dep_type.to_string() == pkg_type && name == pkg_name
-                        }
-                        ManifestDependency::LocalDependency { .. } => {
-                            // For local dependencies, we would need to resolve
-                            // the actual type and name by examining the
-                            // manifest at the local path, which is beyond the
-                            // scope of this method, so we return false.
-                            false
-                        }
+        if let Some(dependencies) = &self.manifest.dependencies {
+            return dependencies.iter().find(|dep| {
+                match dep {
+                    ManifestDependency::RegistryDependency {
+                        pkg_type: dep_type,
+                        name,
+                        ..
+                    } => dep_type.to_string() == pkg_type && name == pkg_name,
+                    ManifestDependency::LocalDependency { .. } => {
+                        // For local dependencies, we would need to resolve
+                        // the actual type and name by examining the
+                        // manifest at the local path, which is beyond the
+                        // scope of this method, so we return false.
+                        false
                     }
-                });
-            }
+                }
+            });
         }
         None
     }
@@ -193,56 +189,52 @@ fn collect_pkg_info_from_path(
         app_base_dir,
     )?;
 
-    if let Some(manifest) = &pkg_info.manifest {
-        match manifest.type_and_name.pkg_type {
-            PkgType::App => {
-                pkgs_info.app_pkg_info = Some(pkg_info);
-                Ok(())
-            }
-            PkgType::Extension => {
-                if pkgs_info.extension_pkgs_info.is_none() {
-                    pkgs_info.extension_pkgs_info = Some(Vec::new());
-                }
-                pkgs_info
-                    .extension_pkgs_info
-                    .as_mut()
-                    .unwrap()
-                    .push(pkg_info);
-                Ok(())
-            }
-            PkgType::Protocol => {
-                if pkgs_info.protocol_pkgs_info.is_none() {
-                    pkgs_info.protocol_pkgs_info = Some(Vec::new());
-                }
-                pkgs_info
-                    .protocol_pkgs_info
-                    .as_mut()
-                    .unwrap()
-                    .push(pkg_info);
-                Ok(())
-            }
-            PkgType::AddonLoader => {
-                if pkgs_info.addon_loader_pkgs_info.is_none() {
-                    pkgs_info.addon_loader_pkgs_info = Some(Vec::new());
-                }
-                pkgs_info
-                    .addon_loader_pkgs_info
-                    .as_mut()
-                    .unwrap()
-                    .push(pkg_info);
-                Ok(())
-            }
-            PkgType::System => {
-                if pkgs_info.system_pkgs_info.is_none() {
-                    pkgs_info.system_pkgs_info = Some(Vec::new());
-                }
-                pkgs_info.system_pkgs_info.as_mut().unwrap().push(pkg_info);
-                Ok(())
-            }
-            _ => Err(anyhow!("Unknown package type")),
+    match pkg_info.manifest.type_and_name.pkg_type {
+        PkgType::App => {
+            pkgs_info.app_pkg_info = Some(pkg_info);
+            Ok(())
         }
-    } else {
-        Err(anyhow!("Package missing manifest"))
+        PkgType::Extension => {
+            if pkgs_info.extension_pkgs_info.is_none() {
+                pkgs_info.extension_pkgs_info = Some(Vec::new());
+            }
+            pkgs_info
+                .extension_pkgs_info
+                .as_mut()
+                .unwrap()
+                .push(pkg_info);
+            Ok(())
+        }
+        PkgType::Protocol => {
+            if pkgs_info.protocol_pkgs_info.is_none() {
+                pkgs_info.protocol_pkgs_info = Some(Vec::new());
+            }
+            pkgs_info
+                .protocol_pkgs_info
+                .as_mut()
+                .unwrap()
+                .push(pkg_info);
+            Ok(())
+        }
+        PkgType::AddonLoader => {
+            if pkgs_info.addon_loader_pkgs_info.is_none() {
+                pkgs_info.addon_loader_pkgs_info = Some(Vec::new());
+            }
+            pkgs_info
+                .addon_loader_pkgs_info
+                .as_mut()
+                .unwrap()
+                .push(pkg_info);
+            Ok(())
+        }
+        PkgType::System => {
+            if pkgs_info.system_pkgs_info.is_none() {
+                pkgs_info.system_pkgs_info = Some(Vec::new());
+            }
+            pkgs_info.system_pkgs_info.as_mut().unwrap().push(pkg_info);
+            Ok(())
+        }
+        _ => Err(anyhow!("Unknown package type")),
     }
 }
 
@@ -270,14 +262,11 @@ pub fn get_app_installed_pkgs(
         Some(app_path.to_string_lossy().to_string()),
     )?;
 
-    if let Some(manifest) = &pkgs_info.app_pkg_info.as_ref().unwrap().manifest {
-        if manifest.type_and_name.pkg_type != PkgType::App {
-            return Err(anyhow!(
-                "The current working directory does not belong to the `app`."
-            ));
-        }
-    } else {
-        return Err(anyhow!("App package missing manifest"));
+    let app_pkg_info = pkgs_info.app_pkg_info.as_ref().unwrap();
+    if app_pkg_info.manifest.type_and_name.pkg_type != PkgType::App {
+        return Err(anyhow!(
+            "The current working directory does not belong to the `app`."
+        ));
     }
 
     // Define the sub-folders for searching packages.
@@ -346,22 +335,14 @@ pub fn find_untracked_local_packages<'a>(
     let mut untracked_pkgs = Vec::new();
 
     for pkg in local_pkgs {
-        let Some(pkg_manifest) = &pkg.manifest else {
-            continue;
-        };
-
         // Check all dependencies to see if this local package is tracked.
         let is_tracked = dependencies.iter().any(|dep| {
-            let Some(dep_manifest) = &dep.manifest else {
-                return false;
-            };
-
             // Compare type, name, and version
-            pkg_manifest.type_and_name.pkg_type
-                == dep_manifest.type_and_name.pkg_type
-                && pkg_manifest.type_and_name.name
-                    == dep_manifest.type_and_name.name
-                && pkg_manifest.version == dep_manifest.version
+            pkg.manifest.type_and_name.pkg_type
+                == dep.manifest.type_and_name.pkg_type
+                && pkg.manifest.type_and_name.name
+                    == dep.manifest.type_and_name.name
+                && pkg.manifest.version == dep.manifest.version
         });
 
         if !is_tracked {
@@ -385,24 +366,16 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
     let mut to_be_replaced = Vec::new();
 
     for dep in dependencies {
-        let Some(dep_manifest) = &dep.manifest else {
-            continue;
-        };
-
         // For each dependency, look for a local package with the same type and
         // name.
         for pkg in local_pkgs {
-            let Some(pkg_manifest) = &pkg.manifest else {
-                continue;
-            };
-
             // If type and name match but versions differ, this package will be
             // replaced.
-            if dep_manifest.type_and_name.pkg_type
-                == pkg_manifest.type_and_name.pkg_type
-                && dep_manifest.type_and_name.name
-                    == pkg_manifest.type_and_name.name
-                && dep_manifest.version != pkg_manifest.version
+            if dep.manifest.type_and_name.pkg_type
+                == pkg.manifest.type_and_name.pkg_type
+                && dep.manifest.type_and_name.name
+                    == pkg.manifest.type_and_name.name
+                && dep.manifest.version != pkg.manifest.version
             {
                 to_be_replaced.push((*dep, *pkg));
             }
