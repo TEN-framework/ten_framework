@@ -46,3 +46,30 @@ pub fn graphs_cache_find_by_id_mut<'a>(
 ) -> Option<&'a mut GraphInfo> {
     graphs_cache.get_mut(graph_id)
 }
+
+// Remove graphs associated with app from graphs_cache.
+pub fn graphs_cache_remove_by_app_base_dir(
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
+    base_dir: &str,
+) {
+    // Collect UUIDs of graphs to remove.
+    let graph_uuids_to_remove: Vec<uuid::Uuid> = graphs_cache
+        .iter()
+        .filter_map(|(uuid, graph_info)| {
+            if let Some(app_base_dir) = &graph_info.app_base_dir {
+                if app_base_dir == base_dir {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Remove the graphs
+    for uuid in graph_uuids_to_remove {
+        graphs_cache.remove(&uuid);
+    }
+}

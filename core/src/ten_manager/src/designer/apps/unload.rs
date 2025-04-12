@@ -10,9 +10,12 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::designer::{
-    response::{ApiResponse, ErrorResponse, Status},
-    DesignerState,
+use crate::{
+    designer::{
+        response::{ApiResponse, ErrorResponse, Status},
+        DesignerState,
+    },
+    graph::graphs_cache_remove_by_app_base_dir,
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -56,26 +59,7 @@ pub async fn unload_app_endpoint(
 
     // Remove any graphs associated with this app.
     let base_dir = &request_payload.base_dir;
-    // Collect UUIDs of graphs to remove.
-    let graph_uuids_to_remove: Vec<uuid::Uuid> = graphs_cache
-        .iter()
-        .filter_map(|(uuid, graph_info)| {
-            if let Some(app_base_dir) = &graph_info.app_base_dir {
-                if app_base_dir == base_dir {
-                    Some(*uuid)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    // Remove the graphs.
-    for uuid in graph_uuids_to_remove {
-        graphs_cache.remove(&uuid);
-    }
+    graphs_cache_remove_by_app_base_dir(graphs_cache, base_dir);
 
     let response = ApiResponse {
         status: Status::Ok,
