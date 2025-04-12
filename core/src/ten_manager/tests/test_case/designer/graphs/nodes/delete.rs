@@ -26,11 +26,13 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
+        graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::{
         pkg_type::PkgType, predefined_graphs::graphs_cache_find,
     };
+    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -69,7 +71,7 @@ mod tests {
         // Try to delete a node from a non-existent graph.
         let request_payload = DeleteGraphNodeRequestPayload {
             base_dir: TEST_DIR.to_string(),
-            graph_name: "non_existent_graph".to_string(),
+            graph_id: Uuid::new_v4(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -91,9 +93,7 @@ mod tests {
 
         let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Fail);
-        assert!(response
-            .message
-            .contains("Graph 'non_existent_graph' not found"));
+        assert!(response.message.contains("Graph not found"));
     }
 
     #[actix_web::test]
@@ -118,6 +118,22 @@ mod tests {
         );
         assert!(inject_ret.is_ok());
 
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Try to delete a non-existent node from an existing graph.
+        let request_payload = DeleteGraphNodeRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_id: *graph_id,
+            node_name: "non_existent_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+        };
+
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
@@ -127,16 +143,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Try to delete a non-existent node from an existing graph.
-        let request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default_with_app_uri".to_string(),
-            node_name: "non_existent_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/delete")
@@ -201,6 +207,36 @@ mod tests {
         );
         assert!(inject_ret.is_ok());
 
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_app_base_dir: temp_dir_path.clone(),
+            graph_id: *graph_id,
+            addon_app_base_dir: None,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
+        };
+
+        // Now delete the node we just added.
+        let delete_request_payload = DeleteGraphNodeRequestPayload {
+            base_dir: temp_dir_path.clone(),
+            graph_id: *graph_id,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+        };
+
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         // First add a node, then delete it.
@@ -214,20 +250,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: None,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": "test_value_for_delete"
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -266,16 +288,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Now delete the node we just added.
-        let delete_request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/delete")

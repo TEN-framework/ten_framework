@@ -18,24 +18,31 @@ use ten_rust::graph::graph_info::GraphInfo;
 pub fn graphs_cache_find_by_name<'a>(
     graphs_cache: &'a HashMap<Uuid, GraphInfo>,
     graph_name: &str,
-) -> Option<&'a GraphInfo> {
-    graphs_cache.iter().find_map(|(_, graph_info)| {
+) -> Option<(&'a Uuid, &'a GraphInfo)> {
+    graphs_cache.iter().find_map(|(uuid, graph_info)| {
         if graph_info
             .name
             .as_ref()
             .map(|name| name == graph_name)
             .unwrap_or(false)
         {
-            Some(graph_info)
+            Some((uuid, graph_info))
         } else {
             None
         }
     })
 }
 
-pub fn graphs_cache_find_by_id(
-    graphs_cache: &HashMap<Uuid, GraphInfo>,
-    graph_id: Uuid,
-) -> Option<&GraphInfo> {
-    graphs_cache.get(&graph_id)
+pub fn graphs_cache_find_by_id<'a>(
+    graphs_cache: &'a HashMap<Uuid, GraphInfo>,
+    graph_id: &Uuid,
+) -> Option<&'a GraphInfo> {
+    graphs_cache.get(graph_id)
+}
+
+pub fn graphs_cache_find_by_id_mut<'a>(
+    graphs_cache: &'a mut HashMap<Uuid, GraphInfo>,
+    graph_id: &Uuid,
+) -> Option<&'a mut GraphInfo> {
+    graphs_cache.get_mut(graph_id)
 }
