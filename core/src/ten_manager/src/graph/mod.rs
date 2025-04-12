@@ -6,6 +6,7 @@
 //
 pub mod compatible;
 pub mod connections;
+pub mod msg_conversion;
 pub mod nodes;
 
 use std::collections::HashMap;

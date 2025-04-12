@@ -196,7 +196,8 @@ pub async fn get_compatible_messages_endpoint(
         desired_msg_dir.toggle();
 
         if let Some(extension_pkg_info) = get_pkg_info_for_extension_graph_node(
-            extension_graph_node,
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
             &state_read.pkgs_cache,

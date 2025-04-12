@@ -32,25 +32,27 @@ pub struct CompatibleExtensionAndMsg<'a> {
 }
 
 pub fn get_pkg_info_for_extension_graph_node<'a>(
-    extension_graph_node: &GraphNode,
+    app: &Option<String>,
+    extension_addon: &String,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     app_base_dir: Option<&String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
 ) -> Option<&'a PkgInfo> {
-    let result = uri_to_pkg_info.get(&extension_graph_node.app).and_then(
-        |pkgs_info_in_app_with_base_dir| {
-            pkgs_info_in_app_with_base_dir
-                .pkgs_info_in_app
-                .get_extensions()
-                .iter()
-                .find(|pkg_info| {
-                    pkg_info.manifest.type_and_name.pkg_type
-                        == PkgType::Extension
-                        && pkg_info.manifest.type_and_name.name
-                            == extension_graph_node.addon
-                })
-        },
-    );
+    let result =
+        uri_to_pkg_info
+            .get(app)
+            .and_then(|pkgs_info_in_app_with_base_dir| {
+                pkgs_info_in_app_with_base_dir
+                    .pkgs_info_in_app
+                    .get_extensions()
+                    .iter()
+                    .find(|pkg_info| {
+                        pkg_info.manifest.type_and_name.pkg_type
+                            == PkgType::Extension
+                            && pkg_info.manifest.type_and_name.name
+                                == *extension_addon
+                    })
+            });
 
     if let Some(pkg_info) = result {
         Some(pkg_info)
@@ -58,8 +60,7 @@ pub fn get_pkg_info_for_extension_graph_node<'a>(
         pkgs_cache.get(app_base_dir).and_then(|pkgs_info_in_app| {
             pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
                 pkg_info.manifest.type_and_name.pkg_type == PkgType::Extension
-                    && pkg_info.manifest.type_and_name.name
-                        == extension_graph_node.addon
+                    && pkg_info.manifest.type_and_name.name == *extension_addon
             })
         })
     } else {
@@ -80,7 +81,8 @@ pub fn get_compatible_cmd_extension<'a>(
 
     for target_extension_graph_node in extension_graph_nodes {
         let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
-            target_extension_graph_node,
+            &target_extension_graph_node.app,
+            &target_extension_graph_node.addon,
             uri_to_pkg_info,
             app_base_dir,
             pkgs_cache,
@@ -140,7 +142,8 @@ pub fn get_compatible_data_like_msg_extension<'a>(
 
     for target_extension_graph_node in extension_graph_nodes {
         let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
-            target_extension_graph_node,
+            &target_extension_graph_node.app,
+            &target_extension_graph_node.addon,
             uri_to_pkg_info,
             app_base_dir,
             pkgs_cache,

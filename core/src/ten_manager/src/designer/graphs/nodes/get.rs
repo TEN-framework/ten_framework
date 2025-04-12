@@ -143,7 +143,8 @@ pub async fn get_graph_nodes_endpoint(
 
     for extension_graph_node in extension_graph_nodes {
         let pkg_info = get_pkg_info_for_extension_graph_node(
-            extension_graph_node,
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
             &state_read.pkgs_cache,
