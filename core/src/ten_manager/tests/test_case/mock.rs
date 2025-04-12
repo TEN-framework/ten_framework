@@ -69,22 +69,22 @@ pub fn inject_all_pkgs_for_mock(
 
     let base_dir_pkg_info = PkgsInfoInApp {
         app_pkg_info,
-        extension_pkg_info: if extension_pkg_info.is_empty() {
+        extension_pkgs_info: if extension_pkg_info.is_empty() {
             None
         } else {
             Some(extension_pkg_info)
         },
-        protocol_pkg_info: if protocol_pkg_info.is_empty() {
+        protocol_pkgs_info: if protocol_pkg_info.is_empty() {
             None
         } else {
             Some(protocol_pkg_info)
         },
-        addon_loader_pkg_info: if addon_loader_pkg_info.is_empty() {
+        addon_loader_pkgs_info: if addon_loader_pkg_info.is_empty() {
             None
         } else {
             Some(addon_loader_pkg_info)
         },
-        system_pkg_info: if system_pkg_info.is_empty() {
+        system_pkgs_info: if system_pkg_info.is_empty() {
             None
         } else {
             Some(system_pkg_info)

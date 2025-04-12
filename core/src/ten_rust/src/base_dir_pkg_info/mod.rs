@@ -9,10 +9,10 @@ use crate::pkg_info::{pkg_type::PkgType, PkgInfo};
 #[derive(Debug, Clone, Default)]
 pub struct PkgsInfoInApp {
     pub app_pkg_info: Option<PkgInfo>,
-    pub extension_pkg_info: Option<Vec<PkgInfo>>,
-    pub protocol_pkg_info: Option<Vec<PkgInfo>>,
-    pub addon_loader_pkg_info: Option<Vec<PkgInfo>>,
-    pub system_pkg_info: Option<Vec<PkgInfo>>,
+    pub extension_pkgs_info: Option<Vec<PkgInfo>>,
+    pub protocol_pkgs_info: Option<Vec<PkgInfo>>,
+    pub addon_loader_pkgs_info: Option<Vec<PkgInfo>>,
+    pub system_pkgs_info: Option<Vec<PkgInfo>>,
 }
 
 /// A struct that contains both PkgsInfoInApp and its base_dir.
@@ -25,7 +25,7 @@ pub struct PkgsInfoInAppWithBaseDir {
 impl PkgsInfoInApp {
     // Get a reference to the extension packages or an empty slice if none.
     pub fn get_extensions(&self) -> &[PkgInfo] {
-        if let Some(extensions) = &self.extension_pkg_info {
+        if let Some(extensions) = &self.extension_pkgs_info {
             extensions.as_slice()
         } else {
             &[]
@@ -38,16 +38,16 @@ impl PkgsInfoInApp {
         if let Some(app_info) = &self.app_pkg_info {
             all_pkgs.push(app_info.clone());
         }
-        if let Some(ext_info) = &self.extension_pkg_info {
+        if let Some(ext_info) = &self.extension_pkgs_info {
             all_pkgs.extend(ext_info.clone());
         }
-        if let Some(proto_info) = &self.protocol_pkg_info {
+        if let Some(proto_info) = &self.protocol_pkgs_info {
             all_pkgs.extend(proto_info.clone());
         }
-        if let Some(addon_info) = &self.addon_loader_pkg_info {
+        if let Some(addon_info) = &self.addon_loader_pkgs_info {
             all_pkgs.extend(addon_info.clone());
         }
-        if let Some(sys_info) = &self.system_pkg_info {
+        if let Some(sys_info) = &self.system_pkgs_info {
             all_pkgs.extend(sys_info.clone());
         }
         all_pkgs
@@ -56,14 +56,14 @@ impl PkgsInfoInApp {
     // Check if all fields are None or empty vectors.
     pub fn is_empty(&self) -> bool {
         self.app_pkg_info.is_none()
-            && (self.extension_pkg_info.is_none()
-                || self.extension_pkg_info.as_ref().unwrap().is_empty())
-            && (self.protocol_pkg_info.is_none()
-                || self.protocol_pkg_info.as_ref().unwrap().is_empty())
-            && (self.addon_loader_pkg_info.is_none()
-                || self.addon_loader_pkg_info.as_ref().unwrap().is_empty())
-            && (self.system_pkg_info.is_none()
-                || self.system_pkg_info.as_ref().unwrap().is_empty())
+            && (self.extension_pkgs_info.is_none()
+                || self.extension_pkgs_info.as_ref().unwrap().is_empty())
+            && (self.protocol_pkgs_info.is_none()
+                || self.protocol_pkgs_info.as_ref().unwrap().is_empty())
+            && (self.addon_loader_pkgs_info.is_none()
+                || self.addon_loader_pkgs_info.as_ref().unwrap().is_empty())
+            && (self.system_pkgs_info.is_none()
+                || self.system_pkgs_info.as_ref().unwrap().is_empty())
     }
 
     /// Find a package by its type and name.
@@ -87,7 +87,7 @@ impl PkgsInfoInApp {
                 None
             }
             PkgType::Extension => {
-                if let Some(extensions) = &self.extension_pkg_info {
+                if let Some(extensions) = &self.extension_pkgs_info {
                     extensions.iter().find(|pkg| {
                         if let Some(manifest) = &pkg.manifest {
                             manifest.type_and_name.pkg_type == pkg_type
@@ -101,7 +101,7 @@ impl PkgsInfoInApp {
                 }
             }
             PkgType::Protocol => {
-                if let Some(protocols) = &self.protocol_pkg_info {
+                if let Some(protocols) = &self.protocol_pkgs_info {
                     protocols.iter().find(|pkg| {
                         if let Some(manifest) = &pkg.manifest {
                             manifest.type_and_name.pkg_type == pkg_type
@@ -115,7 +115,7 @@ impl PkgsInfoInApp {
                 }
             }
             PkgType::AddonLoader => {
-                if let Some(addon_loaders) = &self.addon_loader_pkg_info {
+                if let Some(addon_loaders) = &self.addon_loader_pkgs_info {
                     addon_loaders.iter().find(|pkg| {
                         if let Some(manifest) = &pkg.manifest {
                             manifest.type_and_name.pkg_type == pkg_type
@@ -129,7 +129,7 @@ impl PkgsInfoInApp {
                 }
             }
             PkgType::System => {
-                if let Some(systems) = &self.system_pkg_info {
+                if let Some(systems) = &self.system_pkgs_info {
                     systems.iter().find(|pkg| {
                         if let Some(manifest) = &pkg.manifest {
                             manifest.type_and_name.pkg_type == pkg_type
@@ -152,16 +152,16 @@ impl PkgsInfoInApp {
         if self.app_pkg_info.is_some() {
             count += 1;
         }
-        if let Some(extensions) = &self.extension_pkg_info {
+        if let Some(extensions) = &self.extension_pkgs_info {
             count += extensions.len();
         }
-        if let Some(protocols) = &self.protocol_pkg_info {
+        if let Some(protocols) = &self.protocol_pkgs_info {
             count += protocols.len();
         }
-        if let Some(addon_loaders) = &self.addon_loader_pkg_info {
+        if let Some(addon_loaders) = &self.addon_loader_pkgs_info {
             count += addon_loaders.len();
         }
-        if let Some(systems) = &self.system_pkg_info {
+        if let Some(systems) = &self.system_pkgs_info {
             count += systems.len();
         }
         count

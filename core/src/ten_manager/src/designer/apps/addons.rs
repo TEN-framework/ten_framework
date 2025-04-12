@@ -175,7 +175,7 @@ pub async fn get_app_addons_endpoint(
             || addon_type_filter == Some(&PkgType::Extension)
         {
             // Extract extension packages if they exist.
-            if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+            if let Some(extensions) = &base_dir_pkg_info.extension_pkgs_info {
                 for ext in extensions {
                     all_addons.push(convert_pkg_info_to_addon(ext));
                 }
@@ -188,7 +188,7 @@ pub async fn get_app_addons_endpoint(
             || addon_type_filter == Some(&PkgType::Protocol)
         {
             // Extract protocol packages if they exist.
-            if let Some(protocols) = &base_dir_pkg_info.protocol_pkg_info {
+            if let Some(protocols) = &base_dir_pkg_info.protocol_pkgs_info {
                 for protocol in protocols {
                     all_addons.push(convert_pkg_info_to_addon(protocol));
                 }
@@ -202,7 +202,7 @@ pub async fn get_app_addons_endpoint(
         {
             // Extract addon loader packages if they exist.
             if let Some(addon_loaders) =
-                &base_dir_pkg_info.addon_loader_pkg_info
+                &base_dir_pkg_info.addon_loader_pkgs_info
             {
                 for loader in addon_loaders {
                     all_addons.push(convert_pkg_info_to_addon(loader));
@@ -216,7 +216,7 @@ pub async fn get_app_addons_endpoint(
             || addon_type_filter == Some(&PkgType::System)
         {
             // Extract system packages if they exist.
-            if let Some(systems) = &base_dir_pkg_info.system_pkg_info {
+            if let Some(systems) = &base_dir_pkg_info.system_pkgs_info {
                 for system in systems {
                     all_addons.push(convert_pkg_info_to_addon(system));
                 }

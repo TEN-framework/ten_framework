@@ -195,39 +195,43 @@ fn collect_pkg_info_from_path(
                 Ok(())
             }
             PkgType::Extension => {
-                if pkgs_info.extension_pkg_info.is_none() {
-                    pkgs_info.extension_pkg_info = Some(Vec::new());
+                if pkgs_info.extension_pkgs_info.is_none() {
+                    pkgs_info.extension_pkgs_info = Some(Vec::new());
                 }
                 pkgs_info
-                    .extension_pkg_info
+                    .extension_pkgs_info
                     .as_mut()
                     .unwrap()
                     .push(pkg_info);
                 Ok(())
             }
             PkgType::Protocol => {
-                if pkgs_info.protocol_pkg_info.is_none() {
-                    pkgs_info.protocol_pkg_info = Some(Vec::new());
+                if pkgs_info.protocol_pkgs_info.is_none() {
+                    pkgs_info.protocol_pkgs_info = Some(Vec::new());
                 }
-                pkgs_info.protocol_pkg_info.as_mut().unwrap().push(pkg_info);
+                pkgs_info
+                    .protocol_pkgs_info
+                    .as_mut()
+                    .unwrap()
+                    .push(pkg_info);
                 Ok(())
             }
             PkgType::AddonLoader => {
-                if pkgs_info.addon_loader_pkg_info.is_none() {
-                    pkgs_info.addon_loader_pkg_info = Some(Vec::new());
+                if pkgs_info.addon_loader_pkgs_info.is_none() {
+                    pkgs_info.addon_loader_pkgs_info = Some(Vec::new());
                 }
                 pkgs_info
-                    .addon_loader_pkg_info
+                    .addon_loader_pkgs_info
                     .as_mut()
                     .unwrap()
                     .push(pkg_info);
                 Ok(())
             }
             PkgType::System => {
-                if pkgs_info.system_pkg_info.is_none() {
-                    pkgs_info.system_pkg_info = Some(Vec::new());
+                if pkgs_info.system_pkgs_info.is_none() {
+                    pkgs_info.system_pkgs_info = Some(Vec::new());
                 }
-                pkgs_info.system_pkg_info.as_mut().unwrap().push(pkg_info);
+                pkgs_info.system_pkgs_info.as_mut().unwrap().push(pkg_info);
                 Ok(())
             }
             _ => Err(anyhow!("Unknown package type")),
@@ -246,10 +250,10 @@ pub fn get_app_installed_pkgs(
 ) -> Result<PkgsInfoInApp> {
     let mut pkgs_info = PkgsInfoInApp {
         app_pkg_info: None,
-        extension_pkg_info: None,
-        protocol_pkg_info: None,
-        addon_loader_pkg_info: None,
-        system_pkg_info: None,
+        extension_pkgs_info: None,
+        protocol_pkgs_info: None,
+        addon_loader_pkgs_info: None,
+        system_pkgs_info: None,
     };
 
     // Process the manifest.json file in the root path.

@@ -156,14 +156,14 @@ mod msg_conversion_tests {
         let base_dir_pkg_info = PkgsInfoInAppWithBaseDir {
             pkgs_info_in_app: PkgsInfoInApp {
                 app_pkg_info: Some(app_pkg_info),
-                extension_pkg_info: Some(vec![
+                extension_pkgs_info: Some(vec![
                     ext1_pkg_info,
                     ext2_pkg_info,
                     ext3_pkg_info,
                 ]),
-                protocol_pkg_info: None,
-                addon_loader_pkg_info: None,
-                system_pkg_info: None,
+                protocol_pkgs_info: None,
+                addon_loader_pkgs_info: None,
+                system_pkgs_info: None,
             },
             base_dir: "app1".to_string(),
         };

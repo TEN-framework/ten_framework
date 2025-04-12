@@ -100,7 +100,7 @@ pub fn validate_node(
 
     // Find extension PkgInfo and validate property against json schema if
     // present.
-    if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+    if let Some(extensions) = &base_dir_pkg_info.extension_pkgs_info {
         for ext_pkg in extensions {
             if let Some(manifest) = &ext_pkg.manifest {
                 if manifest.type_and_name.pkg_type == PkgType::Extension

@@ -14,6 +14,7 @@ use anyhow::{anyhow, Result};
 use crate::{config::TmanConfig, output::TmanOutput};
 use ten_rust::{
     base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    graph::graph_info::GraphInfo,
     pkg_info::{get_app_installed_pkgs, pkg_type::PkgType, PkgInfo},
 };
 
@@ -45,7 +46,7 @@ pub fn get_pkg_in_app<'a>(
         PkgType::Extension => {
             assert!(pkg_name.is_some());
 
-            match &pkgs_info_in_app.extension_pkg_info {
+            match &pkgs_info_in_app.extension_pkgs_info {
                 Some(pkgs) => Ok(pkgs.iter().find(|pkg| {
                     pkg.manifest.as_ref().is_some_and(|m| {
                         m.type_and_name.name == *pkg_name.unwrap()
@@ -110,4 +111,57 @@ pub fn create_uri_to_pkg_info_map(
     }
 
     Ok(uri_to_pkg_info)
+}
+
+pub fn pkg_info_find_by_graph_info<'a>(
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+    graph_info: &GraphInfo,
+) -> Result<Option<&'a PkgInfo>> {
+    match &graph_info.app_base_dir {
+        Some(app_base_dir) => {
+            let pkgs_info_in_app = pkgs_cache.get(app_base_dir);
+            assert!(pkgs_info_in_app.is_some());
+
+            if let Some(pkgs_info_in_app) = pkgs_info_in_app {
+                match graph_info.belonging_pkg_type {
+                    Some(PkgType::App) => {
+                        Ok(pkgs_info_in_app.app_pkg_info.as_ref())
+                    }
+                    Some(PkgType::Extension) => {
+                        assert!(graph_info.belonging_pkg_name.is_some());
+                        assert!(pkgs_info_in_app.extension_pkgs_info.is_some());
+
+                        if let Some(pkg_name) = &graph_info.belonging_pkg_name {
+                            if let Some(extension_pkgs_info) =
+                                pkgs_info_in_app.extension_pkgs_info.as_ref()
+                            {
+                                Ok(extension_pkgs_info.iter().find(|pkg| {
+                                    pkg.manifest.as_ref().is_some_and(|m| {
+                                        m.type_and_name.name == *pkg_name
+                                    })
+                                }))
+                            } else {
+                                Err(anyhow!(
+                                    "Package name not found: {:?}",
+                                    graph_info.belonging_pkg_name
+                                ))
+                            }
+                        } else {
+                            Err(anyhow!(
+                                "Package name not found: {:?}",
+                                graph_info.belonging_pkg_name
+                            ))
+                        }
+                    }
+                    _ => Err(anyhow!(
+                        "Unsupported package type: {:?}",
+                        graph_info.belonging_pkg_type
+                    )),
+                }
+            } else {
+                Err(anyhow!("App base dir not found: {:?}", app_base_dir))
+            }
+        }
+        None => Ok(None),
+    }
 }
