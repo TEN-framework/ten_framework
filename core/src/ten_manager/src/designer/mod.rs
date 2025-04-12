@@ -90,6 +90,10 @@ pub fn configure_routes(
                 "/extensions/create",
                 web::post().to(extensions::create::create_extension_endpoint),
             )
+            .route(
+                "/extensions/property/schema",
+                web::post().to(extensions::property::schema::get_extension_property_schema_endpoint),
+            )
             // Manifest validation endpoints.
             .route(
                 "/manifest/validate",

@@ -33,6 +33,7 @@ pub struct CmdSchema {
 #[derive(Debug, Clone, Default)]
 pub struct SchemaStore {
     /// Schema for property definitions.
+    pub property_str: Option<String>,
     pub property: Option<TenSchema>,
 
     /// Command schemas for incoming commands.
@@ -104,6 +105,7 @@ impl SchemaStore {
                     .unwrap(),
             )?;
             self.property = Some(schema);
+            self.property_str = Some(serde_json::to_string(property)?);
         }
 
         // Parse incoming command schemas.
