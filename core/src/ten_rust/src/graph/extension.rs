@@ -17,10 +17,10 @@ use crate::{
         PkgInfo,
     },
     schema::{
+        runtime_interface::TenSchema,
         store::{
             are_cmd_schemas_compatible, are_ten_schemas_compatible, CmdSchema,
         },
-        TenSchema,
     },
 };
 

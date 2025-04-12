@@ -8,7 +8,6 @@ use std::collections::HashMap;
 
 use anyhow::{Context, Ok, Result};
 
-use super::{create_schema_from_json, TenSchema};
 use crate::pkg_info::manifest::{
     api::{
         ManifestApi, ManifestApiCmdLike, ManifestApiDataLike,
@@ -16,6 +15,8 @@ use crate::pkg_info::manifest::{
     },
     Manifest,
 };
+
+use super::runtime_interface::{create_schema_from_json, TenSchema};
 
 /// Represents the schema for a command and its result.
 ///
@@ -33,7 +34,6 @@ pub struct CmdSchema {
 #[derive(Debug, Clone, Default)]
 pub struct SchemaStore {
     /// Schema for property definitions.
-    pub property_str: Option<String>,
     pub property: Option<TenSchema>,
 
     /// Command schemas for incoming commands.
@@ -105,7 +105,6 @@ impl SchemaStore {
                     .unwrap(),
             )?;
             self.property = Some(schema);
-            self.property_str = Some(serde_json::to_string(property)?);
         }
 
         // Parse incoming command schemas.
