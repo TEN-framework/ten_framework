@@ -31,11 +31,15 @@ pub async fn unload_app_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
+    // Destructure to avoid multiple mutable borrows.
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
     // Check if the base_dir exists in pkgs_cache.
-    if !state_write
-        .pkgs_cache
-        .contains_key(&request_payload.base_dir)
-    {
+    if !pkgs_cache.contains_key(&request_payload.base_dir) {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: format!(
@@ -47,7 +51,31 @@ pub async fn unload_app_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    state_write.pkgs_cache.remove(&request_payload.base_dir);
+    // Remove the app from pkgs_cache.
+    pkgs_cache.remove(&request_payload.base_dir);
+
+    // Remove any graphs associated with this app.
+    let base_dir = &request_payload.base_dir;
+    // Collect UUIDs of graphs to remove.
+    let graph_uuids_to_remove: Vec<uuid::Uuid> = graphs_cache
+        .iter()
+        .filter_map(|(uuid, graph_info)| {
+            if let Some(app_base_dir) = &graph_info.app_base_dir {
+                if app_base_dir == base_dir {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Remove the graphs.
+    for uuid in graph_uuids_to_remove {
+        graphs_cache.remove(&uuid);
+    }
 
     let response = ApiResponse {
         status: Status::Ok,
@@ -57,4 +85,3 @@ pub async fn unload_app_endpoint(
 
     Ok(HttpResponse::Ok().json(response))
 }
-
