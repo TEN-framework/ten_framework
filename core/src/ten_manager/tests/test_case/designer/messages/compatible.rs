@@ -38,15 +38,18 @@ async fn test_get_compatible_messages_success() {
 
     let all_pkgs_json_str = vec![
         (
+            TEST_DIR.to_string(),
             include_str!("test_data_embed/app_manifest.json").to_string(),
             include_str!("test_data_embed/app_property.json").to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
             include_str!("test_data_embed/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
             include_str!("test_data_embed/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
@@ -54,7 +57,6 @@ async fn test_get_compatible_messages_success() {
     ];
 
     let inject_ret = inject_all_pkgs_for_mock(
-        TEST_DIR,
         &mut designer_state.pkgs_cache,
         &mut designer_state.graphs_cache,
         all_pkgs_json_str,
@@ -147,15 +149,18 @@ async fn test_get_compatible_messages_fail() {
 
     let all_pkgs_json_str = vec![
         (
+            TEST_DIR.to_string(),
             include_str!("test_data_embed/app_manifest.json").to_string(),
             include_str!("test_data_embed/app_property.json").to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
             include_str!("test_data_embed/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
             include_str!("test_data_embed/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
@@ -163,7 +168,6 @@ async fn test_get_compatible_messages_fail() {
     ];
 
     let inject_ret = inject_all_pkgs_for_mock(
-        TEST_DIR,
         &mut designer_state.pkgs_cache,
         &mut designer_state.graphs_cache,
         all_pkgs_json_str,
@@ -233,15 +237,18 @@ async fn test_get_compatible_messages_cmd_has_required_success() {
 
     let all_pkgs_json_str = vec![
         (
+            TEST_DIR.to_string(),
             include_str!("test_data_embed/app_manifest.json").to_string(),
             include_str!("test_data_embed/app_property.json").to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
             include_str!("test_data_embed/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
+            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
             include_str!("test_data_embed/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
@@ -249,7 +256,6 @@ async fn test_get_compatible_messages_cmd_has_required_success() {
     ];
 
     let inject_ret = inject_all_pkgs_for_mock(
-        TEST_DIR,
         &mut designer_state.pkgs_cache,
         &mut designer_state.graphs_cache,
         all_pkgs_json_str,

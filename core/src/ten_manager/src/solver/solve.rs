@@ -373,13 +373,7 @@ fn create_input_str_for_dependency_relationship(
                     ManifestDependency::RegistryDependency {
                         version_req,
                         ..
-                    } => {
-                        if let Some(manifest) = &candidate.1.manifest {
-                            version_req.matches(&manifest.version)
-                        } else {
-                            false
-                        }
-                    }
+                    } => version_req.matches(&candidate.1.manifest.version),
                     ManifestDependency::LocalDependency { .. } => {
                         // For local dependencies, just return true to match all
                         // versions.
@@ -388,17 +382,15 @@ fn create_input_str_for_dependency_relationship(
                 };
 
                 if version_matches {
-                    if let Some(manifest) = &candidate.1.manifest {
-                        input_str.push_str(&format!(
+                    input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
         dep_relationship.type_and_name.pkg_type,
         dep_relationship.type_and_name.name,
         dep_relationship.version,
-        manifest.type_and_name.pkg_type,
-        manifest.type_and_name.name,
-        manifest.version,
+        candidate.1.manifest.type_and_name.pkg_type,
+        candidate.1.manifest.type_and_name.name,
+        candidate.1.manifest.version,
                   ));
-                    }
                 }
             }
         } else {
@@ -436,107 +428,75 @@ fn create_input_str_for_pkg_info_dependencies(
     dumped_pkgs_info.insert(pkg_info.into());
 
     // Get dependencies from the manifest
-    if let Some(manifest) = &pkg_info.manifest {
-        if let Some(dependencies) = &manifest.dependencies {
-            for dependency in dependencies {
-                let pkg_type_and_name = match dependency {
-                    ManifestDependency::RegistryDependency {
-                        pkg_type,
-                        name,
-                        ..
-                    } => PkgTypeAndName {
-                        pkg_type: *pkg_type,
-                        name: name.clone(),
-                    },
-                    ManifestDependency::LocalDependency { path, base_dir } => {
-                        // Get type and name from the manifest.
-                        let abs_path =
-                            std::path::Path::new(base_dir).join(path);
-                        let dep_manifest_path =
-                            abs_path.join(MANIFEST_JSON_FILENAME);
 
-                        // Parse manifest to get type and name.
-                        let manifest =
-                            ten_rust::pkg_info::manifest::parse_manifest_from_file(
-                                &dep_manifest_path,
-                            )?;
-                        manifest.type_and_name
-                    }
-                };
+    if let Some(dependencies) = &pkg_info.manifest.dependencies {
+        for dependency in dependencies {
+            let pkg_type_and_name = match dependency {
+                ManifestDependency::RegistryDependency {
+                    pkg_type,
+                    name,
+                    ..
+                } => PkgTypeAndName {
+                    pkg_type: *pkg_type,
+                    name: name.clone(),
+                },
+                ManifestDependency::LocalDependency { path, base_dir } => {
+                    // Get type and name from the manifest.
+                    let abs_path = std::path::Path::new(base_dir).join(path);
+                    let dep_manifest_path =
+                        abs_path.join(MANIFEST_JSON_FILENAME);
 
-                let candidates = all_candidates.get(&pkg_type_and_name);
+                    // Parse manifest to get type and name.
+                    let manifest =
+                        ten_rust::pkg_info::manifest::parse_manifest_from_file(
+                            &dep_manifest_path,
+                        )?;
+                    manifest.type_and_name
+                }
+            };
 
-                if let Some(candidates) = candidates {
-                    let mut found_matched = false;
+            let candidates = all_candidates.get(&pkg_type_and_name);
 
-                    for candidate in candidates {
-                        // Get version requirement from dependency.
-                        let version_matches = match dependency {
-                            ManifestDependency::RegistryDependency {
-                                version_req,
-                                ..
-                            } => {
-                                if let Some(manifest) = &candidate.1.manifest {
-                                    version_req.matches(&manifest.version)
-                                } else {
-                                    false
-                                }
-                            }
-                            ManifestDependency::LocalDependency { .. } => {
-                                // For local dependencies, just return true to
-                                // match all versions.
-                                true
-                            }
-                        };
+            if let Some(candidates) = candidates {
+                let mut found_matched = false;
 
-                        if version_matches {
-                            if let Some(pkg_manifest) = &pkg_info.manifest {
-                                if let Some(candidate_manifest) =
-                                    &candidate.1.manifest
-                                {
-                                    input_str.push_str(&format!(
-        "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        pkg_manifest.type_and_name.pkg_type,
-        pkg_manifest.type_and_name.name,
-        pkg_manifest.version,
-        candidate_manifest.type_and_name.pkg_type,
-        candidate_manifest.type_and_name.name,
-        candidate_manifest.version,
-                                    ));
-                                }
-                            }
-
-                            create_input_str_for_pkg_info_dependencies(
-                                input_str,
-                                candidate.1,
-                                dumped_pkgs_info,
-                                all_candidates,
-                            )?;
-
-                            found_matched = true;
+                for candidate in candidates {
+                    // Get version requirement from dependency.
+                    let version_matches = match dependency {
+                        ManifestDependency::RegistryDependency {
+                            version_req,
+                            ..
+                        } => version_req.matches(&candidate.1.manifest.version),
+                        ManifestDependency::LocalDependency { .. } => {
+                            // For local dependencies, just return true to
+                            // match all versions.
+                            true
                         }
-                    }
+                    };
 
-                    if !found_matched {
-                        return Err(anyhow!(
-                            "Failed to find candidates for {}",
-                            match dependency {
-                                ManifestDependency::RegistryDependency {
-                                    pkg_type,
-                                    name,
-                                    version_req,
-                                } => format!(
-                                    "[{}]{} ({})",
-                                    pkg_type, name, version_req
-                                ),
-                                ManifestDependency::LocalDependency {
-                                    path,
-                                    ..
-                                } => format!("local:{}", path),
-                            }
-                        ));
+                    if version_matches {
+                        input_str.push_str(&format!(
+        "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
+        pkg_info.manifest.type_and_name.pkg_type,
+        pkg_info.manifest.type_and_name.name,
+        pkg_info.manifest.version,
+        candidate.1.manifest.type_and_name.pkg_type,
+        candidate.1.manifest.type_and_name.name,
+        candidate.1.manifest.version,
+                                    ));
+
+                        create_input_str_for_pkg_info_dependencies(
+                            input_str,
+                            candidate.1,
+                            dumped_pkgs_info,
+                            all_candidates,
+                        )?;
+
+                        found_matched = true;
                     }
-                } else {
+                }
+
+                if !found_matched {
                     return Err(anyhow!(
                         "Failed to find candidates for {}",
                         match dependency {
@@ -545,7 +505,7 @@ fn create_input_str_for_pkg_info_dependencies(
                                 name,
                                 version_req,
                             } => format!(
-                                "{}:{} @ {}",
+                                "[{}]{} ({})",
                                 pkg_type, name, version_req
                             ),
                             ManifestDependency::LocalDependency {
@@ -555,6 +515,20 @@ fn create_input_str_for_pkg_info_dependencies(
                         }
                     ));
                 }
+            } else {
+                return Err(anyhow!(
+                    "Failed to find candidates for {}",
+                    match dependency {
+                        ManifestDependency::RegistryDependency {
+                            pkg_type,
+                            name,
+                            version_req,
+                        } => format!("{}:{} @ {}", pkg_type, name, version_req),
+                        ManifestDependency::LocalDependency {
+                            path, ..
+                        } => format!("local:{}", path),
+                    }
+                ));
             }
         }
     }
@@ -609,11 +583,7 @@ fn create_input_str_for_all_possible_pkgs_info(
             // dependency, do not prioritize any candidate packages.
             if !locked_pkg.is_local_dependency {
                 let idx = candidates_vec.iter().position(|pkg_info| {
-                    if let Some(locked_manifest) = &locked_pkg.manifest {
-                        pkg_info.version == locked_manifest.version
-                    } else {
-                        false
-                    }
+                    locked_pkg.manifest.version == pkg_info.version
                 });
 
                 if let Some(idx) = idx {

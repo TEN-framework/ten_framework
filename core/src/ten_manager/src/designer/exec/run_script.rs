@@ -32,8 +32,8 @@ pub fn extract_command_from_manifest(
     // Find script that matches `name`.
     let script_cmd = match app_pkg
         .manifest
+        .scripts
         .as_ref()
-        .and_then(|m| m.scripts.as_ref())
         .unwrap_or(&std::collections::HashMap::new())
         .get(name)
     {

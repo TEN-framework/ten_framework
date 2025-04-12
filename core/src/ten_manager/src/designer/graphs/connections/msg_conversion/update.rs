@@ -6,6 +6,7 @@
 //
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 use actix_web::{web, HttpResponse, Responder};
 use ten_rust::{
@@ -18,17 +19,16 @@ use ten_rust::{
 
 use crate::{
     designer::{
-        graphs::util::find_app_package_from_base_dir,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::update_graph_connections_all_fields,
+    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
+    pkg_info::pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct UpdateGraphConnectionMsgConversionRequestPayload {
-    pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 
     pub src_app: Option<String>,
     pub src_extension: String,
@@ -54,114 +54,107 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
     // Get a write lock on the state since we may need to modify the graph.
     let mut state_write = state.write().unwrap();
 
-    // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) =
-        state_write.pkgs_cache.get_mut(&request_payload.base_dir)
-    {
-        // Find the app package.
-        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
-        {
-            // Check if the property exists.
-            if let Some(property) = &mut app_pkg.property {
-                // Create a GraphConnection with the message conversion to
-                // update.
-                let mut connection = GraphConnection {
-                    app: request_payload.src_app.clone(),
-                    extension: request_payload.src_extension.clone(),
-                    cmd: None,
-                    data: None,
-                    audio_frame: None,
-                    video_frame: None,
-                };
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
 
-                // Create the destination.
-                let destination = GraphDestination {
-                    app: request_payload.dest_app.clone(),
-                    extension: request_payload.dest_extension.clone(),
-                    msg_conversion: request_payload.msg_conversion.clone(),
-                };
-
-                // Create the message flow.
-                let message_flow = GraphMessageFlow {
-                    name: request_payload.msg_name.clone(),
-                    dest: vec![destination],
-                };
-
-                // Set the appropriate message type field.
-                match request_payload.msg_type {
-                    MsgType::Cmd => {
-                        connection.cmd = Some(vec![message_flow]);
-                    }
-                    MsgType::Data => {
-                        connection.data = Some(vec![message_flow]);
-                    }
-                    MsgType::AudioFrame => {
-                        connection.audio_frame = Some(vec![message_flow]);
-                    }
-                    MsgType::VideoFrame => {
-                        connection.video_frame = Some(vec![message_flow]);
-                    }
-                }
-
-                // Update the connection with the new message conversion.
-                let connections_to_modify = vec![connection];
-
-                // Update the property.json file.
-                if let Err(e) = update_graph_connections_all_fields(
-                    &request_payload.base_dir,
-                    &mut property.all_fields,
-                    &request_payload.graph_name,
-                    None,
-                    None,
-                    Some(&connections_to_modify),
-                ) {
-                    // Return error if failed to update.
-                    let error_response = ErrorResponse {
-                        status: Status::Fail,
-                        message: format!(
-                            "Failed to update message conversion: {}",
-                            e
-                        ),
-                        error: None,
-                    };
-                    return Ok(HttpResponse::InternalServerError()
-                        .json(error_response));
-                }
-
-                // Return success response.
-                let response = ApiResponse {
-                    status: Status::Ok,
-                    data: UpdateGraphConnectionMsgConversionResponsePayload {
-                        success: true,
-                    },
-                    meta: None,
-                };
-                Ok(HttpResponse::Ok().json(response))
-            } else {
-                // Return error if property not found.
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: "Property not found".to_string(),
-                    error: None,
-                };
-                Ok(HttpResponse::NotFound().json(error_response))
-            }
-        } else {
-            // Return error if app package not found.
+    // Get the specified graph from graphs_cache.
+    let graph_info = match graphs_cache_find_by_id_mut(
+        graphs_cache,
+        &request_payload.graph_id,
+    ) {
+        Some(graph_info) => graph_info,
+        None => {
             let error_response = ErrorResponse {
                 status: Status::Fail,
-                message: "App package not found".to_string(),
+                message: "Graph not found".to_string(),
                 error: None,
             };
-            Ok(HttpResponse::NotFound().json(error_response))
+            return Ok(HttpResponse::NotFound().json(error_response));
         }
-    } else {
-        // Return error if base directory not found.
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "Base directory not found".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
+    };
+
+    if let Ok(Some(pkg_info)) =
+        pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Check if the property exists.
+        if let Some(property) = &mut pkg_info.property {
+            // Create a GraphConnection with the message conversion to
+            // update.
+            let mut connection = GraphConnection {
+                app: request_payload.src_app.clone(),
+                extension: request_payload.src_extension.clone(),
+                cmd: None,
+                data: None,
+                audio_frame: None,
+                video_frame: None,
+            };
+
+            // Create the destination.
+            let destination = GraphDestination {
+                app: request_payload.dest_app.clone(),
+                extension: request_payload.dest_extension.clone(),
+                msg_conversion: request_payload.msg_conversion.clone(),
+            };
+
+            // Create the message flow.
+            let message_flow = GraphMessageFlow {
+                name: request_payload.msg_name.clone(),
+                dest: vec![destination],
+            };
+
+            // Set the appropriate message type field.
+            match request_payload.msg_type {
+                MsgType::Cmd => {
+                    connection.cmd = Some(vec![message_flow]);
+                }
+                MsgType::Data => {
+                    connection.data = Some(vec![message_flow]);
+                }
+                MsgType::AudioFrame => {
+                    connection.audio_frame = Some(vec![message_flow]);
+                }
+                MsgType::VideoFrame => {
+                    connection.video_frame = Some(vec![message_flow]);
+                }
+            }
+
+            // Update the connection with the new message conversion.
+            let connections_to_modify = vec![connection];
+
+            // Update the property.json file.
+            if let Err(e) = update_graph_connections_all_fields(
+                &pkg_info.url,
+                &mut property.all_fields,
+                graph_info.name.as_ref().unwrap(),
+                None,
+                None,
+                Some(&connections_to_modify),
+            ) {
+                // Return error if failed to update.
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: format!(
+                        "Failed to update message conversion: {}",
+                        e
+                    ),
+                    error: None,
+                };
+                return Ok(
+                    HttpResponse::InternalServerError().json(error_response)
+                );
+            }
+        }
     }
+
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: UpdateGraphConnectionMsgConversionResponsePayload {
+            success: true,
+        },
+        meta: None,
+    };
+    Ok(HttpResponse::Ok().json(response))
 }

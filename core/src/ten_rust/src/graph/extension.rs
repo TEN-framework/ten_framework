@@ -58,12 +58,8 @@ pub fn get_pkg_info_for_extension<'a>(
     extension_pkgs_info: &'a [PkgInfo],
 ) -> Option<&'a PkgInfo> {
     extension_pkgs_info.iter().find(|pkg| {
-        if let Some(manifest) = &pkg.manifest {
-            manifest.type_and_name.pkg_type == PkgType::Extension
-                && manifest.type_and_name.name == extension.addon
-        } else {
-            false
-        }
+        pkg.manifest.type_and_name.pkg_type == PkgType::Extension
+            && pkg.manifest.type_and_name.name == extension.addon
     })
 }
 

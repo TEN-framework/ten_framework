@@ -11,6 +11,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
+    graph::graphs_cache_remove_by_app_base_dir,
     pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 use actix_web::{web, HttpResponse, Responder};
@@ -55,6 +56,9 @@ pub async fn reload_app_endpoint(
         // Clear the existing packages for this base_dir.
         pkgs_cache.remove(base_dir);
 
+        // Remove graphs associated with this app from graphs_cache.
+        graphs_cache_remove_by_app_base_dir(graphs_cache, base_dir);
+
         // Reload packages for this base_dir.
         if let Err(err) =
             get_all_pkgs_in_app(pkgs_cache, graphs_cache, base_dir)
@@ -81,6 +85,9 @@ pub async fn reload_app_endpoint(
         for base_dir in base_dirs {
             // Clear the existing packages for this base_dir.
             pkgs_cache.remove(&base_dir);
+
+            // Remove graphs associated with this app from graphs_cache.
+            graphs_cache_remove_by_app_base_dir(graphs_cache, &base_dir);
 
             // Reload packages for this base_dir.
             if let Err(err) =

@@ -29,6 +29,7 @@ mod tests {
             response::ApiResponse,
             DesignerState,
         },
+        graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
     use ten_rust::{
@@ -84,35 +85,43 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/connections/add",
-                    web::post().to(add_graph_connection_endpoint),
-                )
-                .route(
-                    "/api/designer/v1/graphs/connections/msg_conversion/update",
-                    web::post()
-                        .to(update_graph_connection_msg_conversion_endpoint),
-                ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // First, add a connection with initial message conversion.
         let initial_msg_conversion = MsgAndResultConversion {
@@ -136,8 +145,7 @@ mod tests {
 
         // Add a connection between existing nodes in the default graph.
         let add_request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
             msg_type: MsgType::Cmd,
@@ -146,18 +154,6 @@ mod tests {
             dest_extension: "extension_2".to_string(),
             msg_conversion: Some(initial_msg_conversion),
         };
-
-        // Add the initial connection.
-        let add_req = test::TestRequest::post()
-            .uri("/api/designer/v1/graphs/connections/add")
-            .set_json(add_request_payload)
-            .to_request();
-        let add_resp = test::call_service(&app, add_req).await;
-
-        assert!(
-            add_resp.status().is_success(),
-            "Failed to add initial connection"
-        );
 
         // Create updated message conversion rules.
         let updated_msg_conversion = MsgAndResultConversion {
@@ -200,8 +196,7 @@ mod tests {
         // Now update the connection's message conversion.
         let update_request_payload =
             UpdateGraphConnectionMsgConversionRequestPayload {
-                base_dir: test_dir.clone(),
-                graph_name: "default_with_app_uri".to_string(),
+                graph_id: *graph_id,
                 src_app: Some("http://example.com:8000".to_string()),
                 src_extension: "extension_1".to_string(),
                 msg_type: MsgType::Cmd,
@@ -210,6 +205,35 @@ mod tests {
                 dest_extension: "extension_2".to_string(),
                 msg_conversion: Some(updated_msg_conversion),
             };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections/add",
+                    web::post().to(add_graph_connection_endpoint),
+                )
+                .route(
+                    "/api/designer/v1/graphs/connections/msg_conversion/update",
+                    web::post()
+                        .to(update_graph_connection_msg_conversion_endpoint),
+                ),
+        )
+        .await;
+
+        // Add the initial connection.
+        let add_req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections/add")
+            .set_json(add_request_payload)
+            .to_request();
+        let add_resp = test::call_service(&app, add_req).await;
+
+        assert!(
+            add_resp.status().is_success(),
+            "Failed to add initial connection"
+        );
 
         let update_req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/msg_conversion/update")
@@ -299,35 +323,43 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/connections/add",
-                    web::post().to(add_graph_connection_endpoint),
-                )
-                .route(
-                    "/api/designer/v1/graphs/connections/msg_conversion/update",
-                    web::post()
-                        .to(update_graph_connection_msg_conversion_endpoint),
-                ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // First, add a connection with initial message conversion.
         let initial_msg_conversion = MsgAndResultConversion {
@@ -359,8 +391,7 @@ mod tests {
 
         // Add a connection with msg_conversion.
         let add_request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
             msg_type: MsgType::Cmd,
@@ -369,6 +400,37 @@ mod tests {
             dest_extension: "extension_2".to_string(),
             msg_conversion: Some(initial_msg_conversion),
         };
+
+        // Now update the connection to remove the message conversion.
+        let update_request_payload =
+            UpdateGraphConnectionMsgConversionRequestPayload {
+                graph_id: *graph_id,
+                src_app: Some("http://example.com:8000".to_string()),
+                src_extension: "extension_1".to_string(),
+                msg_type: MsgType::Cmd,
+                msg_name: "test_cmd_remove_conversion".to_string(),
+                dest_app: Some("http://example.com:8000".to_string()),
+                dest_extension: "extension_2".to_string(),
+                // Set to None to remove the msg_conversion.
+                msg_conversion: None,
+            };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections/add",
+                    web::post().to(add_graph_connection_endpoint),
+                )
+                .route(
+                    "/api/designer/v1/graphs/connections/msg_conversion/update",
+                    web::post()
+                        .to(update_graph_connection_msg_conversion_endpoint),
+                ),
+        )
+        .await;
 
         // Add the initial connection.
         let add_req = test::TestRequest::post()
@@ -381,21 +443,6 @@ mod tests {
             add_resp.status().is_success(),
             "Failed to add initial connection"
         );
-
-        // Now update the connection to remove the message conversion.
-        let update_request_payload =
-            UpdateGraphConnectionMsgConversionRequestPayload {
-                base_dir: test_dir.clone(),
-                graph_name: "default_with_app_uri".to_string(),
-                src_app: Some("http://example.com:8000".to_string()),
-                src_extension: "extension_1".to_string(),
-                msg_type: MsgType::Cmd,
-                msg_name: "test_cmd_remove_conversion".to_string(),
-                dest_app: Some("http://example.com:8000".to_string()),
-                dest_extension: "extension_2".to_string(),
-                // Set to None to remove the msg_conversion.
-                msg_conversion: None,
-            };
 
         let update_req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/msg_conversion/update")

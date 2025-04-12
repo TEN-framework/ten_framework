@@ -25,8 +25,10 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
+        graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
+    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -62,10 +64,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("../test_data_embed/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -73,12 +81,30 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id: *graph_id,
+            addon_app_base_dir: None,
+            node_name: "extension_1".to_string(),
+            addon_name: "extension_addon_1".to_string(),
+            extension_group_name: Some("extension_group_1".to_string()),
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -91,20 +117,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: None,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -154,12 +166,12 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../../test_data_embed/app_manifest.json").to_string(),
             include_str!("../../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -178,8 +190,7 @@ mod tests {
 
         // Try to update a node in a non-existent graph.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "non_existent_graph".to_string(),
+            graph_id: Uuid::new_v4(),
             addon_app_base_dir: None,
             node_name: "node1".to_string(),
             addon_name: "addon1".to_string(),
@@ -218,17 +229,36 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../../test_data_embed/app_manifest.json").to_string(),
             include_str!("../../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Try to update a non-existent node
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id: *graph_id,
+            addon_app_base_dir: None,
+            node_name: "non_existent_node".to_string(),
+            addon_name: "addon1".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -239,20 +269,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Try to update a non-existent node
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: None,
-            node_name: "non_existent_node".to_string(),
-            addon_name: "addon1".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -304,10 +320,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -315,12 +337,30 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id: *graph_id,
+            addon_app_base_dir: Some(temp_dir_path.clone()),
+            node_name: "extension_1".to_string(),
+            addon_name: "extension_addon_1".to_string(),
+            extension_group_name: Some("extension_group_1".to_string()),
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -333,20 +373,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: Some(temp_dir_path.clone()),
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -418,10 +444,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -429,12 +461,30 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id: *graph_id,
+            addon_app_base_dir: Some(temp_dir_path.clone()),
+            node_name: "extension_1".to_string(),
+            addon_name: "extension_addon_1".to_string(),
+            extension_group_name: Some("extension_group_1".to_string()),
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": 32
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -447,20 +497,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: Some(temp_dir_path.clone()),
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": 32
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -527,10 +563,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_with_complex_property_manifest.json")
                 .to_string(),
                 "{}".to_string(),
@@ -538,29 +580,21 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
@@ -573,6 +607,18 @@ mod tests {
                 }
             })),
         };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/nodes/property/update",
+                    web::post().to(update_graph_node_property_endpoint),
+                ),
+        )
+        .await;
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -642,10 +688,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_with_complex_property_manifest.json")
                 .to_string(),
                 "{}".to_string(),
@@ -653,29 +705,21 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // Update property of an existing node with invalid data.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
@@ -688,6 +732,18 @@ mod tests {
                 }
             })),
         };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/nodes/property/update",
+                    web::post().to(update_graph_node_property_endpoint),
+                ),
+        )
+        .await;
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")

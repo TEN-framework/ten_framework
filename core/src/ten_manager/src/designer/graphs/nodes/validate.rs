@@ -100,30 +100,27 @@ pub fn validate_node(
 
     // Find extension PkgInfo and validate property against json schema if
     // present.
-    if let Some(extensions) = &base_dir_pkg_info.extension_pkg_info {
+    if let Some(extensions) = &base_dir_pkg_info.extension_pkgs_info {
         for ext_pkg in extensions {
-            if let Some(manifest) = &ext_pkg.manifest {
-                if manifest.type_and_name.pkg_type == PkgType::Extension
-                    && manifest.type_and_name.name == addon_name
+            if ext_pkg.manifest.type_and_name.pkg_type == PkgType::Extension
+                && ext_pkg.manifest.type_and_name.name == addon_name
+            {
+                // Found matching extension - check property schema if it
+                // exists and request has property.
+                if let (Some(prop), Some(schema_store)) =
+                    (property, &ext_pkg.schema_store)
                 {
-                    // Found matching extension - check property schema if it
-                    // exists and request has property.
-                    if let (Some(prop), Some(schema_store)) =
-                        (property, &ext_pkg.schema_store)
-                    {
-                        if let Some(property_schema) = &schema_store.property {
-                            if let Err(e) = property_schema.validate_json(prop)
-                            {
-                                return Err(format!(
-                                    "Property validation failed: {}",
-                                    e
-                                ));
-                            }
+                    if let Some(property_schema) = &schema_store.property {
+                        if let Err(e) = property_schema.validate_json(prop) {
+                            return Err(format!(
+                                "Property validation failed: {}",
+                                e
+                            ));
                         }
                     }
-
-                    return Ok(());
                 }
+
+                return Ok(());
             }
         }
 

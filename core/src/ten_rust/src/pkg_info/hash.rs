@@ -14,29 +14,25 @@ use super::{
 
 impl PkgInfo {
     pub fn gen_hash_hex(&self) -> String {
-        if let Some(manifest) = &self.manifest {
-            // Get dependencies or use empty vector if None
-            let dependencies = manifest.dependencies.as_ref().map_or_else(
-                || &[] as &[ManifestDependency],
-                |deps| deps.as_slice(),
-            );
+        // Get dependencies or use empty vector if None
+        let dependencies = self.manifest.dependencies.as_ref().map_or_else(
+            || &[] as &[ManifestDependency],
+            |deps| deps.as_slice(),
+        );
 
-            // Get supports or use empty vector if None
-            let supports = manifest.supports.as_ref().map_or_else(
-                || &[] as &[ManifestSupport],
-                |supports| supports.as_slice(),
-            );
+        // Get supports or use empty vector if None
+        let supports = self.manifest.supports.as_ref().map_or_else(
+            || &[] as &[ManifestSupport],
+            |supports| supports.as_slice(),
+        );
 
-            gen_hash_hex(
-                &manifest.type_and_name.pkg_type,
-                &manifest.type_and_name.name,
-                &manifest.version,
-                dependencies,
-                supports,
-            )
-        } else {
-            String::new() // Cannot generate hash without manifest.
-        }
+        gen_hash_hex(
+            &self.manifest.type_and_name.pkg_type,
+            &self.manifest.type_and_name.name,
+            &self.manifest.version,
+            dependencies,
+            supports,
+        )
     }
 }
 

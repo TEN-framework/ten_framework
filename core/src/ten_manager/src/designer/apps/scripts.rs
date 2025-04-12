@@ -38,8 +38,8 @@ pub async fn get_app_scripts_endpoint(
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             let scripts = app_pkg
                 .manifest
+                .scripts
                 .as_ref()
-                .and_then(|m| m.scripts.as_ref())
                 .map(|scripts| scripts.keys().cloned().collect());
 
             let response = ApiResponse {

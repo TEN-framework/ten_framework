@@ -92,7 +92,7 @@ mod msg_conversion_tests {
 
         // Create app PkgInfo.
         let app_pkg_info = PkgInfo {
-            manifest: Some(app_manifest),
+            manifest: app_manifest,
             property: Some(app_property),
             compatible_score: 0,
             is_installed: true,
@@ -114,7 +114,7 @@ mod msg_conversion_tests {
 
         // Create extension PkgInfos.
         let ext1_pkg_info = PkgInfo {
-            manifest: Some(ext1_manifest),
+            manifest: ext1_manifest,
             property: None,
             compatible_score: 0,
             is_installed: true,
@@ -127,7 +127,7 @@ mod msg_conversion_tests {
         };
 
         let ext2_pkg_info = PkgInfo {
-            manifest: Some(ext2_manifest),
+            manifest: ext2_manifest,
             property: None,
             compatible_score: 0,
             is_installed: true,
@@ -140,7 +140,7 @@ mod msg_conversion_tests {
         };
 
         let ext3_pkg_info = PkgInfo {
-            manifest: Some(ext3_manifest),
+            manifest: ext3_manifest,
             property: None,
             compatible_score: 0,
             is_installed: true,
@@ -156,14 +156,14 @@ mod msg_conversion_tests {
         let base_dir_pkg_info = PkgsInfoInAppWithBaseDir {
             pkgs_info_in_app: PkgsInfoInApp {
                 app_pkg_info: Some(app_pkg_info),
-                extension_pkg_info: Some(vec![
+                extension_pkgs_info: Some(vec![
                     ext1_pkg_info,
                     ext2_pkg_info,
                     ext3_pkg_info,
                 ]),
-                protocol_pkg_info: None,
-                addon_loader_pkg_info: None,
-                system_pkg_info: None,
+                protocol_pkgs_info: None,
+                addon_loader_pkgs_info: None,
+                system_pkgs_info: None,
             },
             base_dir: "app1".to_string(),
         };

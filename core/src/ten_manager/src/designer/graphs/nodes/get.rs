@@ -156,85 +156,75 @@ pub async fn get_graph_nodes_endpoint(
                 name: extension_graph_node.type_and_name.name.clone(),
                 extension_group: extension_graph_node.extension_group.clone(),
                 app: extension_graph_node.app.clone(),
-                api: pkg_info
-                    .manifest
-                    .as_ref()
-                    .and_then(|manifest| manifest.api.as_ref())
-                    .map(|api| DesignerApi {
-                        property: api
-                            .property
-                            .as_ref()
-                            .filter(|p| !p.is_empty())
-                            .map(|p| {
-                                get_designer_property_hashmap_from_pkg(
-                                    p.clone(),
-                                )
-                            }),
+                api: pkg_info.manifest.api.as_ref().map(|api| DesignerApi {
+                    property: api
+                        .property
+                        .as_ref()
+                        .filter(|p| !p.is_empty())
+                        .map(|p| {
+                            get_designer_property_hashmap_from_pkg(p.clone())
+                        }),
 
-                        cmd_in: api
-                            .cmd_in
-                            .as_ref()
-                            .filter(|c| !c.is_empty())
-                            .map(|c| {
-                                get_designer_api_cmd_likes_from_pkg(c.clone())
-                            }),
+                    cmd_in: api.cmd_in.as_ref().filter(|c| !c.is_empty()).map(
+                        |c| get_designer_api_cmd_likes_from_pkg(c.clone()),
+                    ),
 
-                        cmd_out: api
-                            .cmd_out
-                            .as_ref()
-                            .filter(|c| !c.is_empty())
-                            .map(|c| {
-                                get_designer_api_cmd_likes_from_pkg(c.clone())
-                            }),
+                    cmd_out: api
+                        .cmd_out
+                        .as_ref()
+                        .filter(|c| !c.is_empty())
+                        .map(|c| {
+                            get_designer_api_cmd_likes_from_pkg(c.clone())
+                        }),
 
-                        data_in: api
-                            .data_in
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
+                    data_in: api
+                        .data_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
 
-                        data_out: api
-                            .data_out
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
+                    data_out: api
+                        .data_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
 
-                        audio_frame_in: api
-                            .audio_frame_in
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
+                    audio_frame_in: api
+                        .audio_frame_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
 
-                        audio_frame_out: api
-                            .audio_frame_out
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
+                    audio_frame_out: api
+                        .audio_frame_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
 
-                        video_frame_in: api
-                            .video_frame_in
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
+                    video_frame_in: api
+                        .video_frame_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
 
-                        video_frame_out: api
-                            .video_frame_out
-                            .as_ref()
-                            .filter(|d| !d.is_empty())
-                            .map(|d| {
-                                get_designer_api_data_likes_from_pkg(d.clone())
-                            }),
-                    }),
+                    video_frame_out: api
+                        .video_frame_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| {
+                            get_designer_api_data_likes_from_pkg(d.clone())
+                        }),
+                }),
                 property: extension_graph_node.property.clone(),
                 is_installed: true,
             });
