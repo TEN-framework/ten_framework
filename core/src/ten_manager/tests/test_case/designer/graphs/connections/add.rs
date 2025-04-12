@@ -134,7 +134,6 @@ mod tests {
         // Add a connection between existing nodes in the default graph.
         // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -314,7 +313,6 @@ mod tests {
 
         // Add a connection between existing nodes in the default graph.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: None,
             src_extension: "aio_http_server_python".to_string(),
@@ -428,7 +426,6 @@ mod tests {
 
         // Try to add a connection to a non-existent graph.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.to_string(),
             graph_id: Uuid::new_v4(),
             src_app: None,
             src_extension: "extension_1".to_string(),
@@ -548,7 +545,6 @@ mod tests {
 
         // Add first connection.
         let request_payload1 = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -561,7 +557,6 @@ mod tests {
 
         // Add second connection to create a sequence.
         let request_payload2 = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -723,7 +718,6 @@ mod tests {
 
         // Add first connection.
         let request_payload1 = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -736,7 +730,6 @@ mod tests {
 
         // Add second connection to create a sequence.
         let request_payload2 = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -882,7 +875,6 @@ mod tests {
 
         // Add a DATA type connection between extensions.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1026,7 +1018,6 @@ mod tests {
 
         // First add an AUDIO_FRAME type connection.
         let audio_request = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1039,7 +1030,6 @@ mod tests {
 
         // Then add a VIDEO_FRAME type connection.
         let video_request = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1201,7 +1191,6 @@ mod tests {
 
         // Add first command.
         let cmd1_request = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1214,7 +1203,6 @@ mod tests {
 
         // Add second command.
         let cmd2_request = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -1227,7 +1215,6 @@ mod tests {
 
         // Add third command.
         let cmd3_request = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),

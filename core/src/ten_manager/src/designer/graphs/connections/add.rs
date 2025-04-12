@@ -17,10 +17,12 @@ use ten_rust::{
 };
 use uuid::Uuid;
 
-use crate::designer::{
-    graphs::util::find_app_package_from_base_dir,
-    response::{ApiResponse, ErrorResponse, Status},
-    DesignerState,
+use crate::{
+    designer::{
+        response::{ApiResponse, ErrorResponse, Status},
+        DesignerState,
+    },
+    pkg_info::pkg_info_find_by_graph_info_mut,
 };
 
 use crate::graph::{
@@ -30,7 +32,6 @@ use crate::pkg_info::create_uri_to_pkg_info_map;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
-    pub base_dir: String,
     pub graph_id: Uuid,
 
     pub src_app: Option<String>,
@@ -158,74 +159,55 @@ pub async fn add_graph_connection_endpoint(
         }
     };
 
-    // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) =
-        pkgs_cache.get_mut(&request_payload.base_dir)
-    {
-        // Find the app package.
-        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
-        {
-            // Add the connection using the converted PkgsInfoInApp map.
-            match graph_info.graph.add_connection(
-                request_payload.src_app.clone(),
-                request_payload.src_extension.clone(),
-                request_payload.msg_type.clone(),
-                request_payload.msg_name.clone(),
-                request_payload.dest_app.clone(),
-                request_payload.dest_extension.clone(),
-                &uri_to_pkg_info,
-                request_payload.msg_conversion.clone(),
-            ) {
-                Ok(_) => {
-                    // Update property.json file with the updated graph.
-                    if let Some(property) = &mut app_pkg.property {
-                        // Create a new connection object.
-                        let connection =
-                            create_graph_connection(&request_payload);
+    // Add the connection using the converted PkgsInfoInApp map.
+    match graph_info.graph.add_connection(
+        request_payload.src_app.clone(),
+        request_payload.src_extension.clone(),
+        request_payload.msg_type.clone(),
+        request_payload.msg_name.clone(),
+        request_payload.dest_app.clone(),
+        request_payload.dest_extension.clone(),
+        &uri_to_pkg_info,
+        request_payload.msg_conversion.clone(),
+    ) {
+        Ok(_) => {
+            if let Ok(Some(pkg_info)) =
+                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+            {
+                // Update property.json file with the updated graph.
+                if let Some(property) = &mut pkg_info.property {
+                    // Create a new connection object.
+                    let connection = create_graph_connection(&request_payload);
 
-                        // Update the property.json file.
-                        if let Err(e) = update_property_file(
-                            &request_payload.base_dir,
-                            property,
-                            graph_info.name.as_ref().unwrap(),
-                            &connection,
-                        ) {
-                            eprintln!("Warning: Failed to update property.json file: {}", e);
-                        }
+                    // Update the property.json file.
+                    if let Err(e) = update_property_file(
+                        &pkg_info.url,
+                        property,
+                        graph_info.name.as_ref().unwrap(),
+                        &connection,
+                    ) {
+                        eprintln!(
+                            "Warning: Failed to update property.json file: {}",
+                            e
+                        );
                     }
-
-                    let response = ApiResponse {
-                        status: Status::Ok,
-                        data: AddGraphConnectionResponsePayload {
-                            success: true,
-                        },
-                        meta: None,
-                    };
-                    Ok(HttpResponse::Ok().json(response))
-                }
-                Err(err) => {
-                    let error_response = ErrorResponse {
-                        status: Status::Fail,
-                        message: format!("Failed to add connection: {}", err),
-                        error: None,
-                    };
-                    Ok(HttpResponse::BadRequest().json(error_response))
                 }
             }
-        } else {
+
+            let response = ApiResponse {
+                status: Status::Ok,
+                data: AddGraphConnectionResponsePayload { success: true },
+                meta: None,
+            };
+            Ok(HttpResponse::Ok().json(response))
+        }
+        Err(err) => {
             let error_response = ErrorResponse {
                 status: Status::Fail,
-                message: "App package not found".to_string(),
+                message: format!("Failed to add connection: {}", err),
                 error: None,
             };
-            Ok(HttpResponse::NotFound().json(error_response))
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
-    } else {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "Base directory not found".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
     }
 }

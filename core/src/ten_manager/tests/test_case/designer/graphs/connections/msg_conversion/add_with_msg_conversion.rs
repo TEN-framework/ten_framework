@@ -150,7 +150,6 @@ mod tests {
         // Add a connection between existing nodes in the default graph.
         // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -327,7 +326,6 @@ mod tests {
 
         // Add a connection between existing nodes in the default graph.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),

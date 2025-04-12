@@ -145,7 +145,6 @@ mod tests {
 
         // Add a connection between existing nodes in the default graph.
         let add_request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
@@ -393,7 +392,6 @@ mod tests {
 
         // Add a connection with msg_conversion.
         let add_request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
             graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
