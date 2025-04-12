@@ -13,7 +13,7 @@ use ten_rust::{
     graph::node::GraphNode,
     pkg_info::{
         pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-        predefined_graphs::pkg_predefined_graphs_find_mut,
+        predefined_graphs::graphs_cache_find_mut,
     },
 };
 
@@ -62,19 +62,17 @@ pub async fn delete_graph_node_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from graphs_cache.
-            if let Some(graph_info) =
-                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
-                    g.name
-                        .as_ref()
-                        .map(|name| name == &request_payload.graph_name)
-                        .unwrap_or(false)
-                        && (g.app_base_dir.is_some()
-                            && g.app_base_dir.as_ref().unwrap()
-                                == &request_payload.base_dir)
-                        && (g.belonging_pkg_type.is_some()
-                            && g.belonging_pkg_type.unwrap() == PkgType::App)
-                })
-            {
+            if let Some(graph_info) = graphs_cache_find_mut(graphs_cache, |g| {
+                g.name
+                    .as_ref()
+                    .map(|name| name == &request_payload.graph_name)
+                    .unwrap_or(false)
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap()
+                            == &request_payload.base_dir)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            }) {
                 // Delete the extension node.
                 match graph_info.graph.delete_extension_node(
                     request_payload.node_name.clone(),

@@ -122,7 +122,7 @@ pub async fn get_graph_nodes_endpoint(
         return Ok(HttpResponse::NotFound().json(error_response));
     }
 
-    // Get extension package information directly, if available
+    // Get extension package information directly, if available.
     let extensions_slice = base_dir_pkg_info.get_extensions();
 
     let graph_id = &request_payload.graph_id;

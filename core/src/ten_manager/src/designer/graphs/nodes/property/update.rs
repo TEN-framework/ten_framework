@@ -12,7 +12,7 @@ use ten_rust::{
     graph::node::GraphNode,
     pkg_info::{
         pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-        predefined_graphs::pkg_predefined_graphs_find_mut,
+        predefined_graphs::graphs_cache_find_mut,
     },
 };
 
@@ -121,19 +121,17 @@ pub async fn update_graph_node_property_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from graphs_cache.
-            if let Some(graph_info) =
-                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
-                    g.name
-                        .as_ref()
-                        .map(|name| name == &request_payload.graph_name)
-                        .unwrap_or(false)
-                        && (g.app_base_dir.is_some()
-                            && g.app_base_dir.as_ref().unwrap()
-                                == &request_payload.graph_app_base_dir)
-                        && (g.belonging_pkg_type.is_some()
-                            && g.belonging_pkg_type.unwrap() == PkgType::App)
-                })
-            {
+            if let Some(graph_info) = graphs_cache_find_mut(graphs_cache, |g| {
+                g.name
+                    .as_ref()
+                    .map(|name| name == &request_payload.graph_name)
+                    .unwrap_or(false)
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap()
+                            == &request_payload.graph_app_base_dir)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            }) {
                 // Find the node in the graph
                 let node_found = graph_info.graph.nodes.iter().any(|node| {
                     node.type_and_name.name == request_payload.node_name

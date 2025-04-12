@@ -4,16 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::base_dir_pkg_info::PkgsInfoInAppWithBaseDir;
 use ten_rust::pkg_info::pkg_type::PkgType;
-use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find_mut;
+use ten_rust::pkg_info::predefined_graphs::graphs_cache_find_mut;
 use ten_rust::{
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
@@ -27,6 +25,7 @@ use crate::designer::{
 };
 
 use crate::graph::update_graph_connections_all_fields;
+use crate::pkg_info::create_uri_to_pkg_info_map;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
@@ -123,56 +122,18 @@ pub async fn add_graph_connection_endpoint(
 
     // Create a hash map from app URIs to PkgsInfoInApp for use with
     // add_connection.
-    let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
-        HashMap::new();
-
-    // Process all available apps to map URIs to PkgsInfoInApp.
-    for (base_dir, base_dir_pkg_info) in state_write.pkgs_cache.iter() {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            if let Some(property) = &app_pkg.property {
-                if let Some(ten) = &property._ten {
-                    // Map the URI to the PkgsInfoInApp, using None if URI is
-                    // None.
-                    let key = ten.uri.clone();
-
-                    // Check if the key already exists.
-                    if let Some(existing) = uri_to_pkg_info.get(&key) {
-                        let error_message = if key.is_none() {
-                            format!(
-                                "Found two apps with unspecified URI in both '{}' and '{}'",
-                                existing.base_dir,
-                                base_dir
-                            )
-                        } else {
-                            format!(
-                                "Duplicate app uri '{}' found in both '{}' and '{}'",
-                                key.as_ref().unwrap(),
-                                existing.base_dir,
-                                base_dir
-                            )
-                        };
-
-                        let error_response = ErrorResponse {
-                            status: Status::Fail,
-                            message: error_message,
-                            error: None,
-                        };
-                        return Ok(
-                            HttpResponse::BadRequest().json(error_response)
-                        );
-                    }
-
-                    uri_to_pkg_info.insert(
-                        key,
-                        PkgsInfoInAppWithBaseDir {
-                            pkgs_info_in_app: base_dir_pkg_info.clone(),
-                            base_dir: base_dir.clone(),
-                        },
-                    );
-                }
+    let uri_to_pkg_info =
+        match create_uri_to_pkg_info_map(&state_write.pkgs_cache) {
+            Ok(map) => map,
+            Err(error_message) => {
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: error_message,
+                    error: None,
+                };
+                return Ok(HttpResponse::BadRequest().json(error_response));
             }
-        }
-    }
+        };
 
     let DesignerState {
         pkgs_cache,
@@ -188,19 +149,17 @@ pub async fn add_graph_connection_endpoint(
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
             // Get the specified graph from graphs_cache.
-            if let Some(graph_info) =
-                pkg_predefined_graphs_find_mut(graphs_cache, |g| {
-                    g.name
-                        .as_ref()
-                        .map(|name| name == &request_payload.graph_name)
-                        .unwrap_or(false)
-                        && (g.app_base_dir.is_some()
-                            && g.app_base_dir.as_ref().unwrap()
-                                == &request_payload.base_dir)
-                        && (g.belonging_pkg_type.is_some()
-                            && g.belonging_pkg_type.unwrap() == PkgType::App)
-                })
-            {
+            if let Some(graph_info) = graphs_cache_find_mut(graphs_cache, |g| {
+                g.name
+                    .as_ref()
+                    .map(|name| name == &request_payload.graph_name)
+                    .unwrap_or(false)
+                    && (g.app_base_dir.is_some()
+                        && g.app_base_dir.as_ref().unwrap()
+                            == &request_payload.base_dir)
+                    && (g.belonging_pkg_type.is_some()
+                        && g.belonging_pkg_type.unwrap() == PkgType::App)
+            }) {
                 // Add the connection using the converted PkgsInfoInApp map.
                 match graph_info.graph.add_connection(
                     request_payload.src_app.clone(),
