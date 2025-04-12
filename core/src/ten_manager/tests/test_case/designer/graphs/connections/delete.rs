@@ -67,7 +67,6 @@ mod tests {
 
         // Try to delete a connection from a non-existent graph.
         let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
             graph_id: Uuid::new_v4(),
             src_app: None,
             src_extension: "source_extension".to_string(),
@@ -125,7 +124,6 @@ mod tests {
 
         // Try to delete a non-existent connection.
         let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
             graph_id: *graph_id,
             src_app: None,
             src_extension: "nonexistent_extension".to_string(),
@@ -233,7 +231,6 @@ mod tests {
 
         // Delete a connection from the default_with_app_uri graph.
         let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: temp_dir_path.clone(),
             graph_id: graph_id_clone,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),

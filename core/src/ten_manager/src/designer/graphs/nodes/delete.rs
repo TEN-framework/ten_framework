@@ -27,6 +27,7 @@ use crate::{
 #[derive(Serialize, Deserialize)]
 pub struct DeleteGraphNodeRequestPayload {
     pub graph_id: Uuid,
+
     pub node_name: String,
     pub addon_name: String,
     pub extension_group_name: Option<String>,
