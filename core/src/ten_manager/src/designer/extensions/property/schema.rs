@@ -4,11 +4,16 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+
+use ten_rust::pkg_info::manifest::api::ManifestPropertyAttributes;
 
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
@@ -23,7 +28,7 @@ pub struct GetExtensionPropertySchemaRequestPayload {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetExtensionPropertySchemaResponseData {
-    pub property_schema_json_str: Option<String>,
+    pub property_schema: Option<HashMap<String, ManifestPropertyAttributes>>,
 }
 
 pub async fn get_extension_property_schema_endpoint(
@@ -49,12 +54,11 @@ pub async fn get_extension_property_schema_endpoint(
                 let response = ApiResponse {
                     status: Status::Ok,
                     data: GetExtensionPropertySchemaResponseData {
-                        property_schema_json_str: extension_pkg_info
-                            .schema_store
+                        property_schema: extension_pkg_info
+                            .manifest
+                            .api
                             .as_ref()
-                            .and_then(|schema_store| {
-                                schema_store.property_str.clone()
-                            }),
+                            .and_then(|api| api.property.clone()),
                     },
                     meta: None,
                 };

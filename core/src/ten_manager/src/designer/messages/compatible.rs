@@ -30,12 +30,8 @@ use crate::designer::{
 /// message within a graph and find other messages that are compatible with it.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
-    /// Base directory path where the project files are located.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub base_dir: Option<String>,
-
     /// ID of the graph to search for compatible messages.
-    pub graph: Uuid,
+    pub graph_id: Uuid,
 
     /// Optional application name that contains the extension.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -119,7 +115,7 @@ pub async fn get_compatible_messages_endpoint(
     let extensions_slice = base_dir_pkg_info.get_extensions();
 
     let extensions = match get_extension_nodes_in_graph(
-        &request_payload.graph,
+        &request_payload.graph_id,
         &state_read.graphs_cache,
     ) {
         Ok(exts) => exts,
@@ -128,7 +124,7 @@ pub async fn get_compatible_messages_endpoint(
                 &err,
                 format!(
                     "Error fetching runtime extensions for graph '{}'",
-                    request_payload.graph
+                    request_payload.graph_id
                 )
                 .as_str(),
             );
@@ -169,7 +165,7 @@ pub async fn get_compatible_messages_endpoint(
             &anyhow::anyhow!("Extension not found"),
             format!(
                 "Error fetching runtime extensions for graph '{}'",
-                request_payload.graph
+                request_payload.graph_id
             )
             .as_str(),
         );

@@ -85,6 +85,10 @@ pub fn configure_routes(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
             )
+            .route(
+                "/apps/property/schema",
+                web::post().to(apps::property::schema::get_app_property_schema_endpoint),
+            )
             // Extension endpoints.
             .route(
                 "/extensions/create",

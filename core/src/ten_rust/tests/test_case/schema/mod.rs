@@ -8,7 +8,7 @@ mod store;
 
 #[cfg(test)]
 mod tests {
-    use ten_rust::schema::{
+    use ten_rust::schema::runtime_interface::{
         create_schema_from_json, create_schema_from_json_str,
     };
 
