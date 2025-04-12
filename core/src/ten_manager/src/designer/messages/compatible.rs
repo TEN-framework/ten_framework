@@ -33,10 +33,6 @@ pub struct GetCompatibleMsgsRequestPayload {
     /// ID of the graph to search for compatible messages.
     pub graph_id: Uuid,
 
-    /// Base directory path where the project files are located.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub base_dir: Option<String>,
-
     /// Optional application name that contains the extension.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub app: Option<String>,
