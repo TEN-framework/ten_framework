@@ -39,12 +39,18 @@ mod tests {
 
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"
                 )
@@ -54,7 +60,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -110,12 +115,18 @@ mod tests {
         // Include manifests with schema definitions
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest_with_property_schema.json"
                 )
@@ -125,7 +136,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -176,12 +186,18 @@ mod tests {
         // Include manifests with schema definitions
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest_with_property_schema.json"
                 )
@@ -191,7 +207,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -327,12 +342,12 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -387,6 +402,7 @@ mod tests {
         // manifests.
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
@@ -395,6 +411,11 @@ mod tests {
             // Add extension_addon_1 manifest to ensure extension validation
             // kicks in.
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"
                 )
@@ -404,7 +425,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,

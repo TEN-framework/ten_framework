@@ -77,6 +77,7 @@ pub struct PkgInfo {
 
 impl PkgInfo {
     pub fn from_metadata(
+        url: &str,
         manifest: &Manifest,
         property: &Option<Property>,
     ) -> Result<Self> {
@@ -84,7 +85,7 @@ impl PkgInfo {
             compatible_score: -1,
 
             is_installed: false,
-            url: String::new(),
+            url: url.to_string(),
             hash: String::new(),
 
             manifest: Some(manifest.clone()),
@@ -159,7 +160,11 @@ pub fn get_pkg_info_from_path(
         None
     };
 
-    let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
+    let mut pkg_info: PkgInfo = PkgInfo::from_metadata(
+        path.to_string_lossy().as_ref(),
+        &manifest,
+        &property,
+    )?;
 
     pkg_info.is_installed = is_installed;
 

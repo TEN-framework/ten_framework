@@ -25,7 +25,9 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
-use super::found_result::PkgRegistryInfo;
+use super::found_result::{
+    get_pkg_registry_info_from_manifest, PkgRegistryInfo,
+};
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
 use crate::constants::{
@@ -463,7 +465,10 @@ fn search_versions(
 
                         // Convert manifest to PkgRegistryInfo.
                         let mut pkg_registry_info: PkgRegistryInfo =
-                            (&manifest).try_into()?;
+                            get_pkg_registry_info_from_manifest(
+                                &download_url,
+                                &manifest,
+                            )?;
 
                         pkg_registry_info.download_url = download_url;
 

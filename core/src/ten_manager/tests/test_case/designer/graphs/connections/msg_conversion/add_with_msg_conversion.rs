@@ -80,13 +80,32 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
@@ -240,13 +259,32 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,

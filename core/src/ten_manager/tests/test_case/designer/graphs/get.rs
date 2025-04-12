@@ -39,20 +39,36 @@ mod tests {
 
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("test_data_embed/app_manifest.json").to_string(),
                 include_str!("test_data_embed/app_property.json").to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_2"
+                ),
                 include_str!("test_data_embed/extension_addon_2_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR.to_string(),
+                    "/ten_packages/extension/extension_3"
+                ),
                 include_str!("test_data_embed/extension_addon_3_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -60,7 +76,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,

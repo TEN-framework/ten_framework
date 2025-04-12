@@ -58,13 +58,12 @@ mod dependencies_conversion {
     }
 }
 
-impl TryFrom<&Manifest> for PkgRegistryInfo {
-    type Error = anyhow::Error;
-
-    fn try_from(manifest: &Manifest) -> Result<Self> {
-        let pkg_info = PkgInfo::from_metadata(manifest, &None)?;
-        Ok((&pkg_info).into())
-    }
+pub fn get_pkg_registry_info_from_manifest(
+    download_url: &str,
+    manifest: &Manifest,
+) -> Result<PkgRegistryInfo> {
+    let pkg_info = PkgInfo::from_metadata(download_url, manifest, &None)?;
+    Ok((&pkg_info).into())
 }
 
 impl From<&PkgInfo> for PkgRegistryInfo {
