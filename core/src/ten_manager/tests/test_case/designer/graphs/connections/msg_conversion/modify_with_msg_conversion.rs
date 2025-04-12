@@ -196,7 +196,6 @@ mod tests {
         // Now update the connection's message conversion.
         let update_request_payload =
             UpdateGraphConnectionMsgConversionRequestPayload {
-                base_dir: test_dir.clone(),
                 graph_id: *graph_id,
                 src_app: Some("http://example.com:8000".to_string()),
                 src_extension: "extension_1".to_string(),
@@ -405,7 +404,6 @@ mod tests {
         // Now update the connection to remove the message conversion.
         let update_request_payload =
             UpdateGraphConnectionMsgConversionRequestPayload {
-                base_dir: test_dir.clone(),
                 graph_id: *graph_id,
                 src_app: Some("http://example.com:8000".to_string()),
                 src_extension: "extension_1".to_string(),
