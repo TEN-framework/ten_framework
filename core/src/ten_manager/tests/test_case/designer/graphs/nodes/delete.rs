@@ -12,6 +12,8 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
+    use uuid::Uuid;
+
     use ten_manager::{
         config::TmanConfig,
         constants::TEST_DIR,
@@ -26,13 +28,9 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
-        graph::graphs_cache_find_by_name,
+        graph::{graphs_cache_find_by_id, graphs_cache_find_by_name},
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::{
-        pkg_type::PkgType, predefined_graphs::graphs_cache_find,
-    };
-    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -213,29 +211,7 @@ mod tests {
         )
         .unwrap();
 
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_id: *graph_id,
-            addon_app_base_dir: None,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": "test_value_for_delete"
-            })),
-        };
-
-        // Now delete the node we just added.
-        let delete_request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
-            graph_id: *graph_id,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-        };
+        let graph_id_clone = *graph_id;
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -250,6 +226,20 @@ mod tests {
                 ),
         )
         .await;
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_app_base_dir: temp_dir_path.clone(),
+            graph_id: graph_id_clone,
+            addon_app_base_dir: None,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -289,6 +279,16 @@ mod tests {
         )
         .await;
 
+        // Now delete the node we just added.
+        let delete_request_payload = DeleteGraphNodeRequestPayload {
+            base_dir: temp_dir_path.clone(),
+            graph_id: graph_id_clone,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+        };
+
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/delete")
             .set_json(delete_request_payload)
@@ -312,16 +312,9 @@ mod tests {
 
         let DesignerState { graphs_cache, .. } = &*state_read;
 
-        if let Some(graph_info) = graphs_cache_find(graphs_cache, |g| {
-            g.name
-                .as_ref()
-                .map(|name| name == "default_with_app_uri")
-                .unwrap_or(false)
-                && (g.app_base_dir.is_some()
-                    && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
-                && (g.belonging_pkg_type.is_some()
-                    && g.belonging_pkg_type.unwrap() == PkgType::App)
-        }) {
+        if let Some(graph_info) =
+            graphs_cache_find_by_id(graphs_cache, &graph_id_clone)
+        {
             // Check if the node is gone.
             let node_exists = graph_info.graph.nodes.iter().any(|node| {
                 node.type_and_name.name == "test_delete_node"

@@ -12,6 +12,9 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
+    use ten_rust::pkg_info::message::MsgType;
+    use uuid::Uuid;
+
     use ten_manager::{
         config::TmanConfig,
         constants::TEST_DIR,
@@ -24,14 +27,9 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
-        graph::graphs_cache_find_by_name,
+        graph::{graphs_cache_find_by_id, graphs_cache_find_by_name},
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::{
-        message::MsgType, pkg_type::PkgType,
-        predefined_graphs::graphs_cache_find,
-    };
-    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -219,17 +217,7 @@ mod tests {
         )
         .unwrap();
 
-        // Delete a connection from the default_with_app_uri graph.
-        let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: temp_dir_path.clone(),
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "hello_world".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-        };
+        let graph_id_clone = *graph_id;
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -242,6 +230,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Delete a connection from the default_with_app_uri graph.
+        let request_payload = DeleteGraphConnectionRequestPayload {
+            base_dir: temp_dir_path.clone(),
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "hello_world".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/delete")
@@ -266,16 +266,9 @@ mod tests {
 
         let DesignerState { graphs_cache, .. } = &*state_read;
 
-        if let Some(predefined_graph) = graphs_cache_find(graphs_cache, |g| {
-            g.name
-                .as_ref()
-                .map(|name| name == "default_with_app_uri")
-                .unwrap_or(false)
-                && (g.app_base_dir.is_some()
-                    && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
-                && (g.belonging_pkg_type.is_some()
-                    && g.belonging_pkg_type.unwrap() == PkgType::App)
-        }) {
+        if let Some(predefined_graph) =
+            graphs_cache_find_by_id(graphs_cache, &graph_id_clone)
+        {
             // Check if the connection is gone.
             let connection_exists = predefined_graph
                 .graph

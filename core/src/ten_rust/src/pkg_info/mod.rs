@@ -144,6 +144,7 @@ pub fn get_pkg_info_from_path(
     app_base_dir: Option<String>,
 ) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(path)?;
+
     let property = if parse_property {
         assert!(graphs_cache.is_some());
 
