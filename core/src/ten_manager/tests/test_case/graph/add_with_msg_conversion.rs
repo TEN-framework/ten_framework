@@ -9,7 +9,8 @@ mod msg_conversion_tests {
     use std::collections::HashMap;
 
     use ten_manager::{
-        constants::TEST_DIR, pkg_info::create_uri_to_pkg_info_map,
+        constants::TEST_DIR, graph::connections::add::graph_add_connection,
+        pkg_info::create_uri_to_pkg_info_map,
     };
     use ten_rust::{
         graph::{
@@ -130,7 +131,8 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -267,7 +269,8 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -389,7 +392,8 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -500,7 +504,8 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with invalid msg_conversion.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,

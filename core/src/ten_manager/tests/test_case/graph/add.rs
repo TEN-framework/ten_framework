@@ -9,7 +9,8 @@ mod tests {
     use std::collections::HashMap;
 
     use ten_manager::{
-        constants::TEST_DIR, pkg_info::create_uri_to_pkg_info_map,
+        constants::TEST_DIR, graph::connections::add::graph_add_connection,
+        pkg_info::create_uri_to_pkg_info_map,
     };
     use ten_rust::{
         graph::{node::GraphNode, Graph},
@@ -94,7 +95,8 @@ mod tests {
         };
 
         // Test adding a connection.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -180,7 +182,8 @@ mod tests {
         };
 
         // Test adding a connection with nonexistent source.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(), // This node doesn't exist.
             MsgType::Cmd,
@@ -248,7 +251,8 @@ mod tests {
         };
 
         // Test adding a connection with nonexistent destination.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -320,7 +324,8 @@ mod tests {
         };
 
         // Add first connection.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -334,7 +339,8 @@ mod tests {
 
         // Add second connection with same source and message name but different
         // destination.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -420,7 +426,8 @@ mod tests {
         };
 
         // Add different message types.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -432,7 +439,8 @@ mod tests {
         );
         assert!(result.is_ok());
 
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Data,
@@ -444,7 +452,8 @@ mod tests {
         );
         assert!(result.is_ok());
 
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::AudioFrame,
@@ -456,7 +465,8 @@ mod tests {
         );
         assert!(result.is_ok());
 
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::VideoFrame,
@@ -538,7 +548,8 @@ mod tests {
         };
 
         // Add a connection.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -551,7 +562,8 @@ mod tests {
         assert!(result.is_ok());
 
         // Try to add the same connection again.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -638,7 +650,8 @@ mod tests {
         };
 
         // Test connecting ext1 to ext2 with compatible schema - should succeed.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -651,7 +664,8 @@ mod tests {
         assert!(result.is_ok());
 
         // Test connecting ext1 to ext3 with compatible schema - should succeed.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Data,
@@ -664,7 +678,8 @@ mod tests {
         assert!(result.is_ok());
 
         // Test connecting ext1 to ext3 with incompatible schema - should fail.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -682,7 +697,8 @@ mod tests {
 
         // Test connecting ext1 to ext3 with incompatible schema for data -
         // should fail.
-        let result = graph.add_connection(
+        let result = graph_add_connection(
+            &mut graph,
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Data,

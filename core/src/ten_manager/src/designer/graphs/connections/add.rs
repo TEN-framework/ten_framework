@@ -22,6 +22,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
+    graph::connections::add::graph_add_connection,
     pkg_info::pkg_info_find_by_graph_info_mut,
 };
 
@@ -159,7 +160,8 @@ pub async fn add_graph_connection_endpoint(
     };
 
     // Add the connection using the converted PkgsInfoInApp map.
-    match graph_info.graph.add_connection(
+    match graph_add_connection(
+        &mut graph_info.graph,
         request_payload.src_app.clone(),
         request_payload.src_extension.clone(),
         request_payload.msg_type.clone(),
