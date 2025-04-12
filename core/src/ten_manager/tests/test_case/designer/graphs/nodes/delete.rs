@@ -68,7 +68,6 @@ mod tests {
 
         // Try to delete a node from a non-existent graph.
         let request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
             graph_id: Uuid::new_v4(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
@@ -124,7 +123,6 @@ mod tests {
 
         // Try to delete a non-existent node from an existing graph.
         let request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
             graph_id: *graph_id,
             node_name: "non_existent_node".to_string(),
             addon_name: "test_addon".to_string(),
@@ -281,7 +279,6 @@ mod tests {
 
         // Now delete the node we just added.
         let delete_request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
             graph_id: graph_id_clone,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),

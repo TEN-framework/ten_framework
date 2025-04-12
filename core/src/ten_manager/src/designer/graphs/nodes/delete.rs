@@ -17,16 +17,15 @@ use uuid::Uuid;
 
 use crate::{
     designer::{
-        graphs::util::find_app_package_from_base_dir,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
     graph::{graphs_cache_find_by_id_mut, update_graph_node_all_fields},
+    pkg_info::pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct DeleteGraphNodeRequestPayload {
-    pub base_dir: String,
     pub graph_id: Uuid,
     pub node_name: String,
     pub addon_name: String,
@@ -68,82 +67,67 @@ pub async fn delete_graph_node_endpoint(
         }
     };
 
-    // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) =
-        pkgs_cache.get_mut(&request_payload.base_dir)
-    {
-        // Find the app package.
-        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
-        {
-            // Delete the extension node.
-            match graph_info.graph.delete_extension_node(
-                request_payload.node_name.clone(),
-                request_payload.addon_name.clone(),
-                request_payload.app_uri.clone(),
-                request_payload.extension_group_name.clone(),
-            ) {
-                Ok(_) => {
-                    // Update property.json file to remove the graph node.
-                    if let Some(property) = &mut app_pkg.property {
-                        // Create the GraphNode we want to remove.
-                        let node_to_remove = GraphNode {
-                            type_and_name: PkgTypeAndName {
-                                pkg_type: PkgType::Extension,
-                                name: request_payload.node_name.clone(),
-                            },
-                            addon: request_payload.addon_name.clone(),
-                            extension_group: request_payload
-                                .extension_group_name
-                                .clone(),
-                            app: request_payload.app_uri.clone(),
-                            property: None,
-                        };
-                        let nodes_to_remove = vec![node_to_remove];
+    // Delete the extension node.
+    match graph_info.graph.delete_extension_node(
+        request_payload.node_name.clone(),
+        request_payload.addon_name.clone(),
+        request_payload.app_uri.clone(),
+        request_payload.extension_group_name.clone(),
+    ) {
+        Ok(_) => {
+            if let Ok(Some(pkg_info)) =
+                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+            {
+                // Update property.json file to remove the graph node.
+                if let Some(property) = &mut pkg_info.property {
+                    // Create the GraphNode we want to remove.
+                    let node_to_remove = GraphNode {
+                        type_and_name: PkgTypeAndName {
+                            pkg_type: PkgType::Extension,
+                            name: request_payload.node_name.clone(),
+                        },
+                        addon: request_payload.addon_name.clone(),
+                        extension_group: request_payload
+                            .extension_group_name
+                            .clone(),
+                        app: request_payload.app_uri.clone(),
+                        property: None,
+                    };
 
-                        // Write the updated property_all_fields map to
-                        // property.json.
-                        if let Err(e) = update_graph_node_all_fields(
-                            &request_payload.base_dir,
-                            &mut property.all_fields,
-                            graph_info.name.as_ref().unwrap(),
-                            None,
-                            Some(&nodes_to_remove),
-                            None,
-                        ) {
-                            eprintln!("Warning: Failed to update property.json file: {}", e);
-                        }
+                    let nodes_to_remove = vec![node_to_remove];
+
+                    // Write the updated property_all_fields map to
+                    // property.json.
+                    if let Err(e) = update_graph_node_all_fields(
+                        &pkg_info.url,
+                        &mut property.all_fields,
+                        graph_info.name.as_ref().unwrap(),
+                        None,
+                        Some(&nodes_to_remove),
+                        None,
+                    ) {
+                        eprintln!(
+                            "Warning: Failed to update property.json file: {}",
+                            e
+                        );
                     }
-
-                    let response = ApiResponse {
-                        status: Status::Ok,
-                        data: DeleteGraphNodeResponsePayload { success: true },
-                        meta: None,
-                    };
-                    Ok(HttpResponse::Ok().json(response))
-                }
-                Err(err) => {
-                    let error_response = ErrorResponse {
-                        status: Status::Fail,
-                        message: format!("Failed to delete node: {}", err),
-                        error: None,
-                    };
-                    Ok(HttpResponse::BadRequest().json(error_response))
                 }
             }
-        } else {
+
+            let response = ApiResponse {
+                status: Status::Ok,
+                data: DeleteGraphNodeResponsePayload { success: true },
+                meta: None,
+            };
+            Ok(HttpResponse::Ok().json(response))
+        }
+        Err(err) => {
             let error_response = ErrorResponse {
                 status: Status::Fail,
-                message: "App package not found".to_string(),
+                message: format!("Failed to delete node: {}", err),
                 error: None,
             };
-            Ok(HttpResponse::NotFound().json(error_response))
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
-    } else {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "Base directory not found".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
     }
 }
