@@ -122,26 +122,25 @@ pub async fn add_graph_connection_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
 
-    // Create a hash map from app URIs to PkgsInfoInApp for use with
-    // add_connection.
-    let uri_to_pkg_info =
-        match create_uri_to_pkg_info_map(&state_write.pkgs_cache) {
-            Ok(map) => map,
-            Err(error_message) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: error_message,
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        };
-
     let DesignerState {
         pkgs_cache,
         graphs_cache,
         ..
     } = &mut *state_write;
+
+    // Create a hash map from app URIs to PkgsInfoInApp for use with
+    // add_connection.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(

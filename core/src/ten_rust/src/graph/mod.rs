@@ -6,7 +6,6 @@
 //
 mod check;
 pub mod connection;
-pub mod extension;
 pub mod graph_info;
 pub mod msg_conversion;
 pub mod node;

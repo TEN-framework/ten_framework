@@ -12,8 +12,11 @@ pub mod validate;
 
 use std::collections::HashMap;
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use ten_rust::graph::graph_info::GraphInfo;
+use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::manifest::api::{
     ManifestApiCmdLike, ManifestApiDataLike,
 };
@@ -21,6 +24,7 @@ use ten_rust::pkg_info::manifest::api::{
     ManifestCmdResult, ManifestPropertyAttributes,
 };
 use ten_rust::pkg_info::value_type::ValueType;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerApi {
@@ -171,5 +175,22 @@ impl From<ManifestApiDataLike> for DesignerApiDataLike {
                 .filter(|req| !req.is_empty())
                 .cloned(),
         }
+    }
+}
+
+/// Retrieves all extension nodes from a specified graph.
+pub fn get_extension_nodes_in_graph<'a>(
+    graph_id: &Uuid,
+    graphs_cache: &'a HashMap<Uuid, GraphInfo>,
+) -> Result<&'a Vec<GraphNode>> {
+    // Look for the graph by ID in the graphs_cache.
+    if let Some(graph_info) = graphs_cache.get(graph_id) {
+        // Collect all extension nodes from the graph.
+        Ok(&graph_info.graph.nodes)
+    } else {
+        Err(anyhow::anyhow!(
+            "Graph with ID '{}' not found in graph caches",
+            graph_id
+        ))
     }
 }
