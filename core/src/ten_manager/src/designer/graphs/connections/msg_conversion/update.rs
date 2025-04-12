@@ -6,6 +6,7 @@
 //
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 use actix_web::{web, HttpResponse, Responder};
 use ten_rust::{
@@ -22,13 +23,13 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::update_graph_connections_all_fields,
+    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct UpdateGraphConnectionMsgConversionRequestPayload {
     pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 
     pub src_app: Option<String>,
     pub src_extension: String,
@@ -54,9 +55,31 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
     // Get a write lock on the state since we may need to modify the graph.
     let mut state_write = state.write().unwrap();
 
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
+    // Get the specified graph from graphs_cache.
+    let graph_info = match graphs_cache_find_by_id_mut(
+        graphs_cache,
+        &request_payload.graph_id,
+    ) {
+        Some(graph_info) => graph_info,
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Graph not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+    };
+
     // Get the packages for this base_dir.
     if let Some(base_dir_pkg_info) =
-        state_write.pkgs_cache.get_mut(&request_payload.base_dir)
+        pkgs_cache.get_mut(&request_payload.base_dir)
     {
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
@@ -110,7 +133,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
                 if let Err(e) = update_graph_connections_all_fields(
                     &request_payload.base_dir,
                     &mut property.all_fields,
-                    &request_payload.graph_name,
+                    graph_info.name.as_ref().unwrap(),
                     None,
                     None,
                     Some(&connections_to_modify),

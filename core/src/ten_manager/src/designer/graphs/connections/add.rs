@@ -10,13 +10,12 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::pkg_type::PkgType;
-use ten_rust::pkg_info::predefined_graphs::graphs_cache_find_mut;
 use ten_rust::{
     graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
     graph::msg_conversion::MsgAndResultConversion,
     pkg_info::message::MsgType,
 };
+use uuid::Uuid;
 
 use crate::designer::{
     graphs::util::find_app_package_from_base_dir,
@@ -24,13 +23,15 @@ use crate::designer::{
     DesignerState,
 };
 
-use crate::graph::update_graph_connections_all_fields;
+use crate::graph::{
+    graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
+};
 use crate::pkg_info::create_uri_to_pkg_info_map;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
     pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 
     pub src_app: Option<String>,
     pub src_extension: String,
@@ -141,6 +142,22 @@ pub async fn add_graph_connection_endpoint(
         ..
     } = &mut *state_write;
 
+    // Get the specified graph from graphs_cache.
+    let graph_info = match graphs_cache_find_by_id_mut(
+        graphs_cache,
+        &request_payload.graph_id,
+    ) {
+        Some(graph_info) => graph_info,
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Graph not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+    };
+
     // Get the packages for this base_dir.
     if let Some(base_dir_pkg_info) =
         pkgs_cache.get_mut(&request_payload.base_dir)
@@ -148,78 +165,52 @@ pub async fn add_graph_connection_endpoint(
         // Find the app package.
         if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
         {
-            // Get the specified graph from graphs_cache.
-            if let Some(graph_info) = graphs_cache_find_mut(graphs_cache, |g| {
-                g.name
-                    .as_ref()
-                    .map(|name| name == &request_payload.graph_name)
-                    .unwrap_or(false)
-                    && (g.app_base_dir.is_some()
-                        && g.app_base_dir.as_ref().unwrap()
-                            == &request_payload.base_dir)
-                    && (g.belonging_pkg_type.is_some()
-                        && g.belonging_pkg_type.unwrap() == PkgType::App)
-            }) {
-                // Add the connection using the converted PkgsInfoInApp map.
-                match graph_info.graph.add_connection(
-                    request_payload.src_app.clone(),
-                    request_payload.src_extension.clone(),
-                    request_payload.msg_type.clone(),
-                    request_payload.msg_name.clone(),
-                    request_payload.dest_app.clone(),
-                    request_payload.dest_extension.clone(),
-                    &uri_to_pkg_info,
-                    request_payload.msg_conversion.clone(),
-                ) {
-                    Ok(_) => {
-                        // Update property.json file with the updated graph.
-                        if let Some(property) = &mut app_pkg.property {
-                            // Create a new connection object.
-                            let connection =
-                                create_graph_connection(&request_payload);
+            // Add the connection using the converted PkgsInfoInApp map.
+            match graph_info.graph.add_connection(
+                request_payload.src_app.clone(),
+                request_payload.src_extension.clone(),
+                request_payload.msg_type.clone(),
+                request_payload.msg_name.clone(),
+                request_payload.dest_app.clone(),
+                request_payload.dest_extension.clone(),
+                &uri_to_pkg_info,
+                request_payload.msg_conversion.clone(),
+            ) {
+                Ok(_) => {
+                    // Update property.json file with the updated graph.
+                    if let Some(property) = &mut app_pkg.property {
+                        // Create a new connection object.
+                        let connection =
+                            create_graph_connection(&request_payload);
 
-                            // Update the property.json file.
-                            if let Err(e) = update_property_file(
-                                &request_payload.base_dir,
-                                property,
-                                &request_payload.graph_name,
-                                &connection,
-                            ) {
-                                eprintln!("Warning: Failed to update property.json file: {}", e);
-                            }
+                        // Update the property.json file.
+                        if let Err(e) = update_property_file(
+                            &request_payload.base_dir,
+                            property,
+                            graph_info.name.as_ref().unwrap(),
+                            &connection,
+                        ) {
+                            eprintln!("Warning: Failed to update property.json file: {}", e);
                         }
+                    }
 
-                        let response = ApiResponse {
-                            status: Status::Ok,
-                            data: AddGraphConnectionResponsePayload {
-                                success: true,
-                            },
-                            meta: None,
-                        };
-                        Ok(HttpResponse::Ok().json(response))
-                    }
-                    Err(err) => {
-                        let error_response = ErrorResponse {
-                            status: Status::Fail,
-                            message: format!(
-                                "Failed to add connection: {}",
-                                err
-                            ),
-                            error: None,
-                        };
-                        Ok(HttpResponse::BadRequest().json(error_response))
-                    }
+                    let response = ApiResponse {
+                        status: Status::Ok,
+                        data: AddGraphConnectionResponsePayload {
+                            success: true,
+                        },
+                        meta: None,
+                    };
+                    Ok(HttpResponse::Ok().json(response))
                 }
-            } else {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: format!(
-                        "Graph '{}' not found",
-                        request_payload.graph_name
-                    ),
-                    error: None,
-                };
-                Ok(HttpResponse::NotFound().json(error_response))
+                Err(err) => {
+                    let error_response = ErrorResponse {
+                        status: Status::Fail,
+                        message: format!("Failed to add connection: {}", err),
+                        error: None,
+                    };
+                    Ok(HttpResponse::BadRequest().json(error_response))
+                }
             }
         } else {
             let error_response = ErrorResponse {
