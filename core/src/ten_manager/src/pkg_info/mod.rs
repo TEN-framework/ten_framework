@@ -165,3 +165,57 @@ pub fn pkg_info_find_by_graph_info<'a>(
         None => Ok(None),
     }
 }
+
+pub fn pkg_info_find_by_graph_info_mut<'a>(
+    pkgs_cache: &'a mut HashMap<String, PkgsInfoInApp>,
+    graph_info: &GraphInfo,
+) -> Result<Option<&'a mut PkgInfo>> {
+    match &graph_info.app_base_dir {
+        Some(app_base_dir) => {
+            let app_base_dir = app_base_dir.clone();
+            let pkgs_info_in_app = pkgs_cache.get_mut(&app_base_dir);
+            assert!(pkgs_info_in_app.is_some());
+
+            if let Some(pkgs_info_in_app) = pkgs_info_in_app {
+                match graph_info.belonging_pkg_type {
+                    Some(PkgType::App) => {
+                        Ok(pkgs_info_in_app.app_pkg_info.as_mut())
+                    }
+                    Some(PkgType::Extension) => {
+                        assert!(graph_info.belonging_pkg_name.is_some());
+                        assert!(pkgs_info_in_app.extension_pkgs_info.is_some());
+
+                        if let Some(pkg_name) = &graph_info.belonging_pkg_name {
+                            if let Some(extension_pkgs_info) =
+                                pkgs_info_in_app.extension_pkgs_info.as_mut()
+                            {
+                                Ok(extension_pkgs_info.iter_mut().find(|pkg| {
+                                    pkg.manifest.as_ref().is_some_and(|m| {
+                                        m.type_and_name.name == *pkg_name
+                                    })
+                                }))
+                            } else {
+                                Err(anyhow!(
+                                    "Package name not found: {:?}",
+                                    graph_info.belonging_pkg_name
+                                ))
+                            }
+                        } else {
+                            Err(anyhow!(
+                                "Package name not found: {:?}",
+                                graph_info.belonging_pkg_name
+                            ))
+                        }
+                    }
+                    _ => Err(anyhow!(
+                        "Unsupported package type: {:?}",
+                        graph_info.belonging_pkg_type
+                    )),
+                }
+            } else {
+                Err(anyhow!("App base dir not found: {:?}", app_base_dir))
+            }
+        }
+        None => Ok(None),
+    }
+}
