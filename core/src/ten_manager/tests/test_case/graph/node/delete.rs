@@ -6,6 +6,7 @@
 //
 #[cfg(test)]
 mod tests {
+    use ten_manager::designer::graphs::nodes::delete::graph_delete_extension_node;
     use ten_rust::{
         graph::{
             connection::{GraphConnection, GraphDestination, GraphMessageFlow},
@@ -111,7 +112,8 @@ mod tests {
         };
 
         // Test case 1: Delete a node that doesn't exist.
-        let result = graph.delete_extension_node(
+        let result = graph_delete_extension_node(
+            &mut graph,
             "non_existent".to_string(),
             "addon1".to_string(),
             Some("app1".to_string()),
@@ -123,7 +125,8 @@ mod tests {
 
         // Test case 2: Delete ext1 - should remove node and connections to/from
         // it.
-        let result = graph.delete_extension_node(
+        let result = graph_delete_extension_node(
+            &mut graph,
             "ext1".to_string(),
             "addon1".to_string(),
             Some("app1".to_string()),
@@ -146,7 +149,8 @@ mod tests {
 
         // Test case 3: Delete ext3 - should remove node and connections to/from
         // it.
-        let result = graph.delete_extension_node(
+        let result = graph_delete_extension_node(
+            &mut graph,
             "ext3".to_string(),
             "addon3".to_string(),
             Some("app2".to_string()),
@@ -163,7 +167,8 @@ mod tests {
 
         // Test case 4: Delete the last node - should have no effect on
         // connections (already None).
-        let result = graph.delete_extension_node(
+        let result = graph_delete_extension_node(
+            &mut graph,
             "ext2".to_string(),
             "addon2".to_string(),
             Some("app1".to_string()),
@@ -229,7 +234,8 @@ mod tests {
         // This will result in all message flows becoming empty, and since all
         // message flows are empty, the connection will be removed, and since no
         // connections are left, connections will be set to None.
-        let result = graph.delete_extension_node(
+        let result = graph_delete_extension_node(
+            &mut graph,
             "ext2".to_string(),
             "addon2".to_string(),
             Some("app1".to_string()),
