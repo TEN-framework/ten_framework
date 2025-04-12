@@ -78,41 +78,48 @@ pub fn get_compatible_cmd_extension<'a>(
 ) -> Result<Vec<CompatibleExtensionAndMsg<'a>>> {
     let mut result = Vec::new();
 
-    for checking_extension_graph_node in extension_graph_nodes {
-        let checking_extension_pkg_info =
-            get_pkg_info_for_extension_graph_node(
-                checking_extension_graph_node,
-                uri_to_pkg_info,
-                app_base_dir,
-                pkgs_cache,
-            )
-            .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
+    for target_extension_graph_node in extension_graph_nodes {
+        let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
+            target_extension_graph_node,
+            uri_to_pkg_info,
+            app_base_dir,
+            pkgs_cache,
+        );
 
-        let target_cmd_schema = checking_extension_pkg_info
-            .schema_store
-            .as_ref()
-            .and_then(|schema_store| match desired_msg_dir {
-                MsgDirection::In => schema_store.cmd_in.get(cmd_name),
-                MsgDirection::Out => schema_store.cmd_out.get(cmd_name),
-            });
+        match target_extension_pkg_info {
+            Some(target_extension_pkg_info) => {
+                let target_cmd_schema = target_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|schema_store| match desired_msg_dir {
+                        MsgDirection::In => schema_store.cmd_in.get(cmd_name),
+                        MsgDirection::Out => schema_store.cmd_out.get(cmd_name),
+                    });
 
-        let compatible = match desired_msg_dir {
-            MsgDirection::In => {
-                are_cmd_schemas_compatible(pivot, target_cmd_schema)
+                let compatible = match desired_msg_dir {
+                    MsgDirection::In => are_cmd_schemas_compatible(
+                        pivot,
+                        target_cmd_schema,
+                        false,
+                    ),
+                    MsgDirection::Out => are_cmd_schemas_compatible(
+                        target_cmd_schema,
+                        pivot,
+                        false,
+                    ),
+                };
+
+                if compatible.is_ok() {
+                    result.push(CompatibleExtensionAndMsg {
+                        extension: target_extension_graph_node,
+                        msg_type: MsgType::Cmd,
+                        msg_name: cmd_name.to_string(),
+                        msg_direction: desired_msg_dir.clone(),
+                    });
+                }
             }
-            MsgDirection::Out => {
-                are_cmd_schemas_compatible(target_cmd_schema, pivot)
-            }
+            None => continue,
         };
-
-        if compatible.is_ok() {
-            result.push(CompatibleExtensionAndMsg {
-                extension: checking_extension_graph_node,
-                msg_type: MsgType::Cmd,
-                msg_name: cmd_name.to_string(),
-                msg_direction: desired_msg_dir.clone(),
-            });
-        }
     }
 
     Ok(result)
@@ -131,63 +138,75 @@ pub fn get_compatible_data_like_msg_extension<'a>(
 ) -> Result<Vec<CompatibleExtensionAndMsg<'a>>> {
     let mut result = Vec::new();
 
-    for ext in extension_graph_nodes {
-        let pkg_info = get_pkg_info_for_extension_graph_node(
-            ext,
+    for target_extension_graph_node in extension_graph_nodes {
+        let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
+            target_extension_graph_node,
             uri_to_pkg_info,
             app_base_dir,
             pkgs_cache,
-        )
-        .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
+        );
 
-        let target_msg_schema =
-            pkg_info.schema_store.as_ref().and_then(|schema_store| {
-                let msg_name = msg_name.as_str();
-                match msg_type {
-                    MsgType::Data => match desired_msg_dir {
-                        MsgDirection::In => schema_store.data_in.get(msg_name),
-                        MsgDirection::Out => {
-                            schema_store.data_out.get(msg_name)
+        match target_extension_pkg_info {
+            Some(target_extension_pkg_info) => {
+                let target_msg_schema = target_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|schema_store| {
+                        let msg_name = msg_name.as_str();
+                        match msg_type {
+                            MsgType::Data => match desired_msg_dir {
+                                MsgDirection::In => {
+                                    schema_store.data_in.get(msg_name)
+                                }
+                                MsgDirection::Out => {
+                                    schema_store.data_out.get(msg_name)
+                                }
+                            },
+                            MsgType::AudioFrame => match desired_msg_dir {
+                                MsgDirection::In => {
+                                    schema_store.audio_frame_in.get(msg_name)
+                                }
+                                MsgDirection::Out => {
+                                    schema_store.audio_frame_out.get(msg_name)
+                                }
+                            },
+                            MsgType::VideoFrame => match desired_msg_dir {
+                                MsgDirection::In => {
+                                    schema_store.video_frame_in.get(msg_name)
+                                }
+                                MsgDirection::Out => {
+                                    schema_store.video_frame_out.get(msg_name)
+                                }
+                            },
+                            _ => {
+                                panic!("Unsupported message type: {}", msg_type)
+                            }
                         }
-                    },
-                    MsgType::AudioFrame => match desired_msg_dir {
-                        MsgDirection::In => {
-                            schema_store.audio_frame_in.get(msg_name)
-                        }
-                        MsgDirection::Out => {
-                            schema_store.audio_frame_out.get(msg_name)
-                        }
-                    },
-                    MsgType::VideoFrame => match desired_msg_dir {
-                        MsgDirection::In => {
-                            schema_store.video_frame_in.get(msg_name)
-                        }
-                        MsgDirection::Out => {
-                            schema_store.video_frame_out.get(msg_name)
-                        }
-                    },
-                    _ => {
-                        panic!("Unsupported message type: {}", msg_type)
-                    }
+                    });
+
+                let compatible = match desired_msg_dir {
+                    MsgDirection::In => are_ten_schemas_compatible(
+                        pivot,
+                        target_msg_schema,
+                        false,
+                    ),
+                    MsgDirection::Out => are_ten_schemas_compatible(
+                        target_msg_schema,
+                        pivot,
+                        false,
+                    ),
+                };
+
+                if compatible.is_ok() {
+                    result.push(CompatibleExtensionAndMsg {
+                        extension: target_extension_graph_node,
+                        msg_type: msg_type.clone(),
+                        msg_name: msg_name.to_string(),
+                        msg_direction: desired_msg_dir.clone(),
+                    });
                 }
-            });
-
-        let compatible = match desired_msg_dir {
-            MsgDirection::In => {
-                are_ten_schemas_compatible(pivot, target_msg_schema)
             }
-            MsgDirection::Out => {
-                are_ten_schemas_compatible(target_msg_schema, pivot)
-            }
-        };
-
-        if compatible.is_ok() {
-            result.push(CompatibleExtensionAndMsg {
-                extension: ext,
-                msg_type: msg_type.clone(),
-                msg_name: msg_name.to_string(),
-                msg_direction: desired_msg_dir.clone(),
-            });
+            None => continue,
         }
     }
 

@@ -323,7 +323,7 @@ impl Graph {
                     .and_then(|store| store.cmd_in.get(msg_name));
 
                 if let Err(err) =
-                    are_cmd_schemas_compatible(src_schema, dest_schema)
+                    are_cmd_schemas_compatible(src_schema, dest_schema, true)
                 {
                     return Err(anyhow::anyhow!(
                         "Command schema incompatibility between source and destination: {}",
@@ -343,7 +343,7 @@ impl Graph {
                     .and_then(|store| store.data_in.get(msg_name));
 
                 if let Err(err) =
-                    are_ten_schemas_compatible(src_schema, dest_schema)
+                    are_ten_schemas_compatible(src_schema, dest_schema, true)
                 {
                     return Err(anyhow::anyhow!(
                         "Data schema incompatibility between source and destination: {}",
@@ -363,7 +363,7 @@ impl Graph {
                     .and_then(|store| store.audio_frame_in.get(msg_name));
 
                 if let Err(err) =
-                    are_ten_schemas_compatible(src_schema, dest_schema)
+                    are_ten_schemas_compatible(src_schema, dest_schema, true)
                 {
                     return Err(anyhow::anyhow!(
                         "Audio frame schema incompatibility between source and destination: {}",
@@ -383,7 +383,7 @@ impl Graph {
                     .and_then(|store| store.video_frame_in.get(msg_name));
 
                 if let Err(err) =
-                    are_ten_schemas_compatible(src_schema, dest_schema)
+                    are_ten_schemas_compatible(src_schema, dest_schema, true)
                 {
                     return Err(anyhow::anyhow!(
                         "Video frame schema incompatibility between source and destination: {}",
