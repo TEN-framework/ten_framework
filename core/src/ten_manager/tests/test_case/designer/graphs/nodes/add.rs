@@ -68,7 +68,6 @@ mod tests {
 
         // Try to add a node to a non-existent graph.
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
             graph_id: Uuid::new_v4(),
             addon_app_base_dir: None,
             node_name: "test_node".to_string(),
@@ -124,7 +123,6 @@ mod tests {
 
         // Try to add a node with localhost app URI (which is not allowed).
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
             graph_id: *graph_id,
             addon_app_base_dir: None,
             node_name: "test_node".to_string(),
@@ -192,7 +190,6 @@ mod tests {
 
         // Add a node to the default graph with the same app URI as other nodes
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
             graph_id: *graph_id,
             addon_app_base_dir: None,
             node_name: "test_node".to_string(),
@@ -263,7 +260,6 @@ mod tests {
 
         // Add a node to the default graph with the same app URI as other nodes.
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
             graph_id: *graph_id,
             addon_app_base_dir: None,
             node_name: "test_node".to_string(),
@@ -360,7 +356,6 @@ mod tests {
 
         // Add a node to the test-graph.
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
             graph_id: *graph_id,
             addon_app_base_dir: None,
             node_name: "new-node".to_string(),
@@ -472,7 +467,6 @@ mod tests {
 
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
             graph_id: *graph_id,
             addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "test_delete_node".to_string(),
@@ -589,7 +583,6 @@ mod tests {
 
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
             graph_id: *graph_id,
             addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "test_delete_node".to_string(),

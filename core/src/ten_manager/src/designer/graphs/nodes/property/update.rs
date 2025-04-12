@@ -16,19 +16,18 @@ use ten_rust::{
 
 use crate::{
     designer::{
-        graphs::{
-            nodes::validate::{validate_node_request, GraphNodeValidatable},
-            util::find_app_package_from_base_dir,
+        graphs::nodes::validate::{
+            validate_node_request, GraphNodeValidatable,
         },
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
     graph::graphs_cache_find_by_id_mut,
+    pkg_info::pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct UpdateGraphNodePropertyRequestPayload {
-    pub graph_app_base_dir: String,
     pub graph_id: Uuid,
 
     pub addon_app_base_dir: Option<String>,
@@ -132,86 +131,66 @@ pub async fn update_graph_node_property_endpoint(
         }
     };
 
-    // Get the packages for this base_dir.
-    if let Some(base_dir_pkg_info) =
-        pkgs_cache.get_mut(&request_payload.graph_app_base_dir)
-    {
-        // Find the app package.
-        if let Some(app_pkg) = find_app_package_from_base_dir(base_dir_pkg_info)
-        {
-            // Find the node in the graph
-            let node_found = graph_info.graph.nodes.iter().any(|node| {
-                node.type_and_name.name == request_payload.node_name
-                    && node.addon == request_payload.addon_name
-                    && node.extension_group
-                        == request_payload.extension_group_name
-                    && node.app == request_payload.app_uri
-            });
+    // Find the node in the graph
+    let node_found = graph_info.graph.nodes.iter().any(|node| {
+        node.type_and_name.name == request_payload.node_name
+            && node.addon == request_payload.addon_name
+            && node.extension_group == request_payload.extension_group_name
+            && node.app == request_payload.app_uri
+    });
 
-            if !node_found {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: format!(
-                        "Node '{}' with addon '{}' not found in graph '{}'",
-                        request_payload.node_name,
-                        request_payload.addon_name,
-                        request_payload.graph_id
-                    ),
-                    error: None,
-                };
-                return Ok(HttpResponse::NotFound().json(error_response));
-            }
-
-            // Create the graph node with updated property.
-            let node_to_update = GraphNode {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: PkgType::Extension,
-                    name: request_payload.node_name.clone(),
-                },
-                addon: request_payload.addon_name.clone(),
-                extension_group: request_payload.extension_group_name.clone(),
-                app: request_payload.app_uri.clone(),
-                property: request_payload.property.clone(),
-            };
-
-            // Update property.json file with the updated graph node
-            // property.
-            if let Some(property) = &mut app_pkg.property {
-                // Write the updated property_all_fields map to
-                // property.json.
-                if let Err(e) = update_node_property(
-                    &request_payload.graph_app_base_dir,
-                    property,
-                    graph_info.name.as_ref().unwrap(),
-                    &node_to_update,
-                ) {
-                    eprintln!(
-                        "Warning: Failed to update property.json file: {}",
-                        e
-                    );
-                }
-            }
-
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: UpdateGraphNodePropertyResponsePayload { success: true },
-                meta: None,
-            };
-            Ok(HttpResponse::Ok().json(response))
-        } else {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "App package not found".to_string(),
-                error: None,
-            };
-            Ok(HttpResponse::NotFound().json(error_response))
-        }
-    } else {
+    if !node_found {
         let error_response = ErrorResponse {
             status: Status::Fail,
-            message: "Base directory not found".to_string(),
+            message: format!(
+                "Node '{}' with addon '{}' not found in graph '{}'",
+                request_payload.node_name,
+                request_payload.addon_name,
+                request_payload.graph_id
+            ),
             error: None,
         };
-        Ok(HttpResponse::NotFound().json(error_response))
+        return Ok(HttpResponse::NotFound().json(error_response));
     }
+
+    if let Ok(Some(pkg_info)) =
+        pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Create the graph node with updated property.
+        let node_to_update = GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: request_payload.node_name.clone(),
+            },
+            addon: request_payload.addon_name.clone(),
+            extension_group: request_payload.extension_group_name.clone(),
+            app: request_payload.app_uri.clone(),
+            property: request_payload.property.clone(),
+        };
+
+        // Update property.json file with the updated graph node
+        // property.
+        if let Some(property) = &mut pkg_info.property {
+            // Write the updated property_all_fields map to
+            // property.json.
+            if let Err(e) = update_node_property(
+                &pkg_info.url,
+                property,
+                graph_info.name.as_ref().unwrap(),
+                &node_to_update,
+            ) {
+                eprintln!(
+                    "Warning: Failed to update property.json file: {}",
+                    e
+                );
+            }
+        }
+    }
+
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: UpdateGraphNodePropertyResponsePayload { success: true },
+        meta: None,
+    };
+    Ok(HttpResponse::Ok().json(response))
 }
