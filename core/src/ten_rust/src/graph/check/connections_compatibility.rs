@@ -57,8 +57,8 @@ impl Graph {
         graph_app_base_dir: &str,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-        msg_name: &str,
         msg_type: &MsgType,
+        msg_name: &str,
         src_msg_schema: Option<&TenMsgSchema>,
         dests: &[GraphDestination],
         ignore_missing_apps: bool,
@@ -114,79 +114,7 @@ impl Graph {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn check_cmd_flow_compatible(
-        &self,
-        graph_app_base_dir: &str,
-        pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-        cmd_name: &str,
-        src_cmd_schema: Option<&TenMsgSchema>,
-        dests: &[GraphDestination],
-        ignore_missing_apps: bool,
-    ) -> Result<()> {
-        let mut errors: Vec<String> = Vec::new();
-
-        for dest in dests {
-            let dest_addon = self.get_addon_name_of_extension(
-                dest.get_app_uri(),
-                dest.extension.as_str(),
-            );
-
-            let extension_pkg_info = match get_pkg_info_for_extension_addon(
-              &dest.app,
-              &dest_addon.to_string(),
-              uri_to_pkg_info,
-              Some(&graph_app_base_dir.to_string()),
-              pkgs_cache,
-          ) {
-              Some(pkg_info) => pkg_info,
-              None if ignore_missing_apps => continue,
-              None => {
-                  return Err(anyhow::anyhow!(
-                      "Extension addon [{}] is not found in the pkgs map, should not happen.",
-                      dest_addon
-                  ))
-              }
-          };
-
-            let dest_cmd_schema = find_msg_schema_from_all_pkgs_info(
-                extension_pkg_info,
-                &MsgType::Cmd,
-                cmd_name,
-                MsgDirection::In,
-            );
-
-            if let Err(e) = are_msg_schemas_compatible(
-                src_cmd_schema,
-                dest_cmd_schema,
-                true,
-            ) {
-                errors.push(format!(
-                    "Schema incompatible to [extension: {}], {}",
-                    dest.extension, e
-                ));
-            }
-        }
-
-        if errors.is_empty() {
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("{}", errors.join("\n")))
-        }
-    }
-
     /// Check the compatibility of a single connection with all its flow types.
-    ///
-    /// # Parameters
-    /// * `installed_pkgs_of_all_apps` - Map of all packages across all apps
-    /// * `connection` - The connection to validate
-    /// * `ignore_missing_apps` - Whether to skip validation when an app is
-    ///   missing
-    ///
-    /// # Returns
-    /// * `Ok(())` if the connection is compatible
-    /// * `Err` with compatibility error details otherwise
     fn check_connection_compatibility(
         &self,
         graph_app_base_dir: &str,
@@ -232,10 +160,11 @@ impl Graph {
                 );
 
                 // Check command flow compatibility.
-                if let Err(e) = self.check_cmd_flow_compatible(
+                if let Err(e) = self.check_msg_flow_compatible(
                     graph_app_base_dir,
                     pkgs_cache,
                     uri_to_pkg_info,
+                    &MsgType::Cmd,
                     flow.name.as_str(),
                     src_cmd_schema,
                     &flow.dest,
@@ -262,8 +191,8 @@ impl Graph {
                     graph_app_base_dir,
                     pkgs_cache,
                     uri_to_pkg_info,
-                    flow.name.as_str(),
                     &MsgType::Data,
+                    flow.name.as_str(),
                     src_msg_schema,
                     &flow.dest,
                     ignore_missing_apps,
@@ -289,8 +218,8 @@ impl Graph {
                     graph_app_base_dir,
                     pkgs_cache,
                     uri_to_pkg_info,
-                    flow.name.as_str(),
                     &MsgType::VideoFrame,
+                    flow.name.as_str(),
                     src_msg_schema,
                     &flow.dest,
                     ignore_missing_apps,
@@ -316,8 +245,8 @@ impl Graph {
                     graph_app_base_dir,
                     pkgs_cache,
                     uri_to_pkg_info,
-                    flow.name.as_str(),
                     &MsgType::AudioFrame,
+                    flow.name.as_str(),
                     src_msg_schema,
                     &flow.dest,
                     ignore_missing_apps,
