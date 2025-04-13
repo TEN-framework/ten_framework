@@ -60,12 +60,14 @@ pub fn get_pkg_in_app<'a>(
 /// Creates a mapping from app URIs to PkgsInfoInAppWithBaseDir.
 /// This function is used to create a hash map that can be used for graph
 /// connection operations.
-pub fn create_uri_to_pkg_info_map(
-    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir>, String> {
+pub fn create_uri_to_pkg_info_map<'a>(
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir<'a>>, String> {
     // Create a hash map from app URIs to PkgsInfoInApp
-    let mut uri_to_pkg_info: HashMap<Option<String>, PkgsInfoInAppWithBaseDir> =
-        HashMap::new();
+    let mut uri_to_pkg_info: HashMap<
+        Option<String>,
+        PkgsInfoInAppWithBaseDir<'a>,
+    > = HashMap::new();
 
     // Process all available apps to map URIs to PkgsInfoInApp
     for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
@@ -99,8 +101,8 @@ pub fn create_uri_to_pkg_info_map(
                     uri_to_pkg_info.insert(
                         key,
                         PkgsInfoInAppWithBaseDir {
-                            pkgs_info_in_app: base_dir_pkg_info.clone(),
-                            base_dir: base_dir.clone(),
+                            pkgs_info_in_app: base_dir_pkg_info,
+                            base_dir,
                         },
                     );
                 }

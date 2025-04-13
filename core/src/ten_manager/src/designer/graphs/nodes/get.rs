@@ -11,9 +11,6 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use ten_rust::graph::extension::{
-    get_extension_nodes_in_graph, get_pkg_info_for_extension,
-};
 use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
@@ -24,8 +21,10 @@ use crate::designer::common::{
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
+use crate::graph::compatible::get_pkg_info_for_extension_graph_node;
+use crate::pkg_info::create_uri_to_pkg_info_map;
 
-use super::DesignerApi;
+use super::{get_extension_nodes_in_graph, DesignerApi};
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphNodesRequestPayload {
@@ -100,32 +99,27 @@ pub async fn get_graph_nodes_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    // Get the first entry from pkgs_cache
-    let base_dir_pkg_info =
-        if let Some((_, pkg_info)) = state_read.pkgs_cache.iter().next() {
-            pkg_info
-        } else {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "No packages available in the cache".to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::NotFound().json(error_response));
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info =
+        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
+            Ok(map) => map,
+            Err(error_message) => {
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: error_message,
+                    error: None,
+                };
+                return Ok(HttpResponse::BadRequest().json(error_response));
+            }
         };
-
-    if base_dir_pkg_info.app_pkg_info.is_none() {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "Application package information is missing".to_string(),
-            error: None,
-        };
-        return Ok(HttpResponse::NotFound().json(error_response));
-    }
-
-    // Get extension package information directly, if available.
-    let extensions_slice = base_dir_pkg_info.get_extensions();
 
     let graph_id = &request_payload.graph_id;
+
+    let graph_info = state_read.graphs_cache.get(&request_payload.graph_id);
+    let app_base_dir_of_graph = match graph_info {
+        Some(graph_info) => graph_info.app_base_dir.as_ref(),
+        None => None,
+    };
 
     let extension_graph_nodes = match get_extension_nodes_in_graph(
         graph_id,
@@ -147,9 +141,14 @@ pub async fn get_graph_nodes_endpoint(
 
     let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
-    for extension_graph_node in &extension_graph_nodes {
-        let pkg_info =
-            get_pkg_info_for_extension(extension_graph_node, extensions_slice);
+    for extension_graph_node in extension_graph_nodes {
+        let pkg_info = get_pkg_info_for_extension_graph_node(
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
+            &uri_to_pkg_info,
+            app_base_dir_of_graph,
+            &state_read.pkgs_cache,
+        );
         if let Some(pkg_info) = pkg_info {
             resp_extensions.push(GraphNodesSingleResponseData {
                 addon: extension_graph_node.addon.clone(),

@@ -310,13 +310,18 @@ fn create_msg_schema_from_manifest(
 pub fn are_ten_schemas_compatible(
     source: Option<&TenSchema>,
     target: Option<&TenSchema>,
+    none_target_is_compatible: bool,
 ) -> Result<()> {
-    if source.is_none() && target.is_none() {
-        return Ok(());
+    if none_target_is_compatible {
+        if target.is_none() {
+            return Ok(());
+        }
+    } else if target.is_none() {
+        return Err(anyhow::anyhow!("target schema is undefined."));
     }
 
-    if source.is_none() || target.is_none() {
-        return Err(anyhow::anyhow!("source or target schema is undefined."));
+    if source.is_none() {
+        return Err(anyhow::anyhow!("source schema is undefined."));
     }
 
     let source = source.unwrap();
@@ -327,26 +332,32 @@ pub fn are_ten_schemas_compatible(
 pub fn are_cmd_schemas_compatible(
     source: Option<&CmdSchema>,
     target: Option<&CmdSchema>,
+    none_target_is_compatible: bool,
 ) -> Result<()> {
-    if source.is_none() && target.is_none() {
-        return Ok(());
+    if none_target_is_compatible {
+        if target.is_none() {
+            return Ok(());
+        }
+    } else if target.is_none() {
+        return Err(anyhow::anyhow!("target schema is undefined."));
     }
 
-    // TODO(Liu): The compatibility check should be more strict, ex:
-    // * If the source is none, but the target has 'required' keyword, then it
-    //   is not compatible.
-    // * If the target is none, then it is compatible.
-    //
-    // But we do not have enough information in TenSchema, and it's not a good
-    // idea to keep keywords info in Rust.
-    if source.is_none() || target.is_none() {
-        return Err(anyhow::anyhow!("source or target schema is undefined."));
+    if source.is_none() {
+        return Err(anyhow::anyhow!("source schema is undefined."));
     }
 
     let source = source.unwrap();
     let target = target.unwrap();
-    are_ten_schemas_compatible(source.cmd.as_ref(), target.cmd.as_ref())?;
-    are_ten_schemas_compatible(source.result.as_ref(), target.result.as_ref())?;
+    are_ten_schemas_compatible(
+        source.cmd.as_ref(),
+        target.cmd.as_ref(),
+        none_target_is_compatible,
+    )?;
+    are_ten_schemas_compatible(
+        source.result.as_ref(),
+        target.result.as_ref(),
+        true,
+    )?;
 
     Ok(())
 }

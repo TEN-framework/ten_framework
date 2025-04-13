@@ -34,10 +34,12 @@
             "type": "string"
           }
         },
-        "required": ["foo"]
+        "required": [
+          "foo"
+        ]
       },
       {
-        "name": "has_required_mismatch",
+        "name": "has_not_required",
         "property": {
           "foo": {
             "type": "string"
@@ -45,7 +47,12 @@
         }
       },
       {
-        "name": "cmd1"
+        "name": "cmd1",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        }
       },
       {
         "name": "cmd2",
@@ -68,10 +75,23 @@
             "type": "int8"
           }
         },
-        "required": ["a"]
+        "required": [
+          "a"
+        ]
       },
       {
         "name": "cmd4"
+      },
+      {
+        "name": "cmd5",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "foo"
+        ]
       }
     ],
     "data_in": [
@@ -94,7 +114,10 @@
                 "type": "bool"
               }
             },
-            "required": ["c", "d"]
+            "required": [
+              "c",
+              "d"
+            ]
           }
         }
       }

@@ -7,12 +7,14 @@
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
 use ten_rust::{
-    graph::{graph_info::GraphInfo, node::GraphNode},
+    graph::{graph_info::GraphInfo, node::GraphNode, Graph},
     pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
 };
-use uuid::Uuid;
 
 use crate::{
     designer::{
@@ -43,6 +45,43 @@ pub struct AddGraphNodeResponsePayload {
     pub success: bool,
 }
 
+pub fn graph_add_extension_node(
+    graph: &mut Graph,
+    pkg_name: String,
+    addon: String,
+    app: Option<String>,
+    extension_group: Option<String>,
+    property: Option<serde_json::Value>,
+) -> Result<()> {
+    // Store the original state in case validation fails.
+    let original_graph = graph.clone();
+
+    // Create new GraphNode.
+    let node = GraphNode {
+        type_and_name: PkgTypeAndName {
+            pkg_type: PkgType::Extension,
+            name: pkg_name,
+        },
+        addon,
+        extension_group,
+        app,
+        property,
+    };
+
+    // Add the node to the graph.
+    graph.nodes.push(node);
+
+    // Validate the graph.
+    match graph.validate_and_complete() {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            // Restore the original graph if validation fails.
+            *graph = original_graph;
+            Err(e)
+        }
+    }
+}
+
 /// Adds a new extension node to a graph.
 fn add_extension_node_to_graph(
     graph_info: &mut GraphInfo,
@@ -51,7 +90,8 @@ fn add_extension_node_to_graph(
     app_uri: &Option<String>,
 ) -> Result<(), String> {
     // Add the extension node.
-    match graph_info.graph.add_extension_node(
+    match graph_add_extension_node(
+        &mut graph_info.graph,
         node_name.to_string(),
         addon_name.to_string(),
         app_uri.clone(),

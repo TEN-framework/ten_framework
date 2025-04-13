@@ -17,9 +17,9 @@ pub struct PkgsInfoInApp {
 
 /// A struct that contains both PkgsInfoInApp and its base_dir.
 #[derive(Clone)]
-pub struct PkgsInfoInAppWithBaseDir {
-    pub pkgs_info_in_app: PkgsInfoInApp,
-    pub base_dir: String,
+pub struct PkgsInfoInAppWithBaseDir<'a> {
+    pub pkgs_info_in_app: &'a PkgsInfoInApp,
+    pub base_dir: &'a String,
 }
 
 impl PkgsInfoInApp {
