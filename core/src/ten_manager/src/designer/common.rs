@@ -7,27 +7,19 @@
 use std::collections::HashMap;
 
 use ten_rust::pkg_info::manifest::api::{
-    ManifestApiCmdLike, ManifestApiDataLike, ManifestPropertyAttributes,
+    ManifestApiMsg, ManifestApiPropertyAttributes,
 };
 
-use super::graphs::nodes::{
-    DesignerApiCmdLike, DesignerApiDataLike, DesignerPropertyAttributes,
-};
+use super::graphs::nodes::{DesignerApiMsg, DesignerPropertyAttributes};
 
 pub fn get_designer_property_hashmap_from_pkg(
-    items: HashMap<String, ManifestPropertyAttributes>,
+    items: HashMap<String, ManifestApiPropertyAttributes>,
 ) -> HashMap<String, DesignerPropertyAttributes> {
     items.into_iter().map(|(k, v)| (k, v.into())).collect()
 }
 
-pub fn get_designer_api_cmd_likes_from_pkg(
-    items: Vec<ManifestApiCmdLike>,
-) -> Vec<DesignerApiCmdLike> {
-    items.into_iter().map(|v| v.into()).collect()
-}
-
-pub fn get_designer_api_data_likes_from_pkg(
-    items: Vec<ManifestApiDataLike>,
-) -> Vec<DesignerApiDataLike> {
+pub fn get_designer_api_msg_from_pkg(
+    items: Vec<ManifestApiMsg>,
+) -> Vec<DesignerApiMsg> {
     items.into_iter().map(|v| v.into()).collect()
 }

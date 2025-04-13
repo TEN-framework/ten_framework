@@ -69,7 +69,6 @@ mod tests {
         // Try to add a node to a non-existent graph.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: Uuid::new_v4(),
-            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -124,7 +123,6 @@ mod tests {
         // Try to add a node with localhost app URI (which is not allowed).
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -147,6 +145,8 @@ mod tests {
             .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
+
+        println!("Response: {:?}", resp);
 
         // Should fail with a 400 Bad Request.
         assert_eq!(resp.status(), 400);
@@ -191,7 +191,6 @@ mod tests {
         // Add a node to the default graph with the same app URI as other nodes
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -261,7 +260,6 @@ mod tests {
         // Add a node to the default graph with the same app URI as other nodes.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -357,7 +355,6 @@ mod tests {
         // Add a node to the test-graph.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "new-node".to_string(),
             addon_name: "new-addon".to_string(),
             extension_group_name: None,
@@ -468,7 +465,6 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -584,7 +580,6 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,

@@ -29,7 +29,12 @@ pub struct GetAppsResponseData {
 pub async fn get_apps_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
     let response = ApiResponse {
         status: Status::Ok,

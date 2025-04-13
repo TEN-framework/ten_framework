@@ -19,7 +19,8 @@ use ten_rust::{
     schema::{
         runtime_interface::TenSchema,
         store::{
-            are_cmd_schemas_compatible, are_ten_schemas_compatible, CmdSchema,
+            are_cmd_schemas_compatible, are_ten_schemas_compatible,
+            TenMsgSchema,
         },
     },
 };
@@ -35,7 +36,7 @@ pub fn get_pkg_info_for_extension_graph_node<'a>(
     app: &Option<String>,
     extension_addon: &String,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    app_base_dir: Option<&String>,
+    graph_app_base_dir: Option<&String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
 ) -> Option<&'a PkgInfo> {
     let result =
@@ -56,13 +57,17 @@ pub fn get_pkg_info_for_extension_graph_node<'a>(
 
     if let Some(pkg_info) = result {
         Some(pkg_info)
-    } else if let Some(app_base_dir) = app_base_dir {
-        pkgs_cache.get(app_base_dir).and_then(|pkgs_info_in_app| {
-            pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
-                pkg_info.manifest.type_and_name.pkg_type == PkgType::Extension
-                    && pkg_info.manifest.type_and_name.name == *extension_addon
+    } else if let Some(graph_app_base_dir) = graph_app_base_dir {
+        pkgs_cache
+            .get(graph_app_base_dir)
+            .and_then(|pkgs_info_in_app| {
+                pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
+                    pkg_info.manifest.type_and_name.pkg_type
+                        == PkgType::Extension
+                        && pkg_info.manifest.type_and_name.name
+                            == *extension_addon
+                })
             })
-        })
     } else {
         None
     }
@@ -74,7 +79,7 @@ pub fn get_compatible_cmd_extension<'a>(
     app_base_dir: Option<&String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     desired_msg_dir: &MsgDirection,
-    pivot: Option<&CmdSchema>,
+    pivot: Option<&TenMsgSchema>,
     cmd_name: &str,
 ) -> Result<Vec<CompatibleExtensionAndMsg<'a>>> {
     let mut result = Vec::new();
@@ -190,11 +195,13 @@ pub fn get_compatible_data_like_msg_extension<'a>(
                 let compatible = match desired_msg_dir {
                     MsgDirection::In => are_ten_schemas_compatible(
                         pivot,
-                        target_msg_schema,
+                        target_msg_schema
+                            .and_then(|schema| schema.msg.as_ref()),
                         false,
                     ),
                     MsgDirection::Out => are_ten_schemas_compatible(
-                        target_msg_schema,
+                        target_msg_schema
+                            .and_then(|schema| schema.msg.as_ref()),
                         pivot,
                         false,
                     ),

@@ -34,14 +34,22 @@ pub async fn load_app_endpoint(
     request_payload: web::Json<LoadAppRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
 
-    if state_write
-        .pkgs_cache
-        .contains_key(&request_payload.base_dir)
-    {
-        let app_uri =
-            extract_app_uri(&state_write.pkgs_cache, &request_payload.base_dir);
+    // Destructure to avoid multiple mutable borrows.
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
+    if pkgs_cache.contains_key(&request_payload.base_dir) {
+        let app_uri = extract_app_uri(pkgs_cache, &request_payload.base_dir);
         return Ok(HttpResponse::Ok().json(ApiResponse {
             status: Status::Ok,
             data: LoadAppResponseData { app_uri },
@@ -51,13 +59,6 @@ pub async fn load_app_endpoint(
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
         Ok(_) => {
-            // Destructure to avoid multiple mutable borrows.
-            let DesignerState {
-                pkgs_cache,
-                graphs_cache,
-                ..
-            } = &mut *state_write;
-
             if let Err(err) = get_all_pkgs_in_app(
                 pkgs_cache,
                 graphs_cache,
@@ -68,10 +69,8 @@ pub async fn load_app_endpoint(
                 return Ok(HttpResponse::NotFound().json(error_response));
             }
 
-            let app_uri = extract_app_uri(
-                &state_write.pkgs_cache,
-                &request_payload.base_dir,
-            );
+            let app_uri =
+                extract_app_uri(pkgs_cache, &request_payload.base_dir);
             Ok(HttpResponse::Ok().json(ApiResponse {
                 status: Status::Ok,
                 data: LoadAppResponseData { app_uri },

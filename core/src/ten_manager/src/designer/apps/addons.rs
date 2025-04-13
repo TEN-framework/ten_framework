@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::common::{
-    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
-    get_designer_property_hashmap_from_pkg,
+    get_designer_api_msg_from_pkg, get_designer_property_hashmap_from_pkg,
 };
 use crate::designer::graphs::nodes::DesignerApi;
 use crate::designer::{
@@ -64,37 +63,45 @@ fn convert_pkg_info_to_addon(
                     get_designer_property_hashmap_from_pkg(prop.clone())
                 }),
 
-                cmd_in: api.cmd_in.as_ref().map(|cmd| {
-                    get_designer_api_cmd_likes_from_pkg(cmd.clone())
-                }),
+                cmd_in: api
+                    .cmd_in
+                    .as_ref()
+                    .map(|cmd| get_designer_api_msg_from_pkg(cmd.clone())),
 
-                cmd_out: api.cmd_out.as_ref().map(|cmd| {
-                    get_designer_api_cmd_likes_from_pkg(cmd.clone())
-                }),
+                cmd_out: api
+                    .cmd_out
+                    .as_ref()
+                    .map(|cmd| get_designer_api_msg_from_pkg(cmd.clone())),
 
-                data_in: api.data_in.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                data_in: api
+                    .data_in
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
 
-                data_out: api.data_out.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                data_out: api
+                    .data_out
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
 
-                audio_frame_in: api.audio_frame_in.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                audio_frame_in: api
+                    .audio_frame_in
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
 
-                audio_frame_out: api.audio_frame_out.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                audio_frame_out: api
+                    .audio_frame_out
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
 
-                video_frame_in: api.video_frame_in.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                video_frame_in: api
+                    .video_frame_in
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
 
-                video_frame_out: api.video_frame_out.as_ref().map(|data| {
-                    get_designer_api_data_likes_from_pkg(data.clone())
-                }),
+                video_frame_out: api
+                    .video_frame_out
+                    .as_ref()
+                    .map(|data| get_designer_api_msg_from_pkg(data.clone())),
             }),
     }
 }
@@ -103,7 +110,12 @@ pub async fn get_app_addons_endpoint(
     request_payload: web::Json<GetAppAddonsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
     // Check if base_dir exists in pkgs_cache.
     if request_payload.base_dir.is_empty()

@@ -128,12 +128,14 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.data_out.get(msg_name));
+                .and_then(|store| store.data_out.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.data_in.get(msg_name));
+                .and_then(|store| store.data_in.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             if let Err(err) =
                 are_ten_schemas_compatible(src_schema, dest_schema, true)
@@ -148,12 +150,14 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.audio_frame_out.get(msg_name));
+                .and_then(|store| store.audio_frame_out.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.audio_frame_in.get(msg_name));
+                .and_then(|store| store.audio_frame_in.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             if let Err(err) =
                 are_ten_schemas_compatible(src_schema, dest_schema, true)
@@ -168,12 +172,14 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.video_frame_out.get(msg_name));
+                .and_then(|store| store.video_frame_out.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.video_frame_in.get(msg_name));
+                .and_then(|store| store.video_frame_in.get(msg_name))
+                .and_then(|schema| schema.msg.as_ref());
 
             if let Err(err) =
                 are_ten_schemas_compatible(src_schema, dest_schema, true)

@@ -15,9 +15,13 @@ pub fn extract_command_from_manifest(
     name: &String,
     state: Arc<RwLock<DesignerState>>,
 ) -> Result<String> {
-    let state = state.read().unwrap();
+    let state_read = state
+        .read()
+        .map_err(|e| anyhow::anyhow!("Failed to acquire read lock: {}", e))?;
 
-    let base_dir_pkg_info = state.pkgs_cache.get(base_dir).unwrap();
+    let DesignerState { pkgs_cache, .. } = &*state_read;
+
+    let base_dir_pkg_info = pkgs_cache.get(base_dir).unwrap();
 
     // Get the app package directly from PkgsInfoInApp.
     let app_pkg = match &base_dir_pkg_info.app_pkg_info {

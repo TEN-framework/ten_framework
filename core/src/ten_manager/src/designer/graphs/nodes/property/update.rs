@@ -11,7 +11,7 @@ use uuid::Uuid;
 use actix_web::{web, HttpResponse, Responder};
 use ten_rust::{
     graph::node::GraphNode,
-    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
+    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo},
 };
 
 use crate::{
@@ -22,15 +22,17 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::graphs_cache_find_by_id_mut,
-    pkg_info::pkg_info_find_by_graph_info_mut,
+    graph::{
+        compatible::get_pkg_info_for_extension_graph_node,
+        graphs_cache_find_by_id_mut,
+    },
+    pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct UpdateGraphNodePropertyRequestPayload {
     pub graph_id: Uuid,
 
-    pub addon_app_base_dir: Option<String>,
     pub node_name: String,
     pub addon_name: String,
     pub extension_group_name: Option<String>,
@@ -44,10 +46,6 @@ pub struct UpdateGraphNodePropertyResponsePayload {
 }
 
 impl GraphNodeValidatable for UpdateGraphNodePropertyRequestPayload {
-    fn get_addon_app_base_dir(&self) -> &Option<String> {
-        &self.addon_app_base_dir
-    }
-
     fn get_addon_name(&self) -> &str {
         &self.addon_name
     }
@@ -65,9 +63,9 @@ impl GraphNodeValidatable for UpdateGraphNodePropertyRequestPayload {
 /// extension schema.
 fn validate_update_graph_node_property_request(
     request_payload: &UpdateGraphNodePropertyRequestPayload,
-    state: &mut DesignerState,
+    extension_pkg_info: &PkgInfo,
 ) -> Result<(), String> {
-    validate_node_request(request_payload, state)
+    validate_node_request(request_payload, extension_pkg_info)
 }
 
 /// Updates the property.json file with the updated graph node property.
@@ -94,20 +92,12 @@ pub async fn update_graph_node_property_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Get a write lock on the state since we need to modify the graph.
-    let mut state_write = state.write().unwrap();
-
-    // Validate the request payload before proceeding.
-    if let Err(validation_error) = validate_update_graph_node_property_request(
-        &request_payload,
-        &mut state_write,
-    ) {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: format!("Validation failed: {}", validation_error),
-            error: None,
-        };
-        return Ok(HttpResponse::BadRequest().json(error_response));
-    }
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
 
     let DesignerState {
         pkgs_cache,
@@ -125,6 +115,52 @@ pub async fn update_graph_node_property_endpoint(
             let error_response = ErrorResponse {
                 status: Status::Fail,
                 message: "Graph not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+    };
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    match get_pkg_info_for_extension_graph_node(
+        &request_payload.app_uri,
+        &request_payload.addon_name,
+        &uri_to_pkg_info,
+        graph_info.app_base_dir.as_ref(),
+        pkgs_cache,
+    ) {
+        Some(pkg_info) => {
+            // Validate the request payload before proceeding.
+            if let Err(validation_error) =
+                validate_update_graph_node_property_request(
+                    &request_payload,
+                    pkg_info,
+                )
+            {
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: format!("Validation failed: {}", validation_error),
+                    error: None,
+                };
+                return Ok(HttpResponse::BadRequest().json(error_response));
+            }
+        }
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Extension not found".to_string(),
                 error: None,
             };
             return Ok(HttpResponse::NotFound().json(error_response));

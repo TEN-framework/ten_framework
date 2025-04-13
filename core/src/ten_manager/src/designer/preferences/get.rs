@@ -22,7 +22,13 @@ pub struct GetPreferencesResponseData {
 pub async fn get_preferences_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
+
     let preferences = state_read.tman_config.designer.clone();
 
     let response_data = GetPreferencesResponseData { preferences };

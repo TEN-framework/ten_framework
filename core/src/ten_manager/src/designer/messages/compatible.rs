@@ -115,23 +115,33 @@ pub async fn get_compatible_messages_endpoint(
     request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
+
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &*state_read;
 
     // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info =
-        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
-            Ok(map) => map,
-            Err(error_message) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: error_message,
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        };
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
-    let graph_info = state_read.graphs_cache.get(&request_payload.graph_id);
+    let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
         Some(graph_info) => graph_info.app_base_dir.as_ref(),
         None => None,
@@ -152,7 +162,7 @@ pub async fn get_compatible_messages_endpoint(
 
         let extension_graph_nodes = match get_extension_nodes_in_graph(
             &request_payload.graph_id,
-            &state_read.graphs_cache,
+            graphs_cache,
         ) {
             Ok(exts) => exts,
             Err(err) => {
@@ -200,105 +210,106 @@ pub async fn get_compatible_messages_endpoint(
             &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
-            &state_read.pkgs_cache,
+            pkgs_cache,
         ) {
-            let compatible_list =
-                match msg_ty {
-                    MsgType::Cmd => {
-                        let src_cmd_schema = extension_pkg_info
-                            .schema_store
-                            .as_ref()
-                            .and_then(|schema_store| match msg_dir {
+            let compatible_list = match msg_ty {
+                MsgType::Cmd => {
+                    let src_cmd_schema = extension_pkg_info
+                        .schema_store
+                        .as_ref()
+                        .and_then(|schema_store| match msg_dir {
+                            MsgDirection::In => schema_store
+                                .cmd_in
+                                .get(request_payload.msg_name.as_str()),
+                            MsgDirection::Out => schema_store
+                                .cmd_out
+                                .get(request_payload.msg_name.as_str()),
+                        });
+
+                    match get_compatible_cmd_extension(
+                        extension_graph_nodes,
+                        &uri_to_pkg_info,
+                        app_base_dir_of_graph,
+                        pkgs_cache,
+                        &desired_msg_dir,
+                        src_cmd_schema,
+                        request_payload.msg_name.as_str(),
+                    ) {
+                        Ok(results) => results,
+                        Err(err) => {
+                            let error_response = ErrorResponse::from_error(
+                                &err,
+                                format!(
+                                    "Failed to find compatible cmd/{}:",
+                                    request_payload.msg_name
+                                )
+                                .as_str(),
+                            );
+                            return Ok(
+                                HttpResponse::NotFound().json(error_response)
+                            );
+                        }
+                    }
+                }
+                _ => {
+                    let src_msg_schema = extension_pkg_info
+                        .schema_store
+                        .as_ref()
+                        .and_then(|schema_store| match msg_ty {
+                            MsgType::Data => match msg_dir {
                                 MsgDirection::In => schema_store
-                                    .cmd_in
+                                    .data_in
                                     .get(request_payload.msg_name.as_str()),
                                 MsgDirection::Out => schema_store
-                                    .cmd_out
+                                    .data_out
                                     .get(request_payload.msg_name.as_str()),
-                            });
+                            },
+                            MsgType::AudioFrame => match msg_dir {
+                                MsgDirection::In => schema_store
+                                    .audio_frame_in
+                                    .get(request_payload.msg_name.as_str()),
+                                MsgDirection::Out => schema_store
+                                    .audio_frame_out
+                                    .get(request_payload.msg_name.as_str()),
+                            },
+                            MsgType::VideoFrame => match msg_dir {
+                                MsgDirection::In => schema_store
+                                    .video_frame_in
+                                    .get(request_payload.msg_name.as_str()),
+                                MsgDirection::Out => schema_store
+                                    .video_frame_out
+                                    .get(request_payload.msg_name.as_str()),
+                            },
+                            _ => panic!("should not happen."),
+                        });
 
-                        match get_compatible_cmd_extension(
-                            extension_graph_nodes,
-                            &uri_to_pkg_info,
-                            app_base_dir_of_graph,
-                            &state_read.pkgs_cache,
-                            &desired_msg_dir,
-                            src_cmd_schema,
-                            request_payload.msg_name.as_str(),
-                        ) {
-                            Ok(results) => results,
-                            Err(err) => {
-                                let error_response = ErrorResponse::from_error(
-                                    &err,
-                                    format!(
-                                        "Failed to find compatible cmd/{}:",
-                                        request_payload.msg_name
-                                    )
-                                    .as_str(),
-                                );
-                                return Ok(HttpResponse::NotFound()
-                                    .json(error_response));
-                            }
+                    match get_compatible_data_like_msg_extension(
+                        extension_graph_nodes,
+                        &uri_to_pkg_info,
+                        app_base_dir_of_graph,
+                        pkgs_cache,
+                        &desired_msg_dir,
+                        src_msg_schema.and_then(|schema| schema.msg.as_ref()),
+                        &msg_ty,
+                        request_payload.msg_name.clone(),
+                    ) {
+                        Ok(results) => results,
+                        Err(err) => {
+                            let error_response = ErrorResponse::from_error(
+                                &err,
+                                format!(
+                                    "Failed to find compatible {}:",
+                                    request_payload.msg_name
+                                )
+                                .as_str(),
+                            );
+                            return Ok(
+                                HttpResponse::NotFound().json(error_response)
+                            );
                         }
                     }
-                    _ => {
-                        let src_msg_schema = extension_pkg_info
-                            .schema_store
-                            .as_ref()
-                            .and_then(|schema_store| match msg_ty {
-                                MsgType::Data => match msg_dir {
-                                    MsgDirection::In => schema_store
-                                        .data_in
-                                        .get(request_payload.msg_name.as_str()),
-                                    MsgDirection::Out => schema_store
-                                        .data_out
-                                        .get(request_payload.msg_name.as_str()),
-                                },
-                                MsgType::AudioFrame => match msg_dir {
-                                    MsgDirection::In => schema_store
-                                        .audio_frame_in
-                                        .get(request_payload.msg_name.as_str()),
-                                    MsgDirection::Out => schema_store
-                                        .audio_frame_out
-                                        .get(request_payload.msg_name.as_str()),
-                                },
-                                MsgType::VideoFrame => match msg_dir {
-                                    MsgDirection::In => schema_store
-                                        .video_frame_in
-                                        .get(request_payload.msg_name.as_str()),
-                                    MsgDirection::Out => schema_store
-                                        .video_frame_out
-                                        .get(request_payload.msg_name.as_str()),
-                                },
-                                _ => panic!("should not happen."),
-                            });
-
-                        match get_compatible_data_like_msg_extension(
-                            extension_graph_nodes,
-                            &uri_to_pkg_info,
-                            app_base_dir_of_graph,
-                            &state_read.pkgs_cache,
-                            &desired_msg_dir,
-                            src_msg_schema,
-                            &msg_ty,
-                            request_payload.msg_name.clone(),
-                        ) {
-                            Ok(results) => results,
-                            Err(err) => {
-                                let error_response = ErrorResponse::from_error(
-                                    &err,
-                                    format!(
-                                        "Failed to find compatible {}:",
-                                        request_payload.msg_name
-                                    )
-                                    .as_str(),
-                                );
-                                return Ok(HttpResponse::NotFound()
-                                    .json(error_response));
-                            }
-                        }
-                    }
-                };
+                }
+            };
 
             let response_data: Vec<GetCompatibleMsgsSingleResponseData> =
                 compatible_list.into_iter().map(Into::into).collect();

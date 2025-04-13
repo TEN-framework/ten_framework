@@ -134,13 +134,13 @@ pub async fn execute_cmd(
 
     // Query the package from the registry.
     let mut found_packages = get_package_list(
-        tman_config.clone(),
+        &tman_config,
         Some(command_data.pkg_type),
         Some(command_data.pkg_name.clone()),
         Some(command_data.version_req.clone()),
         None,
         None, // Retrieve all packages.
-        out.clone(),
+        &out,
     )
     .await?;
 

@@ -228,7 +228,6 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: graph_id_clone,
-            addon_app_base_dir: None,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,

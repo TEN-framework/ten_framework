@@ -132,10 +132,6 @@ pub fn configure_routes(
                 "/graphs/nodes/property/update",
                 web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
             )
-            .route(
-                "/graphs/nodes/validate",
-                web::post().to(graphs::nodes::validate::validate_graph_node_endpoint),
-            )
             // Graph connections endpoints.
             .route(
                 "/graphs/connections",
