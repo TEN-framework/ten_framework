@@ -4,14 +4,21 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use serde::{Deserialize, Serialize};
-use std::sync::{Arc, RwLock};
-use uuid::Uuid;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
 use ten_rust::{
+    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
     graph::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
+        graph_info::GraphInfo,
         msg_conversion::MsgAndResultConversion,
     },
     pkg_info::{
@@ -57,56 +64,13 @@ pub struct UpdateGraphConnectionMsgConversionResponsePayload {
     pub success: bool,
 }
 
-pub async fn update_graph_connection_msg_conversion_endpoint(
-    request_payload: web::Json<
+// Update the GraphInfo structure.
+fn update_graph_info(
+    graph_info: &mut GraphInfo,
+    request_payload: &web::Json<
         UpdateGraphConnectionMsgConversionRequestPayload,
     >,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> Result<impl Responder, actix_web::Error> {
-    // Get a write lock on the state since we may need to modify the graph.
-    let mut state_write = state.write().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire write lock: {}",
-            e
-        ))
-    })?;
-
-    let DesignerState {
-        pkgs_cache,
-        graphs_cache,
-        ..
-    } = &mut *state_write;
-
-    // Get the specified graph from graphs_cache.
-    let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
-        &request_payload.graph_id,
-    ) {
-        Some(graph_info) => graph_info,
-        None => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "Graph not found".to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::NotFound().json(error_response));
-        }
-    };
-
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
-    // Update the GraphInfo structure.
+) -> Result<()> {
     // First check if connections exist in the graph.
     if let Some(connections) = &mut graph_info.graph.connections {
         // Try to find the matching connection based on app and extension.
@@ -148,6 +112,17 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     }
 
+    Ok(())
+}
+
+fn check_msg_conversion_schema(
+    graph_info: &mut GraphInfo,
+    request_payload: &web::Json<
+        UpdateGraphConnectionMsgConversionRequestPayload,
+    >,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+) -> Result<()> {
     if let Some(msg_conversion) = &request_payload.msg_conversion {
         let src_graph_node = extension_graph_node_find_by_loc(
             graph_info,
@@ -164,7 +139,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         .unwrap();
 
         let converted_schema = msg_conversion_get_final_target_schema(
-            &uri_to_pkg_info,
+            uri_to_pkg_info,
             graph_info.app_base_dir.as_ref(),
             pkgs_cache,
             &request_payload.msg_type,
@@ -190,7 +165,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
                 get_pkg_info_for_extension_addon(
                     &dest_graph_node.app,
                     &dest_graph_node.addon,
-                    &uri_to_pkg_info,
+                    uri_to_pkg_info,
                     graph_info.app_base_dir.as_ref(),
                     pkgs_cache,
                 )
@@ -213,6 +188,16 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     }
 
+    Ok(())
+}
+
+fn update_property_all_fields(
+    graph_info: &mut GraphInfo,
+    request_payload: &web::Json<
+        UpdateGraphConnectionMsgConversionRequestPayload,
+    >,
+    pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
+) -> Result<()> {
     if let Ok(Some(pkg_info)) =
         belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
     {
@@ -271,20 +256,93 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
                 Some(&connections_to_modify),
             ) {
                 // Return error if failed to update.
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: format!(
-                        "Failed to update message conversion: {}",
-                        e
-                    ),
-                    error: None,
-                };
-                return Ok(
-                    HttpResponse::InternalServerError().json(error_response)
-                );
+                return Err(anyhow::anyhow!(
+                    "Failed to update message conversion: {}",
+                    e
+                ));
             }
         }
     }
+
+    Ok(())
+}
+
+pub async fn update_graph_connection_msg_conversion_endpoint(
+    request_payload: web::Json<
+        UpdateGraphConnectionMsgConversionRequestPayload,
+    >,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
+) -> Result<impl Responder, actix_web::Error> {
+    // Get a write lock on the state since we may need to modify the graph.
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
+
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
+
+    // Get the specified graph from graphs_cache.
+    let graph_info = match graphs_cache_find_by_id_mut(
+        graphs_cache,
+        &request_payload.graph_id,
+    ) {
+        Some(graph_info) => graph_info,
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Graph not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+    };
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    update_graph_info(graph_info, &request_payload).map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to update graph info: {}",
+            e
+        ))
+    })?;
+
+    check_msg_conversion_schema(
+        graph_info,
+        &request_payload,
+        &uri_to_pkg_info,
+        pkgs_cache,
+    )
+    .map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to check message conversion schema: {}",
+            e
+        ))
+    })?;
+
+    update_property_all_fields(graph_info, &request_payload, pkgs_cache)
+        .map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to update property all fields: {}",
+                e
+            ))
+        })?;
 
     let response = ApiResponse {
         status: Status::Ok,
