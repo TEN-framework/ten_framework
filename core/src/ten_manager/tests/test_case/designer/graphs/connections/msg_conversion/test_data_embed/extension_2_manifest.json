@@ -1,5 +1,20 @@
 {
   "type": "extension",
   "name": "extension_2",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "api": {
+    "cmd_in": [
+      {
+        "name": "test_cmd_for_update",
+        "property": {
+          "initial_property": {
+            "type": "string"
+          },
+          "updated_property": {
+            "type": "string"
+          }
+        }
+      }
+    ]
+  }
 }

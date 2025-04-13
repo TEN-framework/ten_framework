@@ -154,7 +154,7 @@ fn check_msg_conversion_schema(
         .unwrap();
 
         eprintln!(
-            "=-=-= converted_schema: {}",
+            "msg_conversion converted_schema: {}",
             serde_json::to_string_pretty(&converted_schema).unwrap()
         );
 
@@ -178,11 +178,11 @@ fn check_msg_conversion_schema(
                         MsgDirection::In,
                     )
                 {
-                    let _ = are_msg_schemas_compatible(
+                    are_msg_schemas_compatible(
                         Some(&src_ten_msg_schema),
                         Some(dest_ten_msg_schema),
                         false,
-                    );
+                    )?;
                 }
             }
         }
