@@ -21,9 +21,10 @@ use super::runtime_interface::{create_schema_from_json, TenSchema};
 /// - `cmd`: The schema that defines the structure of the command.
 /// - `result`: The schema that defines the structure of the command's result.
 #[derive(Debug, Clone, Default)]
-pub struct TenCmdSchema {
-    /// Schema for the command structure.
-    pub cmd: Option<TenSchema>,
+pub struct TenMsgSchema {
+    /// Schema for the message structure.
+    pub msg: Option<TenSchema>,
+
     /// Schema for the command's result structure.
     pub result: Option<TenSchema>,
 }
@@ -34,24 +35,24 @@ pub struct SchemaStore {
     pub property: Option<TenSchema>,
 
     /// Command schemas for incoming commands.
-    pub cmd_in: HashMap<String, TenCmdSchema>,
+    pub cmd_in: HashMap<String, TenMsgSchema>,
     /// Command schemas for outgoing commands.
-    pub cmd_out: HashMap<String, TenCmdSchema>,
+    pub cmd_out: HashMap<String, TenMsgSchema>,
 
     /// Data schemas for incoming data.
-    pub data_in: HashMap<String, TenSchema>,
+    pub data_in: HashMap<String, TenMsgSchema>,
     /// Data schemas for outgoing data.
-    pub data_out: HashMap<String, TenSchema>,
+    pub data_out: HashMap<String, TenMsgSchema>,
 
     /// Schema for incoming video frames.
-    pub video_frame_in: HashMap<String, TenSchema>,
+    pub video_frame_in: HashMap<String, TenMsgSchema>,
     /// Schema for outgoing video frames.
-    pub video_frame_out: HashMap<String, TenSchema>,
+    pub video_frame_out: HashMap<String, TenMsgSchema>,
 
     /// Schema for incoming audio frames.
-    pub audio_frame_in: HashMap<String, TenSchema>,
+    pub audio_frame_in: HashMap<String, TenMsgSchema>,
     /// Schema for outgoing audio frames.
-    pub audio_frame_out: HashMap<String, TenSchema>,
+    pub audio_frame_out: HashMap<String, TenMsgSchema>,
 }
 
 impl SchemaStore {
@@ -106,31 +107,34 @@ impl SchemaStore {
 
         // Parse incoming command schemas.
         if let Some(cmd_in_schema) = &manifest_api.cmd_in {
-            parse_cmds_schema_from_manifest(cmd_in_schema, &mut self.cmd_in)
+            parse_msgs_schema_from_manifest(cmd_in_schema, &mut self.cmd_in)
                 .with_context(|| "Failed to parse cmd_in schema")?;
         }
 
         // Parse outgoing command schemas.
         if let Some(cmd_out_schema) = &manifest_api.cmd_out {
-            parse_cmds_schema_from_manifest(cmd_out_schema, &mut self.cmd_out)
+            parse_msgs_schema_from_manifest(cmd_out_schema, &mut self.cmd_out)
                 .with_context(|| "Failed to parse cmd_out schema")?;
         }
 
         // Parse incoming data schemas.
         if let Some(data_in_schema) = &manifest_api.data_in {
-            parse_msg_schema_from_manifest(data_in_schema, &mut self.data_in)
+            parse_msgs_schema_from_manifest(data_in_schema, &mut self.data_in)
                 .with_context(|| "Failed to parse data_in schema")?;
         }
 
         // Parse outgoing data schemas.
         if let Some(data_out_schema) = &manifest_api.data_out {
-            parse_msg_schema_from_manifest(data_out_schema, &mut self.data_out)
-                .with_context(|| "Failed to parse data_out schema")?;
+            parse_msgs_schema_from_manifest(
+                data_out_schema,
+                &mut self.data_out,
+            )
+            .with_context(|| "Failed to parse data_out schema")?;
         }
 
         // Parse incoming video frame schemas.
         if let Some(video_frame_in_schema) = &manifest_api.video_frame_in {
-            parse_msg_schema_from_manifest(
+            parse_msgs_schema_from_manifest(
                 video_frame_in_schema,
                 &mut self.video_frame_in,
             )
@@ -139,7 +143,7 @@ impl SchemaStore {
 
         // Parse outgoing video frame schemas.
         if let Some(video_frame_out_schema) = &manifest_api.video_frame_out {
-            parse_msg_schema_from_manifest(
+            parse_msgs_schema_from_manifest(
                 video_frame_out_schema,
                 &mut self.video_frame_out,
             )
@@ -148,7 +152,7 @@ impl SchemaStore {
 
         // Parse incoming audio frame schemas.
         if let Some(audio_frame_in_schema) = &manifest_api.audio_frame_in {
-            parse_msg_schema_from_manifest(
+            parse_msgs_schema_from_manifest(
                 audio_frame_in_schema,
                 &mut self.audio_frame_in,
             )
@@ -157,7 +161,7 @@ impl SchemaStore {
 
         // Parse outgoing audio frame schemas.
         if let Some(audio_frame_out_schema) = &manifest_api.audio_frame_out {
-            parse_msg_schema_from_manifest(
+            parse_msgs_schema_from_manifest(
                 audio_frame_out_schema,
                 &mut self.audio_frame_out,
             )
@@ -168,40 +172,19 @@ impl SchemaStore {
     }
 }
 
-fn parse_cmds_schema_from_manifest(
+fn parse_msgs_schema_from_manifest(
     manifest_msgs: &Vec<ManifestApiMsg>,
-    target_map: &mut HashMap<String, TenCmdSchema>,
+    target_map: &mut HashMap<String, TenMsgSchema>,
 ) -> Result<()> {
     for manifest_msg in manifest_msgs {
         let msg_name = manifest_msg.name.clone();
-        let msg_schema = create_cmd_schema_from_manifest(manifest_msg)?;
+        let msg_schema = create_msg_schema_from_manifest(manifest_msg)?;
         if let Some(schema) = msg_schema {
             let present = target_map.insert(msg_name.clone(), schema);
             if present.is_some() {
                 return Err(anyhow::anyhow!(
                     "duplicated schema definition for cmd {}.",
                     msg_name
-                ));
-            }
-        }
-    }
-
-    Ok(())
-}
-
-fn parse_msg_schema_from_manifest(
-    manifest_data: &Vec<ManifestApiMsg>,
-    target_map: &mut HashMap<String, TenSchema>,
-) -> Result<()> {
-    for manifest_data in manifest_data {
-        let data_name = manifest_data.name.clone();
-        let schema = create_msg_schema_from_manifest(manifest_data)?;
-        if let Some(schema) = schema {
-            let present = target_map.insert(data_name.clone(), schema);
-            if present.is_some() {
-                return Err(anyhow::anyhow!(
-                    "duplicated schema definition for msg {}.",
-                    data_name
                 ));
             }
         }
@@ -263,10 +246,10 @@ fn create_property_schema(
     )
 }
 
-fn create_cmd_schema_from_manifest(
+fn create_msg_schema_from_manifest(
     manifest_msg: &ManifestApiMsg,
-) -> Result<Option<TenCmdSchema>> {
-    let mut schema = TenCmdSchema::default();
+) -> Result<Option<TenMsgSchema>> {
+    let mut schema = TenMsgSchema::default();
 
     if let Some(manifest_result) = &manifest_msg.result {
         let result_schema = create_property_schema(
@@ -281,27 +264,13 @@ fn create_cmd_schema_from_manifest(
             &Some(manifest_property.clone()),
             &manifest_msg.required,
         )?;
-        schema.cmd = Some(property_schema);
+        schema.msg = Some(property_schema);
     }
 
-    if schema.cmd.is_none() && schema.result.is_none() {
+    if schema.msg.is_none() && schema.result.is_none() {
         Ok(None)
     } else {
         Ok(Some(schema))
-    }
-}
-
-fn create_msg_schema_from_manifest(
-    manifest_data: &ManifestApiMsg,
-) -> Result<Option<TenSchema>> {
-    if let Some(manifest_property) = &manifest_data.property {
-        let schema = create_property_schema(
-            &Some(manifest_property.clone()),
-            &manifest_data.required,
-        )?;
-        Ok(Some(schema))
-    } else {
-        Ok(None)
     }
 }
 
@@ -328,8 +297,8 @@ pub fn are_ten_schemas_compatible(
 }
 
 pub fn are_cmd_schemas_compatible(
-    source: Option<&TenCmdSchema>,
-    target: Option<&TenCmdSchema>,
+    source: Option<&TenMsgSchema>,
+    target: Option<&TenMsgSchema>,
     none_target_is_compatible: bool,
 ) -> Result<()> {
     if none_target_is_compatible {
@@ -347,8 +316,8 @@ pub fn are_cmd_schemas_compatible(
     let source = source.unwrap();
     let target = target.unwrap();
     are_ten_schemas_compatible(
-        source.cmd.as_ref(),
-        target.cmd.as_ref(),
+        source.msg.as_ref(),
+        target.msg.as_ref(),
         none_target_is_compatible,
     )?;
     are_ten_schemas_compatible(

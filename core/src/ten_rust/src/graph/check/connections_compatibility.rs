@@ -23,7 +23,7 @@ use crate::{
         runtime_interface::TenSchema,
         store::{
             are_cmd_schemas_compatible, are_ten_schemas_compatible,
-            TenCmdSchema,
+            TenMsgSchema,
         },
     },
 };
@@ -73,16 +73,34 @@ impl Graph {
         // Retrieve the message schema based on the direction and message type.
         match msg_type {
             MsgType::Data => match direction {
-                MsgDirection::In => schema_store.data_in.get(msg_name),
-                MsgDirection::Out => schema_store.data_out.get(msg_name),
+                MsgDirection::In => schema_store
+                    .data_in
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
+                MsgDirection::Out => schema_store
+                    .data_out
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
             },
             MsgType::AudioFrame => match direction {
-                MsgDirection::In => schema_store.audio_frame_in.get(msg_name),
-                MsgDirection::Out => schema_store.audio_frame_out.get(msg_name),
+                MsgDirection::In => schema_store
+                    .audio_frame_in
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
+                MsgDirection::Out => schema_store
+                    .audio_frame_out
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
             },
             MsgType::VideoFrame => match direction {
-                MsgDirection::In => schema_store.video_frame_in.get(msg_name),
-                MsgDirection::Out => schema_store.video_frame_out.get(msg_name),
+                MsgDirection::In => schema_store
+                    .video_frame_in
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
+                MsgDirection::Out => schema_store
+                    .video_frame_out
+                    .get(msg_name)
+                    .map(|schema| schema.msg.as_ref())?,
             },
             _ => panic!("Unsupported message type: {}", msg_type),
         }
@@ -152,7 +170,7 @@ impl Graph {
         addon: &str,
         cmd_name: &str,
         direction: MsgDirection,
-    ) -> Option<&'a TenCmdSchema> {
+    ) -> Option<&'a TenMsgSchema> {
         // Attempt to find the addon package. If not found, return None.
         let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
             pkg.manifest.type_and_name.pkg_type == PkgType::Extension
@@ -173,7 +191,7 @@ impl Graph {
         &self,
         installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         cmd_name: &str,
-        src_cmd_schema: Option<&TenCmdSchema>,
+        src_cmd_schema: Option<&TenMsgSchema>,
         dests: &[GraphDestination],
         ignore_missing_apps: bool,
     ) -> Result<()> {
