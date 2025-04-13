@@ -20,8 +20,8 @@ use crate::{
         pkg_type::PkgType,
     },
     schema::store::{
-        are_msg_schemas_compatible, find_cmd_schema_from_all_pkgs_info,
-        find_msg_schema_from_all_pkgs_info, TenMsgSchema,
+        are_msg_schemas_compatible, find_msg_schema_from_all_pkgs_info,
+        TenMsgSchema,
     },
 };
 
@@ -150,8 +150,9 @@ impl Graph {
               }
           };
 
-            let dest_cmd_schema = find_cmd_schema_from_all_pkgs_info(
+            let dest_cmd_schema = find_msg_schema_from_all_pkgs_info(
                 extension_pkg_info,
+                &MsgType::Cmd,
                 cmd_name,
                 MsgDirection::In,
             );
@@ -223,8 +224,9 @@ impl Graph {
         if let Some(cmd_flows) = &connection.cmd {
             for (flow_idx, flow) in cmd_flows.iter().enumerate() {
                 // Get source command schema.
-                let src_cmd_schema = find_cmd_schema_from_all_pkgs_info(
+                let src_cmd_schema = find_msg_schema_from_all_pkgs_info(
                     extension_pkg_info,
+                    &MsgType::Cmd,
                     flow.name.as_str(),
                     MsgDirection::Out,
                 );
