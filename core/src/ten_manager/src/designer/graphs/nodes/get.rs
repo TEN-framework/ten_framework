@@ -16,8 +16,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 
 use crate::designer::common::{
-    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
-    get_designer_property_hashmap_from_pkg,
+    get_designer_api_msg_from_pkg, get_designer_property_hashmap_from_pkg,
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -172,65 +171,53 @@ pub async fn get_graph_nodes_endpoint(
                             get_designer_property_hashmap_from_pkg(p.clone())
                         }),
 
-                    cmd_in: api.cmd_in.as_ref().filter(|c| !c.is_empty()).map(
-                        |c| get_designer_api_cmd_likes_from_pkg(c.clone()),
-                    ),
+                    cmd_in: api
+                        .cmd_in
+                        .as_ref()
+                        .filter(|c| !c.is_empty())
+                        .map(|c| get_designer_api_msg_from_pkg(c.clone())),
 
                     cmd_out: api
                         .cmd_out
                         .as_ref()
                         .filter(|c| !c.is_empty())
-                        .map(|c| {
-                            get_designer_api_cmd_likes_from_pkg(c.clone())
-                        }),
+                        .map(|c| get_designer_api_msg_from_pkg(c.clone())),
 
                     data_in: api
                         .data_in
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
 
                     data_out: api
                         .data_out
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
 
                     audio_frame_in: api
                         .audio_frame_in
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
 
                     audio_frame_out: api
                         .audio_frame_out
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
 
                     video_frame_in: api
                         .video_frame_in
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
 
                     video_frame_out: api
                         .video_frame_out
                         .as_ref()
                         .filter(|d| !d.is_empty())
-                        .map(|d| {
-                            get_designer_api_data_likes_from_pkg(d.clone())
-                        }),
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
                 }),
                 property: extension_graph_node.property.clone(),
                 is_installed: true,

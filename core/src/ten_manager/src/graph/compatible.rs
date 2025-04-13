@@ -19,7 +19,8 @@ use ten_rust::{
     schema::{
         runtime_interface::TenSchema,
         store::{
-            are_cmd_schemas_compatible, are_ten_schemas_compatible, CmdSchema,
+            are_cmd_schemas_compatible, are_ten_schemas_compatible,
+            TenCmdSchema,
         },
     },
 };
@@ -74,7 +75,7 @@ pub fn get_compatible_cmd_extension<'a>(
     app_base_dir: Option<&String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     desired_msg_dir: &MsgDirection,
-    pivot: Option<&CmdSchema>,
+    pivot: Option<&TenCmdSchema>,
     cmd_name: &str,
 ) -> Result<Vec<CompatibleExtensionAndMsg<'a>>> {
     let mut result = Vec::new();

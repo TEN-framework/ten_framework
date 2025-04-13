@@ -22,7 +22,8 @@ use crate::{
     schema::{
         runtime_interface::TenSchema,
         store::{
-            are_cmd_schemas_compatible, are_ten_schemas_compatible, CmdSchema,
+            are_cmd_schemas_compatible, are_ten_schemas_compatible,
+            TenCmdSchema,
         },
     },
 };
@@ -151,7 +152,7 @@ impl Graph {
         addon: &str,
         cmd_name: &str,
         direction: MsgDirection,
-    ) -> Option<&'a CmdSchema> {
+    ) -> Option<&'a TenCmdSchema> {
         // Attempt to find the addon package. If not found, return None.
         let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
             pkg.manifest.type_and_name.pkg_type == PkgType::Extension
@@ -172,7 +173,7 @@ impl Graph {
         &self,
         installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         cmd_name: &str,
-        src_cmd_schema: Option<&CmdSchema>,
+        src_cmd_schema: Option<&TenCmdSchema>,
         dests: &[GraphDestination],
         ignore_missing_apps: bool,
     ) -> Result<()> {

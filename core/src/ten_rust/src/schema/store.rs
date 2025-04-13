@@ -9,10 +9,7 @@ use std::collections::HashMap;
 use anyhow::{Context, Ok, Result};
 
 use crate::pkg_info::manifest::{
-    api::{
-        ManifestApi, ManifestApiCmdLike, ManifestApiDataLike,
-        ManifestPropertyAttributes,
-    },
+    api::{ManifestApi, ManifestApiMsg, ManifestApiPropertyAttributes},
     Manifest,
 };
 
@@ -24,7 +21,7 @@ use super::runtime_interface::{create_schema_from_json, TenSchema};
 /// - `cmd`: The schema that defines the structure of the command.
 /// - `result`: The schema that defines the structure of the command's result.
 #[derive(Debug, Clone, Default)]
-pub struct CmdSchema {
+pub struct TenCmdSchema {
     /// Schema for the command structure.
     pub cmd: Option<TenSchema>,
     /// Schema for the command's result structure.
@@ -37,9 +34,9 @@ pub struct SchemaStore {
     pub property: Option<TenSchema>,
 
     /// Command schemas for incoming commands.
-    pub cmd_in: HashMap<String, CmdSchema>,
+    pub cmd_in: HashMap<String, TenCmdSchema>,
     /// Command schemas for outgoing commands.
-    pub cmd_out: HashMap<String, CmdSchema>,
+    pub cmd_out: HashMap<String, TenCmdSchema>,
 
     /// Data schemas for incoming data.
     pub data_in: HashMap<String, TenSchema>,
@@ -172,18 +169,18 @@ impl SchemaStore {
 }
 
 fn parse_cmds_schema_from_manifest(
-    manifest_cmds: &Vec<ManifestApiCmdLike>,
-    target_map: &mut HashMap<String, CmdSchema>,
+    manifest_msgs: &Vec<ManifestApiMsg>,
+    target_map: &mut HashMap<String, TenCmdSchema>,
 ) -> Result<()> {
-    for manifest_cmd in manifest_cmds {
-        let cmd_name = manifest_cmd.name.clone();
-        let cmd_schema = create_cmd_schema_from_manifest(manifest_cmd)?;
-        if let Some(schema) = cmd_schema {
-            let present = target_map.insert(cmd_name.clone(), schema);
+    for manifest_msg in manifest_msgs {
+        let msg_name = manifest_msg.name.clone();
+        let msg_schema = create_cmd_schema_from_manifest(manifest_msg)?;
+        if let Some(schema) = msg_schema {
+            let present = target_map.insert(msg_name.clone(), schema);
             if present.is_some() {
                 return Err(anyhow::anyhow!(
                     "duplicated schema definition for cmd {}.",
-                    cmd_name
+                    msg_name
                 ));
             }
         }
@@ -193,7 +190,7 @@ fn parse_cmds_schema_from_manifest(
 }
 
 fn parse_msg_schema_from_manifest(
-    manifest_data: &Vec<ManifestApiDataLike>,
+    manifest_data: &Vec<ManifestApiMsg>,
     target_map: &mut HashMap<String, TenSchema>,
 ) -> Result<()> {
     for manifest_data in manifest_data {
@@ -234,7 +231,7 @@ fn parse_msg_schema_from_manifest(
 //   "required": []
 // }
 fn create_property_schema(
-    property: &Option<HashMap<String, ManifestPropertyAttributes>>,
+    property: &Option<HashMap<String, ManifestApiPropertyAttributes>>,
     required: &Option<Vec<String>>,
 ) -> Result<TenSchema> {
     let mut property_json_value = serde_json::json!({});
@@ -267,10 +264,11 @@ fn create_property_schema(
 }
 
 fn create_cmd_schema_from_manifest(
-    manifest_cmd: &ManifestApiCmdLike,
-) -> Result<Option<CmdSchema>> {
-    let mut schema = CmdSchema::default();
-    if let Some(manifest_result) = &manifest_cmd.result {
+    manifest_msg: &ManifestApiMsg,
+) -> Result<Option<TenCmdSchema>> {
+    let mut schema = TenCmdSchema::default();
+
+    if let Some(manifest_result) = &manifest_msg.result {
         let result_schema = create_property_schema(
             &manifest_result.property,
             &manifest_result.required,
@@ -278,10 +276,10 @@ fn create_cmd_schema_from_manifest(
         schema.result = Some(result_schema);
     }
 
-    if let Some(manifest_property) = &manifest_cmd.property {
+    if let Some(manifest_property) = &manifest_msg.property {
         let property_schema = create_property_schema(
             &Some(manifest_property.clone()),
-            &manifest_cmd.required,
+            &manifest_msg.required,
         )?;
         schema.cmd = Some(property_schema);
     }
@@ -294,7 +292,7 @@ fn create_cmd_schema_from_manifest(
 }
 
 fn create_msg_schema_from_manifest(
-    manifest_data: &ManifestApiDataLike,
+    manifest_data: &ManifestApiMsg,
 ) -> Result<Option<TenSchema>> {
     if let Some(manifest_property) = &manifest_data.property {
         let schema = create_property_schema(
@@ -330,8 +328,8 @@ pub fn are_ten_schemas_compatible(
 }
 
 pub fn are_cmd_schemas_compatible(
-    source: Option<&CmdSchema>,
-    target: Option<&CmdSchema>,
+    source: Option<&TenCmdSchema>,
+    target: Option<&TenCmdSchema>,
     none_target_is_compatible: bool,
 ) -> Result<()> {
     if none_target_is_compatible {

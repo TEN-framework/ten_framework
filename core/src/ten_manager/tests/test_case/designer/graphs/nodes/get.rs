@@ -22,8 +22,7 @@ mod tests {
                     get_graph_nodes_endpoint, GetGraphNodesRequestPayload,
                     GraphNodesSingleResponseData,
                 },
-                DesignerApi, DesignerApiCmdLike, DesignerApiDataLike,
-                DesignerPropertyAttributes,
+                DesignerApi, DesignerApiMsg, DesignerPropertyAttributes,
             },
             response::{ApiResponse, ErrorResponse},
             DesignerState,
@@ -152,7 +151,7 @@ mod tests {
                     property: None,
                     cmd_in: None,
                     cmd_out: Some(vec![
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -170,7 +169,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -188,7 +187,7 @@ mod tests {
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required_mismatch".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -225,7 +224,7 @@ mod tests {
                 api: Some(DesignerApi {
                     property: None,
                     cmd_in: Some(vec![
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -243,7 +242,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "another_test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -261,7 +260,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -279,7 +278,7 @@ mod tests {
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required_mismatch".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -300,7 +299,7 @@ mod tests {
                     ]),
                     cmd_out: None,
                     data_in: None,
-                    data_out: Some(vec![DesignerApiDataLike {
+                    data_out: Some(vec![DesignerApiMsg {
                         name: "data_has_required".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -316,6 +315,7 @@ mod tests {
                             map
                         }),
                         required: Some(vec!["foo".to_string()]),
+                        result: None,
                     }]),
                     audio_frame_in: None,
                     audio_frame_out: None,
@@ -334,7 +334,7 @@ mod tests {
                 app: None,
                 api: Some(DesignerApi {
                     property: None,
-                    cmd_in: Some(vec![DesignerApiCmdLike {
+                    cmd_in: Some(vec![DesignerApiMsg {
                         name: "test_cmd".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -353,7 +353,7 @@ mod tests {
                         result: None,
                     }]),
                     cmd_out: None,
-                    data_in: Some(vec![DesignerApiDataLike {
+                    data_in: Some(vec![DesignerApiMsg {
                         name: "data_has_required".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -369,6 +369,7 @@ mod tests {
                             map
                         }),
                         required: Some(vec!["foo".to_string()]),
+                        result: None,
                     }]),
                     data_out: None,
                     audio_frame_in: None,
