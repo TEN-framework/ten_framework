@@ -36,7 +36,7 @@ pub fn get_pkg_info_for_extension_graph_node<'a>(
     app: &Option<String>,
     extension_addon: &String,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    app_base_dir: Option<&String>,
+    graph_app_base_dir: Option<&String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
 ) -> Option<&'a PkgInfo> {
     let result =
@@ -57,13 +57,17 @@ pub fn get_pkg_info_for_extension_graph_node<'a>(
 
     if let Some(pkg_info) = result {
         Some(pkg_info)
-    } else if let Some(app_base_dir) = app_base_dir {
-        pkgs_cache.get(app_base_dir).and_then(|pkgs_info_in_app| {
-            pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
-                pkg_info.manifest.type_and_name.pkg_type == PkgType::Extension
-                    && pkg_info.manifest.type_and_name.name == *extension_addon
+    } else if let Some(graph_app_base_dir) = graph_app_base_dir {
+        pkgs_cache
+            .get(graph_app_base_dir)
+            .and_then(|pkgs_info_in_app| {
+                pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
+                    pkg_info.manifest.type_and_name.pkg_type
+                        == PkgType::Extension
+                        && pkg_info.manifest.type_and_name.name
+                            == *extension_addon
+                })
             })
-        })
     } else {
         None
     }
