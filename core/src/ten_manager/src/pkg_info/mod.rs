@@ -113,7 +113,7 @@ pub fn create_uri_to_pkg_info_map<'a>(
     Ok(uri_to_pkg_info)
 }
 
-pub fn pkg_info_find_by_graph_info<'a>(
+pub fn belonging_pkg_info_find_by_graph_info<'a>(
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     graph_info: &GraphInfo,
 ) -> Result<Option<&'a PkgInfo>> {
@@ -164,7 +164,7 @@ pub fn pkg_info_find_by_graph_info<'a>(
     }
 }
 
-pub fn pkg_info_find_by_graph_info_mut<'a>(
+pub fn belonging_pkg_info_find_by_graph_info_mut<'a>(
     pkgs_cache: &'a mut HashMap<String, PkgsInfoInApp>,
     graph_info: &GraphInfo,
 ) -> Result<Option<&'a mut PkgInfo>> {

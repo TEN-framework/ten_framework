@@ -17,14 +17,10 @@ use crate::{
     pkg_info::{
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
-        PkgInfo,
     },
-    schema::{
-        runtime_interface::TenSchema,
-        store::{
-            are_cmd_schemas_compatible, are_ten_schemas_compatible,
-            TenMsgSchema,
-        },
+    schema::store::{
+        are_msg_schemas_compatible, find_cmd_schema_from_all_pkgs_info,
+        find_msg_schema_from_all_pkgs_info, TenMsgSchema,
     },
 };
 
@@ -54,64 +50,12 @@ impl Graph {
             })
     }
 
-    fn find_msg_schema_from_all_pkgs_info<'a>(
-        app_installed_pkgs: &'a [PkgInfo],
-        addon: &str,
-        msg_name: &str,
-        msg_type: &MsgType,
-        direction: MsgDirection,
-    ) -> Option<&'a TenSchema> {
-        // Attempt to find the addon package. If not found, return None.
-        let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
-            pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-                && pkg.manifest.type_and_name.name == addon
-        })?;
-
-        // Access the schema_store. If it's None, propagate None.
-        let schema_store = addon_pkg.schema_store.as_ref()?;
-
-        // Retrieve the message schema based on the direction and message type.
-        match msg_type {
-            MsgType::Data => match direction {
-                MsgDirection::In => schema_store
-                    .data_in
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-                MsgDirection::Out => schema_store
-                    .data_out
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-            },
-            MsgType::AudioFrame => match direction {
-                MsgDirection::In => schema_store
-                    .audio_frame_in
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-                MsgDirection::Out => schema_store
-                    .audio_frame_out
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-            },
-            MsgType::VideoFrame => match direction {
-                MsgDirection::In => schema_store
-                    .video_frame_in
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-                MsgDirection::Out => schema_store
-                    .video_frame_out
-                    .get(msg_name)
-                    .map(|schema| schema.msg.as_ref())?,
-            },
-            _ => panic!("Unsupported message type: {}", msg_type),
-        }
-    }
-
     fn check_msg_flow_compatible(
         &self,
         installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
         msg_name: &str,
         msg_type: &MsgType,
-        src_msg_schema: Option<&TenSchema>,
+        src_msg_schema: Option<&TenMsgSchema>,
         dests: &[GraphDestination],
         ignore_missing_apps: bool,
     ) -> Result<()> {
@@ -138,15 +82,15 @@ impl Graph {
                     }
                 };
 
-            let dest_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
+            let dest_msg_schema = find_msg_schema_from_all_pkgs_info(
                 base_dir_pkg_info.get_extensions(),
                 dest_addon,
-                msg_name,
                 msg_type,
+                msg_name,
                 MsgDirection::In,
             );
 
-            if let Err(e) = are_ten_schemas_compatible(
+            if let Err(e) = are_msg_schemas_compatible(
                 src_msg_schema,
                 dest_msg_schema,
                 true,
@@ -162,28 +106,6 @@ impl Graph {
             Ok(())
         } else {
             Err(anyhow::anyhow!("{}", errors.join("\n")))
-        }
-    }
-
-    fn find_cmd_schema_from_all_pkgs_info<'a>(
-        app_installed_pkgs: &'a [PkgInfo],
-        addon: &str,
-        cmd_name: &str,
-        direction: MsgDirection,
-    ) -> Option<&'a TenMsgSchema> {
-        // Attempt to find the addon package. If not found, return None.
-        let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
-            pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-                && pkg.manifest.type_and_name.name == addon
-        })?;
-
-        // Access the schema_store. If it's None, propagate None.
-        let schema_store = addon_pkg.schema_store.as_ref()?;
-
-        // Retrieve the command schema based on the direction.
-        match direction {
-            MsgDirection::In => schema_store.cmd_in.get(cmd_name),
-            MsgDirection::Out => schema_store.cmd_out.get(cmd_name),
         }
     }
 
@@ -218,14 +140,14 @@ impl Graph {
                     }
                 };
 
-            let dest_cmd_schema = Self::find_cmd_schema_from_all_pkgs_info(
+            let dest_cmd_schema = find_cmd_schema_from_all_pkgs_info(
                 base_dir_pkg_info.get_extensions(),
                 dest_addon,
                 cmd_name,
                 MsgDirection::In,
             );
 
-            if let Err(e) = are_cmd_schemas_compatible(
+            if let Err(e) = are_msg_schemas_compatible(
                 src_cmd_schema,
                 dest_cmd_schema,
                 true,
@@ -293,7 +215,7 @@ impl Graph {
         if let Some(cmd_flows) = &connection.cmd {
             for (flow_idx, flow) in cmd_flows.iter().enumerate() {
                 // Get source command schema.
-                let src_cmd_schema = Self::find_cmd_schema_from_all_pkgs_info(
+                let src_cmd_schema = find_cmd_schema_from_all_pkgs_info(
                     extensions,
                     src_addon,
                     flow.name.as_str(),
@@ -317,11 +239,11 @@ impl Graph {
         if let Some(data_flows) = &connection.data {
             for (flow_idx, flow) in data_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
                     extensions,
                     src_addon,
-                    flow.name.as_str(),
                     &MsgType::Data,
+                    flow.name.as_str(),
                     MsgDirection::Out,
                 );
 
@@ -343,11 +265,11 @@ impl Graph {
         if let Some(video_frame_flows) = &connection.video_frame {
             for (flow_idx, flow) in video_frame_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
                     extensions,
                     src_addon,
-                    flow.name.as_str(),
                     &MsgType::VideoFrame,
+                    flow.name.as_str(),
                     MsgDirection::Out,
                 );
 
@@ -369,11 +291,11 @@ impl Graph {
         if let Some(audio_frame_flows) = &connection.audio_frame {
             for (flow_idx, flow) in audio_frame_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = Self::find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
                     extensions,
                     src_addon,
-                    flow.name.as_str(),
                     &MsgType::AudioFrame,
+                    flow.name.as_str(),
                     MsgDirection::Out,
                 );
 

@@ -28,7 +28,7 @@ use crate::{
         compatible::get_pkg_info_for_extension_addon,
         graphs_cache_find_by_id_mut,
     },
-    pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
+    pkg_info::{create_uri_to_pkg_info_map, belonging_pkg_info_find_by_graph_info_mut},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -253,7 +253,7 @@ pub async fn add_graph_node_endpoint(
             );
 
             if let Ok(Some(pkg_info)) =
-                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+                belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
             {
                 // Update property.json file with the new graph node.
                 if let Some(property) = &mut pkg_info.property {

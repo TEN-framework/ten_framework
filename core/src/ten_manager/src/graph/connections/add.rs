@@ -16,7 +16,7 @@ use ten_rust::{
         Graph,
     },
     pkg_info::{message::MsgType, pkg_type::PkgType, PkgInfo},
-    schema::store::{are_cmd_schemas_compatible, are_ten_schemas_compatible},
+    schema::store::are_msg_schemas_compatible,
 };
 
 type PkgInfoTuple<'a> = (Option<&'a PkgInfo>, Option<&'a PkgInfo>);
@@ -116,7 +116,7 @@ fn check_schema_compatibility(
                 .and_then(|store| store.cmd_in.get(msg_name));
 
             if let Err(err) =
-                are_cmd_schemas_compatible(src_schema, dest_schema, true)
+                are_msg_schemas_compatible(src_schema, dest_schema, true)
             {
                 return Err(anyhow::anyhow!(
                       "Command schema incompatibility between source and destination: {}",
@@ -128,17 +128,15 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.data_out.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.data_out.get(msg_name));
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.data_in.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.data_in.get(msg_name));
 
             if let Err(err) =
-                are_ten_schemas_compatible(src_schema, dest_schema, true)
+                are_msg_schemas_compatible(src_schema, dest_schema, true)
             {
                 return Err(anyhow::anyhow!(
                       "Data schema incompatibility between source and destination: {}",
@@ -150,17 +148,15 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.audio_frame_out.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.audio_frame_out.get(msg_name));
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.audio_frame_in.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.audio_frame_in.get(msg_name));
 
             if let Err(err) =
-                are_ten_schemas_compatible(src_schema, dest_schema, true)
+                are_msg_schemas_compatible(src_schema, dest_schema, true)
             {
                 return Err(anyhow::anyhow!(
                       "Audio frame schema incompatibility between source and destination: {}",
@@ -172,17 +168,15 @@ fn check_schema_compatibility(
             let src_schema = src_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.video_frame_out.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.video_frame_out.get(msg_name));
 
             let dest_schema = dest_extension_pkg
                 .schema_store
                 .as_ref()
-                .and_then(|store| store.video_frame_in.get(msg_name))
-                .and_then(|schema| schema.msg.as_ref());
+                .and_then(|store| store.video_frame_in.get(msg_name));
 
             if let Err(err) =
-                are_ten_schemas_compatible(src_schema, dest_schema, true)
+                are_msg_schemas_compatible(src_schema, dest_schema, true)
             {
                 return Err(anyhow::anyhow!(
                       "Video frame schema incompatibility between source and destination: {}",

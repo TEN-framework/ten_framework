@@ -470,10 +470,5 @@ pub fn msg_conversion_get_final_target_schema(
         }
     }
 
-    eprintln!(
-        "=-=-= converted_schema: {}",
-        serde_json::to_string_pretty(&converted_schema).unwrap()
-    );
-
     Ok(converted_schema)
 }

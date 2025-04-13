@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod check;
+pub mod check;
 pub mod connection;
 pub mod graph_info;
 pub mod msg_conversion;

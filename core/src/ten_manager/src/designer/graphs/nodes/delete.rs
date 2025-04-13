@@ -22,7 +22,7 @@ use crate::{
         DesignerState,
     },
     graph::{graphs_cache_find_by_id_mut, update_graph_node_all_fields},
-    pkg_info::pkg_info_find_by_graph_info_mut,
+    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -179,7 +179,9 @@ pub async fn delete_graph_node_endpoint(
     ) {
         Ok(_) => {
             if let Ok(Some(pkg_info)) =
-                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+                belonging_pkg_info_find_by_graph_info_mut(
+                    pkgs_cache, graph_info,
+                )
             {
                 // Update property.json file to remove the graph node.
                 if let Some(property) = &mut pkg_info.property {

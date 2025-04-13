@@ -28,7 +28,9 @@ use crate::{
         nodes::extension_graph_node_find_by_loc,
         update_graph_connections_all_fields,
     },
-    pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
+    pkg_info::{
+        belonging_pkg_info_find_by_graph_info_mut, create_uri_to_pkg_info_map,
+    },
 };
 
 #[derive(Serialize, Deserialize)]
@@ -156,7 +158,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         )
         .unwrap();
 
-        let _ = msg_conversion_get_final_target_schema(
+        let converted_schema = msg_conversion_get_final_target_schema(
             &uri_to_pkg_info,
             graph_info.app_base_dir.as_ref(),
             pkgs_cache,
@@ -168,11 +170,35 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
             &dest_graph_node.addon,
             &request_payload.msg_name,
             msg_conversion,
+        )
+        .unwrap();
+
+        eprintln!(
+            "=-=-= converted_schema: {}",
+            serde_json::to_string_pretty(&converted_schema).unwrap()
         );
+
+        // if let Ok(Some(ten_msg_schema)) =
+        //     create_msg_schema_from_manifest(&converted_schema)
+        // {
+        //     find_msg_schema_from_all_pkgs_info(
+        //         &uri_to_pkg_info,
+        //         &dest_graph_node.addon,
+        //         &request_payload.msg_type,
+        //         &request_payload.msg_name,
+        //         MsgDirection::In,
+        //     );
+
+        //     let _ = are_cmd_schemas_compatible(
+        //         Some(&ten_msg_schema),
+        //         Some(&ten_msg_schema),
+        //         false,
+        //     );
+        // }
     }
 
     if let Ok(Some(pkg_info)) =
-        pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
     {
         // Check if the property exists.
         if let Some(property) = &mut pkg_info.property {

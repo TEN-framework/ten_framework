@@ -23,7 +23,7 @@ use crate::{
         DesignerState,
     },
     graph::connections::add::graph_add_connection,
-    pkg_info::pkg_info_find_by_graph_info_mut,
+    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
 use crate::graph::{
@@ -177,7 +177,7 @@ pub async fn add_graph_connection_endpoint(
     ) {
         Ok(_) => {
             if let Ok(Some(pkg_info)) =
-                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+                belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
             {
                 // Update property.json file with the updated graph.
                 if let Some(property) = &mut pkg_info.property {
