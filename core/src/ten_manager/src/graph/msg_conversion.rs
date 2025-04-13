@@ -261,15 +261,14 @@ pub fn msg_conversion_get_final_target_schema(
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph_app_base_dir: Option<&String>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-    msg_type: &MsgType,
     src_app: &Option<String>,
     src_extension_addon: &String,
-    src_msg_name: &String,
-    dest_app: &Option<String>,
-    dest_extension_addon: &String,
-    dest_msg_name: &String,
+    msg_type: &MsgType,
+    src_msg_name: &str,
+    dest_msg_name: &str,
     msg_conversion: &MsgAndResultConversion,
 ) -> Result<ManifestApiMsg> {
+    // Get the source message schema.
     let src_msg_schema = if let Some(src_extension_pkg_info) =
         get_pkg_info_for_extension_addon(
             src_app,
@@ -295,33 +294,9 @@ pub fn msg_conversion_get_final_target_schema(
         None
     };
 
-    let _dest_msg_schema = if let Some(dest_extension_pkg_info) =
-        get_pkg_info_for_extension_addon(
-            dest_app,
-            dest_extension_addon,
-            uri_to_pkg_info,
-            graph_app_base_dir,
-            pkgs_cache,
-        ) {
-        dest_extension_pkg_info
-            .manifest
-            .api
-            .as_ref()
-            .and_then(|api| match msg_type {
-                MsgType::Cmd => api.cmd_in.as_ref(),
-                MsgType::Data => api.data_in.as_ref(),
-                MsgType::AudioFrame => api.audio_frame_in.as_ref(),
-                MsgType::VideoFrame => api.video_frame_in.as_ref(),
-            })
-            .and_then(|msg_in| {
-                msg_in.iter().find(|msg| msg.name == *dest_msg_name)
-            })
-    } else {
-        None
-    };
-
+    // Create a new message schema to store the converted properties.
     let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
-        name: dest_msg_name.clone(),
+        name: dest_msg_name.to_string(),
         property: Some(HashMap::new()),
         required: None,
         result: None,
@@ -334,7 +309,7 @@ pub fn msg_conversion_get_final_target_schema(
                 converted_schema = src_msg_schema.clone();
 
                 // Update the name to the destination message name.
-                converted_schema.name = dest_msg_name.clone();
+                converted_schema.name = dest_msg_name.to_string();
             } else {
                 return Err(anyhow::anyhow!("Source message schema not found"));
             }

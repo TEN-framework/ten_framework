@@ -129,22 +129,14 @@ fn check_msg_conversion_schema(
                 &request_payload.src_extension,
             )?;
 
-        let dest_extension_addon =
-            graph_info.graph.get_addon_name_of_extension(
-                request_payload.dest_app.as_ref(),
-                &request_payload.dest_extension,
-            )?;
-
         let converted_schema = msg_conversion_get_final_target_schema(
             uri_to_pkg_info,
             graph_info.app_base_dir.as_ref(),
             pkgs_cache,
-            &request_payload.msg_type,
             &request_payload.src_app,
             src_extension_addon,
+            &request_payload.msg_type,
             &request_payload.msg_name,
-            &request_payload.dest_app,
-            dest_extension_addon,
             &request_payload.msg_name,
             msg_conversion,
         )
@@ -158,6 +150,12 @@ fn check_msg_conversion_schema(
         if let Ok(Some(src_ten_msg_schema)) =
             create_msg_schema_from_manifest(&converted_schema)
         {
+            let dest_extension_addon =
+                graph_info.graph.get_addon_name_of_extension(
+                    request_payload.dest_app.as_ref(),
+                    &request_payload.dest_extension,
+                )?;
+
             if let Some(dest_extension_pkg_info) =
                 get_pkg_info_for_extension_addon(
                     &request_payload.dest_app,
