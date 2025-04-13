@@ -11,7 +11,10 @@ use uuid::Uuid;
 use actix_web::{web, HttpResponse, Responder};
 use ten_rust::{
     graph::node::GraphNode,
-    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo},
+    pkg_info::{
+        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    },
 };
 
 use crate::{
@@ -22,11 +25,8 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{
-        compatible::get_pkg_info_for_extension_addon,
-        graphs_cache_find_by_id_mut,
-    },
-    pkg_info::{create_uri_to_pkg_info_map, belonging_pkg_info_find_by_graph_info_mut},
+    graph::graphs_cache_find_by_id_mut,
+    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]

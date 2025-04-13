@@ -9,6 +9,9 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use ten_rust::pkg_info::{
+    create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+};
 use uuid::Uuid;
 
 use ten_rust::graph::node::GraphNode;
@@ -20,8 +23,6 @@ use crate::designer::common::{
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
-use crate::graph::compatible::get_pkg_info_for_extension_addon;
-use crate::pkg_info::create_uri_to_pkg_info_map;
 
 use super::{get_extension_nodes_in_graph, DesignerApi};
 

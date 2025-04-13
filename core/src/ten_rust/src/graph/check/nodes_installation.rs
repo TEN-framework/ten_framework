@@ -17,7 +17,7 @@ impl Graph {
     /// packages.
     pub fn check_nodes_installation(
         &self,
-        installed_pkgs_of_all_apps: &HashMap<String, PkgsInfoInApp>,
+        pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         // Collection to store missing packages as tuples of (app_uri,
@@ -31,7 +31,7 @@ impl Graph {
             let node_app_uri = node.get_app_uri().unwrap_or("");
 
             // Verify if the node's app exists in our app mapping.
-            if !installed_pkgs_of_all_apps.contains_key(node_app_uri) {
+            if !pkgs_cache.contains_key(node_app_uri) {
                 // If app doesn't exist and we're not skipping such cases, add
                 // it to missing packages.
                 if !ignore_missing_apps {
@@ -47,8 +47,7 @@ impl Graph {
             }
 
             // Get the PkgsInfoInApp for this app.
-            let installed_pkgs_of_app =
-                installed_pkgs_of_all_apps.get(node_app_uri).unwrap();
+            let installed_pkgs_of_app = pkgs_cache.get(node_app_uri).unwrap();
 
             // Search for the package using the helper method.
             let found = installed_pkgs_of_app.find_pkg_by_type_and_name(

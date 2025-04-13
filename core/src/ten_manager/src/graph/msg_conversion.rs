@@ -12,13 +12,12 @@ use ten_rust::{
     base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
     graph::msg_conversion::{MsgAndResultConversion, MsgConversionMode},
     pkg_info::{
+        get_pkg_info_for_extension_addon,
         manifest::api::{ManifestApiMsg, ManifestApiPropertyAttributes},
         message::MsgType,
         value_type::ValueType,
     },
 };
-
-use super::compatible::get_pkg_info_for_extension_addon;
 
 // Helper function to parse a path string and navigate to the specified location
 // in the property map.

@@ -11,9 +11,11 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
-    graph::connection::{GraphConnection, GraphDestination, GraphMessageFlow},
-    graph::msg_conversion::MsgAndResultConversion,
-    pkg_info::message::MsgType,
+    graph::{
+        connection::{GraphConnection, GraphDestination, GraphMessageFlow},
+        msg_conversion::MsgAndResultConversion,
+    },
+    pkg_info::{create_uri_to_pkg_info_map, message::MsgType},
 };
 use uuid::Uuid;
 
@@ -29,7 +31,6 @@ use crate::{
 use crate::graph::{
     graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
 };
-use crate::pkg_info::create_uri_to_pkg_info_map;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
@@ -177,7 +178,9 @@ pub async fn add_graph_connection_endpoint(
     ) {
         Ok(_) => {
             if let Ok(Some(pkg_info)) =
-                belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+                belonging_pkg_info_find_by_graph_info_mut(
+                    pkgs_cache, graph_info,
+                )
             {
                 // Update property.json file with the updated graph.
                 if let Some(property) = &mut pkg_info.property {

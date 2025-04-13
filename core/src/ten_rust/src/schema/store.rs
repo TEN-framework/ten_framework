@@ -14,7 +14,6 @@ use crate::pkg_info::{
         Manifest,
     },
     message::{MsgDirection, MsgType},
-    pkg_type::PkgType,
     PkgInfo,
 };
 
@@ -337,19 +336,12 @@ pub fn are_msg_schemas_compatible(
 }
 
 pub fn find_cmd_schema_from_all_pkgs_info<'a>(
-    app_installed_pkgs: &'a [PkgInfo],
-    addon: &str,
+    extension_pkg_info: &'a PkgInfo,
     cmd_name: &str,
     direction: MsgDirection,
 ) -> Option<&'a TenMsgSchema> {
-    // Attempt to find the addon package. If not found, return None.
-    let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
-        pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-            && pkg.manifest.type_and_name.name == addon
-    })?;
-
     // Access the schema_store. If it's None, propagate None.
-    let schema_store = addon_pkg.schema_store.as_ref()?;
+    let schema_store = extension_pkg_info.schema_store.as_ref()?;
 
     // Retrieve the command schema based on the direction.
     match direction {
@@ -359,20 +351,13 @@ pub fn find_cmd_schema_from_all_pkgs_info<'a>(
 }
 
 pub fn find_msg_schema_from_all_pkgs_info<'a>(
-    extension_pkgs_info: &'a [PkgInfo],
-    extension_addon: &str,
+    extension_pkg_info: &'a PkgInfo,
     msg_type: &MsgType,
     msg_name: &str,
     direction: MsgDirection,
 ) -> Option<&'a TenMsgSchema> {
-    // Attempt to find the addon package. If not found, return None.
-    let addon_pkg = extension_pkgs_info.iter().find(|pkg| {
-        pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-            && pkg.manifest.type_and_name.name == extension_addon
-    })?;
-
     // Access the schema_store. If it's None, propagate None.
-    let schema_store = addon_pkg.schema_store.as_ref()?;
+    let schema_store = extension_pkg_info.schema_store.as_ref()?;
 
     // Retrieve the message schema based on the direction and message type.
     match msg_type {

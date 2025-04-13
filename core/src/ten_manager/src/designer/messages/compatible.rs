@@ -13,7 +13,10 @@ use uuid::Uuid;
 
 use ten_rust::{
     graph::node::GraphNode,
-    pkg_info::message::{MsgDirection, MsgType},
+    pkg_info::{
+        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        message::{MsgDirection, MsgType},
+    },
 };
 
 use crate::{
@@ -23,10 +26,8 @@ use crate::{
         DesignerState,
     },
     graph::compatible::{
-        get_compatible_msg_extension, get_pkg_info_for_extension_addon,
-        CompatibleExtensionAndMsg,
+        get_compatible_msg_extension, CompatibleExtensionAndMsg,
     },
-    pkg_info::create_uri_to_pkg_info_map,
 };
 
 /// Represents the request payload for retrieving compatible messages.

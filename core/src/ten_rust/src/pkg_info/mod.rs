@@ -24,7 +24,8 @@ use anyhow::{anyhow, Result};
 use uuid::Uuid;
 
 use crate::{
-    base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
+    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    graph::graph_info::GraphInfo,
     schema::store::SchemaStore,
 };
 
@@ -383,4 +384,101 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
     }
 
     to_be_replaced
+}
+
+/// Creates a mapping from app URIs to PkgsInfoInAppWithBaseDir.
+/// This function is used to create a hash map that can be used for graph
+/// connection operations.
+pub fn create_uri_to_pkg_info_map<'a>(
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir<'a>>, String> {
+    // Create a hash map from app URIs to PkgsInfoInApp
+    let mut uri_to_pkg_info: HashMap<
+        Option<String>,
+        PkgsInfoInAppWithBaseDir<'a>,
+    > = HashMap::new();
+
+    // Process all available apps to map URIs to PkgsInfoInApp
+    for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
+        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
+            if let Some(property) = &app_pkg.property {
+                if let Some(ten) = &property._ten {
+                    // Map the URI to the PkgsInfoInApp, using None if URI is
+                    // None
+                    let key = ten.uri.clone();
+
+                    // Check if the key already exists
+                    if let Some(existing) = uri_to_pkg_info.get(&key) {
+                        let error_message = if key.is_none() {
+                            format!(
+                              "Found two apps with unspecified URI in both '{}' and '{}'",
+                              existing.base_dir,
+                              base_dir
+                          )
+                        } else {
+                            format!(
+                              "Duplicate app uri '{}' found in both '{}' and '{}'",
+                              key.as_ref().unwrap(),
+                              existing.base_dir,
+                              base_dir
+                          )
+                        };
+
+                        return Err(error_message);
+                    }
+
+                    uri_to_pkg_info.insert(
+                        key,
+                        PkgsInfoInAppWithBaseDir {
+                            pkgs_info_in_app: base_dir_pkg_info,
+                            base_dir,
+                        },
+                    );
+                }
+            }
+        }
+    }
+
+    Ok(uri_to_pkg_info)
+}
+
+pub fn get_pkg_info_for_extension_addon<'a>(
+    app: &Option<String>,
+    extension_addon: &String,
+    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    graph_app_base_dir: Option<&String>,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+) -> Option<&'a PkgInfo> {
+    let result =
+        uri_to_pkg_info
+            .get(app)
+            .and_then(|pkgs_info_in_app_with_base_dir| {
+                pkgs_info_in_app_with_base_dir
+                    .pkgs_info_in_app
+                    .get_extensions()
+                    .iter()
+                    .find(|pkg_info| {
+                        pkg_info.manifest.type_and_name.pkg_type
+                            == PkgType::Extension
+                            && pkg_info.manifest.type_and_name.name
+                                == *extension_addon
+                    })
+            });
+
+    if let Some(pkg_info) = result {
+        Some(pkg_info)
+    } else if let Some(graph_app_base_dir) = graph_app_base_dir {
+        pkgs_cache
+            .get(graph_app_base_dir)
+            .and_then(|pkgs_info_in_app| {
+                pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
+                    pkg_info.manifest.type_and_name.pkg_type
+                        == PkgType::Extension
+                        && pkg_info.manifest.type_and_name.name
+                            == *extension_addon
+                })
+            })
+    } else {
+        None
+    }
 }

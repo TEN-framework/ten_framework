@@ -10,7 +10,6 @@ mod msg_conversion_tests {
 
     use ten_manager::{
         constants::TEST_DIR, graph::connections::add::graph_add_connection,
-        pkg_info::create_uri_to_pkg_info_map,
     };
     use ten_rust::{
         graph::{
@@ -22,7 +21,7 @@ mod msg_conversion_tests {
             Graph,
         },
         pkg_info::{
-            message::MsgType, pkg_type::PkgType,
+            create_uri_to_pkg_info_map, message::MsgType, pkg_type::PkgType,
             pkg_type_and_name::PkgTypeAndName,
         },
     };

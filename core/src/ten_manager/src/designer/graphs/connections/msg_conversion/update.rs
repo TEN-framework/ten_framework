@@ -14,7 +14,14 @@ use ten_rust::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         msg_conversion::MsgAndResultConversion,
     },
-    pkg_info::message::MsgType,
+    pkg_info::{
+        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        message::{MsgDirection, MsgType},
+    },
+    schema::store::{
+        are_msg_schemas_compatible, create_msg_schema_from_manifest,
+        find_msg_schema_from_all_pkgs_info,
+    },
 };
 
 use crate::{
@@ -28,9 +35,7 @@ use crate::{
         nodes::extension_graph_node_find_by_loc,
         update_graph_connections_all_fields,
     },
-    pkg_info::{
-        belonging_pkg_info_find_by_graph_info_mut, create_uri_to_pkg_info_map,
-    },
+    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -178,23 +183,34 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
             serde_json::to_string_pretty(&converted_schema).unwrap()
         );
 
-        // if let Ok(Some(ten_msg_schema)) =
-        //     create_msg_schema_from_manifest(&converted_schema)
-        // {
-        //     find_msg_schema_from_all_pkgs_info(
-        //         &uri_to_pkg_info,
-        //         &dest_graph_node.addon,
-        //         &request_payload.msg_type,
-        //         &request_payload.msg_name,
-        //         MsgDirection::In,
-        //     );
-
-        //     let _ = are_cmd_schemas_compatible(
-        //         Some(&ten_msg_schema),
-        //         Some(&ten_msg_schema),
-        //         false,
-        //     );
-        // }
+        if let Ok(Some(src_ten_msg_schema)) =
+            create_msg_schema_from_manifest(&converted_schema)
+        {
+            if let Some(dest_extension_pkg_info) =
+                get_pkg_info_for_extension_addon(
+                    &dest_graph_node.app,
+                    &dest_graph_node.addon,
+                    &uri_to_pkg_info,
+                    graph_info.app_base_dir.as_ref(),
+                    pkgs_cache,
+                )
+            {
+                if let Some(dest_ten_msg_schema) =
+                    find_msg_schema_from_all_pkgs_info(
+                        dest_extension_pkg_info,
+                        &request_payload.msg_type,
+                        &request_payload.msg_name,
+                        MsgDirection::In,
+                    )
+                {
+                    let _ = are_msg_schemas_compatible(
+                        Some(&src_ten_msg_schema),
+                        Some(dest_ten_msg_schema),
+                        false,
+                    );
+                }
+            }
+        }
     }
 
     if let Ok(Some(pkg_info)) =
