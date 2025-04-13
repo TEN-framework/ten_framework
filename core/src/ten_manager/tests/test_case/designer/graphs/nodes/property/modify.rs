@@ -98,7 +98,6 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
             extension_group_name: Some("extension_group_1".to_string()),
@@ -195,7 +194,6 @@ mod tests {
         // Try to update a node in a non-existent graph.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: Uuid::new_v4(),
-            addon_app_base_dir: None,
             node_name: "node1".to_string(),
             addon_name: "addon1".to_string(),
             extension_group_name: None,
@@ -254,7 +252,6 @@ mod tests {
         // Try to update a non-existent node
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: None,
             node_name: "non_existent_node".to_string(),
             addon_name: "addon1".to_string(),
             extension_group_name: None,
@@ -356,7 +353,6 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
             extension_group_name: Some("extension_group_1".to_string()),
@@ -480,7 +476,6 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
             extension_group_name: Some("extension_group_1".to_string()),
@@ -599,7 +594,6 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
             extension_group_name: Some("extension_group_1".to_string()),
@@ -724,7 +718,6 @@ mod tests {
         // Update property of an existing node with invalid data.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            addon_app_base_dir: Some(temp_dir_path.clone()),
             node_name: "extension_1".to_string(),
             addon_name: "extension_addon_1".to_string(),
             extension_group_name: Some("extension_group_1".to_string()),

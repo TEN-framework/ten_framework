@@ -33,7 +33,6 @@ use crate::{
 pub struct UpdateGraphNodePropertyRequestPayload {
     pub graph_id: Uuid,
 
-    pub addon_app_base_dir: Option<String>,
     pub node_name: String,
     pub addon_name: String,
     pub extension_group_name: Option<String>,
