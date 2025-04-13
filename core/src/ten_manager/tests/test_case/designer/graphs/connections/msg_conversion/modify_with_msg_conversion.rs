@@ -57,9 +57,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../../test_data_embed/app_manifest.json").to_string();
+            include_str!("test_data_embed/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../../test_data_embed/app_property.json").to_string();
+            include_str!("test_data_embed/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -67,19 +67,13 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings
-        let ext1_manifest = r#"{
-            "type": "extension",
-            "name": "extension_1",
-            "version": "0.1.0"
-        }"#
-        .to_string();
+        let ext1_manifest_json_str =
+            include_str!("test_data_embed/extension_1_manifest.json")
+                .to_string();
 
-        let ext2_manifest = r#"{
-            "type": "extension",
-            "name": "extension_2",
-            "version": "0.1.0"
-        }"#
-        .to_string();
+        let ext2_manifest_json_str =
+            include_str!("test_data_embed/extension_2_manifest.json")
+                .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -96,7 +90,7 @@ mod tests {
                     test_dir.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                ext1_manifest,
+                ext1_manifest_json_str,
                 empty_property.clone(),
             ),
             (
@@ -105,7 +99,7 @@ mod tests {
                     test_dir.clone(),
                     "/ten_packages/extension/extension_2"
                 ),
-                ext2_manifest,
+                ext2_manifest_json_str,
                 empty_property.clone(),
             ),
         ];
@@ -258,7 +252,7 @@ mod tests {
 
         // Define expected property.json content after updating the message
         // conversion.
-        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_updated_msg_conversion.json");
+        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_updated_msg_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =

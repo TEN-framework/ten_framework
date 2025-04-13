@@ -25,7 +25,7 @@ use crate::{
         DesignerState,
     },
     graph::{
-        compatible::get_pkg_info_for_extension_graph_node,
+        compatible::get_pkg_info_for_extension_addon,
         graphs_cache_find_by_id_mut,
     },
     pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
@@ -214,7 +214,7 @@ pub async fn add_graph_node_endpoint(
         }
     };
 
-    if let Some(extension_pkg_info) = get_pkg_info_for_extension_graph_node(
+    if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
         &request_payload.app_uri,
         &request_payload.addon_name,
         &uri_to_pkg_info,

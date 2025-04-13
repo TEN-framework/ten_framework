@@ -95,8 +95,16 @@ mod msg_conversion_tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -133,11 +141,11 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             Some(msg_conversion.clone()),
@@ -151,7 +159,7 @@ mod msg_conversion_tests {
         assert_eq!(connections.len(), 1);
 
         let connection = &connections[0];
-        assert_eq!(connection.app, Some("app1".to_string()));
+        assert_eq!(connection.app, Some("http://localhost:8000".to_string()));
         assert_eq!(connection.extension, "ext1");
 
         let cmd_flows = connection.cmd.as_ref().unwrap();
@@ -162,7 +170,7 @@ mod msg_conversion_tests {
         assert_eq!(flow.dest.len(), 1);
 
         let dest = &flow.dest[0];
-        assert_eq!(dest.app, Some("app1".to_string()));
+        assert_eq!(dest.app, Some("http://localhost:8000".to_string()));
         assert_eq!(dest.extension, "ext2");
 
         // Verify the msg_conversion was properly set
@@ -245,8 +253,16 @@ mod msg_conversion_tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -271,11 +287,11 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             Some(msg_conversion),
@@ -357,8 +373,16 @@ mod msg_conversion_tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -394,11 +418,11 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             Some(msg_conversion),
@@ -485,8 +509,16 @@ mod msg_conversion_tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -506,11 +538,11 @@ mod msg_conversion_tests {
         // Test adding a connection with invalid msg_conversion.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             Some(msg_conversion),

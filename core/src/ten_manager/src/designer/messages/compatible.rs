@@ -24,7 +24,7 @@ use crate::{
     },
     graph::compatible::{
         get_compatible_cmd_extension, get_compatible_data_like_msg_extension,
-        get_pkg_info_for_extension_graph_node, CompatibleExtensionAndMsg,
+        get_pkg_info_for_extension_addon, CompatibleExtensionAndMsg,
     },
     pkg_info::create_uri_to_pkg_info_map,
 };
@@ -205,7 +205,7 @@ pub async fn get_compatible_messages_endpoint(
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
 
-        if let Some(extension_pkg_info) = get_pkg_info_for_extension_graph_node(
+        if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
             &extension_graph_node.app,
             &extension_graph_node.addon,
             &uri_to_pkg_info,

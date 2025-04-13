@@ -32,7 +32,7 @@ pub struct CompatibleExtensionAndMsg<'a> {
     pub msg_name: String,
 }
 
-pub fn get_pkg_info_for_extension_graph_node<'a>(
+pub fn get_pkg_info_for_extension_addon<'a>(
     app: &Option<String>,
     extension_addon: &String,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
@@ -85,7 +85,7 @@ pub fn get_compatible_cmd_extension<'a>(
     let mut result = Vec::new();
 
     for target_extension_graph_node in extension_graph_nodes {
-        let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
+        let target_extension_pkg_info = get_pkg_info_for_extension_addon(
             &target_extension_graph_node.app,
             &target_extension_graph_node.addon,
             uri_to_pkg_info,
@@ -146,7 +146,7 @@ pub fn get_compatible_data_like_msg_extension<'a>(
     let mut result = Vec::new();
 
     for target_extension_graph_node in extension_graph_nodes {
-        let target_extension_pkg_info = get_pkg_info_for_extension_graph_node(
+        let target_extension_pkg_info = get_pkg_info_for_extension_addon(
             &target_extension_graph_node.app,
             &target_extension_graph_node.addon,
             uri_to_pkg_info,

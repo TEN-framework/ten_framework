@@ -5,13 +5,13 @@
   "_ten": {
     "predefined_graphs": [
       {
-        "name": "test-graph",
+        "name": "test_graph",
         "auto_start": true,
         "nodes": [
           {
             "type": "extension",
-            "name": "first-node",
-            "addon": "first-addon"
+            "name": "first_node",
+            "addon": "first_addon"
           }
         ],
         "connections": []

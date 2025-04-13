@@ -22,8 +22,13 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
-    pkg_info::pkg_info_find_by_graph_info_mut,
+    graph::{
+        graphs_cache_find_by_id_mut,
+        msg_conversion::msg_conversion_get_final_target_schema,
+        nodes::extension_graph_node_find_by_loc,
+        update_graph_connections_all_fields,
+    },
+    pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -80,6 +85,91 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
             return Ok(HttpResponse::NotFound().json(error_response));
         }
     };
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    // Update the GraphInfo structure.
+    // First check if connections exist in the graph.
+    if let Some(connections) = &mut graph_info.graph.connections {
+        // Try to find the matching connection based on app and extension.
+        for connection in connections.iter_mut() {
+            if connection.app == request_payload.src_app
+                && connection.extension == request_payload.src_extension
+            {
+                // Find the correct message flow vector based on msg_type.
+                let msg_flow_vec = match request_payload.msg_type {
+                    MsgType::Cmd => &mut connection.cmd,
+                    MsgType::Data => &mut connection.data,
+                    MsgType::AudioFrame => &mut connection.audio_frame,
+                    MsgType::VideoFrame => &mut connection.video_frame,
+                };
+
+                // If we found the message flow vector, find the specific
+                // message flow by name.
+                if let Some(msg_flows) = msg_flow_vec {
+                    for msg_flow in msg_flows.iter_mut() {
+                        if msg_flow.name == request_payload.msg_name {
+                            // Find the matching destination
+                            for dest in msg_flow.dest.iter_mut() {
+                                if dest.app == request_payload.dest_app
+                                    && dest.extension
+                                        == request_payload.dest_extension
+                                {
+                                    // Update the msg_conversion field.
+                                    dest.msg_conversion =
+                                        request_payload.msg_conversion.clone();
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    if let Some(msg_conversion) = &request_payload.msg_conversion {
+        let src_graph_node = extension_graph_node_find_by_loc(
+            graph_info,
+            request_payload.src_app.as_ref(),
+            &request_payload.src_extension,
+        )
+        .unwrap();
+
+        let dest_graph_node = extension_graph_node_find_by_loc(
+            graph_info,
+            request_payload.dest_app.as_ref(),
+            &request_payload.dest_extension,
+        )
+        .unwrap();
+
+        let _ = msg_conversion_get_final_target_schema(
+            &uri_to_pkg_info,
+            graph_info.app_base_dir.as_ref(),
+            pkgs_cache,
+            &request_payload.msg_type,
+            &src_graph_node.app,
+            &src_graph_node.addon,
+            &request_payload.msg_name,
+            &dest_graph_node.app,
+            &dest_graph_node.addon,
+            &request_payload.msg_name,
+            msg_conversion,
+        );
+    }
 
     if let Ok(Some(pkg_info)) =
         pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)

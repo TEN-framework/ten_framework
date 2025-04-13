@@ -11,6 +11,7 @@ use std::str::FromStr;
 use anyhow::{Context, Result};
 use serde_json::Value;
 
+use ten_rust::graph::graph_info::GraphInfo;
 use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
@@ -498,4 +499,14 @@ fn update_connections_for_removed_nodes(
             graph_obj.remove("connections");
         }
     }
+}
+
+pub fn extension_graph_node_find_by_loc<'a>(
+    graph_info: &'a GraphInfo,
+    app: Option<&String>,
+    extension: &String,
+) -> Option<&'a GraphNode> {
+    graph_info.graph.nodes.iter().find(|node| {
+        node.app.as_ref() == app && node.type_and_name.name == *extension
+    })
 }

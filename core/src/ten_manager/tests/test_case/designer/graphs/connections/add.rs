@@ -254,7 +254,7 @@ mod tests {
         .to_string();
 
         // The empty property for addons
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{}"#.to_string();
 
         let all_pkgs_json = vec![
             (
