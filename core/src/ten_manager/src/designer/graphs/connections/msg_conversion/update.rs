@@ -161,7 +161,7 @@ fn check_msg_conversion_schema(
             if let Some(dest_extension_pkg_info) =
                 get_pkg_info_for_extension_addon(
                     &request_payload.dest_app,
-                    &dest_extension_addon,
+                    dest_extension_addon,
                     uri_to_pkg_info,
                     graph_info.app_base_dir.as_ref(),
                     pkgs_cache,
