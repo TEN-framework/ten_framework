@@ -475,14 +475,14 @@ fn search_versions(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
-    _tman_config: Arc<TmanConfig>,
+    _tman_config: &Arc<TmanConfig>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
     page_size: Option<u32>,
     page: Option<u32>,
-    _out: Arc<Box<dyn TmanOutput>>,
+    _out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?

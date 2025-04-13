@@ -41,14 +41,14 @@ fn can_package_be_created_in_path(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_pkg_in_path(
-    tman_config: Arc<TmanConfig>,
+    tman_config: &Arc<TmanConfig>,
     path: &Path,
     pkg_type: &PkgType,
     pkg_name: &String,
     template_pkg_name: &String,
     template_pkg_version: &VersionReq,
     template_data: Option<&HashMap<String, String>>,
-    out: Arc<Box<dyn TmanOutput>>,
+    out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Check that 'path' is a directory.
     if !path.is_dir() {
@@ -62,13 +62,13 @@ pub async fn create_pkg_in_path(
 
     // Search for the package in the registry.
     let mut found_packages = get_package_list(
-        tman_config.clone(),
+        tman_config,
         Some(*pkg_type),
         Some(template_pkg_name.clone()),
         Some(template_pkg_version.clone()),
         None,
         None, // Retrieve all packages.
-        out.clone(),
+        out,
     )
     .await?;
 

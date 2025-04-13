@@ -29,7 +29,12 @@ pub async fn get_graphs_endpoint(
     _request_payload: web::Json<GetGraphsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
     let graphs: Vec<GetGraphsResponseData> = state_read
         .graphs_cache

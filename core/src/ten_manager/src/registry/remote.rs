@@ -587,14 +587,14 @@ struct RegistryPackagesData {
 /// * If parsing the JSON response fails.
 #[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
-    tman_config: Arc<TmanConfig>,
+    tman_config: &Arc<TmanConfig>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
     page_size: Option<u32>,
     page: Option<u32>,
-    out: Arc<Box<dyn TmanOutput>>,
+    out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);

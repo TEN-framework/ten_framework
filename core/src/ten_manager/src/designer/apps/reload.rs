@@ -28,7 +28,12 @@ pub async fn reload_app_endpoint(
     request_payload: web::Json<ReloadPkgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
 
     // Destructure to avoid multiple mutable borrows.
     let DesignerState {

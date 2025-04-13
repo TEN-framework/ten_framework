@@ -135,13 +135,13 @@ pub async fn get_package(
 ///   supported).
 /// * If there's an error retrieving the package list from the registry.
 pub async fn get_package_list(
-    tman_config: Arc<TmanConfig>,
+    tman_config: &Arc<TmanConfig>,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
     page_size: Option<u32>,
     page: Option<u32>,
-    out: Arc<Box<dyn TmanOutput>>,
+    out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL from configuration.
     let default_registry_url = tman_config
@@ -159,7 +159,7 @@ pub async fn get_package_list(
     let results = match parsed_registry_url.scheme() {
         "file" => {
             local::get_package_list(
-                tman_config.clone(),
+                tman_config,
                 &default_registry_url,
                 pkg_type,
                 name,
@@ -172,7 +172,7 @@ pub async fn get_package_list(
         }
         "https" => {
             remote::get_package_list(
-                tman_config.clone(),
+                tman_config,
                 &default_registry_url,
                 pkg_type,
                 name,

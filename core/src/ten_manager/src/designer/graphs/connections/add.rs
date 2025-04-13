@@ -121,7 +121,12 @@ pub async fn add_graph_connection_endpoint(
     request_payload: web::Json<AddGraphConnectionRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
 
     let DesignerState {
         pkgs_cache,
@@ -129,8 +134,7 @@ pub async fn add_graph_connection_endpoint(
         ..
     } = &mut *state_write;
 
-    // Create a hash map from app URIs to PkgsInfoInApp for use with
-    // add_connection.
+    // Create a hash map from app URIs to PkgsInfoInApp.
     let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
         Ok(map) => map,
         Err(error_message) => {

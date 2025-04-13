@@ -97,47 +97,55 @@ pub async fn get_graph_nodes_endpoint(
     request_payload: web::Json<GetGraphNodesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
+
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &*state_read;
 
     // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info =
-        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
-            Ok(map) => map,
-            Err(error_message) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: error_message,
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        };
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
     let graph_id = &request_payload.graph_id;
 
-    let graph_info = state_read.graphs_cache.get(&request_payload.graph_id);
+    let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
         Some(graph_info) => graph_info.app_base_dir.as_ref(),
         None => None,
     };
 
-    let extension_graph_nodes = match get_extension_nodes_in_graph(
-        graph_id,
-        &state_read.graphs_cache,
-    ) {
-        Ok(exts) => exts,
-        Err(err) => {
-            let error_response = ErrorResponse::from_error(
-                &err,
-                format!(
-                    "Error fetching runtime extensions for graph '{}'",
-                    graph_id
-                )
-                .as_str(),
-            );
-            return Ok(HttpResponse::NotFound().json(error_response));
-        }
-    };
+    let extension_graph_nodes =
+        match get_extension_nodes_in_graph(graph_id, graphs_cache) {
+            Ok(exts) => exts,
+            Err(err) => {
+                let error_response = ErrorResponse::from_error(
+                    &err,
+                    format!(
+                        "Error fetching runtime extensions for graph '{}'",
+                        graph_id
+                    )
+                    .as_str(),
+                );
+                return Ok(HttpResponse::NotFound().json(error_response));
+            }
+        };
 
     let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
@@ -147,7 +155,7 @@ pub async fn get_graph_nodes_endpoint(
             &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
-            &state_read.pkgs_cache,
+            pkgs_cache,
         );
         if let Some(pkg_info) = pkg_info {
             resp_extensions.push(GraphNodesSingleResponseData {

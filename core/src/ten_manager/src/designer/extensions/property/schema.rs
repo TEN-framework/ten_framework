@@ -35,7 +35,12 @@ pub async fn get_extension_property_schema_endpoint(
     request_payload: web::Json<GetExtensionPropertySchemaRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
     let pkgs_cache = &state_read.pkgs_cache;
 

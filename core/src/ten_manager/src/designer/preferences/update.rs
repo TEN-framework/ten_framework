@@ -34,7 +34,13 @@ pub async fn update_preferences_endpoint(
         return Err(actix_web::error::ErrorBadRequest(e.to_string()));
     }
 
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
+
     let tman_config =
         Arc::get_mut(&mut state_write.tman_config).ok_or_else(|| {
             actix_web::error::ErrorInternalServerError(

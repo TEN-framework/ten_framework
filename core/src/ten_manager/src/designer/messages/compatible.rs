@@ -115,23 +115,33 @@ pub async fn get_compatible_messages_endpoint(
     request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
+
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &*state_read;
 
     // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info =
-        match create_uri_to_pkg_info_map(&state_read.pkgs_cache) {
-            Ok(map) => map,
-            Err(error_message) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: error_message,
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        };
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
-    let graph_info = state_read.graphs_cache.get(&request_payload.graph_id);
+    let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
         Some(graph_info) => graph_info.app_base_dir.as_ref(),
         None => None,
@@ -152,7 +162,7 @@ pub async fn get_compatible_messages_endpoint(
 
         let extension_graph_nodes = match get_extension_nodes_in_graph(
             &request_payload.graph_id,
-            &state_read.graphs_cache,
+            graphs_cache,
         ) {
             Ok(exts) => exts,
             Err(err) => {
@@ -200,7 +210,7 @@ pub async fn get_compatible_messages_endpoint(
             &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
-            &state_read.pkgs_cache,
+            pkgs_cache,
         ) {
             let compatible_list =
                 match msg_ty {
@@ -221,7 +231,7 @@ pub async fn get_compatible_messages_endpoint(
                             extension_graph_nodes,
                             &uri_to_pkg_info,
                             app_base_dir_of_graph,
-                            &state_read.pkgs_cache,
+                            pkgs_cache,
                             &desired_msg_dir,
                             src_cmd_schema,
                             request_payload.msg_name.as_str(),
@@ -277,7 +287,7 @@ pub async fn get_compatible_messages_endpoint(
                             extension_graph_nodes,
                             &uri_to_pkg_info,
                             app_base_dir_of_graph,
-                            &state_read.pkgs_cache,
+                            pkgs_cache,
                             &desired_msg_dir,
                             src_msg_schema,
                             &msg_ty,

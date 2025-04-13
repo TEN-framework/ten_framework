@@ -222,7 +222,16 @@ async fn test_update_preferences_success() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state.read().unwrap();
+    let state_read = state
+        .read()
+        .map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to acquire read lock: {}",
+                e
+            ))
+        })
+        .expect("Failed to acquire read lock");
+
     assert_eq!(state_read.tman_config.designer.logviewer_line_size, 2000);
     assert!(matches!(
         state_read.tman_config.designer.locale,
@@ -328,7 +337,16 @@ async fn test_update_preferences_field_success() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state.read().unwrap();
+    let state_read = state
+        .read()
+        .map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to acquire read lock: {}",
+                e
+            ))
+        })
+        .expect("Failed to acquire read lock");
+
     assert_eq!(state_read.tman_config.designer.logviewer_line_size, 2000);
 }
 
@@ -474,7 +492,16 @@ async fn test_update_preferences_field_locale() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state.read().unwrap();
+    let state_read = state
+        .read()
+        .map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to acquire read lock: {}",
+                e
+            ))
+        })
+        .expect("Failed to acquire read lock");
+
     assert!(matches!(
         state_read.tman_config.designer.locale,
         Locale::ZhCn
