@@ -21,7 +21,7 @@ use crate::{
     constants::{
         ERR_MSG_GRAPH_APP_FIELD_EMPTY, ERR_MSG_GRAPH_MIXED_APP_DECLARATIONS,
     },
-    pkg_info::{create_uri_to_pkg_info_map, localhost},
+    pkg_info::{create_uri_to_pkg_info_map, localhost, pkg_type::PkgType},
 };
 
 /// The state of the 'app' field declaration in all nodes in the graph.
@@ -231,7 +231,7 @@ impl Graph {
 
     pub fn check(
         &self,
-        graph_app_base_dir: &str,
+        graph_app_base_dir: Option<&String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         // Create a hash map from app URIs to PkgsInfoInApp.
@@ -244,7 +244,12 @@ impl Graph {
         self.check_extension_existence()?;
         self.check_connection_extensions_exist()?;
 
-        self.check_nodes_installation(pkgs_cache, false)?;
+        self.check_nodes_installation(
+            graph_app_base_dir,
+            pkgs_cache,
+            &uri_to_pkg_info,
+            false,
+        )?;
         self.check_connections_compatibility(
             graph_app_base_dir,
             pkgs_cache,
@@ -260,7 +265,7 @@ impl Graph {
 
     pub fn check_for_single_app(
         &self,
-        graph_app_base_dir: &str,
+        graph_app_base_dir: Option<&String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         assert!(pkgs_cache.len() == 1);
@@ -277,7 +282,12 @@ impl Graph {
 
         // In a single app, there is no information about pkg_info of other
         // apps, neither the message schemas.
-        self.check_nodes_installation(pkgs_cache, true)?;
+        self.check_nodes_installation(
+            graph_app_base_dir,
+            pkgs_cache,
+            &uri_to_pkg_info,
+            true,
+        )?;
         self.check_connections_compatibility(
             graph_app_base_dir,
             pkgs_cache,
@@ -291,10 +301,25 @@ impl Graph {
         Ok(())
     }
 
-    /// Helper function to convert Option<&str> to String for HashMap keys and
-    /// string formatting.
-    pub(crate) fn option_str_to_string(app_uri: Option<&str>) -> String {
-        app_uri.map_or_else(String::new, |s| s.to_string())
+    pub fn get_addon_name_of_extension(
+        &self,
+        app: Option<&String>,
+        extension: &String,
+    ) -> Result<&String> {
+        self.nodes
+            .iter()
+            .find(|node| {
+                node.type_and_name.pkg_type == PkgType::Extension
+                    && node.type_and_name.name.as_str() == extension
+                    && node.get_app_uri() == app
+            })
+            .map(|node| &node.addon)
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Extension '{}' is not found in nodes, should not happen.",
+                    extension
+                )
+            })
     }
 }
 

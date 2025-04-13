@@ -9,7 +9,9 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    base_dir_pkg_info::PkgsInfoInApp, graph::Graph, pkg_info::pkg_type::PkgType,
+    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    graph::Graph,
+    pkg_info::pkg_type::PkgType,
 };
 
 impl Graph {
@@ -17,7 +19,9 @@ impl Graph {
     /// packages.
     pub fn check_nodes_installation(
         &self,
+        graph_app_base_dir: Option<&String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         // Collection to store missing packages as tuples of (app_uri,
@@ -27,39 +31,41 @@ impl Graph {
         // Iterate through all nodes in the graph to verify their installation
         // status.
         for node in &self.nodes {
-            // Get app URI or empty string if None.
-            let node_app_uri = node.get_app_uri().unwrap_or("");
+            let mut pkgs_info_in_app = uri_to_pkg_info
+                .get(&node.app)
+                .map(|pkgs_info_in_app| pkgs_info_in_app.pkgs_info_in_app);
 
-            // Verify if the node's app exists in our app mapping.
-            if !pkgs_cache.contains_key(node_app_uri) {
-                // If app doesn't exist and we're not skipping such cases, add
-                // it to missing packages.
-                if !ignore_missing_apps {
-                    let uri_for_error = node_app_uri.to_string();
+            if pkgs_info_in_app.is_none() {
+                if let Some(graph_app_base_dir) = graph_app_base_dir {
+                    pkgs_info_in_app = pkgs_cache.get(graph_app_base_dir);
+                }
+            }
+
+            if let Some(pkgs_info_in_app) = pkgs_info_in_app {
+                // Search for the package using the helper method.
+                let found = pkgs_info_in_app.find_pkg_by_type_and_name(
+                    node.type_and_name.pkg_type,
+                    &node.addon,
+                );
+
+                // If the node is not found, add it to the missing packages
+                // list.
+                if found.is_none() && !ignore_missing_apps {
                     not_installed_pkgs.push((
-                        uri_for_error,
+                        node.app
+                            .as_ref()
+                            .map(|s| s.to_string())
+                            .unwrap_or("".to_string()),
                         node.type_and_name.pkg_type,
                         node.addon.clone(),
                     ));
                 }
-
-                continue;
-            }
-
-            // Get the PkgsInfoInApp for this app.
-            let installed_pkgs_of_app = pkgs_cache.get(node_app_uri).unwrap();
-
-            // Search for the package using the helper method.
-            let found = installed_pkgs_of_app.find_pkg_by_type_and_name(
-                node.type_and_name.pkg_type,
-                &node.addon,
-            );
-
-            // If the node is not found, add it to the missing packages list.
-            if found.is_none() {
-                let uri_for_error = node_app_uri.to_string();
+            } else if !ignore_missing_apps {
                 not_installed_pkgs.push((
-                    uri_for_error,
+                    node.app
+                        .as_ref()
+                        .map(|s| s.to_string())
+                        .unwrap_or("".to_string()),
                     node.type_and_name.pkg_type,
                     node.addon.clone(),
                 ));

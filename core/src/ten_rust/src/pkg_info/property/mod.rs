@@ -173,17 +173,6 @@ impl Property {
 
         Ok(())
     }
-
-    /// Returns the application URI from the property configuration.
-    pub fn get_app_uri(&self) -> Option<String> {
-        if let Some(_ten) = &self._ten {
-            if let Some(uri) = &_ten.uri {
-                return Some(uri.clone());
-            }
-        }
-
-        None
-    }
 }
 
 /// Represents the TEN-specific configuration within a property.json file.

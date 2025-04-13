@@ -39,7 +39,6 @@ use crate::{
     graph::{
         graphs_cache_find_by_id_mut,
         msg_conversion::msg_conversion_get_final_target_schema,
-        nodes::extension_graph_node_find_by_loc,
         update_graph_connections_all_fields,
     },
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
@@ -124,30 +123,28 @@ fn check_msg_conversion_schema(
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
 ) -> Result<()> {
     if let Some(msg_conversion) = &request_payload.msg_conversion {
-        let src_graph_node = extension_graph_node_find_by_loc(
-            graph_info,
-            request_payload.src_app.as_ref(),
-            &request_payload.src_extension,
-        )
-        .unwrap();
+        let src_extension_addon =
+            graph_info.graph.get_addon_name_of_extension(
+                request_payload.src_app.as_ref(),
+                &request_payload.src_extension,
+            )?;
 
-        let dest_graph_node = extension_graph_node_find_by_loc(
-            graph_info,
-            request_payload.dest_app.as_ref(),
-            &request_payload.dest_extension,
-        )
-        .unwrap();
+        let dest_extension_addon =
+            graph_info.graph.get_addon_name_of_extension(
+                request_payload.dest_app.as_ref(),
+                &request_payload.dest_extension,
+            )?;
 
         let converted_schema = msg_conversion_get_final_target_schema(
             uri_to_pkg_info,
             graph_info.app_base_dir.as_ref(),
             pkgs_cache,
             &request_payload.msg_type,
-            &src_graph_node.app,
-            &src_graph_node.addon,
+            &request_payload.src_app,
+            src_extension_addon,
             &request_payload.msg_name,
-            &dest_graph_node.app,
-            &dest_graph_node.addon,
+            &request_payload.dest_app,
+            dest_extension_addon,
             &request_payload.msg_name,
             msg_conversion,
         )
@@ -163,8 +160,8 @@ fn check_msg_conversion_schema(
         {
             if let Some(dest_extension_pkg_info) =
                 get_pkg_info_for_extension_addon(
-                    &dest_graph_node.app,
-                    &dest_graph_node.addon,
+                    &request_payload.dest_app,
+                    &dest_extension_addon,
                     uri_to_pkg_info,
                     graph_info.app_base_dir.as_ref(),
                     pkgs_cache,
