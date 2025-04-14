@@ -32,8 +32,8 @@ import { useWidgetStore } from "@/store";
 import { EEventName, eventPubSub } from "@/utils/events";
 import { TWidgetCustomAction } from "@/types/widgets";
 
-const POPUP_MIN_HEIGHT = 200;
-const POPUP_MIN_WIDTH = 340;
+const POPUP_MIN_HEIGHT = 100;
+const POPUP_MIN_WIDTH = 100;
 
 export interface IPopupBaseProps {
   id: string;
@@ -165,8 +165,8 @@ export const PopupBase = (props: IPopupBaseProps) => {
     className,
     title = null,
     contentClassName,
-    defaultWidth = POPUP_MIN_WIDTH,
-    defaultHeight = POPUP_MIN_HEIGHT,
+    defaultWidth,
+    defaultHeight,
     maxWidth = Infinity,
     maxHeight = Infinity,
     customActions,

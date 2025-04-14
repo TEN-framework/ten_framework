@@ -171,7 +171,9 @@ const PopupWithTabs = (props: {
       onClose={handleClose}
       customActions={globalCustomActions}
       title={globalTitle}
-      contentClassName={cn("p-0 flex flex-col")}
+      contentClassName={cn("p-0 flex flex-col", {
+        "h-full p-2": widgets.length === 1,
+      })}
     >
       <PopupTabs
         widgets={widgets}

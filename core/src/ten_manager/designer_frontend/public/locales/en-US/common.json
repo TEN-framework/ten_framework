@@ -99,7 +99,8 @@
     "reset": "Reset",
     "chooseBaseDir": "Choose Base Dir",
     "deleteNodeConfirmationWithName": "Are you sure you want to delete the node {{name}}?",
-    "update": "Update"
+    "update": "Update",
+    "create": "Create"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
