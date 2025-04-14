@@ -246,9 +246,9 @@ export const ExtensionBaseItem = React.forwardRef<
               "shadow-none rounded-none",
               "hover:bg-gray-200 dark:hover:bg-gray-700"
             )}
-            disabled={readOnly || !currentWorkspace?.baseDir}
+            disabled={readOnly || !currentWorkspace?.app?.base_dir}
             onClick={handleInstall(
-              currentWorkspace?.baseDir || "",
+              currentWorkspace?.app?.base_dir || "",
               item as IListTenCloudStorePackage
             )}
           >

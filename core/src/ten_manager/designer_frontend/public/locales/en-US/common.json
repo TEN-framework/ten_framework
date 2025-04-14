@@ -164,8 +164,7 @@
     "graph": {
       "title": "Node",
       "titleAddNode": "Add Node",
-      "graphAppBaseDir": "Base Dir",
-      "graphName": "Graph Name",
+      "graphId": "Graph ID",
       "nodeName": "Node Name",
       "addonName": "Addon Name",
       "searchAddon": "Search Addon",

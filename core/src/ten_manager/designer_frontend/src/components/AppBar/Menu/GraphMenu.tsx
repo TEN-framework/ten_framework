@@ -71,14 +71,14 @@ export function GraphMenu(props: {
   };
 
   const onGraphAct = (type: EGraphActions) => () => {
-    if (!currentWorkspace?.baseDir) return;
+    if (!currentWorkspace?.graph || !currentWorkspace?.app) return;
     appendWidgetIfNotExists({
       container_id: CONTAINER_DEFAULT_ID,
       group_id: GROUP_GRAPH_ID,
       widget_id:
         GRAPH_ACTIONS_WIDGET_ID +
         `-${type}-` +
-        `${currentWorkspace.baseDir}-${currentWorkspace?.graphName}`,
+        `${currentWorkspace?.app?.base_dir}-${currentWorkspace?.graph?.uuid}`,
 
       category: EWidgetCategory.Graph,
       display_type: EWidgetDisplayType.Popup,
@@ -86,9 +86,9 @@ export function GraphMenu(props: {
       title: <GraphPopupTitle type={type} />,
       metadata: {
         type,
-        base_dir: currentWorkspace.baseDir,
-        graph_name: currentWorkspace?.graphName || undefined,
-        app_uri: currentWorkspace?.appUri || undefined,
+        base_dir: currentWorkspace?.app?.base_dir,
+        graph_id: currentWorkspace?.graph?.uuid,
+        app_uri: currentWorkspace?.app?.app_uri,
       },
     });
   };
@@ -155,7 +155,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
             onClick={onGraphAct(EGraphActions.ADD_NODE)}
           >
             <PackagePlusIcon />
@@ -166,7 +166,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
             onClick={onGraphAct(EGraphActions.ADD_CONNECTION)}
           >
             <GitPullRequestCreateIcon />

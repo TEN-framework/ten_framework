@@ -20,7 +20,7 @@ import {
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useWidgetStore, useAppStore, useFlowStore } from "@/store";
+import { useWidgetStore, useAppStore } from "@/store";
 import { AppFileManager } from "@/components/FileManager/AppFolder";
 import { postLoadDir, useApps } from "@/api/services/apps";
 import { CONTAINER_DEFAULT_ID, GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
@@ -52,20 +52,13 @@ export const AppFolderPopupContent = (props: { widget: IWidget }) => {
   const { t } = useTranslation();
 
   const { removeWidget } = useWidgetStore();
-  const { setNodesAndEdges } = useFlowStore();
-  const { folderPath, updateCurrentWorkspace } = useAppStore();
+  const { folderPath } = useAppStore();
 
   const { mutate: mutateApps } = useApps();
 
   const handleSetBaseDir = async (folderPath: string) => {
     try {
-      const { app_uri = null } = await postLoadDir(folderPath.trim());
-      setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
-      updateCurrentWorkspace({
-        baseDir: folderPath.trim(),
-        graphName: null,
-        appUri: app_uri,
-      });
+      await postLoadDir(folderPath.trim());
       mutateApps();
       toast.success(t("header.menuApp.loadAppSuccess"));
     } catch (error: unknown) {

@@ -21,9 +21,8 @@ import ContextMenu, {
   type IContextMenuItem,
 } from "@/flow/ContextMenu/ContextMenu";
 import { useDialogStore, useFlowStore, useWidgetStore } from "@/store";
-import { postDeleteNode } from "@/api/services/graphs";
-// eslint-disable-next-line max-len
-import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
+import { postDeleteNode, useGraphs } from "@/api/services/graphs";
+import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
@@ -50,7 +49,7 @@ interface NodeContextMenuProps {
   y: number;
   node: TCustomNode;
   baseDir?: string | null;
-  graphName?: string | null;
+  graphId?: string | null;
   onClose: () => void;
   onLaunchTerminal: (data: ITerminalWidgetData) => void;
   onLaunchLogViewer?: () => void;
@@ -62,7 +61,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   y,
   node,
   baseDir,
-  graphName,
+  graphId,
   onClose,
   onLaunchTerminal,
   onLaunchLogViewer,
@@ -71,6 +70,8 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
   const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const { graphs } = useGraphs();
 
   const editorRefMappings = React.useRef<
     Record<string, React.RefObject<IEditorWidgetRef>>
@@ -164,10 +165,9 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       _type: EContextMenuItemType.BUTTON,
       label: t("action.update") + " " + t("popup.node.properties"),
       icon: <FilePenLineIcon />,
-      disabled: !baseDir || !graphName,
+      disabled: !baseDir || !graphId,
       onClick: () => {
-        if (!baseDir || !graphName) return;
-        onClose();
+        if (!baseDir || !graphId) return;
         appendWidgetIfNotExists({
           container_id: CONTAINER_DEFAULT_ID,
           group_id: GROUP_GRAPH_ID,
@@ -185,10 +185,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           metadata: {
             type: EGraphActions.UPDATE_NODE_PROPERTY,
             base_dir: baseDir,
-            graph_name: graphName,
+            graph_id: graphId,
             node: node,
           },
         });
+        onClose();
       },
     },
     {
@@ -218,7 +219,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
     {
       _type: EContextMenuItemType.BUTTON,
       label: t("action.delete"),
-      disabled: !baseDir || !graphName,
+      disabled: !baseDir || !graphId,
       icon: <Trash2Icon />,
       onClick: () => {
         onClose();
@@ -233,14 +234,13 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             removeDialog("delete-node-dialog-" + node.data.name);
           },
           onConfirm: async () => {
-            if (!baseDir || !graphName) {
+            if (!baseDir || !graphId) {
               removeDialog("delete-node-dialog-" + node.data.name);
               return;
             }
             try {
               await postDeleteNode({
-                base_dir: baseDir,
-                graph_name: graphName,
+                graph_id: graphId,
                 node_name: node.data.name,
                 addon_name: node.data.addon,
                 extension_group_name: node.data.extension_group,
@@ -248,10 +248,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
               toast.success(t("popup.node.deleteNodeSuccess"), {
                 description: `${node.data.name}`,
               });
-              const { nodes, edges } = await resetNodesAndEdgesByGraphName(
-                graphName,
-                baseDir
-              );
+              const graph = graphs?.find((graph) => graph.uuid === graphId);
+              if (!graph) {
+                throw new Error("Graph not found");
+              }
+              const { nodes, edges } = await resetNodesAndEdgesByGraph(graph);
               setNodesAndEdges(nodes, edges);
             } catch (error: unknown) {
               toast.error(t("action.deleteNodeFailed"), {

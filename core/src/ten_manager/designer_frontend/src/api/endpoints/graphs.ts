@@ -17,6 +17,7 @@ import {
   type IGraph,
   UpdateNodePropertyPayloadSchema,
   ValidateGraphNodePayloadSchema,
+  DeleteConnectionPayloadSchema,
 } from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
@@ -25,8 +26,7 @@ export const ENDPOINT_GRAPHS = {
       url: `${API_DESIGNER_V1}/graphs/nodes`,
       method: ENDPOINT_METHOD.POST,
       requestSchema: z.object({
-        base_dir: z.string().optional(),
-        graph_name: z.string(),
+        graph_id: z.string(),
       }),
       responseSchema: genResSchema<IBackendNode[]>(
         z.array(
@@ -88,8 +88,7 @@ export const ENDPOINT_GRAPHS = {
       url: `${API_DESIGNER_V1}/graphs/connections`,
       method: ENDPOINT_METHOD.POST,
       requestSchema: z.object({
-        base_dir: z.string().optional(),
-        graph_name: z.string(),
+        graph_id: z.string(),
       }),
       responseSchema: genResSchema<IBackendConnection[]>(
         z.array(
@@ -161,18 +160,26 @@ export const ENDPOINT_GRAPHS = {
       responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
+  deleteConnection: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/connections/delete`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: DeleteConnectionPayloadSchema,
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
+    },
+  },
   graphs: {
     [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/graphs`,
       method: ENDPOINT_METHOD.POST,
-      requestSchema: z.object({
-        base_dir: z.string().optional(),
-      }),
+      requestSchema: z.object({}),
       responseSchema: genResSchema<IGraph[]>(
         z.array(
           z.object({
             name: z.string(),
             auto_start: z.boolean(),
+            base_dir: z.string(),
+            uuid: z.string(),
           })
         )
       ),

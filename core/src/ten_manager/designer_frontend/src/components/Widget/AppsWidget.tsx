@@ -136,12 +136,11 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     try {
       setIsUnloading(true);
       await postUnloadApps(baseDir);
-      if (currentWorkspace.baseDir === baseDir) {
+      if (currentWorkspace.app?.base_dir === baseDir) {
         setNodesAndEdges([], []);
         updateCurrentWorkspace({
-          baseDir: null,
-          graphName: null,
-          appUri: null,
+          app: null,
+          graph: null,
         });
       }
       toast.success(t("header.menuApp.unloadAppSuccess"));

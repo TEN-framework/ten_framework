@@ -129,7 +129,7 @@ export interface ICustomConnectionWidget
 export interface IGraphWidgetData {
   type: EGraphActions;
   base_dir: string;
-  graph_name?: string;
+  graph_id?: string;
   app_uri?: string;
   node?: TCustomNode;
 }

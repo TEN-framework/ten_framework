@@ -80,17 +80,15 @@ const StatusApps = () => {
   React.useEffect(() => {
     if (
       !currentWorkspace?.initialized &&
-      !currentWorkspace?.baseDir &&
+      !currentWorkspace?.app?.base_dir &&
       data?.app_info?.[0]?.base_dir
     ) {
       updateCurrentWorkspace({
-        baseDir: data?.app_info?.[0]?.base_dir,
-        graphName: null,
-        appUri: data?.app_info?.[0]?.app_uri,
+        app: data?.app_info?.[0],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, currentWorkspace?.baseDir, currentWorkspace?.initialized]);
+  }, [data, currentWorkspace?.app?.base_dir, currentWorkspace?.initialized]);
 
   React.useEffect(() => {
     if (error) {
@@ -125,19 +123,19 @@ const StatusWorkspace = () => {
   const { appendWidgetIfNotExists } = useWidgetStore();
 
   const [baseDirAbbrMemo, baseDirMemo] = React.useMemo(() => {
-    if (!currentWorkspace.baseDir) {
+    if (!currentWorkspace?.app?.base_dir) {
       return [null, null];
     }
-    const lastFolderName = currentWorkspace.baseDir.split("/").pop();
-    return [`...${lastFolderName}`, currentWorkspace.baseDir];
-  }, [currentWorkspace.baseDir]);
+    const lastFolderName = currentWorkspace.app.base_dir.split("/").pop();
+    return [`...${lastFolderName}`, currentWorkspace.app.base_dir];
+  }, [currentWorkspace?.app]);
 
   const graphNameMemo = React.useMemo(() => {
-    if (!currentWorkspace.graphName) {
+    if (!currentWorkspace.graph?.name) {
       return null;
     }
-    return currentWorkspace.graphName;
-  }, [currentWorkspace.graphName]);
+    return currentWorkspace.graph.name;
+  }, [currentWorkspace.graph?.name]);
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({

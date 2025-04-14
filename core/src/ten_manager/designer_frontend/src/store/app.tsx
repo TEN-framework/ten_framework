@@ -15,19 +15,19 @@ import {
   type IExtensionAddon,
   PREFERENCES_SCHEMA,
   EPreferencesLocale,
+  IApp,
 } from "@/types/apps";
+import { type IGraph } from "@/types/graphs";
 
 export interface IAppStore {
   currentWorkspace: {
     initialized?: boolean;
-    baseDir: string | null;
-    graphName: string | null;
-    appUri: string | null;
+    graph: IGraph | null;
+    app: IApp | null;
   };
   updateCurrentWorkspace: (currentWorkspace: {
-    baseDir: string | null;
-    graphName: string | null;
-    appUri?: string | null;
+    graph?: IGraph | null;
+    app?: IApp | null;
   }) => void;
   /** @deprecated */
   runScript: string;
@@ -58,30 +58,25 @@ export interface IAppStore {
 export const useAppStore = create<IAppStore>()(
   devtools((set) => ({
     currentWorkspace: {
-      baseDir: null,
-      appUri: null,
-      graphName: null,
+      graph: null,
+      app: null,
+      initialized: false,
     },
     updateCurrentWorkspace: (currentWorkspace: {
-      baseDir?: string | null;
-      graphName?: string | null;
-      appUri?: string | null;
+      graph?: IGraph | null;
+      app?: IApp | null;
     }) =>
       set((state) => ({
         currentWorkspace: {
           ...state.currentWorkspace,
-          baseDir:
-            currentWorkspace.baseDir !== undefined
-              ? currentWorkspace.baseDir
-              : state.currentWorkspace.baseDir,
-          graphName:
-            currentWorkspace.graphName !== undefined
-              ? currentWorkspace.graphName
-              : state.currentWorkspace.graphName,
-          appUri:
-            currentWorkspace.appUri !== undefined
-              ? currentWorkspace.appUri
-              : state.currentWorkspace.appUri,
+          graph:
+            currentWorkspace.graph !== undefined
+              ? currentWorkspace.graph
+              : state.currentWorkspace.graph,
+          app:
+            currentWorkspace.app !== undefined
+              ? currentWorkspace.app
+              : state.currentWorkspace.app,
           initialized: true,
         },
       })),

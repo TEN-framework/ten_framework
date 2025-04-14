@@ -266,11 +266,11 @@ export const ExtensionStoreWidget = (props: {
       }
     };
 
-    if (currentWorkspace.baseDir) {
-      fetchAddons(currentWorkspace.baseDir);
+    if (currentWorkspace.app?.base_dir) {
+      fetchAddons(currentWorkspace.app.base_dir);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentWorkspace.baseDir]);
+  }, [currentWorkspace.app?.base_dir]);
 
   React.useEffect(() => {
     if (error) {
@@ -324,7 +324,7 @@ export const ExtensionStoreWidget = (props: {
           {deferredSearch.trim() === "" &&
             extFilter.showInstalled &&
             extFilter.showUninstalled &&
-            currentWorkspace?.baseDir && (
+            currentWorkspace?.app?.base_dir && (
               <p className="ml-auto w-fit">
                 {t("extensionStore.installedWithSum", {
                   count:
@@ -338,7 +338,7 @@ export const ExtensionStoreWidget = (props: {
               </p>
             )}
 
-          {!currentWorkspace?.baseDir && (
+          {!currentWorkspace?.app?.base_dir && (
             <p
               className="ml-auto w-fit cursor-pointer"
               onClick={onOpenExistingGraph}
@@ -353,7 +353,7 @@ export const ExtensionStoreWidget = (props: {
         items={matched}
         versions={versions}
         toolTipSide={toolTipSide}
-        readOnly={!currentWorkspace?.baseDir}
+        readOnly={!currentWorkspace?.app?.base_dir}
       />
     </div>
   );
@@ -377,7 +377,7 @@ export const ExtensionWidget = (props: {
       versions={versions}
       name={name}
       className={className}
-      readOnly={!currentWorkspace?.baseDir}
+      readOnly={!currentWorkspace?.app?.base_dir}
     />
   );
 };

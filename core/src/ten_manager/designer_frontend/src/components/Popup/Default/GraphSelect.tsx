@@ -25,9 +25,10 @@ import { useGraphs } from "@/api/services/graphs";
 import { useApps } from "@/api/services/apps";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 
-// eslint-disable-next-line max-len
-import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
+import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
 import { IWidget } from "@/types/widgets";
+import { type IApp } from "@/types/apps";
+import { type IGraph } from "@/types/graphs";
 
 export const GraphSelectPopupTitle = () => {
   const { t } = useTranslation();
@@ -48,77 +49,64 @@ export const GraphSelectPopupContent = (props: { widget: IWidget }) => {
   const { setNodesAndEdges } = useFlowStore();
   const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
-  const [selectedApp, setSelectedApp] = React.useState<string | null>(
-    currentWorkspace.baseDir ?? loadedApps?.app_info?.[0]?.base_dir ?? null
+  const [selectedApp, setSelectedApp] = React.useState<IApp | null>(
+    currentWorkspace?.app ?? loadedApps?.app_info?.[0] ?? null
   );
-  const [selectedAppUri, setSelectedAppUri] = React.useState<string | null>(
-    currentWorkspace.appUri ?? loadedApps?.app_info?.[0]?.app_uri ?? null
-  );
-
-  const { graphs = [], error, isLoading } = useGraphs(selectedApp);
-
-  const [tmpSelectedGraph, setTmpSelectedGraph] = React.useState<string | null>(
-    currentWorkspace.graphName ?? null
+  const [tmpSelectedGraph, setTmpSelectedGraph] = React.useState<IGraph | null>(
+    currentWorkspace.graph ?? null
   );
 
-  const handleSelectApp = (app?: string | null) => {
+  const { graphs = [], error, isLoading } = useGraphs();
+
+  const handleSelectApp = (app?: IApp | null) => {
     setSelectedApp(app ?? null);
-    setSelectedAppUri(
-      loadedApps?.app_info?.find((appInfo) => appInfo.base_dir === app)
-        ?.app_uri ?? null
-    );
-
     setTmpSelectedGraph(null);
   };
 
-  const handleSelectGraph =
-    (graphName: string, baseDir: string | null, appUri: string | null) =>
-    async () => {
-      updateCurrentWorkspace({
-        baseDir,
-        graphName,
-        appUri,
-      });
-      try {
-        const { nodes: layoutedNodes, edges: layoutedEdges } =
-          await resetNodesAndEdgesByGraphName(graphName, baseDir);
+  const handleSelectGraph = (graph: IGraph) => async () => {
+    updateCurrentWorkspace({
+      graph,
+    });
+    try {
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        await resetNodesAndEdgesByGraph(graph);
 
-        setNodesAndEdges(layoutedNodes, layoutedEdges);
-      } catch (err: unknown) {
-        console.error(err);
-        toast.error("Failed to load graph.");
-      } finally {
-        removeWidget(widget.widget_id);
-      }
-    };
+      setNodesAndEdges(layoutedNodes, layoutedEdges);
+    } catch (err: unknown) {
+      console.error(err);
+      toast.error("Failed to load graph.");
+    } finally {
+      removeWidget(widget.widget_id);
+    }
+  };
 
   const handleCancel = () => {
     removeWidget(widget.widget_id);
-    handleSelectApp(currentWorkspace.baseDir);
-    setTmpSelectedGraph(currentWorkspace.graphName);
+    handleSelectApp(currentWorkspace.app);
+    setTmpSelectedGraph(currentWorkspace.graph);
   };
 
   const handleSave = async () => {
     if (!tmpSelectedGraph) {
       updateCurrentWorkspace({
-        baseDir: selectedApp,
-        graphName: null,
+        app: selectedApp,
+        graph: null,
       });
       setNodesAndEdges([], []);
       toast.success(t("popup.selectGraph.updateSuccess"), {
         description: (
           <>
-            <p>{`${t("popup.selectGraph.app")}: ${selectedApp}`}</p>
+            <p>{`${t("popup.selectGraph.app")}: ${selectedApp?.base_dir}`}</p>
           </>
         ),
       });
     } else {
-      await handleSelectGraph(tmpSelectedGraph, selectedApp, selectedAppUri)();
+      await handleSelectGraph(tmpSelectedGraph)();
       toast.success(t("popup.selectGraph.updateSuccess"), {
         description: (
           <>
-            <p>{`${t("popup.selectGraph.app")}: ${selectedApp}`}</p>
-            <p>{`${t("popup.selectGraph.graph")}: ${tmpSelectedGraph}`}</p>
+            <p>{`${t("popup.selectGraph.app")}: ${selectedApp?.base_dir}`}</p>
+            <p>{`${t("popup.selectGraph.graph")}: ${tmpSelectedGraph.name}`}</p>
           </>
         ),
       });
@@ -149,8 +137,15 @@ export const GraphSelectPopupContent = (props: { widget: IWidget }) => {
         />
       ) : (
         <Select
-          onValueChange={(value) => handleSelectApp(value)}
-          value={selectedApp ?? undefined}
+          onValueChange={(value) => {
+            const app = loadedApps?.app_info?.find(
+              (app) => app.base_dir === value
+            );
+            if (app) {
+              setSelectedApp(app);
+            }
+          }}
+          value={selectedApp?.base_dir ?? undefined}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder={t("header.menuGraph.selectLoadedApp")} />
@@ -195,31 +190,33 @@ export const GraphSelectPopupContent = (props: { widget: IWidget }) => {
               </span>
             </li>
           </Button>
-          {graphs?.map((graph) => (
-            <Button
-              asChild
-              key={graph.name}
-              className="justify-start cursor-pointer"
-              variant="ghost"
-              onClick={() => setTmpSelectedGraph(graph.name)}
-            >
-              <li className="w-full">
-                {tmpSelectedGraph === graph.name ? (
-                  <CheckIcon className="size-4" />
-                ) : (
-                  <div className="size-4" />
-                )}
-                <span className="text-sm">{graph.name}</span>
-                {graph.auto_start ? (
-                  <span className="text-xs">({t("action.autoStart")})</span>
-                ) : null}
-                {selectedApp === currentWorkspace.baseDir &&
-                graph.name === currentWorkspace.graphName ? (
-                  <span className="text-xs">({t("action.current")})</span>
-                ) : null}
-              </li>
-            </Button>
-          ))}
+          {graphs
+            ?.filter((graph) => graph.base_dir === selectedApp?.base_dir)
+            ?.map((graph) => (
+              <Button
+                asChild
+                key={graph.name}
+                className="justify-start cursor-pointer"
+                variant="ghost"
+                onClick={() => setTmpSelectedGraph(graph)}
+              >
+                <li className="w-full">
+                  {tmpSelectedGraph?.uuid === graph.uuid ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <div className="size-4" />
+                  )}
+                  <span className="text-sm">{graph.name}</span>
+                  {graph.auto_start ? (
+                    <span className="text-xs">({t("action.autoStart")})</span>
+                  ) : null}
+                  {selectedApp?.base_dir === currentWorkspace.app?.base_dir &&
+                  graph.name === currentWorkspace.graph?.name ? (
+                    <span className="text-xs">({t("action.current")})</span>
+                  ) : null}
+                </li>
+              </Button>
+            ))}
         </ul>
       )}
       <div className="flex justify-end gap-2">

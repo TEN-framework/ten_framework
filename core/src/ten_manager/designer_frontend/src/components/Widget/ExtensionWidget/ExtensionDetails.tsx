@@ -178,7 +178,7 @@ export const ExtensionDetails = (props: {
   };
 
   const handleInstall = () => {
-    if (!currentWorkspace.baseDir || !selectedVersionItemMemo) {
+    if (!currentWorkspace.app?.base_dir || !selectedVersionItemMemo) {
       return;
     }
     const widgetId = "ext-install-" + selectedVersionItemMemo.hash;
@@ -196,7 +196,7 @@ export const ExtensionDetails = (props: {
         scriptType: ELogViewerScriptType.INSTALL,
         script: {
           type: ELogViewerScriptType.INSTALL,
-          base_dir: currentWorkspace.baseDir,
+          base_dir: currentWorkspace.app?.base_dir,
           pkg_type: selectedVersionItemMemo.type,
           pkg_name: selectedVersionItemMemo.name,
           pkg_version: selectedVersionItemMemo.version,
@@ -207,8 +207,8 @@ export const ExtensionDetails = (props: {
         },
         postActions: () => {
           mutate();
-          if (currentWorkspace.baseDir) {
-            postReloadApps(currentWorkspace.baseDir);
+          if (currentWorkspace.app?.base_dir) {
+            postReloadApps(currentWorkspace.app.base_dir);
           }
         },
       },
