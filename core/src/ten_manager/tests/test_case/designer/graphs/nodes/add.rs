@@ -29,7 +29,10 @@ mod tests {
         graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::{constants::PROPERTY_JSON_FILENAME, localhost};
+    use ten_rust::pkg_info::{
+        constants::{MANIFEST_JSON_FILENAME, PROPERTY_JSON_FILENAME},
+        localhost,
+    };
     use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -325,7 +328,8 @@ mod tests {
             Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         fs::write(&property_path, input_property_json_str).unwrap();
 
-        let manifest_path = Path::new(&temp_dir_path).join("manifest.json");
+        let manifest_path =
+            Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
@@ -419,12 +423,12 @@ mod tests {
             include_str!("../test_data_embed/app_manifest.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
@@ -535,12 +539,12 @@ mod tests {
             include_str!("../test_data_embed/app_manifest.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.

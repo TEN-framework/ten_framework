@@ -12,7 +12,10 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
-    use ten_rust::pkg_info::message::MsgType;
+    use ten_rust::pkg_info::{
+        constants::{MANIFEST_JSON_FILENAME, PROPERTY_JSON_FILENAME},
+        message::MsgType,
+    };
     use uuid::Uuid;
 
     use ten_manager::{
@@ -181,12 +184,12 @@ mod tests {
             r#"{"app": "http://example.com:8000", "extension": "extension_1", "cmd": []}"#);
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
