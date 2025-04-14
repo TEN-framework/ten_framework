@@ -25,7 +25,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/Resizable";
 import { GlobalDialogs } from "@/components/GlobalDialogs";
-import Dock from "@/components/Dock";
+// import Dock from "@/components/Dock";
 import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { GlobalPopups } from "@/components/Popup";
@@ -39,9 +39,7 @@ import type { TCustomEdge, TCustomNode } from "@/types/flow";
 
 const App: React.FC = () => {
   const { nodes, setNodes, edges, setEdges, setNodesAndEdges } = useFlowStore();
-  const [resizablePanelMode, setResizablePanelMode] = useState<
-    "left" | "bottom" | "right"
-  >("bottom");
+  const [resizablePanelMode] = useState<"left" | "bottom" | "right">("bottom");
 
   const {
     data: remotePreferences,
@@ -135,12 +133,12 @@ const App: React.FC = () => {
           <>
             <ResizablePanel defaultSize={40}>
               {/* Global dock widgets. */}
-              <Dock
+              {/* <Dock
                 position={resizablePanelMode}
                 onPositionChange={
                   setResizablePanelMode as (position: string) => void
                 }
-              />
+              /> */}
             </ResizablePanel>
             <ResizableHandle />
           </>
@@ -164,12 +162,12 @@ const App: React.FC = () => {
             <ResizableHandle />
             <ResizablePanel defaultSize={40}>
               {/* Global dock widgets. */}
-              <Dock
+              {/* <Dock
                 position={resizablePanelMode}
                 onPositionChange={
                   setResizablePanelMode as (position: string) => void
                 }
-              />
+              /> */}
             </ResizablePanel>
           </>
         )}
