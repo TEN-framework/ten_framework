@@ -244,7 +244,8 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
 bool ten_addon_manager_is_addon_loaded(ten_addon_manager_t *self,
                                        TEN_ADDON_TYPE addon_type,
                                        const char *addon_name) {
-  TEN_ASSERT(self && addon_name, "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(addon_name, "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
@@ -259,6 +260,7 @@ bool ten_addon_manager_is_addon_loaded(ten_addon_manager_t *self,
   }
 
   ten_mutex_unlock(self->mutex);
+
   return false;
 }
 

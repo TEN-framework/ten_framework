@@ -466,8 +466,10 @@ bool ten_addon_load_all_extensions_from_app_base_dir(const char *app_base_dir,
           TEN_LOGD("Addon %s:%s is already loaded, skipping.",
                    ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
                    ten_string_get_raw_str(short_name));
+
           ten_string_destroy(short_name);
           itor = ten_path_get_next(itor);
+
           continue;
         }
 

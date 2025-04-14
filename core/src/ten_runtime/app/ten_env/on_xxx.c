@@ -145,6 +145,7 @@ static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
           "Failed to load extensions from app base dir during preload all "
           "addons: %s",
           ten_error_message(&err));
+
       goto error;
     }
   }

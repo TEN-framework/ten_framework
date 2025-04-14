@@ -36,20 +36,20 @@ ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
     ten_app_t *self, const char *name, ten_list_t *extensions_info,
     ten_list_t *extension_groups_info, ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_one_event_loop_per_engine(
-    ten_app_t *self, ten_value_t *value);
-
 TEN_RUNTIME_PRIVATE_API ten_value_t *ten_app_get_ten_namespace_properties(
     ten_app_t *self);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_long_running_mode(ten_app_t *self,
-                                                            ten_value_t *value);
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_one_event_loop_per_engine_config(
+    ten_app_t *self, ten_value_t *value);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_uri(ten_app_t *self,
-                                              ten_value_t *value);
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_long_running_mode_config(
+    ten_app_t *self, ten_value_t *value);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_log(ten_app_t *self,
-                                              ten_value_t *value);
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_uri_config(ten_app_t *self,
+                                                     ten_value_t *value);
+
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_log_config(ten_app_t *self,
+                                                     ten_value_t *value);
 
 TEN_RUNTIME_PRIVATE_API bool ten_app_init_addon_config(ten_app_t *self,
                                                        ten_value_t *value);
