@@ -177,6 +177,15 @@ pub fn configure_routes(
                     preferences::update_field::update_preferences_field_endpoint,
                 ),
             )
+            // Internal config endpoints.
+            .route(
+                "/internal-config/graph-ui/set",
+                web::post().to(internal_config::graph_ui::set::set_graph_ui_endpoint),
+            )
+            .route(
+                "/internal-config/graph-ui/get",
+                web::post().to(internal_config::graph_ui::get::get_graph_ui_endpoint),
+            )
             // File system endpoints.
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
