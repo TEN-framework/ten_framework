@@ -31,6 +31,7 @@
       "selectLoadedApp": "選擇已載入的應用程式",
       "addNode": "新增節點",
       "addConnection": "新增連線",
+      "addConnectionFromNode": "從 {{node}} 新增連線",
       "about": "關於圖譜"
     },
     "menuHelp": {
@@ -99,7 +100,11 @@
     "reset": "重置",
     "chooseBaseDir": "選擇基礎目錄",
     "deleteNodeConfirmationWithName": "確定要刪除節點 {{name}} 嗎？",
-    "update": "更新"
+    "update": "更新",
+    "create": "建立",
+    "deleteConnectionConfirmation": "確定要刪除此連線嗎？",
+    "deleteConnectionSuccess": "連線刪除成功",
+    "deleteConnectionFailed": "連線刪除失敗"
   },
   "toast": {
     "saveFileSuccess": "檔案儲存成功",
@@ -163,6 +168,7 @@
     "graph": {
       "title": "節點",
       "titleAddNode": "新增節點",
+      "graphId": "圖譜 ID",
       "graphAppBaseDir": "基礎目錄",
       "graphName": "圖譜名稱",
       "nodeName": "節點名稱",
@@ -185,7 +191,11 @@
       "messageType": "訊息類型",
       "messageName": "訊息名稱",
       "addConnection": "新增連線",
-      "titleUpdateNodePropertyByName": "更新節點 [{{name}}] 屬性"
+      "titleUpdateNodePropertyByName": "更新節點 [{{name}}] 屬性",
+      "updateNodeProperty": "更新屬性",
+      "updateNodePropertySuccess": "節點屬性更新成功",
+      "updateNodePropertyFailed": "節點屬性更新失敗",
+      "noPropertySchema": "未找到屬性結構描述"
     },
     "doc": {
       "title": "文件"
