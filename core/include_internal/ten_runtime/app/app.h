@@ -134,6 +134,13 @@ typedef struct ten_app_t {
   ten_addon_store_t protocol_store;
   ten_addon_store_t addon_loader_store;
 
+  // Default value is false, meaning addons are loaded on-demand - if not used,
+  // they won't be loaded.
+  // If set to true, all addons will be preloaded during app startup by
+  // scanning directories, which saves loading time when used later in graphs
+  // (e.g., Python module imports and C++ dynamic library loading).
+  bool preload_all_addons;
+
   void *user_data;
 } ten_app_t;
 

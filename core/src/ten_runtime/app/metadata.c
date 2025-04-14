@@ -43,8 +43,8 @@ ten_value_t *ten_app_get_ten_namespace_properties(ten_app_t *self) {
   return ten_value_object_peek(&self->property, TEN_STR_UNDERLINE_TEN);
 }
 
-bool ten_app_init_one_event_loop_per_engine(ten_app_t *self,
-                                            ten_value_t *value) {
+bool ten_app_init_one_event_loop_per_engine_config(ten_app_t *self,
+                                                   ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value, "Should not happen.");
@@ -66,7 +66,8 @@ bool ten_app_init_one_event_loop_per_engine(ten_app_t *self,
   return true;
 }
 
-bool ten_app_init_long_running_mode(ten_app_t *self, ten_value_t *value) {
+bool ten_app_init_long_running_mode_config(ten_app_t *self,
+                                           ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value, "Should not happen.");
@@ -87,7 +88,7 @@ bool ten_app_init_long_running_mode(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-bool ten_app_init_uri(ten_app_t *self, ten_value_t *value) {
+bool ten_app_init_uri_config(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value, "Should not happen.");
@@ -112,7 +113,7 @@ bool ten_app_init_uri(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
+bool ten_app_init_log_config(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value, "Should not happen.");
@@ -197,6 +198,38 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
       }
 
       ten_string_deinit(&algorithm_name);
+    }
+  }
+
+  ten_error_deinit(&err);
+
+  return true;
+}
+
+bool ten_app_init_addon_config(ten_app_t *self, ten_value_t *value) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
+
+  if (!ten_value_is_object(value)) {
+    TEN_LOGE("Invalid value type for property: %s", TEN_STR_ADDON);
+    return false;
+  }
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  ten_value_object_foreach(value, iter) {
+    ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
+    ten_string_t *item_key = &prop_kv->key;
+    ten_value_t *item_value = prop_kv->value;
+
+    if (ten_string_is_equal_c_str(item_key, TEN_STR_PRELOAD_ALL)) {
+      self->preload_all_addons = ten_value_get_bool(item_value, &err);
+    } else {
+      TEN_LOGW("Unknown property: %s", ten_string_get_raw_str(item_key));
     }
   }
 
