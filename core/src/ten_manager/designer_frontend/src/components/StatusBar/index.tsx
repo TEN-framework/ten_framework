@@ -150,6 +150,10 @@ const StatusWorkspace = () => {
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
       },
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
     });
   };
 

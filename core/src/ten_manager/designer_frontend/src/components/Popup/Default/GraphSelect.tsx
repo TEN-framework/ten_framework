@@ -171,7 +171,7 @@ export const GraphSelectPopupContent = (props: { widget: IWidget }) => {
           />
         </>
       ) : (
-        <ul className="flex flex-col gap-1 h-full w-full">
+        <ul className="flex flex-col gap-1 h-fit overflow-y-auto">
           <Button
             asChild
             key={"null"}
