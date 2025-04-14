@@ -12,6 +12,7 @@ import {
   Trash2Icon,
   LogsIcon,
   SaveIcon,
+  GitPullRequestCreateIcon,
   // PinIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -191,6 +192,42 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             base_dir: baseDir,
             graph_id: graphId,
             node: node,
+          },
+          popup: {
+            width: 340,
+            height: 0.8,
+          },
+        });
+        onClose();
+      },
+    },
+    {
+      _type: EContextMenuItemType.BUTTON,
+      label: t("header.menuGraph.addConnectionFromNode", {
+        node: node.data.name,
+      }),
+      icon: <GitPullRequestCreateIcon />,
+      disabled: !baseDir || !graphId,
+      onClick: () => {
+        if (!baseDir || !graphId) return;
+        appendWidgetIfNotExists({
+          container_id: CONTAINER_DEFAULT_ID,
+          group_id: GROUP_GRAPH_ID,
+          widget_id:
+            GRAPH_ACTIONS_WIDGET_ID +
+            `-${EGraphActions.ADD_CONNECTION}-` +
+            `${node.data.name}`,
+
+          category: EWidgetCategory.Graph,
+          display_type: EWidgetDisplayType.Popup,
+
+          title: <GraphPopupTitle type={EGraphActions.ADD_CONNECTION} />,
+          metadata: {
+            type: EGraphActions.ADD_CONNECTION,
+            base_dir: baseDir,
+            graph_id: graphId,
+            node: node,
+            src_extension: node.data.name,
           },
           popup: {
             width: 340,

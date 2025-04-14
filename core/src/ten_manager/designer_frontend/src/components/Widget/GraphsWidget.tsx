@@ -305,9 +305,16 @@ export const GraphAddConnectionWidget = (props: {
   base_dir: string;
   app_uri?: string | null;
   graph_id?: string;
+  src_extension?: string;
   postAddConnectionActions?: () => void | Promise<void>;
 }) => {
-  const { base_dir, app_uri, graph_id, postAddConnectionActions } = props;
+  const {
+    base_dir,
+    app_uri,
+    graph_id,
+    src_extension,
+    postAddConnectionActions,
+  } = props;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { t } = useTranslation();
@@ -320,7 +327,7 @@ export const GraphAddConnectionWidget = (props: {
     defaultValues: {
       graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
       src_app: app_uri,
-      src_extension: undefined,
+      src_extension: src_extension ?? undefined,
       msg_type: EConnectionType.CMD,
       msg_name: undefined,
       dest_app: app_uri,
@@ -413,7 +420,11 @@ export const GraphAddConnectionWidget = (props: {
             <FormItem>
               <FormLabel>{t("popup.graph.srcExtension")}</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!!src_extension}
+                >
                   <SelectTrigger className="w-full overflow-hidden">
                     <SelectValue placeholder={t("popup.graph.srcExtension")} />
                   </SelectTrigger>

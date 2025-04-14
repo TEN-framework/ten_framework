@@ -94,6 +94,10 @@ export function GraphMenu(props: {
         graph_id: currentWorkspace?.graph?.uuid,
         app_uri: currentWorkspace?.app?.app_uri,
       },
+      popup: {
+        width: 340,
+        height: 0.8,
+      },
     });
   };
 

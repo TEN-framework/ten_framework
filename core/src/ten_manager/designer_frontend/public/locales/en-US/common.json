@@ -31,6 +31,7 @@
       "selectLoadedApp": "Select a Loaded App",
       "addNode": "Add Node",
       "addConnection": "Add Connection",
+      "addConnectionFromNode": "Add Connection from {{node}}",
       "about": "About Graph"
     },
     "menuHelp": {
