@@ -75,3 +75,26 @@ export const ENDPOINT_FILE_SYSTEM = {
     },
   },
 };
+
+export const ENDPOINT_FILE_VALIDATE = {
+  property: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/property/validate`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        property_json_str: z.string(),
+      }),
+      responseSchema: z.any().optional(),
+    },
+  },
+  manifest: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/manifest/validate`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        manifest_json_str: z.string(),
+      }),
+      responseSchema: z.any().optional(),
+    },
+  },
+};

@@ -22,7 +22,6 @@ import type {
   AddConnectionPayloadSchema,
   DeleteConnectionPayloadSchema,
   UpdateNodePropertyPayloadSchema,
-  ValidatePropertyPayloadSchema,
 } from "@/types/graphs";
 
 export const retrieveGraphNodes = async (graphId: string) => {
@@ -138,17 +137,6 @@ export const postUpdateNodeProperty = async (
   data: z.infer<typeof UpdateNodePropertyPayloadSchema>
 ) => {
   const template = ENDPOINT_GRAPHS.nodesPropertyUpdate[ENDPOINT_METHOD.POST];
-  const req = makeAPIRequest(template, {
-    body: data,
-  });
-  const res = await req;
-  return template.responseSchema.parse(res).data;
-};
-
-export const postValidateProperty = async (
-  data: z.infer<typeof ValidatePropertyPayloadSchema>
-) => {
-  const template = ENDPOINT_GRAPHS.nodesPropertyValidate[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: data,
   });

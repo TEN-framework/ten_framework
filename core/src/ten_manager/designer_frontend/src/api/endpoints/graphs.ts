@@ -16,7 +16,6 @@ import {
   type IBackendConnection,
   type IGraph,
   UpdateNodePropertyPayloadSchema,
-  ValidatePropertyPayloadSchema,
   DeleteConnectionPayloadSchema,
 } from "@/types/graphs";
 
@@ -73,14 +72,6 @@ export const ENDPOINT_GRAPHS = {
       method: ENDPOINT_METHOD.POST,
       requestSchema: UpdateNodePropertyPayloadSchema,
       responseSchema: genResSchema(z.any()), // TODO: add response schema
-    },
-  },
-  nodesPropertyValidate: {
-    [ENDPOINT_METHOD.POST]: {
-      url: `${API_DESIGNER_V1}/property/validate`,
-      method: ENDPOINT_METHOD.POST,
-      requestSchema: ValidatePropertyPayloadSchema,
-      responseSchema: z.any().optional(),
     },
   },
   connections: {

@@ -13,7 +13,7 @@ import {
   prepareReqUrl,
   getQueryHookCache,
 } from "@/api/services/utils";
-import { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints";
+import { ENDPOINT_FILE_SYSTEM, ENDPOINT_FILE_VALIDATE } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
 import type { IBaseDirResponse } from "@/types/fileSystem";
@@ -175,4 +175,26 @@ export const useRetrieveDirList = (path: string) => {
     isLoading,
     mutate: fetchData,
   };
+};
+
+export const validateProperty = async (fileContent: string) => {
+  const template = ENDPOINT_FILE_VALIDATE.property[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: {
+      property_json_str: fileContent,
+    },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const validateManifest = async (fileContent: string) => {
+  const template = ENDPOINT_FILE_VALIDATE.manifest[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: {
+      manifest_json_str: fileContent,
+    },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
 };

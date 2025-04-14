@@ -17,7 +17,6 @@ import {
   AddConnectionPayloadSchema,
   EConnectionType,
   UpdateNodePropertyPayloadSchema,
-  ValidatePropertyPayloadSchema,
   IGraph,
 } from "@/types/graphs";
 import { Button } from "@/components/ui/Button";
@@ -50,7 +49,6 @@ import {
   retrieveGraphConnections,
   postAddConnection,
   postUpdateNodeProperty,
-  postValidateProperty,
 } from "@/api/services/graphs";
 import { retrieveExtensionPropertySchema } from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
@@ -594,11 +592,6 @@ export const GraphUpdateNodePropertyWidget = (props: {
                 app_uri: app_uri ?? undefined,
                 property: JSON.stringify(data, null, 2),
               });
-              await postValidateProperty(
-                ValidatePropertyPayloadSchema.parse({
-                  property_json_str: JSON.stringify(nodeData.property, null, 2),
-                })
-              );
               await postUpdateNodeProperty(nodeData);
               if (currentWorkspace?.graph) {
                 const { nodes, edges } = await resetNodesAndEdgesByGraph(
