@@ -137,7 +137,6 @@ fn check_msg_conversion_schema(
             src_extension_addon,
             &request_payload.msg_type,
             &request_payload.msg_name,
-            &request_payload.msg_name,
             msg_conversion,
         )
         .unwrap();
