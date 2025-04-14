@@ -42,7 +42,6 @@ import {
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import { postReloadApps } from "@/api/services/apps";
 import {
-  EXTENSION_STORE_WIDGET_ID,
   EXTENSION_WIDGET_ID,
   GROUP_EXTENSION_ID,
   GROUP_LOG_VIEWER_ID,

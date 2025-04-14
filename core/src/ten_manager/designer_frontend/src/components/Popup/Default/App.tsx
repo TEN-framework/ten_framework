@@ -7,9 +7,8 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { PlayIcon, OctagonXIcon } from "lucide-react";
+import { PlayIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup/Base";
 import {
   Select,
   SelectContent,
@@ -24,13 +23,7 @@ import { Input } from "@/components/ui/Input";
 import { useWidgetStore, useAppStore, useFlowStore } from "@/store";
 import { AppFileManager } from "@/components/FileManager/AppFolder";
 import { postLoadDir, useApps } from "@/api/services/apps";
-import {
-  APP_FOLDER_POPUP_ID,
-  APPS_MANAGER_POPUP_ID,
-  APP_CREATE_POPUP_ID,
-  CONTAINER_DEFAULT_ID,
-  GROUP_LOG_VIEWER_ID,
-} from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID, GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
 import { TEN_DEFAULT_BACKEND_WS_ENDPOINT } from "@/constants";
 import {
   AppsManagerWidget,

@@ -26,7 +26,6 @@ import {
   EWidgetDisplayType,
 } from "@/types/widgets";
 import {
-  GRAPH_SELECT_POPUP_ID,
   GRAPH_SELECT_WIDGET_ID,
   CONTAINER_DEFAULT_ID,
 } from "@/constants/widgets";

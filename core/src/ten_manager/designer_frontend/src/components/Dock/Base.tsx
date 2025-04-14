@@ -33,20 +33,21 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
-import { useWidgetStore, useDialogStore } from "@/store";
+// import { useWidgetStore, useDialogStore } from "@/store";
 import {
-  EWidgetCategory,
-  EWidgetDisplayType,
-  IEditorWidget,
-  EDefaultWidgetType,
+  //   EWidgetCategory,
+  //   EWidgetDisplayType,
+  //   IEditorWidget,
+  //   EDefaultWidgetType,
   IWidget,
-  ILogViewerWidget,
-  IEditorWidgetRef,
+  //   ILogViewerWidget,
+  //   IEditorWidgetRef,
 } from "@/types/widgets";
-import TerminalWidget from "@/components/Widget/TerminalWidget";
-import EditorWidget from "@/components/Widget/EditorWidget";
-import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
-import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
+// import TerminalWidget from "@/components/Widget/TerminalWidget";
+// import EditorWidget from "@/components/Widget/EditorWidget";
+// eslint-disable-next-line max-len
+// import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
+// import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
 
 export interface IDockBaseProps {
   children?: React.ReactNode;
@@ -56,7 +57,13 @@ export interface IDockBaseProps {
 export const DockBase = (props: IDockBaseProps) => {
   const { children, className } = props;
 
-  return <div className={cn(className)}>{children}</div>;
+  return (
+    <div
+      className={cn("w-full h-full bg-muted text-muted-foreground", className)}
+    >
+      {children}
+    </div>
+  );
 };
 
 export const DockHeader = (props: {
@@ -156,21 +163,24 @@ export const DockerHeaderTabElement = (props: {
             },
             "hover:text-primary hover:border-purple-950"
           )}
-          onClick={() => onSelect?.(widget.id)}
+          onClick={() => onSelect?.(widget.widget_id)}
         >
           {title}
           {hasUnsavedChanges && (
             <span className="text-foreground/50 text-sm font-sans">*</span>
           )}
           {onClose && (
-            <XIcon className="size-3" onClick={() => onClose(widget.id)} />
+            <XIcon
+              className="size-3"
+              onClick={() => onClose(widget.widget_id)}
+            />
           )}
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem
           onClick={() => {
-            onPopout?.(widget.id);
+            onPopout?.(widget.widget_id);
           }}
         >
           {t("action.popout")}
@@ -179,7 +189,7 @@ export const DockerHeaderTabElement = (props: {
           </ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={() => onClose?.(widget.id)}>
+        <ContextMenuItem onClick={() => onClose?.(widget.widget_id)}>
           {t("action.close")}
         </ContextMenuItem>
       </ContextMenuContent>

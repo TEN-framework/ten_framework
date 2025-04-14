@@ -48,6 +48,8 @@ import EditorWidget from "@/components/Widget/EditorWidget";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
 
+import { DockBase } from "@/components/Dock/Base";
+
 export default function DockContainer(props: {
   position?: string;
   onPositionChange?: (position: string) => void;
@@ -209,9 +211,8 @@ export default function DockContainer(props: {
   };
 
   return (
-    <div
+    <DockBase
       className={cn(
-        "w-full h-full bg-muted text-muted-foreground",
         { ["mt-10 h-[calc(100dvh-60px)]"]: position !== "bottom" },
         className
       )}
@@ -293,7 +294,7 @@ export default function DockContainer(props: {
             )}
         </div>
       )}
-    </div>
+    </DockBase>
   );
 }
 

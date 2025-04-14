@@ -24,8 +24,6 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
 import {
-  DOC_REF_POPUP_ID,
-  GRAPH_SELECT_POPUP_ID,
   CONTAINER_DEFAULT_ID,
   GRAPH_SELECT_WIDGET_ID,
   GROUP_DOC_REF_ID,
@@ -53,7 +51,7 @@ export function GraphMenu(props: {
   const { onAutoLayout, disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
 
   const onOpenExistingGraph = () => {

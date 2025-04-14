@@ -12,7 +12,7 @@ import {
   Trash2Icon,
   LogsIcon,
   SaveIcon,
-  PinIcon,
+  // PinIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,7 +70,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   const { t } = useTranslation();
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
-  const { appendWidgetIfNotExists, updateWidgetDisplayType } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
   const editorRefMappings = React.useRef<
     Record<string, React.RefObject<IEditorWidgetRef>>
@@ -99,21 +99,21 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
               editorRefMappings?.current?.[widgetId]?.current?.save?.();
             },
           },
-          {
-            id: "pin-to-dock",
-            label: t("action.pinToDock"),
-            Icon: PinIcon,
-            onClick: () => {
-              onClose();
-              editorRefMappings?.current?.[widgetId]?.current?.check?.({
-                title: t("action.confirm"),
-                content: t("popup.editor.confirmSaveChanges"),
-                postConfirm: async () => {
-                  updateWidgetDisplayType(widgetId, EWidgetDisplayType.Dock);
-                },
-              });
-            },
-          },
+          // {
+          //   id: "pin-to-dock",
+          //   label: t("action.pinToDock"),
+          //   Icon: PinIcon,
+          //   onClick: () => {
+          //     onClose();
+          //     editorRefMappings?.current?.[widgetId]?.current?.check?.({
+          //       title: t("action.confirm"),
+          //       content: t("popup.editor.confirmSaveChanges"),
+          //       postConfirm: async () => {
+          //         updateWidgetDisplayType(widgetId, EWidgetDisplayType.Dock);
+          //       },
+          //     });
+          //   },
+          // },
         ],
       },
     });

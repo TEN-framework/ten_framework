@@ -28,10 +28,6 @@ import {
   EDefaultWidgetType,
 } from "@/types/widgets";
 import {
-  APP_FOLDER_POPUP_ID,
-  APPS_MANAGER_POPUP_ID,
-  APP_CREATE_POPUP_ID,
-  DOC_REF_POPUP_ID,
   CONTAINER_DEFAULT_ID,
   APP_FOLDER_WIDGET_ID,
   APP_CREATE_WIDGET_ID,
@@ -56,7 +52,7 @@ export function AppMenu(props: {
 
   const { t } = useTranslation();
 
-  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({

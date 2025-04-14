@@ -6,7 +6,7 @@
 //
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { PinIcon } from "lucide-react";
+// import { PinIcon } from "lucide-react";
 
 import { useWidgetStore, useDialogStore } from "@/store";
 import { TerminalPopupContent } from "@/components/Popup/Terminal";
@@ -141,17 +141,19 @@ const PopupWithTabs = (props: {
   }, []);
 
   const globalCustomActions = React.useMemo(() => {
-    if (widgets.length > 1)
-      return [
-        {
-          id: "pin-to-dock-" + groupId,
-          label: t("action.pinToDock"),
-          Icon: PinIcon,
-          onClick: () => {
-            handleClose("pin-to-dock");
-          },
-        },
-      ];
+    if (widgets.length > 1) {
+      // return [
+      //   {
+      //     id: "pin-to-dock-" + groupId,
+      //     label: t("action.pinToDock"),
+      //     Icon: PinIcon,
+      //     onClick: () => {
+      //       handleClose("pin-to-dock");
+      //     },
+      //   },
+      // ];
+      return [];
+    }
     const firstWidget = widgets[0];
     return firstWidget.actions?.custom_actions;
     // eslint-disable-next-line react-hooks/exhaustive-deps

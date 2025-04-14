@@ -24,9 +24,7 @@ import {
   EWidgetCategory,
 } from "@/types/widgets";
 import {
-  APPS_MANAGER_POPUP_ID,
   APPS_MANAGER_WIDGET_ID,
-  GRAPH_SELECT_POPUP_ID,
   CONTAINER_DEFAULT_ID,
   GRAPH_SELECT_WIDGET_ID,
 } from "@/constants/widgets";

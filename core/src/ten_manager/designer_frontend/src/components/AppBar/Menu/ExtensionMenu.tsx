@@ -23,8 +23,6 @@ import {
 } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 import {
-  DOC_REF_POPUP_ID,
-  EXTENSION_STORE_POPUP_ID,
   CONTAINER_DEFAULT_ID,
   EXTENSION_STORE_WIDGET_ID,
   DOC_REF_WIDGET_ID,
@@ -42,7 +40,7 @@ export const ExtensionMenu = (props: {
   const { disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
   const onOpenExtensionStore = () => {
     appendWidgetIfNotExists({

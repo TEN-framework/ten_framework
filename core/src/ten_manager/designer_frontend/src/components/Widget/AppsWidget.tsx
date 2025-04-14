@@ -80,7 +80,6 @@ import {
   ELogViewerScriptType,
 } from "@/types/widgets";
 import {
-  APP_FOLDER_POPUP_ID,
   APP_FOLDER_WIDGET_ID,
   APP_RUN_WIDGET_ID,
   CONTAINER_DEFAULT_ID,
