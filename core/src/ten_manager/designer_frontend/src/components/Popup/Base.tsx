@@ -206,30 +206,50 @@ export const PopupBase = (props: IPopupBaseProps) => {
   }, [isResized, popupHeight, popupWidth]);
 
   const handleResize = React.useCallback(
-    (mode: "x" | "y" | "all") =>
+    (mode: "right" | "top" | "bottom" | "bottom-right" | "left") =>
       (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         preResizeCallback();
 
-        if (mode === "x" || mode === "all") {
+        if (mode === "right" || mode === "bottom-right") {
           const newWidth = popupWidth.get() + info.delta.x;
           if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
             popupWidth.set(newWidth);
           }
         }
 
-        if (mode === "y" || mode === "all") {
+        if (mode === "bottom" || mode === "bottom-right") {
           const newHeight = popupHeight.get() + info.delta.y;
           if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
             popupHeight.set(newHeight);
           }
         }
+
+        if (mode === "left") {
+          const newWidth = popupWidth.get() - info.delta.x;
+          if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
+            popupWidth.set(newWidth);
+            // Adjust left position to keep right position static
+            if (popupRef.current) {
+              const currentLeft = parseFloat(popupRef.current.style.left) || 0;
+              popupRef.current.style.left = `${currentLeft + info.delta.x}px`;
+            }
+          }
+        }
+
+        if (mode === "top") {
+          const newHeight = popupHeight.get() - info.delta.y;
+          if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
+            popupHeight.set(newHeight);
+            // Adjust top position to keep bottom position static
+            if (popupRef.current) {
+              const currentTop = parseFloat(popupRef.current.style.top) || 0;
+              popupRef.current.style.top = `${currentTop + info.delta.y}px`;
+            }
+          }
+        }
       },
     [preResizeCallback, popupWidth, popupHeight, maxWidth, maxHeight]
   );
-
-  const handleResizeX = handleResize("x");
-  const handleResizeY = handleResize("y");
-  const handleResizeXY = handleResize("all");
 
   const handleClose = React.useCallback(() => {
     if (onClose) {
@@ -423,7 +443,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
         dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
         dragElastic={0}
         dragMomentum={false}
-        onDrag={handleResizeY}
+        onDrag={handleResize("bottom")}
         onMouseDown={() => {
           setIsResizing(true);
           onResizing?.();
@@ -443,7 +463,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
         drag="x"
         dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
         dragElastic={0}
-        onDrag={handleResizeX}
+        onDrag={handleResize("right")}
         onMouseDown={() => {
           setIsResizing(true);
           onResizing?.();
@@ -463,7 +483,47 @@ export const PopupBase = (props: IPopupBaseProps) => {
         drag="x"
         dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
         dragElastic={0}
-        onDrag={handleResizeXY}
+        onDrag={handleResize("bottom-right")}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
+      {/* top resize handler */}
+      <motion.div
+        className={cn(
+          "absolute top-0 left-0 right-0",
+          "h-0.5 cursor-ns-resize bg-transparent"
+        )}
+        drag="y"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResize("top")}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
+      {/* left resize handler */}
+      <motion.div
+        className={cn(
+          "absolute left-0 top-0 bottom-0",
+          "w-0.5 cursor-ew-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResize("left")}
         onMouseDown={() => {
           setIsResizing(true);
           onResizing?.();

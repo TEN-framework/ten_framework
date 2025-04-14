@@ -53,7 +53,9 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
           appendLogViewerHistory(id, [line]);
         } else if (msg.type === EWSMessageType.EXIT) {
           const code = msg.code;
+          const errMsg = msg?.error_message;
           appendLogViewerHistory(id, [
+            errMsg,
             `Process exited with code ${code}. Closing...`,
           ]);
 
