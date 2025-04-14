@@ -6,9 +6,9 @@
 //
 import z from "zod";
 
-import { API_DESIGNER_V1 } from "@/api/endpoints/constant";
-import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
+import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { TenCloudStorePackageSchema } from "@/types/extension";
+import { genResSchema } from "@/api/endpoints/utils";
 
 export const ENDPOINT_EXTENSION = {
   registryPackages: {
@@ -24,6 +24,21 @@ export const ENDPOINT_EXTENSION = {
           packages: z.array(TenCloudStorePackageSchema),
         }),
       }),
+    },
+  },
+  propertySchema: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/extensions/property/schema`,
+      method: ENDPOINT_METHOD.POST,
+      requestPayload: z.object({
+        app_base_dir: z.string(),
+        addon_name: z.string(),
+      }),
+      responseSchema: genResSchema(
+        z.object({
+          property_schema: z.record(z.string(), z.any()),
+        })
+      ),
     },
   },
 };

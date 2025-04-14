@@ -192,6 +192,10 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             graph_id: graphId,
             node: node,
           },
+          popup: {
+            width: 340,
+            height: 0.8,
+          },
         });
         onClose();
       },

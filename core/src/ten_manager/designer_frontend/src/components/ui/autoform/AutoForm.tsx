@@ -15,7 +15,8 @@ import { ErrorMessage } from "./components/ErrorMessage";
 import { SubmitButton } from "./components/SubmitButton";
 import { StringField } from "./components/StringField";
 import { NumberField } from "./components/NumberField";
-import { BooleanField } from "./components/BooleanField";
+// import { BooleanField } from "./components/BooleanField";
+import { SwitchField } from "./components/SwitchField";
 import { DateField } from "./components/DateField";
 import { SelectField } from "./components/SelectField";
 import { ObjectWrapper } from "./components/ObjectWrapper";
@@ -35,7 +36,8 @@ const ShadcnUIComponents: AutoFormUIComponents = {
 export const ShadcnAutoFormFieldComponents = {
   string: StringField,
   number: NumberField,
-  boolean: BooleanField,
+  // boolean: BooleanField,
+  boolean: SwitchField,
   date: DateField,
   select: SelectField,
 } as const;

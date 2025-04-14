@@ -119,15 +119,8 @@ export const DeleteConnectionPayloadSchema = z.object({
   dest_extension: z.string(),
 });
 
-export const ValidateGraphNodePayloadSchema = z.object({
-  addon_app_base_dir: z.string().optional(),
-  node_name: z.string(),
-  addon_name: z.string(),
-  extension_group_name: z.string().optional(),
-  app_uri: z.string().optional(),
-  property: stringToJSONSchema
-    .pipe(z.record(z.string(), z.unknown()))
-    .default("{}"),
+export const ValidatePropertyPayloadSchema = z.object({
+  property_json_str: z.string().default("{}"),
 });
 
 export const UpdateNodePropertyPayloadSchema = z.object({

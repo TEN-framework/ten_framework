@@ -190,7 +190,10 @@
       "addConnection": "Add Connection",
       "titleUpdateNodePropertyByName": "Update [{{name}}] Property",
       "updateNodeProperty": "Update Property",
-      "graphName": "Graph Name"
+      "graphName": "Graph Name",
+      "updateNodePropertySuccess": "Node property updated successfully",
+      "updateNodePropertyFailed": "Failed to update node property",
+      "noPropertySchema": "No property schema found"
     },
     "doc": {
       "title": "Documentation"
