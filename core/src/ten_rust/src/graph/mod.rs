@@ -303,7 +303,7 @@ impl Graph {
 
     pub fn get_addon_name_of_extension(
         &self,
-        app: Option<&String>,
+        app: &Option<String>,
         extension: &String,
     ) -> Result<&String> {
         self.nodes
