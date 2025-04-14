@@ -168,7 +168,7 @@ fn check_msg_conversion_schema(
                     find_msg_schema_from_all_pkgs_info(
                         dest_extension_pkg_info,
                         &request_payload.msg_type,
-                        &request_payload.msg_name,
+                        &converted_schema.name,
                         MsgDirection::In,
                     )
                 {
