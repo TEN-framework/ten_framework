@@ -30,7 +30,7 @@ impl Graph {
                 // name
                 let unique_ext_name = format!(
                     "{}:{}",
-                    node.get_app_uri().map_or("", |s| s.as_str()),
+                    node.get_app_uri().as_ref().map_or("", |s| s.as_str()),
                     node.type_and_name.name
                 );
 

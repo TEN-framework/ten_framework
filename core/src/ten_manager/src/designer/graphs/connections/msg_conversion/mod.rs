@@ -5,3 +5,4 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod update;
+pub mod validate;

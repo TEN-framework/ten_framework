@@ -106,7 +106,7 @@ mod tests {
 
         let nodes = &graph_info.graph.nodes;
         let node = nodes.first().unwrap();
-        assert_eq!(node.get_app_uri(), None);
+        assert_eq!(node.get_app_uri(), &None);
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("property.json");
