@@ -51,5 +51,5 @@ TEN_RUNTIME_PRIVATE_API bool ten_app_init_uri(ten_app_t *self,
 TEN_RUNTIME_PRIVATE_API bool ten_app_init_log(ten_app_t *self,
                                               ten_value_t *value);
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_preload_all_addons(
-    ten_app_t *self, ten_value_t *value);
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_addon_config(ten_app_t *self,
+                                                       ten_value_t *value);

@@ -3,7 +3,9 @@
     "log": {
       "level": 2
     },
-    "preload_all_addons": true,
+    "addon": {
+      "preload_all": true
+    },
     "predefined_graphs": [
       {
         "name": "preload_graph",

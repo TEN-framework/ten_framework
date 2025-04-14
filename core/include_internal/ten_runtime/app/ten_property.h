@@ -35,8 +35,8 @@ static const ten_app_ten_namespace_prop_info_t
             .init_from_value = ten_app_init_log,
         },
         {
-            .name = TEN_STR_PRELOAD_ALL_ADDONS,
-            .init_from_value = ten_app_init_preload_all_addons,
+            .name = TEN_STR_ADDON,
+            .init_from_value = ten_app_init_addon_config,
         },
 };
 
