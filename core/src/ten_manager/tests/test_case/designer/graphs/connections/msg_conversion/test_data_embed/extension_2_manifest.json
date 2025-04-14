@@ -14,6 +14,14 @@
             "type": "string"
           }
         }
+      },
+      {
+        "name": "change_name",
+        "property": {
+          "aaa": {
+            "type": "string"
+          }
+        }
       }
     ]
   }

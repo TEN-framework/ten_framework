@@ -117,8 +117,8 @@ impl GraphConnection {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> Option<&String> {
-        self.app.as_ref()
+    pub fn get_app_uri(&self) -> &Option<String> {
+        &self.app
     }
 }
 
@@ -225,7 +225,7 @@ impl GraphDestination {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> Option<&String> {
-        self.app.as_ref()
+    pub fn get_app_uri(&self) -> &Option<String> {
+        &self.app
     }
 }
