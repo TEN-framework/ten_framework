@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use anyhow::Result;
+use uuid::Uuid;
 
 use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 use ten_rust::graph::graph_info::GraphInfo;
@@ -17,12 +18,13 @@ use ten_rust::pkg_info::property::parse_property_from_str;
 use ten_rust::pkg_info::PkgInfo;
 
 pub fn inject_all_pkgs_for_mock(
-    base_dir: &str,
     pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
-    graphs_cache: &mut HashMap<String, GraphInfo>,
-    all_pkgs_json: Vec<(String, String)>,
+    graphs_cache: &mut HashMap<Uuid, GraphInfo>,
+    all_pkgs_json: Vec<(String, String, String)>,
 ) -> Result<()> {
-    if pkgs_cache.contains_key(base_dir) {
+    let app_base_dir = all_pkgs_json[0].0.clone();
+
+    if pkgs_cache.contains_key(&app_base_dir) {
         return Err(anyhow::anyhow!("The all_pkgs field is already set"));
     }
 
@@ -33,17 +35,21 @@ pub fn inject_all_pkgs_for_mock(
     let mut system_pkg_info = Vec::new();
 
     for metadata_json in all_pkgs_json {
-        let manifest = Manifest::from_str(&metadata_json.0)?;
+        let manifest = Manifest::from_str(&metadata_json.1)?;
 
         let property = parse_property_from_str(
-            &metadata_json.1,
+            &metadata_json.2,
             graphs_cache,
-            Some(base_dir.to_string()),
+            Some(metadata_json.0.clone()),
             Some(manifest.type_and_name.pkg_type),
             Some(manifest.type_and_name.name.clone()),
         )?;
 
-        let pkg_info = PkgInfo::from_metadata(&manifest, &Some(property))?;
+        let pkg_info = PkgInfo::from_metadata(
+            &metadata_json.0,
+            &manifest,
+            &Some(property),
+        )?;
 
         // Sort package by type.
         match manifest.type_and_name.pkg_type {
@@ -68,29 +74,29 @@ pub fn inject_all_pkgs_for_mock(
 
     let base_dir_pkg_info = PkgsInfoInApp {
         app_pkg_info,
-        extension_pkg_info: if extension_pkg_info.is_empty() {
+        extension_pkgs_info: if extension_pkg_info.is_empty() {
             None
         } else {
             Some(extension_pkg_info)
         },
-        protocol_pkg_info: if protocol_pkg_info.is_empty() {
+        protocol_pkgs_info: if protocol_pkg_info.is_empty() {
             None
         } else {
             Some(protocol_pkg_info)
         },
-        addon_loader_pkg_info: if addon_loader_pkg_info.is_empty() {
+        addon_loader_pkgs_info: if addon_loader_pkg_info.is_empty() {
             None
         } else {
             Some(addon_loader_pkg_info)
         },
-        system_pkg_info: if system_pkg_info.is_empty() {
+        system_pkgs_info: if system_pkg_info.is_empty() {
             None
         } else {
             Some(system_pkg_info)
         },
     };
 
-    pkgs_cache.insert(base_dir.to_string(), base_dir_pkg_info);
+    pkgs_cache.insert(app_base_dir, base_dir_pkg_info);
 
     Ok(())
 }

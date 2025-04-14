@@ -35,23 +35,14 @@ pub enum ManifestDependency {
 
 impl From<&PkgInfo> for ManifestDependency {
     fn from(pkg_info: &PkgInfo) -> Self {
-        if let Some(manifest) = &pkg_info.manifest {
-            ManifestDependency::RegistryDependency {
-                pkg_type: manifest.type_and_name.pkg_type,
-                name: manifest.type_and_name.name.clone(),
-                version_req: VersionReq::parse(&format!(
-                    "{}",
-                    manifest.version
-                ))
-                .unwrap(),
-            }
-        } else {
-            // This should not happen in practice but we need a fallback
-            ManifestDependency::RegistryDependency {
-                pkg_type: PkgType::Extension,
-                name: String::new(),
-                version_req: VersionReq::parse("=0.0.0").unwrap(),
-            }
+        ManifestDependency::RegistryDependency {
+            pkg_type: pkg_info.manifest.type_and_name.pkg_type,
+            name: pkg_info.manifest.type_and_name.name.clone(),
+            version_req: VersionReq::parse(&format!(
+                "{}",
+                pkg_info.manifest.version
+            ))
+            .unwrap(),
         }
     }
 }

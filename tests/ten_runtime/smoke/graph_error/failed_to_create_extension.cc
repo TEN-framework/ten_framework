@@ -70,7 +70,8 @@ class graph_failed_to_create_extension__test_extension_default_extension_addon_t
 };
 
 void ____ten_addon_graph_failed_to_create_extension__test_extension_register_handler__(
-    void *register_ctx) {
+    TEN_UNUSED TEN_ADDON_TYPE addon_type, TEN_UNUSED ten_string_t *addon_name,
+    void *register_ctx, TEN_UNUSED void *user_data) {
   auto *addon_instance =
       new graph_failed_to_create_extension__test_extension_default_extension_addon_t();
   ten_string_t *base_dir =
@@ -84,13 +85,15 @@ void ____ten_addon_graph_failed_to_create_extension__test_extension_register_han
       register_ctx);
   ten_string_destroy(base_dir);
 }
+
 TEN_CONSTRUCTOR(
     ____ten_addon_graph_failed_to_create_extension__test_extension_registrar____) {
   /* Add addon registration function into addon manager. */
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   bool success = ten_addon_manager_add_addon(
       manager, "extension", "graph_failed_to_create_extension__test_extension",
-      ____ten_addon_graph_failed_to_create_extension__test_extension_register_handler__);
+      ____ten_addon_graph_failed_to_create_extension__test_extension_register_handler__,
+      nullptr, nullptr);
   if (!success) {
     TEN_LOGF("Failed to register addon: %s",
              "graph_failed_to_create_extension__test_extension");

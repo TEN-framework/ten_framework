@@ -7,10 +7,11 @@
 #[cfg(test)]
 mod msg_conversion_tests {
     use std::collections::HashMap;
-    use std::str::FromStr;
 
+    use ten_manager::{
+        constants::TEST_DIR, graph::connections::add::graph_add_connection,
+    };
     use ten_rust::{
-        base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
         graph::{
             msg_conversion::{
                 MsgAndResultConversion, MsgConversion, MsgConversionMode,
@@ -20,12 +21,12 @@ mod msg_conversion_tests {
             Graph,
         },
         pkg_info::{
-            manifest::Manifest, message::MsgType, pkg_type::PkgType,
+            create_uri_to_pkg_info_map, message::MsgType, pkg_type::PkgType,
             pkg_type_and_name::PkgTypeAndName,
-            property::parse_property_from_str, PkgInfo,
         },
-        schema::store::SchemaStore,
     };
+
+    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     fn create_test_node(
         name: &str,
@@ -44,143 +45,65 @@ mod msg_conversion_tests {
         }
     }
 
-    fn create_test_pkg_info_map(
-    ) -> HashMap<Option<String>, PkgsInfoInAppWithBaseDir> {
-        let mut map = HashMap::new();
-
-        // Create app PkgInfo.
-        let app_manifest_str = r#"
-        {
-            "type": "app",
-            "name": "app1",
-            "version": "1.0.0"
-        }
-        "#;
-        let app_manifest = Manifest::from_str(app_manifest_str).unwrap();
-
-        // Create property with URI for the app.
-        let prop_str = r#"
-        {
-            "_ten": {
-                "uri": "app1"
-            }
-        }
-        "#;
-        let app_property = parse_property_from_str(
-            prop_str,
-            &mut HashMap::new(),
-            None,
-            None,
-            None,
-        )
-        .unwrap();
-
-        // Create ext1 PkgInfo with valid API schema for message communication.
-        let ext1_manifest_json_str =
-            include_str!("test_data_embed/ext_1_manifest.json");
-        let ext1_manifest = Manifest::from_str(ext1_manifest_json_str).unwrap();
-
-        // Create ext2 PkgInfo with compatible API schemas.
-        let ext2_manifest_json_str =
-            include_str!("test_data_embed/ext_2_manifest.json");
-        let ext2_manifest = Manifest::from_str(ext2_manifest_json_str).unwrap();
-
-        // Create ext3 PkgInfo with incompatible API schemas.
-        let ext3_manifest_json_str =
-            include_str!("test_data_embed/ext_3_manifest.json");
-        let ext3_manifest = Manifest::from_str(ext3_manifest_json_str).unwrap();
-
-        // Create app PkgInfo.
-        let app_pkg_info = PkgInfo {
-            manifest: Some(app_manifest),
-            property: Some(app_property),
-            compatible_score: 0,
-            is_installed: true,
-            url: String::new(),
-            hash: String::new(),
-            schema_store: None,
-            is_local_dependency: false,
-            local_dependency_path: None,
-            local_dependency_base_dir: None,
-        };
-
-        // Create schema stores for extensions.
-        let ext1_schema_store =
-            SchemaStore::from_manifest(&ext1_manifest).unwrap().unwrap();
-        let ext2_schema_store =
-            SchemaStore::from_manifest(&ext2_manifest).unwrap().unwrap();
-        let ext3_schema_store =
-            SchemaStore::from_manifest(&ext3_manifest).unwrap().unwrap();
-
-        // Create extension PkgInfos.
-        let ext1_pkg_info = PkgInfo {
-            manifest: Some(ext1_manifest),
-            property: None,
-            compatible_score: 0,
-            is_installed: true,
-            url: String::new(),
-            hash: String::new(),
-            schema_store: Some(ext1_schema_store),
-            is_local_dependency: false,
-            local_dependency_path: None,
-            local_dependency_base_dir: None,
-        };
-
-        let ext2_pkg_info = PkgInfo {
-            manifest: Some(ext2_manifest),
-            property: None,
-            compatible_score: 0,
-            is_installed: true,
-            url: String::new(),
-            hash: String::new(),
-            schema_store: Some(ext2_schema_store),
-            is_local_dependency: false,
-            local_dependency_path: None,
-            local_dependency_base_dir: None,
-        };
-
-        let ext3_pkg_info = PkgInfo {
-            manifest: Some(ext3_manifest),
-            property: None,
-            compatible_score: 0,
-            is_installed: true,
-            url: String::new(),
-            hash: String::new(),
-            schema_store: Some(ext3_schema_store),
-            is_local_dependency: false,
-            local_dependency_path: None,
-            local_dependency_base_dir: None,
-        };
-
-        // Create a PkgsInfoInAppWithBaseDir and add all packages
-        let base_dir_pkg_info = PkgsInfoInAppWithBaseDir {
-            pkgs_info_in_app: PkgsInfoInApp {
-                app_pkg_info: Some(app_pkg_info),
-                extension_pkg_info: Some(vec![
-                    ext1_pkg_info,
-                    ext2_pkg_info,
-                    ext3_pkg_info,
-                ]),
-                protocol_pkg_info: None,
-                addon_loader_pkg_info: None,
-                system_pkg_info: None,
-            },
-            base_dir: "app1".to_string(),
-        };
-
-        // Add to map with app URI as key
-        map.insert(Some("app1".to_string()), base_dir_pkg_info);
-
-        map
-    }
-
     #[test]
     fn test_add_connection_with_fixed_value_msg_conversion() {
+        let all_pkgs_json_str = vec![
+            (
+                TEST_DIR.to_string(),
+                include_str!("test_data_embed/app_manifest.json").to_string(),
+                include_str!("test_data_embed/app_property.json").to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
+                include_str!("test_data_embed/ext_2_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
+                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -215,14 +138,15 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
-            Some("app1".to_string()),
+        let result = graph_add_connection(
+            &mut graph,
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
-            &create_test_pkg_info_map(),
+            &uri_to_pkg_info,
             Some(msg_conversion.clone()),
         );
 
@@ -234,7 +158,7 @@ mod msg_conversion_tests {
         assert_eq!(connections.len(), 1);
 
         let connection = &connections[0];
-        assert_eq!(connection.app, Some("app1".to_string()));
+        assert_eq!(connection.app, Some("http://localhost:8000".to_string()));
         assert_eq!(connection.extension, "ext1");
 
         let cmd_flows = connection.cmd.as_ref().unwrap();
@@ -245,7 +169,7 @@ mod msg_conversion_tests {
         assert_eq!(flow.dest.len(), 1);
 
         let dest = &flow.dest[0];
-        assert_eq!(dest.app, Some("app1".to_string()));
+        assert_eq!(dest.app, Some("http://localhost:8000".to_string()));
         assert_eq!(dest.extension, "ext2");
 
         // Verify the msg_conversion was properly set
@@ -281,11 +205,63 @@ mod msg_conversion_tests {
 
     #[test]
     fn test_add_connection_with_from_original_msg_conversion() {
+        let all_pkgs_json_str = vec![
+            (
+                TEST_DIR.to_string(),
+                include_str!("test_data_embed/app_manifest.json").to_string(),
+                include_str!("test_data_embed/app_property.json").to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
+                include_str!("test_data_embed/ext_2_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
+                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -308,14 +284,15 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
-            Some("app1".to_string()),
+        let result = graph_add_connection(
+            &mut graph,
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
-            &create_test_pkg_info_map(),
+            &uri_to_pkg_info,
             Some(msg_conversion),
         );
 
@@ -348,11 +325,63 @@ mod msg_conversion_tests {
 
     #[test]
     fn test_add_connection_with_msg_and_result_conversion() {
+        let all_pkgs_json_str = vec![
+            (
+                TEST_DIR.to_string(),
+                include_str!("test_data_embed/app_manifest.json").to_string(),
+                include_str!("test_data_embed/app_property.json").to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
+                include_str!("test_data_embed/ext_2_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
+                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -386,14 +415,15 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with msg_conversion.
-        let result = graph.add_connection(
-            Some("app1".to_string()),
+        let result = graph_add_connection(
+            &mut graph,
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
-            &create_test_pkg_info_map(),
+            &uri_to_pkg_info,
             Some(msg_conversion),
         );
 
@@ -431,11 +461,63 @@ mod msg_conversion_tests {
 
     #[test]
     fn test_add_connection_with_invalid_msg_conversion() {
+        let all_pkgs_json_str = vec![
+            (
+                TEST_DIR.to_string(),
+                include_str!("test_data_embed/app_manifest.json").to_string(),
+                include_str!("test_data_embed/app_property.json").to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
+                include_str!("test_data_embed/ext_2_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
+                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -453,14 +535,15 @@ mod msg_conversion_tests {
         };
 
         // Test adding a connection with invalid msg_conversion.
-        let result = graph.add_connection(
-            Some("app1".to_string()),
+        let result = graph_add_connection(
+            &mut graph,
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
-            &create_test_pkg_info_map(),
+            &uri_to_pkg_info,
             Some(msg_conversion),
         );
 

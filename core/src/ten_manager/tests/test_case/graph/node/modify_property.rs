@@ -100,7 +100,7 @@ mod tests {
         update_graph_node_all_fields(
             &temp_path,
             &mut all_fields,
-            "test-graph",
+            "test_graph",
             None,
             None,
             Some(&nodes_to_modify),

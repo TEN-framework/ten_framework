@@ -27,7 +27,13 @@ pub async fn update_preferences_field_endpoint(
     request_payload: web::Json<UpdatePreferencesFieldRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
+
     let tman_config =
         Arc::get_mut(&mut state_write.tman_config).ok_or_else(|| {
             actix_web::error::ErrorInternalServerError(

@@ -12,15 +12,17 @@ pub mod validate;
 
 use std::collections::HashMap;
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use ten_rust::graph::graph_info::GraphInfo;
+use ten_rust::graph::node::GraphNode;
+use ten_rust::pkg_info::manifest::api::ManifestApiMsg;
 use ten_rust::pkg_info::manifest::api::{
-    ManifestApiCmdLike, ManifestApiDataLike,
-};
-use ten_rust::pkg_info::manifest::api::{
-    ManifestCmdResult, ManifestPropertyAttributes,
+    ManifestApiCmdResult, ManifestApiPropertyAttributes,
 };
 use ten_rust::pkg_info::value_type::ValueType;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerApi {
@@ -28,28 +30,28 @@ pub struct DesignerApi {
     pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cmd_in: Option<Vec<DesignerApiCmdLike>>,
+    pub cmd_in: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cmd_out: Option<Vec<DesignerApiCmdLike>>,
+    pub cmd_out: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub data_in: Option<Vec<DesignerApiDataLike>>,
+    pub data_in: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub data_out: Option<Vec<DesignerApiDataLike>>,
+    pub data_out: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_frame_in: Option<Vec<DesignerApiDataLike>>,
+    pub audio_frame_in: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_frame_out: Option<Vec<DesignerApiDataLike>>,
+    pub audio_frame_out: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub video_frame_in: Option<Vec<DesignerApiDataLike>>,
+    pub video_frame_in: Option<Vec<DesignerApiMsg>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub video_frame_out: Option<Vec<DesignerApiDataLike>>,
+    pub video_frame_out: Option<Vec<DesignerApiMsg>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -67,8 +69,8 @@ pub struct DesignerPropertyAttributes {
     pub required: Option<Vec<String>>,
 }
 
-impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
-    fn from(api_property: ManifestPropertyAttributes) -> Self {
+impl From<ManifestApiPropertyAttributes> for DesignerPropertyAttributes {
+    fn from(api_property: ManifestApiPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
             prop_type: api_property.prop_type,
             items: api_property.items.map(|items| Box::new((*items).into())),
@@ -89,8 +91,8 @@ pub struct DesignerCmdResult {
     pub required: Option<Vec<String>>,
 }
 
-impl From<ManifestCmdResult> for DesignerCmdResult {
-    fn from(cmd_result: ManifestCmdResult) -> Self {
+impl From<ManifestApiCmdResult> for DesignerCmdResult {
+    fn from(cmd_result: ManifestApiCmdResult) -> Self {
         DesignerCmdResult {
             property: cmd_result.property.map(|prop| {
                 prop.into_iter().map(|(k, v)| (k, v.into())).collect()
@@ -105,7 +107,7 @@ impl From<ManifestCmdResult> for DesignerCmdResult {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerApiCmdLike {
+pub struct DesignerApiMsg {
     pub name: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -118,9 +120,9 @@ pub struct DesignerApiCmdLike {
     pub result: Option<DesignerCmdResult>,
 }
 
-impl From<ManifestApiCmdLike> for DesignerApiCmdLike {
-    fn from(api_cmd_like: ManifestApiCmdLike) -> Self {
-        DesignerApiCmdLike {
+impl From<ManifestApiMsg> for DesignerApiMsg {
+    fn from(api_cmd_like: ManifestApiMsg) -> Self {
+        DesignerApiMsg {
             name: api_cmd_like.name,
             property: api_cmd_like
                 .property
@@ -141,35 +143,19 @@ impl From<ManifestApiCmdLike> for DesignerApiCmdLike {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerApiDataLike {
-    pub name: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required: Option<Vec<String>>,
-}
-
-impl From<ManifestApiDataLike> for DesignerApiDataLike {
-    fn from(api_data_like: ManifestApiDataLike) -> Self {
-        DesignerApiDataLike {
-            name: api_data_like.name,
-            property: api_data_like
-                .property
-                .as_ref()
-                .filter(|p| !p.is_empty())
-                .map(|p| {
-                    p.iter()
-                        .map(|(k, v)| (k.clone(), v.clone().into()))
-                        .collect()
-                }),
-            required: api_data_like
-                .required
-                .as_ref()
-                .filter(|req| !req.is_empty())
-                .cloned(),
-        }
+/// Retrieves all extension nodes from a specified graph.
+pub fn get_extension_nodes_in_graph<'a>(
+    graph_id: &Uuid,
+    graphs_cache: &'a HashMap<Uuid, GraphInfo>,
+) -> Result<&'a Vec<GraphNode>> {
+    // Look for the graph by ID in the graphs_cache.
+    if let Some(graph_info) = graphs_cache.get(graph_id) {
+        // Collect all extension nodes from the graph.
+        Ok(&graph_info.graph.nodes)
+    } else {
+        Err(anyhow::anyhow!(
+            "Graph with ID '{}' not found in graph caches",
+            graph_id
+        ))
     }
 }

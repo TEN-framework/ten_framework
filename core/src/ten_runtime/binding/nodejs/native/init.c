@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/nodejs/addon/addon.h"
+#include "include_internal/ten_runtime/binding/nodejs/addon/addon_manager.h"
 #include "include_internal/ten_runtime/binding/nodejs/app/app.h"
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
 #include "include_internal/ten_runtime/binding/nodejs/msg/audio_frame.h"
@@ -17,6 +18,7 @@
 
 static napi_value ten_runtime_nodejs_init(napi_env env, napi_value exports) {
   ten_nodejs_addon_module_init(env, exports);
+  ten_nodejs_addon_manager_module_init(env, exports);
   ten_nodejs_app_module_init(env, exports);
   ten_nodejs_ten_env_module_init(env, exports);
   ten_nodejs_extension_module_init(env, exports);

@@ -8,9 +8,9 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
-use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -19,8 +19,7 @@ use super::DesignerMessageFlow;
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphConnectionsRequestPayload {
-    pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -106,41 +105,34 @@ pub async fn get_graph_connections_endpoint(
     request_payload: web::Json<GetGraphConnectionsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
-    if let Some(base_dir_pkg_info) =
-        &state_read.pkgs_cache.get(&request_payload.base_dir)
+    // Look up the graph directly by UUID from graphs_cache
+    if let Some(graph_info) =
+        state_read.graphs_cache.get(&request_payload.graph_id)
     {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            let graph_name = request_payload.graph_name.clone();
+        // Convert the connections field to RespConnection.
+        let connections: Option<_> = graph_info.graph.connections.as_ref();
+        let resp_connections: Vec<GraphConnectionsSingleResponseData> =
+            match connections {
+                Some(connections) => {
+                    connections.iter().map(|conn| conn.clone().into()).collect()
+                }
+                None => vec![],
+            };
 
-            // If the app package has predefined graphs, find the one with the
-            // specified graph_name.
-            if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                app_pkg.get_predefined_graphs(),
-                |g| g.name == graph_name,
-            ) {
-                // Convert the connections field to RespConnection.
-                let connections: Option<_> =
-                    predefined_graph.graph.connections.as_ref();
-                let resp_connections: Vec<GraphConnectionsSingleResponseData> =
-                    match connections {
-                        Some(connections) => connections
-                            .iter()
-                            .map(|conn| conn.clone().into())
-                            .collect(),
-                        None => vec![],
-                    };
+        let response = ApiResponse {
+            status: Status::Ok,
+            data: resp_connections,
+            meta: None,
+        };
 
-                let response = ApiResponse {
-                    status: Status::Ok,
-                    data: resp_connections,
-                    meta: None,
-                };
-
-                return Ok(HttpResponse::Ok().json(response));
-            }
-        }
+        return Ok(HttpResponse::Ok().json(response));
     }
 
     let error_response = ErrorResponse {

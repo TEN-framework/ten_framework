@@ -44,15 +44,18 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
     let all_pkgs_json_str = vec![
       (
+          "tests/test_data/cmd_designer_graphs_app_property_not_exist".to_string(),
           include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
           "{}".to_string(),
       ),
       (
+          "tests/test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a".to_string(),
           include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a/manifest.json")
               .to_string(),
           "{}".to_string(),
       ),
       (
+          "tests/test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b".to_string(),
           include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b/manifest.json")
               .to_string(),
           "{}".to_string(),
@@ -60,7 +63,6 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     ];
 
     let inject_ret = inject_all_pkgs_for_mock(
-        "tests/test_data/cmd_designer_graphs_app_property_not_exist",
         &mut designer_state.pkgs_cache,
         &mut designer_state.graphs_cache,
         all_pkgs_json_str,
@@ -76,10 +78,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     )
     .await;
 
-    let request_payload = GetGraphsRequestPayload {
-        base_dir: "tests/test_data/cmd_designer_graphs_app_property_not_exist"
-            .to_string(),
-    };
+    let request_payload = GetGraphsRequestPayload {};
 
     let req = test::TestRequest::post()
         .uri("/api/designer/v1/graphs")
@@ -110,15 +109,18 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let all_pkgs_json_str = vec![
         (
+            "tests/test_data/cmd_designer_connections_has_msg_conversion".to_string(),
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
         ),
         (
+            "tests/test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a".to_string(),
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a/manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
+            "tests/test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b".to_string(),
             include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b/manifest.json")
                 .to_string(),
             "{}".to_string(),
@@ -126,7 +128,6 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     ];
 
     let inject_ret = inject_all_pkgs_for_mock(
-        "tests/test_data/cmd_designer_connections_has_msg_conversion",
         &mut designer_state.pkgs_cache,
         &mut designer_state.graphs_cache,
         all_pkgs_json_str,
@@ -135,17 +136,31 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
-        App::new().app_data(web::Data::new(designer_state)).route(
-            "/api/designer/v1/graphs/connections",
-            web::post().to(get_graph_connections_endpoint),
-        ),
+        App::new()
+            .app_data(web::Data::new(designer_state.clone()))
+            .route(
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections_endpoint),
+            ),
     )
     .await;
 
     let request_payload = GetGraphConnectionsRequestPayload {
-        base_dir: "tests/test_data/cmd_designer_connections_has_msg_conversion"
-            .to_string(),
-        graph_name: "default".to_string(),
+        graph_id: {
+            let state_read = designer_state.read().unwrap();
+            state_read
+                .graphs_cache
+                .iter()
+                .find_map(|(uuid, graph)| {
+                    if graph.name.as_ref().is_some_and(|name| name == "default")
+                    {
+                        Some(*uuid)
+                    } else {
+                        None
+                    }
+                })
+                .expect("No graph with name 'default' found")
+        },
     };
 
     let req = test::TestRequest::post()

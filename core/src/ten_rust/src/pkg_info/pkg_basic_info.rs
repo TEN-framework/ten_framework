@@ -58,26 +58,13 @@ impl PartialEq for PkgBasicInfo {
 
 impl From<&PkgInfo> for PkgBasicInfo {
     fn from(pkg_info: &PkgInfo) -> Self {
-        if let Some(manifest) = &pkg_info.manifest {
-            PkgBasicInfo {
-                type_and_name: manifest.type_and_name.clone(),
-                version: manifest.version.clone(),
-                supports: match &manifest.supports {
-                    Some(supports) => supports.clone(),
-                    None => Vec::new(),
-                },
-            }
-        } else {
-            // This is a fallback case that should not happen in practice but is
-            // necessary to maintain compatibility.
-            panic!("PkgInfo does not contain a manifest.");
-
-            #[allow(unreachable_code)]
-            PkgBasicInfo {
-                type_and_name: PkgTypeAndName::from(pkg_info),
-                version: Version::new(0, 0, 0),
-                supports: Vec::new(),
-            }
+        PkgBasicInfo {
+            type_and_name: pkg_info.manifest.type_and_name.clone(),
+            version: pkg_info.manifest.version.clone(),
+            supports: match &pkg_info.manifest.supports {
+                Some(supports) => supports.clone(),
+                None => Vec::new(),
+            },
         }
     }
 }

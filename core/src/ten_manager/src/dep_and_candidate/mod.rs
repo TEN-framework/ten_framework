@@ -155,7 +155,7 @@ fn process_local_dependency_to_get_candidate(
 
 #[allow(clippy::too_many_arguments)]
 async fn process_non_local_dependency_to_get_candidate(
-    tman_config: Arc<TmanConfig>,
+    tman_config: &Arc<TmanConfig>,
     support: &ManifestSupport,
     dependency: &ManifestDependency,
     all_compatible_installed_pkgs: &HashMap<
@@ -168,7 +168,7 @@ async fn process_non_local_dependency_to_get_candidate(
     >,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
     pkg_list_cache: &mut PackageListCache,
-    out: Arc<Box<dyn TmanOutput>>,
+    out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Extract PkgTypeAndName and VersionReq based on enum variant.
     let (pkg_type_name, version_req) = match dependency {
@@ -201,7 +201,7 @@ async fn process_non_local_dependency_to_get_candidate(
     // Retrieve all packages from the registry that meet the specified
     // criteria.
     let results = get_package_list(
-        tman_config.clone(),
+        tman_config,
         Some(pkg_type_name.pkg_type),
         Some(pkg_type_name.name.clone()),
         // With the current design, if there is new information, it will
@@ -212,7 +212,7 @@ async fn process_non_local_dependency_to_get_candidate(
         Some(version_req.clone()),
         None,
         None, // Retrieve all packages.
-        out.clone(),
+        out,
     )
     .await?;
 
@@ -247,10 +247,9 @@ async fn process_non_local_dependency_to_get_candidate(
         let compatible_score = is_manifest_supports_compatible_with(
             &candidate_pkg_info
                 .manifest
-                .as_ref()
-                .map_or_else(Vec::new, |m| {
-                    m.supports.clone().unwrap_or_default()
-                }),
+                .supports
+                .clone()
+                .unwrap_or_default(),
             support,
         );
 
@@ -263,25 +262,15 @@ async fn process_non_local_dependency_to_get_candidate(
             if tman_config.verbose {
                 out.normal_line(&format!(
                     "=> Found a candidate: {}:{}@{}[{}]",
-                    candidate_pkg_info
-                        .manifest
-                        .as_ref()
-                        .map_or(PkgType::Extension, |m| m
-                            .type_and_name
-                            .pkg_type),
-                    candidate_pkg_info.manifest.as_ref().map_or(
-                        "unknown".to_string(),
-                        |m| m.type_and_name.name.clone()
-                    ),
-                    candidate_pkg_info.manifest.as_ref().map_or_else(
-                        || Version::new(0, 0, 0),
-                        |m| m.version.clone()
-                    ),
+                    candidate_pkg_info.manifest.type_and_name.pkg_type,
+                    candidate_pkg_info.manifest.type_and_name.name.clone(),
+                    candidate_pkg_info.manifest.version.clone(),
                     SupportsDisplay(
-                        &candidate_pkg_info.manifest.as_ref().map_or_else(
-                            Vec::new,
-                            |m| m.supports.clone().unwrap_or_default()
-                        )
+                        &candidate_pkg_info
+                            .manifest
+                            .supports
+                            .clone()
+                            .unwrap_or_default(),
                     ),
                 ));
             }
@@ -355,14 +344,14 @@ async fn process_dependencies_to_get_candidates(
                 }
 
                 process_non_local_dependency_to_get_candidate(
-                    ctx.tman_config.clone(),
+                    &ctx.tman_config,
                     ctx.support,
                     manifest_dep,
                     ctx.all_compatible_installed_pkgs,
                     ctx.all_candidates,
                     ctx.new_pkgs_to_be_searched,
                     ctx.pkg_list_cache,
-                    out.clone(),
+                    &out,
                 )
                 .await?;
             }
@@ -392,29 +381,19 @@ fn clean_up_all_candidates(
         for pkg_info in pkg_infos.iter() {
             // Check if the candidate is a locked one.
             if let Some(locked_pkg) = locked_pkg {
-                if locked_pkg.manifest.as_ref().map_or_else(
-                    || Version::new(0, 0, 0),
-                    |m| m.version.clone(),
-                ) == pkg_info.1.manifest.as_ref().map_or_else(
-                    || Version::new(0, 0, 0),
-                    |m| m.version.clone(),
-                ) && locked_pkg.hash == pkg_info.1.hash
+                if locked_pkg.manifest.version.clone()
+                    == pkg_info.1.manifest.version.clone()
+                    && locked_pkg.hash == pkg_info.1.hash
                 {
                     locked_pkgs_map.insert(
-                        pkg_info.1.manifest.as_ref().map_or_else(
-                            || Version::new(0, 0, 0),
-                            |m| m.version.clone(),
-                        ),
+                        pkg_info.1.manifest.version.clone(),
                         pkg_info.1,
                     );
                 }
             }
 
             version_map
-                .entry(pkg_info.1.manifest.as_ref().map_or_else(
-                    || Version::new(0, 0, 0),
-                    |m| m.version.clone(),
-                ))
+                .entry(pkg_info.1.manifest.version.clone())
                 .and_modify(|existing_pkg_info| {
                     if pkg_info.1.compatible_score
                         > existing_pkg_info.compatible_score
@@ -481,10 +460,9 @@ pub async fn get_all_candidates_from_deps(
             }
 
             // Add all dependencies of the current package to the merged list.
-            if let Some(manifest) = &pkg_to_be_search.manifest {
-                if let Some(dependencies) = &manifest.dependencies {
-                    combined_dependencies.extend(dependencies.clone());
-                }
+            if let Some(dependencies) = &pkg_to_be_search.manifest.dependencies
+            {
+                combined_dependencies.extend(dependencies.clone());
             }
 
             // Mark the package as processed.
@@ -571,12 +549,8 @@ pub fn get_pkg_info_from_candidates(
     let pkg_info = all_candidates
         .get(&pkg_type_name)
         .and_then(|set| {
-            set.iter().find(|pkg| {
-                pkg.1.manifest.as_ref().map_or_else(
-                    || Version::new(0, 0, 0),
-                    |m| m.version.clone(),
-                ) == version_parsed
-            })
+            set.iter()
+                .find(|pkg| pkg.1.manifest.version.clone() == version_parsed)
         })
         .ok_or_else(|| {
             anyhow!(

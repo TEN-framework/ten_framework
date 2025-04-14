@@ -33,12 +33,12 @@ mod tests {
 
         // Add a simple package to the pkgs_cache.
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("test_data_embed/app_manifest.json").to_string(),
             include_str!("test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,

@@ -20,7 +20,7 @@ mod tests {
                 get_graphs_endpoint, GetGraphsRequestPayload,
                 GetGraphsResponseData,
             },
-            response::{ApiResponse, ErrorResponse},
+            response::ApiResponse,
             DesignerState,
         },
         output::TmanOutputCli,
@@ -39,20 +39,33 @@ mod tests {
 
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("test_data_embed/app_manifest.json").to_string(),
                 include_str!("test_data_embed/app_property.json").to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
                 include_str!("test_data_embed/extension_addon_2_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
                 include_str!("test_data_embed/extension_addon_3_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -60,7 +73,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -77,9 +89,7 @@ mod tests {
         )
         .await;
 
-        let request_payload = GetGraphsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-        };
+        let request_payload = GetGraphsRequestPayload {};
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs")
@@ -97,20 +107,41 @@ mod tests {
 
         let expected_graphs = vec![
             GetGraphsResponseData {
-                name: "default".to_string(),
-                auto_start: true,
+                uuid: "default".to_string(),
+                name: Some("default".to_string()),
+                auto_start: Some(true),
+                base_dir: Some(TEST_DIR.to_string()),
             },
             GetGraphsResponseData {
-                name: "default_with_app_uri".to_string(),
-                auto_start: true,
+                uuid: "default_with_app_uri".to_string(),
+                name: Some("default_with_app_uri".to_string()),
+                auto_start: Some(true),
+                base_dir: Some(TEST_DIR.to_string()),
             },
             GetGraphsResponseData {
-                name: "addon_not_found".to_string(),
-                auto_start: false,
+                uuid: "addon_not_found".to_string(),
+                name: Some("addon_not_found".to_string()),
+                auto_start: Some(false),
+                base_dir: Some(TEST_DIR.to_string()),
             },
         ];
 
-        assert_eq!(graphs.data, expected_graphs);
+        assert_eq!(graphs.data.len(), expected_graphs.len());
+
+        // Create a map of expected graphs by name for easier lookup.
+        let expected_map: HashMap<_, _> = expected_graphs
+            .iter()
+            .map(|g| (g.name.clone(), g))
+            .collect();
+
+        for actual in graphs.data.iter() {
+            let expected = expected_map
+                .get(&actual.name)
+                .expect("Missing expected graph");
+            assert_eq!(actual.name, expected.name);
+            assert_eq!(actual.auto_start, expected.auto_start);
+            assert_eq!(actual.base_dir, expected.base_dir);
+        }
 
         let json: ApiResponse<Vec<GetGraphsResponseData>> =
             serde_json::from_str(body_str).unwrap();
@@ -135,9 +166,7 @@ mod tests {
         )
         .await;
 
-        let request_payload = GetGraphsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-        };
+        let request_payload = GetGraphsRequestPayload {};
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs")
@@ -145,14 +174,11 @@ mod tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
 
-        assert!(resp.status().is_client_error());
+        assert!(resp.status().is_success());
         println!("Response body: {}", resp.status());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
-
-        let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
-
-        assert_eq!(error.message, "All packages not available");
+        println!("Response body: {}", body_str);
     }
 }

@@ -20,16 +20,15 @@ type Ctor<T> = {
 type addonRegisterHandler = (registerContext: unknown) => void;
 
 export class AddonManager {
-  private static _registry: Map<string, addonRegisterHandler> = new Map();
+  private static _instance: AddonManager | null = null;
+  private _registry: Map<string, addonRegisterHandler> = new Map();
 
-  static _set_register_handler(
-    name: string,
-    handler: addonRegisterHandler,
-  ): void {
-    AddonManager._registry.set(name, handler);
+  // Make the constructor private to prevent direct instantiation.
+  private constructor() {
+    ten_addon.ten_nodejs_addon_manager_create(this);
   }
 
-  static _find_app_base_dir(): string {
+  private static findAppBaseDir(): string {
     let currentDir = dirname(fileURLToPath(import.meta.url));
 
     while (currentDir !== path.dirname(currentDir)) {
@@ -54,8 +53,21 @@ export class AddonManager {
     throw new Error("Cannot find app base dir");
   }
 
-  static async _load_all_addons(): Promise<void> {
-    const app_base_dir = AddonManager._find_app_base_dir();
+  static getInstance(): AddonManager {
+    // Because this function is called in the JS main thread, so it's thread
+    // safe.
+    if (!AddonManager._instance) {
+      AddonManager._instance = new AddonManager();
+    }
+    return AddonManager._instance;
+  }
+
+  setRegisterHandler(name: string, handler: addonRegisterHandler): void {
+    this._registry.set(name, handler);
+  }
+
+  async loadAllAddons(): Promise<void> {
+    const app_base_dir = AddonManager.findAppBaseDir();
 
     const manifest_path = path.join(app_base_dir, "manifest.json");
     if (!fs.existsSync(manifest_path)) {
@@ -107,8 +119,8 @@ export class AddonManager {
     console.log(`_load_all_addons loaded ${loadPromises.length} extensions`);
   }
 
-  static async _load_single_addon(name: string): Promise<boolean> {
-    const app_base_dir = AddonManager._find_app_base_dir();
+  async loadSingleAddon(name: string): Promise<boolean> {
+    const app_base_dir = AddonManager.findAppBaseDir();
 
     const extension_folder = path.join(
       app_base_dir,
@@ -140,8 +152,13 @@ export class AddonManager {
     }
   }
 
-  static _register_single_addon(name: string, registerContext: unknown): void {
-    const handler = AddonManager._registry.get(name);
+  deinit(): void {
+    ten_addon.ten_nodejs_addon_manager_deinit(this);
+  }
+
+  // This function will be called from C code.
+  private registerSingleAddon(name: string, registerContext: unknown): void {
+    const handler = this._registry.get(name);
     if (handler) {
       try {
         handler(registerContext);
@@ -154,37 +171,27 @@ export class AddonManager {
       console.log(`Failed to find the register handler for addon ${name}`);
     }
   }
-
-  static _register_all_addons(registerContext: unknown): void {
-    for (const [name, handler] of AddonManager._registry) {
-      try {
-        handler(registerContext);
-
-        console.log(`Addon ${name} registered`);
-      } catch (error) {
-        console.error(`Failed to register addon ${name}: ${error}`);
-      }
-    }
-
-    AddonManager._registry.clear();
-  }
 }
 
 export function RegisterAddonAsExtension(
   name: string,
 ): <T extends Ctor<Addon>>(klass: T) => T {
   return function <T extends Ctor<Addon>>(klass: T): T {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function registerHandler(registerContext: unknown) {
       const addon_instance = new klass();
 
       ten_addon.ten_nodejs_addon_manager_register_addon_as_extension(
         name,
         addon_instance,
+        registerContext,
       );
     }
 
-    AddonManager._set_register_handler(name, registerHandler);
+    const addonManager = AddonManager.getInstance();
+    addonManager.setRegisterHandler(name, registerHandler);
+
+    // Register the addon to the native addon manager.
+    ten_addon.ten_nodejs_addon_manager_add_extension_addon(addonManager, name);
 
     console.log(`RegisterAddonAsExtension ${name} registered`);
 

@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/binding/nodejs/addon/addon.h"
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
-#include "include_internal/ten_runtime/binding/nodejs/addon/addon_manager.h"
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 #include "include_internal/ten_runtime/binding/nodejs/common/tsfn.h"
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
@@ -510,9 +509,6 @@ napi_value ten_nodejs_addon_module_init(napi_env env, napi_value exports) {
   TEN_ASSERT(env && exports, "Should not happen.");
 
   EXPORT_FUNC(env, exports, ten_nodejs_addon_create);
-  EXPORT_FUNC(env, exports,
-              ten_nodejs_addon_manager_register_addon_as_extension);
   EXPORT_FUNC(env, exports, ten_nodejs_addon_on_end_of_life);
-
   return exports;
 }

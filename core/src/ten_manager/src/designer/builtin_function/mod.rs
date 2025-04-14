@@ -197,7 +197,14 @@ pub async fn builtin_function_endpoint(
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<HttpResponse, Error> {
-    let tman_config = state.read().unwrap().tman_config.clone();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
+
+    let tman_config = state_read.tman_config.clone();
 
     let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.

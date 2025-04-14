@@ -13,7 +13,8 @@ use super::Graph;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GraphInfo {
-    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auto_start: Option<bool>,

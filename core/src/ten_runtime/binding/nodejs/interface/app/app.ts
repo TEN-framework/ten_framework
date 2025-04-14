@@ -16,8 +16,8 @@ export class App {
   private async onConfigureProxy(tenEnv: TenEnv): Promise<void> {
     await this.onConfigure(tenEnv);
 
-    await AddonManager._load_all_addons();
-    AddonManager._register_all_addons(null);
+    const addonManager = AddonManager.getInstance();
+    await addonManager.loadAllAddons();
 
     ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
   }
@@ -30,6 +30,9 @@ export class App {
 
   private async onDeinitProxy(tenEnv: TenEnv): Promise<void> {
     await this.onDeinit(tenEnv);
+
+    const addonManager = AddonManager.getInstance();
+    addonManager.deinit();
 
     ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
 

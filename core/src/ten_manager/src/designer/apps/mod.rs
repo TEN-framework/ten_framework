@@ -8,6 +8,7 @@ pub mod addons;
 pub mod create;
 pub mod get;
 pub mod load;
+pub mod property;
 pub mod reload;
 pub mod scripts;
 pub mod unload;

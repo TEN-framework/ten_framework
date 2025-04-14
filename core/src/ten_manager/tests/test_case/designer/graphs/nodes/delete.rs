@@ -12,6 +12,8 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
+    use uuid::Uuid;
+
     use ten_manager::{
         config::TmanConfig,
         constants::TEST_DIR,
@@ -26,9 +28,9 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
+        graph::{graphs_cache_find_by_id, graphs_cache_find_by_name},
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -42,12 +44,12 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -66,8 +68,7 @@ mod tests {
 
         // Try to delete a node from a non-existent graph.
         let request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "non_existent_graph".to_string(),
+            graph_id: Uuid::new_v4(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -89,9 +90,7 @@ mod tests {
 
         let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Fail);
-        assert!(response
-            .message
-            .contains("Graph 'non_existent_graph' not found"));
+        assert!(response.message.contains("Graph not found"));
     }
 
     #[actix_web::test]
@@ -104,17 +103,32 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Try to delete a non-existent node from an existing graph.
+        let request_payload = DeleteGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "non_existent_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -125,16 +139,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Try to delete a non-existent node from an existing graph.
-        let request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default_with_app_uri".to_string(),
-            node_name: "non_existent_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/delete")
@@ -187,17 +191,25 @@ mod tests {
 
         // Inject the test app into the mock.
         let all_pkgs_json = vec![(
+            temp_dir_path.clone(),
             std::fs::read_to_string(&manifest_path).unwrap(),
             std::fs::read_to_string(&property_path).unwrap(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        let graph_id_clone = *graph_id;
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -215,9 +227,7 @@ mod tests {
 
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: None,
+            graph_id: graph_id_clone,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -267,8 +277,7 @@ mod tests {
 
         // Now delete the node we just added.
         let delete_request_payload = DeleteGraphNodeRequestPayload {
-            base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: graph_id_clone,
             node_name: "test_delete_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -295,29 +304,20 @@ mod tests {
 
         // Verify the node was actually removed from the data.
         let state_read = designer_state.read().unwrap();
-        if let Some(base_dir_pkg_info) =
-            state_read.pkgs_cache.get(&temp_dir_path)
+
+        let DesignerState { graphs_cache, .. } = &*state_read;
+
+        if let Some(graph_info) =
+            graphs_cache_find_by_id(graphs_cache, &graph_id_clone)
         {
-            if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-                if let Some(predefined_graph) = pkg_predefined_graphs_find(
-                    app_pkg.get_predefined_graphs(),
-                    |g| g.name == "default_with_app_uri",
-                ) {
-                    // Check if the node is gone.
-                    let node_exists =
-                        predefined_graph.graph.nodes.iter().any(|node| {
-                            node.type_and_name.name == "test_delete_node"
-                                && node.addon == "test_addon"
-                        });
-                    assert!(!node_exists, "Node should have been deleted");
-                } else {
-                    panic!("Graph 'default_with_app_uri' not found");
-                }
-            } else {
-                panic!("App package not found");
-            }
+            // Check if the node is gone.
+            let node_exists = graph_info.graph.nodes.iter().any(|node| {
+                node.type_and_name.name == "test_delete_node"
+                    && node.addon == "test_addon"
+            });
+            assert!(!node_exists, "Node should have been deleted");
         } else {
-            panic!("Base directory not found");
+            panic!("Graph 'default_with_app_uri' not found");
         }
 
         let updated_property_content =

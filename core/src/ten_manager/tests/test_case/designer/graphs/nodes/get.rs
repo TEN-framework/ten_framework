@@ -22,8 +22,7 @@ mod tests {
                     get_graph_nodes_endpoint, GetGraphNodesRequestPayload,
                     GraphNodesSingleResponseData,
                 },
-                DesignerApi, DesignerApiCmdLike, DesignerApiDataLike,
-                DesignerPropertyAttributes,
+                DesignerApi, DesignerApiMsg, DesignerPropertyAttributes,
             },
             response::{ApiResponse, ErrorResponse},
             DesignerState,
@@ -31,6 +30,7 @@ mod tests {
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::value_type::ValueType;
+    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -45,12 +45,17 @@ mod tests {
 
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"
                 )
@@ -58,6 +63,10 @@ mod tests {
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_2_manifest.json"
                 )
@@ -65,6 +74,10 @@ mod tests {
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_3_manifest.json"
                 )
@@ -74,7 +87,6 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -83,6 +95,29 @@ mod tests {
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
+        // Find the uuid of the "default" graph.
+        let graph_id = {
+            let state = designer_state.read().unwrap();
+            state
+                .graphs_cache
+                .iter()
+                .find_map(|(uuid, info)| {
+                    if info
+                        .name
+                        .as_ref()
+                        .map(|name| name == "default")
+                        .unwrap_or(false)
+                    {
+                        Some(*uuid)
+                    } else {
+                        None
+                    }
+                })
+                .expect("Default graph should exist")
+        };
+
+        let request_payload = GetGraphNodesRequestPayload { graph_id };
+
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/nodes",
@@ -90,11 +125,6 @@ mod tests {
             ),
         )
         .await;
-
-        let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes")
@@ -121,7 +151,7 @@ mod tests {
                     property: None,
                     cmd_in: None,
                     cmd_out: Some(vec![
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -139,7 +169,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -157,7 +187,7 @@ mod tests {
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required_mismatch".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -194,7 +224,7 @@ mod tests {
                 api: Some(DesignerApi {
                     property: None,
                     cmd_in: Some(vec![
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -212,7 +242,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "another_test_cmd".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -230,7 +260,7 @@ mod tests {
                             required: None,
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -248,7 +278,7 @@ mod tests {
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
-                        DesignerApiCmdLike {
+                        DesignerApiMsg {
                             name: "has_required_mismatch".to_string(),
                             property: Some({
                                 let mut map = HashMap::new();
@@ -269,7 +299,7 @@ mod tests {
                     ]),
                     cmd_out: None,
                     data_in: None,
-                    data_out: Some(vec![DesignerApiDataLike {
+                    data_out: Some(vec![DesignerApiMsg {
                         name: "data_has_required".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -285,6 +315,7 @@ mod tests {
                             map
                         }),
                         required: Some(vec!["foo".to_string()]),
+                        result: None,
                     }]),
                     audio_frame_in: None,
                     audio_frame_out: None,
@@ -303,7 +334,7 @@ mod tests {
                 app: None,
                 api: Some(DesignerApi {
                     property: None,
-                    cmd_in: Some(vec![DesignerApiCmdLike {
+                    cmd_in: Some(vec![DesignerApiMsg {
                         name: "test_cmd".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -322,7 +353,7 @@ mod tests {
                         result: None,
                     }]),
                     cmd_out: None,
-                    data_in: Some(vec![DesignerApiDataLike {
+                    data_in: Some(vec![DesignerApiMsg {
                         name: "data_has_required".to_string(),
                         property: Some({
                             let mut map = HashMap::new();
@@ -338,6 +369,7 @@ mod tests {
                             map
                         }),
                         required: Some(vec!["foo".to_string()]),
+                        result: None,
                     }]),
                     data_out: None,
                     audio_frame_in: None,
@@ -361,44 +393,6 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extensions_no_graph() {
-        let designer_state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
-        }));
-
-        let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/nodes",
-                web::post().to(get_graph_nodes_endpoint),
-            ),
-        )
-        .await;
-
-        let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "no_existing_graph".to_string(),
-        };
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/graphs/nodes")
-            .set_json(request_payload)
-            .to_request();
-        let resp = test::call_service(&app, req).await;
-
-        assert!(resp.status().is_client_error());
-
-        let body = test::read_body(resp).await;
-        let body_str = std::str::from_utf8(&body).unwrap();
-
-        let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
-
-        assert!(error.message.contains("Package information is missing"));
-    }
-
-    #[actix_web::test]
-    async fn test_get_extensions_has_wrong_addon() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -406,38 +400,13 @@ mod tests {
             graphs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json_str = vec![
-            (
-                include_str!("../test_data_embed/app_manifest.json")
-                    .to_string(),
-                include_str!("../test_data_embed/app_property.json")
-                    .to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                include_str!(
-                    "../test_data_embed/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
+        let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
+            include_str!("../test_data_embed/app_manifest.json").to_string(),
+            include_str!("../test_data_embed/app_property.json").to_string(),
+        )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -454,26 +423,23 @@ mod tests {
         )
         .await;
 
+        // Use a random UUID that doesn't exist in the graphs_cache.
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "addon_not_found".to_string(),
+            graph_id: Uuid::new_v4(),
         };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes")
             .set_json(request_payload)
             .to_request();
-
         let resp = test::call_service(&app, req).await;
 
-        assert!(resp.status().is_success());
+        assert!(!resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
-
-        let json: ApiResponse<Vec<GraphNodesSingleResponseData>> =
+        let error_response: ErrorResponse =
             serde_json::from_str(body_str).unwrap();
-        let pretty_json = serde_json::to_string_pretty(&json).unwrap();
-        println!("Response body: {}", pretty_json);
+        assert!(error_response.message.contains("not found in graph caches"));
     }
 }

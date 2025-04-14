@@ -7,4 +7,3 @@
 pub mod connections;
 pub mod get;
 pub mod nodes;
-pub mod update;

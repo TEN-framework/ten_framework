@@ -33,6 +33,7 @@ use std::{
 };
 
 use actix_web::web;
+use uuid::Uuid;
 
 use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
@@ -45,7 +46,7 @@ pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
-    pub graphs_cache: HashMap<String, GraphInfo>,
+    pub graphs_cache: HashMap<Uuid, GraphInfo>,
 }
 
 pub fn configure_routes(
@@ -84,10 +85,18 @@ pub fn configure_routes(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
             )
+            .route(
+                "/apps/property/schema",
+                web::post().to(apps::property::schema::get_app_property_schema_endpoint),
+            )
             // Extension endpoints.
             .route(
                 "/extensions/create",
                 web::post().to(extensions::create::create_extension_endpoint),
+            )
+            .route(
+                "/extensions/property/schema",
+                web::post().to(extensions::property::schema::get_extension_property_schema_endpoint),
             )
             // Manifest validation endpoints.
             .route(
@@ -106,10 +115,6 @@ pub fn configure_routes(
             )
             // Graphs endpoints.
             .route("/graphs", web::post().to(graphs::get::get_graphs_endpoint))
-            .route(
-                "/graphs",
-                web::put().to(graphs::update::update_graph_endpoint),
-            )
             // Graph nodes endpoints.
             .route(
                 "/graphs/nodes",
@@ -126,10 +131,6 @@ pub fn configure_routes(
             .route(
                 "/graphs/nodes/property/update",
                 web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
-            )
-            .route(
-                "/graphs/nodes/validate",
-                web::post().to(graphs::nodes::validate::validate_graph_node_endpoint),
             )
             // Graph connections endpoints.
             .route(
@@ -194,7 +195,7 @@ pub fn configure_routes(
                 "/ws/terminal",
                 web::get().to(terminal::ws_terminal_endpoint),
             )
-            // Misc endpoints.
+            // Doc endpoints.
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
@@ -203,10 +204,12 @@ pub fn configure_routes(
                 "/doc-link",
                 web::post().to(doc_link::get_doc_link_endpoint),
             )
+            // Registry endpoints.
             .route(
                 "/registry/packages",
                 web::get().to(registry::packages::get_packages_endpoint),
             )
+            // Environment endpoints.
             .route("/env", web::get().to(env::get_env_endpoint)),
     );
 }

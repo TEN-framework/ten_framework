@@ -10,62 +10,48 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::designer::{
-    response::{ApiResponse, ErrorResponse, Status},
+    response::{ApiResponse, Status},
     DesignerState,
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct GetGraphsRequestPayload {
-    pub base_dir: String,
-}
+pub struct GetGraphsRequestPayload {}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetGraphsResponseData {
-    pub name: String,
-    pub auto_start: bool,
+    pub uuid: String,
+    pub name: Option<String>,
+    pub auto_start: Option<bool>,
+    pub base_dir: Option<String>,
 }
 
 pub async fn get_graphs_endpoint(
-    request_payload: web::Json<GetGraphsRequestPayload>,
+    _request_payload: web::Json<GetGraphsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
-    if let Some(base_dir_pkg_info) =
-        &state_read.pkgs_cache.get(&request_payload.base_dir)
-    {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            let graphs: Vec<GetGraphsResponseData> = app_pkg
-                .get_predefined_graphs()
-                .unwrap_or(&vec![])
-                .iter()
-                .map(|graph| GetGraphsResponseData {
-                    name: graph.name.clone(),
-                    auto_start: graph.auto_start.unwrap_or(false),
-                })
-                .collect();
+    let graphs: Vec<GetGraphsResponseData> = state_read
+        .graphs_cache
+        .iter()
+        .map(|(uuid, graph_info)| GetGraphsResponseData {
+            uuid: uuid.to_string(),
+            name: graph_info.name.clone(),
+            auto_start: graph_info.auto_start,
+            base_dir: graph_info.app_base_dir.clone(),
+        })
+        .collect();
 
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: graphs,
-                meta: None,
-            };
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: graphs,
+        meta: None,
+    };
 
-            Ok(HttpResponse::Ok().json(response))
-        } else {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "Failed to find any app packages".to_string(),
-                error: None,
-            };
-            Ok(HttpResponse::NotFound().json(error_response))
-        }
-    } else {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "All packages not available".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
-    }
+    Ok(HttpResponse::Ok().json(response))
 }

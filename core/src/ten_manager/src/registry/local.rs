@@ -25,7 +25,9 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
-use super::found_result::PkgRegistryInfo;
+use super::found_result::{
+    get_pkg_registry_info_from_manifest, PkgRegistryInfo,
+};
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
 use crate::constants::{
@@ -58,18 +60,9 @@ pub async fn upload_package(
     let dir_path = PathBuf::from(format!(
         "{}{}/{}/{}/",
         path_url,
-        pkg_info
-            .manifest
-            .as_ref()
-            .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
-        pkg_info
-            .manifest
-            .as_ref()
-            .map_or("unknown".to_string(), |m| m.type_and_name.name.clone()),
-        pkg_info
-            .manifest
-            .as_ref()
-            .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone())
+        pkg_info.manifest.type_and_name.pkg_type,
+        pkg_info.manifest.type_and_name.name,
+        pkg_info.manifest.version.clone()
     ));
 
     // Check if the directory exists, and only create it if it doesn't.
@@ -463,7 +456,10 @@ fn search_versions(
 
                         // Convert manifest to PkgRegistryInfo.
                         let mut pkg_registry_info: PkgRegistryInfo =
-                            (&manifest).try_into()?;
+                            get_pkg_registry_info_from_manifest(
+                                &download_url,
+                                &manifest,
+                            )?;
 
                         pkg_registry_info.download_url = download_url;
 
@@ -479,14 +475,14 @@ fn search_versions(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
-    _tman_config: Arc<TmanConfig>,
+    _tman_config: &Arc<TmanConfig>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
     page_size: Option<u32>,
     page: Option<u32>,
-    _out: Arc<Box<dyn TmanOutput>>,
+    _out: &Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?

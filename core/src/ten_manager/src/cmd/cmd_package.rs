@@ -79,13 +79,11 @@ pub async fn execute_cmd(
             get_pkg_info_from_path(&cwd, true, false, &mut None, None)?;
         let hash = pkg_info.gen_hash_hex();
 
-        if let Some(manifest) = &pkg_info.manifest {
-            let pkg_type = &manifest.type_and_name.pkg_type;
-            let name = &manifest.type_and_name.name;
-            let version = &manifest.version;
+        let pkg_type = &pkg_info.manifest.type_and_name.pkg_type;
+        let name = &pkg_info.manifest.type_and_name.name;
+        let version = &pkg_info.manifest.version;
 
-            println!("{} {} {} {}", pkg_type, name, version, hash);
-        }
+        println!("{} {} {} {}", pkg_type, name, version, hash);
 
         return Ok(());
     }

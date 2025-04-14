@@ -46,7 +46,6 @@ mod tests {
 
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
         assert!(graphs_cache.is_empty());
-        assert!(ten_in_property.additional_fields.is_empty());
         assert_eq!(property.all_fields.len(), 1); // Should contain _ten field.
         assert!(property.all_fields.contains_key("_ten"));
     }
@@ -57,8 +56,7 @@ mod tests {
         {
             "_ten": {
                 "predefined_graphs": [],
-                "uri": "http://example.com",
-                "extra_field_1": "value1"
+                "uri": "http://example.com"
             },
             "global_field_1": "global_value1"
         }
@@ -79,13 +77,6 @@ mod tests {
         let ten_in_property = property._ten.unwrap();
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
         assert!(graphs_cache.is_empty());
-        assert_eq!(
-            ten_in_property
-                .additional_fields
-                .get("extra_field_1")
-                .unwrap(),
-            "value1"
-        );
 
         // Should contain _ten and global_field_1.
         assert_eq!(property.all_fields.len(), 2);

@@ -56,7 +56,7 @@ impl Graph {
             // Create a unique identifier for the extension including app URI.
             let extension = format!(
                 "{}:{}",
-                Graph::option_str_to_string(connection.get_app_uri()),
+                connection.get_app_uri().map_or("", |s| s.as_str()),
                 connection.extension
             );
 

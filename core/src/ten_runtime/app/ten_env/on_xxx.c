@@ -90,7 +90,7 @@ static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
 
 static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
                                                  ten_protocol_t *protocol,
-                                                 void *cb_data) {
+                                                 TEN_UNUSED void *cb_data) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -238,8 +238,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   int lock_operation_rc = ten_addon_store_lock_all_type();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
-  register_ctx->app = self;
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(self);
 
   // Addon registration phase 2: actually registering the addon into the addon
   // store.
@@ -329,7 +328,7 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
 }
 
 static void ten_app_on_all_addons_unregistered(ten_env_t *ten_env,
-                                               void *cb_data) {
+                                               TEN_UNUSED void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true),
              "Invalid use of ten_env %p.", ten_env);
