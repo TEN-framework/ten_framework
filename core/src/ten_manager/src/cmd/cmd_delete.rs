@@ -16,6 +16,7 @@ use semver::Version;
 
 use ten_rust::pkg_info::pkg_type::PkgType;
 
+use crate::config::internal::TmanInternalConfig;
 use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::delete_package};
 
@@ -77,6 +78,7 @@ pub fn parse_sub_cmd(
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: DeleteCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

@@ -19,7 +19,7 @@ use serde_json::from_reader;
 use ten_rust::pkg_info::constants::TEN_PACKAGES_DIR;
 
 use crate::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     constants::{
         DOT_TEN_DIR, INSTALLED_PATHS_JSON_FILENAME, INSTALL_PATHS_APP_PREFIX,
         PACKAGE_INFO_DIR_IN_DOT_TEN_DIR,
@@ -143,6 +143,7 @@ async fn remove_installed_paths(
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: UninstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

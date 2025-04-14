@@ -46,6 +46,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_1() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -280,6 +281,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_2() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -464,6 +466,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_3() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -654,6 +657,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_schema_failure_1() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -859,6 +863,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_schema_failure_2() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -1071,6 +1076,7 @@ mod tests {
     async fn test_update_graph_connection_msg_conversion_schema_failure_3() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -1235,6 +1241,7 @@ mod tests {
     async fn test_update_graph_connection_remove_msg_conversion() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

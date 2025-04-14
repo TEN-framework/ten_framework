@@ -34,7 +34,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
     fs::{check_is_addon_folder, find_nearest_app_dir},
@@ -357,6 +357,7 @@ async fn determine_app_dir_to_work_with(
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: InstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

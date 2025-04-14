@@ -31,6 +31,7 @@ use crate::test_case::mock::inject_all_pkgs_for_mock;
 async fn test_get_compatible_messages_success() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -142,6 +143,7 @@ async fn test_get_compatible_messages_success() {
 async fn test_get_compatible_messages_fail() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -230,6 +232,7 @@ async fn test_get_compatible_messages_fail() {
 async fn test_get_compatible_messages_cmd_has_required_success_1() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -341,6 +344,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
 async fn test_get_compatible_messages_cmd_has_required_success_2() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -452,6 +456,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
 async fn test_get_compatible_messages_cmd_has_required_success_3() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -563,6 +568,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
 async fn test_get_compatible_messages_cmd_has_required_success_4() {
     let mut designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

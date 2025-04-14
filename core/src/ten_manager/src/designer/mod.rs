@@ -16,6 +16,7 @@ pub mod file_content;
 pub mod frontend;
 pub mod graphs;
 pub mod help_text;
+pub mod internal_config;
 pub mod locale;
 pub mod manifest;
 pub mod messages;
@@ -39,11 +40,12 @@ use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
 };
 
-use crate::config::TmanConfig;
+use crate::config::{internal::TmanInternalConfig, TmanConfig};
 use crate::output::TmanOutput;
 
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
+    pub tman_internal_config: Arc<TmanInternalConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
     pub graphs_cache: HashMap<Uuid, GraphInfo>,
