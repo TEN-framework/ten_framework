@@ -65,14 +65,17 @@ bool ten_addon_create_extension_group(
   TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
+  ten_addon_context_set_creation_info(
+      addon_context, TEN_ADDON_TYPE_EXTENSION_GROUP, addon_name, instance_name);
+
   addon_context->flow = TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_EXTENSION_GROUP;
   addon_context->flow_target.engine = engine;
   addon_context->create_instance_done_cb = cb;
   addon_context->create_instance_done_cb_data = user_data;
 
-  bool rc =
-      ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION_GROUP,
-                                      addon_name, instance_name, addon_context);
+  bool rc = ten_addon_create_instance_async(ten_env, addon_context);
   if (!rc) {
     ten_addon_context_destroy(addon_context);
   }

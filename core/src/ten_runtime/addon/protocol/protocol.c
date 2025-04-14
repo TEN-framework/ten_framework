@@ -217,6 +217,13 @@ bool ten_addon_create_protocol_with_uri(
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
+  ten_addon_context_set_creation_info(
+      addon_context, TEN_ADDON_TYPE_PROTOCOL,
+      ten_string_get_raw_str(&addon_host->name),
+      ten_string_get_raw_str(&addon_host->name));
+
   if (attach_to == TEN_ENV_ATTACH_TO_APP) {
     addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL;
     addon_context->flow_target.app = ten_env_get_attached_app(ten_env);
@@ -227,10 +234,7 @@ bool ten_addon_create_protocol_with_uri(
   addon_context->create_instance_done_cb = proxy_on_addon_protocol_created;
   addon_context->create_instance_done_cb_data = ctx;
 
-  bool rc = ten_addon_create_instance_async(
-      ten_env, TEN_ADDON_TYPE_PROTOCOL,
-      ten_string_get_raw_str(&addon_host->name),
-      ten_string_get_raw_str(&addon_host->name), addon_context);
+  bool rc = ten_addon_create_instance_async(ten_env, addon_context);
 
   if (!rc) {
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Failed to create protocol for %s",
@@ -275,6 +279,11 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
+  ten_addon_context_set_creation_info(addon_context, TEN_ADDON_TYPE_PROTOCOL,
+                                      addon_name, instance_name);
+
   if (attach_to == TEN_ENV_ATTACH_TO_APP) {
     addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL;
     addon_context->flow_target.app = ten_env_get_attached_app(ten_env);
@@ -285,9 +294,7 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
   addon_context->create_instance_done_cb = proxy_on_addon_protocol_created;
   addon_context->create_instance_done_cb_data = ctx;
 
-  bool rc =
-      ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_PROTOCOL,
-                                      addon_name, instance_name, addon_context);
+  bool rc = ten_addon_create_instance_async(ten_env, addon_context);
 
   if (!rc) {
     TEN_LOGE("Failed to create protocol for %s", addon_name);

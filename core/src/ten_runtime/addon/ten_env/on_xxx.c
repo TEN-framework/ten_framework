@@ -247,7 +247,8 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
                                                        void *context) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is intended to be called in any threads.
+  // thread-check: This function is intended to be called in the app thread.
+  // TODO(xilin): change false to true.
   TEN_ASSERT(ten_env_check_integrity(self, false), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ADDON, "Should not happen.");
@@ -259,11 +260,6 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
 
   ten_protocol_t *protocol = instance;
   TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, false),
-             "Should not happen.");
-
-  ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
-      &protocol->thread_check);
-  TEN_ASSERT(ten_protocol_check_integrity(protocol, true),
              "Should not happen.");
 
   if (!protocol->addon_host) {
@@ -280,8 +276,14 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
   switch (addon_context->flow) {
   case TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_PROTOCOL: {
     ten_engine_t *engine = addon_context->flow_target.engine;
-    TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-               "Should not happen.");
+    TEN_ASSERT(engine, "Should not happen.");
+    // TEN_NOLINTNEXTLINE(thread-check)
+    // thread-check: We are currently in the protocol creation process, during
+    // which the engine cannot be closed or destroyed (because protocol creation
+    // depends on the engine, so the engine's logic ensures that while a
+    // protocol is being created, the engine cannot be closed or destroyed).
+    // Therefore, accessing the engine instance at this point is safe.
+    TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
     ten_engine_thread_on_addon_create_protocol_done_ctx_t *ctx =
         ten_engine_thread_on_addon_create_protocol_done_ctx_create();

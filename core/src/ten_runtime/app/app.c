@@ -140,6 +140,11 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->metric_extension_thread_msg_queue_stay_time_us = NULL;
 #endif
 
+  TEN_ADDON_STORE_INIT(self->extension_store);
+  TEN_ADDON_STORE_INIT(self->extension_group_store);
+  TEN_ADDON_STORE_INIT(self->protocol_store);
+  TEN_ADDON_STORE_INIT(self->addon_loader_store);
+
   self->user_data = NULL;
 
   return self;
@@ -171,6 +176,11 @@ void ten_app_destroy(ten_app_t *self) {
   }
 
   ten_schema_store_deinit(&self->schema_store);
+
+  ten_addon_store_deinit(&self->extension_store);
+  ten_addon_store_deinit(&self->extension_group_store);
+  ten_addon_store_deinit(&self->protocol_store);
+  ten_addon_store_deinit(&self->addon_loader_store);
 
   ten_mutex_destroy(self->in_msgs_lock);
   ten_list_clear(&self->in_msgs);

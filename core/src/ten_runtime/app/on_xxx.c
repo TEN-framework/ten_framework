@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/macro/check.h"
@@ -41,6 +42,11 @@ void ten_app_thread_on_addon_create_protocol_done(void *self, void *arg) {
 
   ten_protocol_t *protocol = ctx->protocol;
   ten_addon_context_t *addon_context = ctx->addon_context;
+
+  ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
+      &protocol->thread_check);
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true),
+             "Should not happen.");
 
   TEN_ASSERT(addon_context, "Invalid argument.");
 
