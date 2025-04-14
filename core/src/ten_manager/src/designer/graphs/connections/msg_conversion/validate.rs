@@ -56,8 +56,7 @@ pub fn validate_msg_conversion_schema(
             msg_conversion_validate_info.msg_type,
             msg_conversion_validate_info.msg_name,
             msg_conversion,
-        )
-        .unwrap();
+        )?;
 
         eprintln!(
             "msg_conversion converted_schema: {}",
