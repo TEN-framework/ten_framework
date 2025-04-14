@@ -277,8 +277,11 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
     ten_engine_t *engine = addon_context->flow_target.engine;
     TEN_ASSERT(engine, "Should not happen.");
     // TEN_NOLINTNEXTLINE(thread-check)
-    // thread-check: The engine thread will not be closed when the protocol is
-    // created, so it is thread safe at this time.
+    // thread-check: We are currently in the protocol creation process, during
+    // which the engine cannot be closed or destroyed (because protocol creation
+    // depends on the engine, so the engine's logic ensures that while a
+    // protocol is being created, the engine cannot be closed or destroyed).
+    // Therefore, accessing the engine instance at this point is safe.
     TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
     ten_engine_thread_on_addon_create_protocol_done_ctx_t *ctx =
