@@ -206,6 +206,7 @@ function CustomNodeConnContent(props: {
         name: e.data?.name,
         upstream: flowDirection === "upstream" ? e.source : e.target,
         downstream: flowDirection === "upstream" ? e.source : e.target,
+        _meta: e,
       }))
       .filter((row) => {
         const enabledFilters = filters.filter((i) =>
