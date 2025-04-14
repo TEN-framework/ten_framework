@@ -204,6 +204,7 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
   //                       dest_extension: edge.target,
   //                     });
   //                     toast.success(t("action.deleteConnectionSuccess"));
+  // eslint-disable-next-line max-len
   //                     const { nodes, edges } = await resetNodesAndEdgesByGraph(
   //                       currentWorkspace!.graph!
   //                     );
