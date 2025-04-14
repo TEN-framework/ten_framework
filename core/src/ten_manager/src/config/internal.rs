@@ -15,7 +15,7 @@ use crate::constants::INTERNAL_CONFIG_JSON;
 
 use super::get_default_home_dir;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NodeGeometry {
     pub app: Option<String>,
     pub extension: String,
@@ -24,17 +24,17 @@ pub struct NodeGeometry {
     pub y: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GraphGeometry {
     pub nodes_geometry: Vec<NodeGeometry>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct GraphUiConfig {
     pub graphs_geometry: HashMap<Uuid, GraphGeometry>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct TmanInternalConfig {
     pub graph_ui: GraphUiConfig,
 }
