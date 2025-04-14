@@ -239,7 +239,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(self);
-  TEN_ASSERT(register_ctx, "Should not happen.");
+  TEN_ASSERT(register_ctx, "Failed to allocate memory.");
 
   // Addon registration phase 2: actually registering the addon into the addon
   // store.

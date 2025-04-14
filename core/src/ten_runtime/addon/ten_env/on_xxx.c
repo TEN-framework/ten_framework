@@ -247,7 +247,7 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
                                                        void *context) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is intended to be called on the app thread.
+  // thread-check: This function is intended to be called in the app thread.
   TEN_ASSERT(ten_env_check_integrity(self, false), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ADDON, "Should not happen.");
@@ -275,13 +275,11 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
   switch (addon_context->flow) {
   case TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_PROTOCOL: {
     ten_engine_t *engine = addon_context->flow_target.engine;
-    TEN_ASSERT(engine &&
-                   // TEN_NOLINTNEXTLINE(thread-check)
-                   // thread-check: The engine thread will not be closed
-                   // when the protocol is created, so it is thread safe at
-                   // this time.
-                   ten_engine_check_integrity(engine, false),
-               "Should not happen.");
+    TEN_ASSERT(engine, "Should not happen.");
+    // TEN_NOLINTNEXTLINE(thread-check)
+    // thread-check: The engine thread will not be closed when the protocol is
+    // created, so it is thread safe at this time.
+    TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
     ten_engine_thread_on_addon_create_protocol_done_ctx_t *ctx =
         ten_engine_thread_on_addon_create_protocol_done_ctx_create();

@@ -217,10 +217,13 @@ bool ten_addon_create_protocol_with_uri(
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
   ten_addon_context_set_creation_info(
       addon_context, TEN_ADDON_TYPE_PROTOCOL,
       ten_string_get_raw_str(&addon_host->name),
       ten_string_get_raw_str(&addon_host->name));
+
   if (attach_to == TEN_ENV_ATTACH_TO_APP) {
     addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL;
     addon_context->flow_target.app = ten_env_get_attached_app(ten_env);
@@ -276,8 +279,11 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
   ten_addon_context_set_creation_info(addon_context, TEN_ADDON_TYPE_PROTOCOL,
                                       addon_name, instance_name);
+
   if (attach_to == TEN_ENV_ATTACH_TO_APP) {
     addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL;
     addon_context->flow_target.app = ten_env_get_attached_app(ten_env);

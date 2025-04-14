@@ -284,9 +284,10 @@ static napi_value ten_nodejs_addon_manager_register_addon_as_extension(
   ten_string_t addon_name;
   TEN_STRING_INIT(addon_name);
 
+  // name, addon_instance, addon_manager_register_single_addon_ctx_t
   const size_t argc = 3;
-  napi_value argv[3];  // name, addon_instance,
-                       // addon_manager_register_single_addon_ctx_t
+  napi_value argv[3];
+
   if (!ten_nodejs_get_js_func_args(env, info, argv, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -360,9 +361,16 @@ static void ten_nodejs_addon_register_func(TEN_UNUSED TEN_ADDON_TYPE addon_type,
       addon_manager_bridge->js_register_single_addon, ctx);
   TEN_ASSERT(rc, "Failed to invoke JS addon manager registerSingleAddon().");
 
+  // Currently, addon register phase 1 and phase 2 are both synchronous, and
+  // C++/Go/Python addon registrations can be completed synchronously. However,
+  // Node.js addon registration needs to switch to the JS main thread to execute
+  // (Node.js limitation), so we need to wait for the JS main thread to complete
+  // the actions required for phase 2 before continuing.
+  //
   // TODO(xilin): This event wait can be removed in the future by making the
-  // ten_addon_register function asynchronous. Currently, we need to wait for
-  // the JS thread to complete the registration before proceeding.
+  // `ten_addon_register` function asynchronous (i.e., making phase 2
+  // asynchronous). Currently, we need to wait for the JS thread to complete the
+  // registration before proceeding.
   ten_event_wait(ctx->completed, -1);
 
   ten_addon_t *addon_instance = ctx->c_addon;

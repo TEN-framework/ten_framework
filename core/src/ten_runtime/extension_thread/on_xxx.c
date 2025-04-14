@@ -187,7 +187,8 @@ static void ten_extension_context_on_extension_group_destroyed(
   ten_runloop_stop(extension_thread->runloop);
 }
 
-void ten_extension_thread_on_removed_from_engine(void *self_, void *arg) {
+void ten_extension_thread_on_removed_from_engine(void *self_,
+                                                 TEN_UNUSED void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
@@ -321,10 +322,13 @@ void ten_extension_thread_create_extension_instance(void *self_, void *arg) {
   TEN_ASSERT(addon_instance_info, "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
+  TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
   ten_addon_context_set_creation_info(
       addon_context, TEN_ADDON_TYPE_EXTENSION,
       ten_string_get_raw_str(&addon_instance_info->addon_name),
       ten_string_get_raw_str(&addon_instance_info->instance_name));
+
   addon_context->flow =
       TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
   addon_context->flow_target.extension_thread = self;

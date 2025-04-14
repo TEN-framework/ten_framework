@@ -125,8 +125,11 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
   // to extension thread.
   if (ten_extension_thread_call_by_me(extension_group->extension_thread)) {
     ten_addon_context_t *addon_context = ten_addon_context_create();
+    TEN_ASSERT(addon_context, "Failed to allocate memory.");
+
     ten_addon_context_set_creation_info(addon_context, TEN_ADDON_TYPE_EXTENSION,
                                         addon_name, instance_name);
+
     addon_context->flow =
         TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
     addon_context->flow_target.extension_thread =

@@ -196,7 +196,8 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
 
 static void ten_app_create_addon_instance_failed_task(void *self_, void *arg) {
   ten_app_t *self = (ten_app_t *)self_;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
   TEN_ASSERT(addon_context, "Invalid argument.");
@@ -211,8 +212,8 @@ static void ten_app_create_addon_instance_failed_task(void *self_, void *arg) {
 static void ten_engine_create_addon_instance_failed_task(void *self_,
                                                          void *arg) {
   ten_engine_t *self = (ten_engine_t *)self_;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
   TEN_ASSERT(addon_context, "Invalid argument.");
@@ -227,7 +228,8 @@ static void ten_engine_create_addon_instance_failed_task(void *self_,
 static void ten_extension_thread_create_addon_instance_failed_task(void *self_,
                                                                    void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
-  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
@@ -248,17 +250,19 @@ static void ten_extension_thread_create_addon_instance_failed_task(void *self_,
 
 static void ten_app_notify_create_addon_instance_failed(
     ten_app_t *self, ten_addon_context_t *addon_context) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
+
   TEN_ASSERT(addon_context, "Invalid argument.");
   TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
 
-  // Switch to the caller thread and call the callback function to notify
-  // the caller.
+  // Switch to the caller thread and call the callback function to notify the
+  // caller.
   switch (addon_context->flow) {
   case TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL:
   case TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER: {
-    // Switch to the caller app thread and call the callback function to
-    // notify the caller.
+    // Switch to the caller app thread and call the callback function to notify
+    // the caller.
     ten_app_t *app = addon_context->flow_target.app;
     TEN_ASSERT(app, "Should not happen.");
 
@@ -304,7 +308,9 @@ static void ten_app_notify_create_addon_instance_failed(
 
 static void ten_app_create_addon_instance(ten_app_t *app,
                                           ten_addon_context_t *addon_context) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
+
   TEN_ASSERT(addon_context, "Invalid argument.");
   TEN_ASSERT(addon_context->create_instance_done_cb, "Should not happen.");
 
@@ -327,7 +333,7 @@ static void ten_app_create_addon_instance(ten_app_t *app,
       ten_addon_store_find_by_type(addon_type, addon_name);
   if (!addon_host) {
     ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
-    TEN_ASSERT(register_ctx, "Should not happen.");
+    TEN_ASSERT(register_ctx, "Failed to allocate memory.");
 
     ten_error_t err;
     TEN_ERROR_INIT(err);
@@ -371,8 +377,7 @@ static void ten_app_create_addon_instance(ten_app_t *app,
 
   if (!addon_host) {
     TEN_LOGE(
-        "Failed to find addon %s:%s, please make sure the addon is "
-        "installed.",
+        "Failed to find addon %s:%s, please make sure the addon is installed.",
         ten_addon_type_to_string(addon_type), addon_name);
 
     ten_app_notify_create_addon_instance_failed(app, addon_context);
@@ -385,7 +390,8 @@ static void ten_app_create_addon_instance(ten_app_t *app,
 
 static void ten_app_create_addon_instance_task(void *self_, void *arg) {
   ten_app_t *self = (ten_app_t *)self_;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)arg;
   TEN_ASSERT(addon_context, "Invalid argument.");
@@ -420,13 +426,11 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *app = ten_env_get_belonging_app(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app,
-                                            // TEN_NOLINTNEXTLINE(thread-check)
-                                            // thread-check: This function could
-                                            // be called from the engine thread
-                                            // or the extension thread.
-                                            false),
-             "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: This function could be called from the engine thread or the
+  // extension thread.
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Should not happen.");
 
   // Check if the current thread is the app thread. If not, we need to post a
   // task to the app thread to perform the following operations.
