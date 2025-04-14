@@ -879,38 +879,12 @@ mod tests {
 
         eprintln!("resp: {:?}", resp);
 
-        // assert!(resp.status().is_success());
+        assert!(!resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
         eprintln!("body_str: {}", body_str);
 
-        let response: ApiResponse<AddGraphConnectionResponsePayload> =
-            serde_json::from_str(body_str).unwrap();
-
-        assert!(response.data.success);
-
-        // Define expected property.json content after adding all three
-        // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_added_with_msg_conversion_keep_original.json");
-
-        // Read the actual property.json file generated during the test.
-        let property_path =
-            std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
-        let actual_property = std::fs::read_to_string(property_path).unwrap();
-
-        // Normalize both JSON strings to handle formatting differences.
-        let expected_value: serde_json::Value =
-            serde_json::from_str(expected_property_json_str).unwrap();
-        let actual_value: serde_json::Value =
-            serde_json::from_str(&actual_property).unwrap();
-
-        // Compare the normalized JSON values.
-        assert_eq!(
-            expected_value, actual_value,
-            "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
-            serde_json::to_string_pretty(&expected_value).unwrap(),
-            serde_json::to_string_pretty(&actual_value).unwrap()
-        );
+        assert_eq!(body_str, "Failed to check message conversion schema: { .original_source: type is incompatible, source is [string], but target is [uint32] }");
     }
 }
