@@ -65,6 +65,7 @@ export const GraphSelectPopupContent = (props: { widget: IWidget }) => {
 
   const handleSelectGraph = (graph: IGraph) => async () => {
     updateCurrentWorkspace({
+      app: selectedApp,
       graph,
     });
     try {

@@ -128,7 +128,7 @@ const StatusWorkspace = () => {
     }
     const lastFolderName = currentWorkspace.app.base_dir.split("/").pop();
     return [`...${lastFolderName}`, currentWorkspace.app.base_dir];
-  }, [currentWorkspace?.app]);
+  }, [currentWorkspace?.app?.base_dir]);
 
   const graphNameMemo = React.useMemo(() => {
     if (!currentWorkspace.graph?.name) {

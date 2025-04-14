@@ -7,14 +7,18 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PencilIcon, ListCollapseIcon, TrashIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import ContextMenu, {
   type IContextMenuItem,
   EContextMenuItemType,
 } from "@/flow/ContextMenu/ContextMenu";
 import { dispatchCustomNodeActionPopup } from "@/utils/events";
+import { useDialogStore, useAppStore, useFlowStore } from "@/store";
+import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
 
 import type { TCustomEdge } from "@/types/flow";
+import { postDeleteConnection } from "@/api/services/graphs";
 
 interface EdgeContextMenuProps {
   visible: boolean;
@@ -32,6 +36,10 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
+
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { currentWorkspace } = useAppStore();
+  const { setNodesAndEdges } = useFlowStore();
 
   const items: IContextMenuItem[] = [
     {
@@ -60,6 +68,47 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
       label: t("action.delete"),
       icon: <TrashIcon />,
       onClick: () => {
+        const dialogId = edge.source + edge.target + "close-popup-dialog";
+        if (!currentWorkspace?.graph) {
+          return;
+        }
+        appendDialog({
+          id: dialogId,
+          title: t("action.confirm"),
+          content: t("action.deleteConnectionConfirmation"),
+          confirmLabel: t("action.delete"),
+          cancelLabel: t("action.cancel"),
+          onConfirm: async () => {
+            try {
+              await postDeleteConnection({
+                graph_id: currentWorkspace!.graph!.uuid,
+                src_app: edge.data!.app,
+                src_extension: edge.source,
+                msg_type: edge.data!.connectionType,
+                msg_name: edge.data!.name,
+                dest_app: edge.data!.app,
+                dest_extension: edge.target,
+              });
+              toast.success(t("action.deleteConnectionSuccess"));
+              const { nodes, edges } = await resetNodesAndEdgesByGraph(
+                currentWorkspace!.graph!
+              );
+              setNodesAndEdges(nodes, edges);
+            } catch (error) {
+              console.error(error);
+              toast.error(t("action.deleteConnectionFailed"), {
+                description:
+                  error instanceof Error ? error.message : "Unknown error",
+              });
+            } finally {
+              removeDialog(dialogId);
+            }
+          },
+          onCancel: async () => {
+            removeDialog(dialogId);
+          },
+          postConfirm: async () => {},
+        });
         onClose();
       },
     },

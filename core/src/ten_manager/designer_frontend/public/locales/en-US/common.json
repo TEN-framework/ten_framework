@@ -100,7 +100,10 @@
     "chooseBaseDir": "Choose Base Dir",
     "deleteNodeConfirmationWithName": "Are you sure you want to delete the node {{name}}?",
     "update": "Update",
-    "create": "Create"
+    "create": "Create",
+    "deleteConnectionConfirmation": "Are you sure you want to delete the connection?",
+    "deleteConnectionSuccess": "Connection deleted successfully",
+    "deleteConnectionFailed": "Failed to delete connection"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -186,7 +189,8 @@
       "messageName": "Message Name",
       "addConnection": "Add Connection",
       "titleUpdateNodePropertyByName": "Update [{{name}}] Property",
-      "updateNodeProperty": "Update Property"
+      "updateNodeProperty": "Update Property",
+      "graphName": "Graph Name"
     },
     "doc": {
       "title": "Documentation"

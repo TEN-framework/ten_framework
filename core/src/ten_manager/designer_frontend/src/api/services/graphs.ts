@@ -20,6 +20,7 @@ import type {
   DeleteNodePayloadSchema,
   IGraph,
   AddConnectionPayloadSchema,
+  DeleteConnectionPayloadSchema,
   UpdateNodePropertyPayloadSchema,
   ValidateGraphNodePayloadSchema,
 } from "@/types/graphs";
@@ -115,6 +116,17 @@ export const postAddConnection = async (
   data: z.infer<typeof AddConnectionPayloadSchema>
 ) => {
   const template = ENDPOINT_GRAPHS.addConnection[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postDeleteConnection = async (
+  data: z.infer<typeof DeleteConnectionPayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.deleteConnection[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: data,
   });
