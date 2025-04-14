@@ -32,6 +32,10 @@ use crate::graph::{
     graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
 };
 
+use super::msg_conversion::validate::{
+    validate_msg_conversion_schema, MsgConversionValidateInfo,
+};
+
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
     pub graph_id: Uuid,
@@ -163,6 +167,27 @@ pub async fn add_graph_connection_endpoint(
             return Ok(HttpResponse::NotFound().json(error_response));
         }
     };
+
+    validate_msg_conversion_schema(
+        graph_info,
+        &MsgConversionValidateInfo {
+            src_app: &request_payload.src_app,
+            src_extension: &request_payload.src_extension,
+            msg_type: &request_payload.msg_type,
+            msg_name: &request_payload.msg_name,
+            dest_app: &request_payload.dest_app,
+            dest_extension: &request_payload.dest_extension,
+            msg_conversion: &request_payload.msg_conversion,
+        },
+        &uri_to_pkg_info,
+        pkgs_cache,
+    )
+    .map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to check message conversion schema: {}",
+            e
+        ))
+    })?;
 
     // Add the connection using the converted PkgsInfoInApp map.
     match graph_add_connection(

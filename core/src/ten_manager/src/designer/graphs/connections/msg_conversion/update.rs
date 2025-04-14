@@ -232,13 +232,6 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
-    update_graph_info(graph_info, &request_payload).map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to update graph info: {}",
-            e
-        ))
-    })?;
-
     validate_msg_conversion_schema(
         graph_info,
         &MsgConversionValidateInfo {
@@ -256,6 +249,13 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
     .map_err(|e| {
         actix_web::error::ErrorInternalServerError(format!(
             "Failed to check message conversion schema: {}",
+            e
+        ))
+    })?;
+
+    update_graph_info(graph_info, &request_payload).map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to update graph info: {}",
             e
         ))
     })?;

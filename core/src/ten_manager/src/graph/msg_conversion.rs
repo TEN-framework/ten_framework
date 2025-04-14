@@ -333,7 +333,8 @@ pub fn msg_conversion_get_final_target_schema(
                 // Update the name to the destination message name.
                 converted_schema.name = dest_msg_name;
             } else {
-                return Err(anyhow::anyhow!("Source message schema not found"));
+                // Not having a source msg schema is a normal situation, so even
+                // if `keep_original` is true, we don't need to return an error.
             }
         }
     }
