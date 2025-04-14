@@ -415,6 +415,17 @@
         "uri": {
           "$ref": "#/$defs/uri"
         },
+        // @{
+        // The log_level and log_file below are for versions of ten framework
+        // prior to 0.9. After most users have upgraded to 0.9, we can and
+        // should remove the schema definitions for these 2 fields.
+        "log_level": {
+          "$ref": "#/$defs/logLevels"
+        },
+        "log_file": {
+          "$ref": "#/$defs/notEmptyString"
+        },
+        // @}
         "log": {
           "type": "object",
           "additionalProperties": false,

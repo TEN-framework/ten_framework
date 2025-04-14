@@ -5,7 +5,7 @@
   "_ten": {
     "predefined_graphs": [
       {
-        "name": "test-graph",
+        "name": "test_graph",
         "nodes": [
           {
             "type": "extension",
@@ -29,7 +29,6 @@
             "type": "extension",
             "name": "node3",
             "addon": "addon3",
-            "app": "app1",
             "property": {
               "enabled": true
             }

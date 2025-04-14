@@ -348,15 +348,15 @@ mod tests {
 
         let (graph_id, _) = graphs_cache_find_by_name(
             &designer_state.graphs_cache,
-            "test-graph",
+            "test_graph",
         )
         .unwrap();
 
         // Add a node to the test-graph.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "new-node".to_string(),
-            addon_name: "new-addon".to_string(),
+            node_name: "new_node".to_string(),
+            addon_name: "new_addon".to_string(),
             extension_group_name: None,
             app_uri: None,
             property: None,

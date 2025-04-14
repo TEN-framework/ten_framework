@@ -10,12 +10,11 @@ mod tests {
 
     use ten_manager::{
         constants::TEST_DIR, graph::connections::add::graph_add_connection,
-        pkg_info::create_uri_to_pkg_info_map,
     };
     use ten_rust::{
         graph::{node::GraphNode, Graph},
         pkg_info::{
-            message::MsgType, pkg_type::PkgType,
+            create_uri_to_pkg_info_map, message::MsgType, pkg_type::PkgType,
             pkg_type_and_name::PkgTypeAndName,
         },
     };
@@ -88,8 +87,16 @@ mod tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -97,11 +104,11 @@ mod tests {
         // Test adding a connection.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "test_cmd".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -114,7 +121,7 @@ mod tests {
         assert_eq!(connections.len(), 1);
 
         let connection = &connections[0];
-        assert_eq!(connection.app, Some("app1".to_string()));
+        assert_eq!(connection.app, Some("http://localhost:8000".to_string()));
         assert_eq!(connection.extension, "ext1");
 
         let cmd_flows = connection.cmd.as_ref().unwrap();
@@ -125,7 +132,7 @@ mod tests {
         assert_eq!(flow.dest.len(), 1);
 
         let dest = &flow.dest[0];
-        assert_eq!(dest.app, Some("app1".to_string()));
+        assert_eq!(dest.app, Some("http://localhost:8000".to_string()));
         assert_eq!(dest.extension, "ext2");
     }
 
@@ -316,9 +323,21 @@ mod tests {
         // Create a graph with three nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
-                create_test_node("ext3", "addon3", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext3",
+                    "addon3",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -326,11 +345,11 @@ mod tests {
         // Add first connection.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "test_cmd".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -341,11 +360,11 @@ mod tests {
         // destination.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "test_cmd".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
             None,
@@ -419,8 +438,16 @@ mod tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -428,11 +455,11 @@ mod tests {
         // Add different message types.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -441,11 +468,11 @@ mod tests {
 
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
             "data1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -454,11 +481,11 @@ mod tests {
 
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::AudioFrame,
             "audio1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -467,11 +494,11 @@ mod tests {
 
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::VideoFrame,
             "video1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -541,8 +568,16 @@ mod tests {
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -550,11 +585,11 @@ mod tests {
         // Add a connection.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "test_cmd".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -564,11 +599,11 @@ mod tests {
         // Try to add the same connection again.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "test_cmd".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -642,9 +677,21 @@ mod tests {
         // Create a graph with three nodes.
         let mut graph = Graph {
             nodes: vec![
-                create_test_node("ext1", "addon1", Some("app1")),
-                create_test_node("ext2", "addon2", Some("app1")),
-                create_test_node("ext3", "addon3", Some("app1")),
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext3",
+                    "addon3",
+                    Some("http://localhost:8000"),
+                ),
             ],
             connections: None,
         };
@@ -652,11 +699,11 @@ mod tests {
         // Test connecting ext1 to ext2 with compatible schema - should succeed.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             None,
@@ -666,11 +713,11 @@ mod tests {
         // Test connecting ext1 to ext3 with compatible schema - should succeed.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
             "data1".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
             None,
@@ -680,11 +727,11 @@ mod tests {
         // Test connecting ext1 to ext3 with incompatible schema - should fail.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd_incompatible".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
             None,
@@ -699,11 +746,11 @@ mod tests {
         // should fail.
         let result = graph_add_connection(
             &mut graph,
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
             "data_incompatible".to_string(),
-            Some("app1".to_string()),
+            Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
             None,

@@ -13,7 +13,10 @@ use uuid::Uuid;
 
 use ten_rust::{
     graph::{graph_info::GraphInfo, node::GraphNode, Graph},
-    pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo},
+    pkg_info::{
+        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    },
 };
 
 use crate::{
@@ -24,11 +27,8 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{
-        compatible::get_pkg_info_for_extension_graph_node,
-        graphs_cache_find_by_id_mut,
-    },
-    pkg_info::{create_uri_to_pkg_info_map, pkg_info_find_by_graph_info_mut},
+    graph::graphs_cache_find_by_id_mut,
+    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -214,7 +214,7 @@ pub async fn add_graph_node_endpoint(
         }
     };
 
-    if let Some(extension_pkg_info) = get_pkg_info_for_extension_graph_node(
+    if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
         &request_payload.app_uri,
         &request_payload.addon_name,
         &uri_to_pkg_info,
@@ -253,7 +253,9 @@ pub async fn add_graph_node_endpoint(
             );
 
             if let Ok(Some(pkg_info)) =
-                pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+                belonging_pkg_info_find_by_graph_info_mut(
+                    pkgs_cache, graph_info,
+                )
             {
                 // Update property.json file with the new graph node.
                 if let Some(property) = &mut pkg_info.property {

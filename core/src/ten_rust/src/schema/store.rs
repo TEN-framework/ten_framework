@@ -8,9 +8,13 @@ use std::collections::HashMap;
 
 use anyhow::{Context, Ok, Result};
 
-use crate::pkg_info::manifest::{
-    api::{ManifestApi, ManifestApiMsg, ManifestApiPropertyAttributes},
-    Manifest,
+use crate::pkg_info::{
+    manifest::{
+        api::{ManifestApi, ManifestApiMsg, ManifestApiPropertyAttributes},
+        Manifest,
+    },
+    message::{MsgDirection, MsgType},
+    PkgInfo,
 };
 
 use super::runtime_interface::{create_schema_from_json, TenSchema};
@@ -246,7 +250,7 @@ fn create_property_schema(
     )
 }
 
-fn create_msg_schema_from_manifest(
+pub fn create_msg_schema_from_manifest(
     manifest_msg: &ManifestApiMsg,
 ) -> Result<Option<TenMsgSchema>> {
     let mut schema = TenMsgSchema::default();
@@ -274,7 +278,7 @@ fn create_msg_schema_from_manifest(
     }
 }
 
-pub fn are_ten_schemas_compatible(
+fn are_ten_schemas_compatible(
     source: Option<&TenSchema>,
     target: Option<&TenSchema>,
     none_target_is_compatible: bool,
@@ -296,7 +300,7 @@ pub fn are_ten_schemas_compatible(
     source.is_compatible_with(target)
 }
 
-pub fn are_cmd_schemas_compatible(
+pub fn are_msg_schemas_compatible(
     source: Option<&TenMsgSchema>,
     target: Option<&TenMsgSchema>,
     none_target_is_compatible: bool,
@@ -315,11 +319,13 @@ pub fn are_cmd_schemas_compatible(
 
     let source = source.unwrap();
     let target = target.unwrap();
+
     are_ten_schemas_compatible(
         source.msg.as_ref(),
         target.msg.as_ref(),
         none_target_is_compatible,
     )?;
+
     are_ten_schemas_compatible(
         source.result.as_ref(),
         target.result.as_ref(),
@@ -327,4 +333,34 @@ pub fn are_cmd_schemas_compatible(
     )?;
 
     Ok(())
+}
+
+pub fn find_msg_schema_from_all_pkgs_info<'a>(
+    extension_pkg_info: &'a PkgInfo,
+    msg_type: &MsgType,
+    msg_name: &str,
+    direction: MsgDirection,
+) -> Option<&'a TenMsgSchema> {
+    // Access the schema_store. If it's None, propagate None.
+    let schema_store = extension_pkg_info.schema_store.as_ref()?;
+
+    // Retrieve the message schema based on the direction and message type.
+    match msg_type {
+        MsgType::Cmd => match direction {
+            MsgDirection::In => schema_store.cmd_in.get(msg_name),
+            MsgDirection::Out => schema_store.cmd_out.get(msg_name),
+        },
+        MsgType::Data => match direction {
+            MsgDirection::In => schema_store.data_in.get(msg_name),
+            MsgDirection::Out => schema_store.data_out.get(msg_name),
+        },
+        MsgType::AudioFrame => match direction {
+            MsgDirection::In => schema_store.audio_frame_in.get(msg_name),
+            MsgDirection::Out => schema_store.audio_frame_out.get(msg_name),
+        },
+        MsgType::VideoFrame => match direction {
+            MsgDirection::In => schema_store.video_frame_in.get(msg_name),
+            MsgDirection::Out => schema_store.video_frame_out.get(msg_name),
+        },
+    }
 }

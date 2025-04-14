@@ -13,7 +13,7 @@ use anyhow::{anyhow, Result};
 
 use crate::{config::TmanConfig, output::TmanOutput};
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::graph_info::GraphInfo,
     pkg_info::{get_app_installed_pkgs, pkg_type::PkgType, PkgInfo},
 };
@@ -57,63 +57,7 @@ pub fn get_pkg_in_app<'a>(
     }
 }
 
-/// Creates a mapping from app URIs to PkgsInfoInAppWithBaseDir.
-/// This function is used to create a hash map that can be used for graph
-/// connection operations.
-pub fn create_uri_to_pkg_info_map<'a>(
-    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
-) -> Result<HashMap<Option<String>, PkgsInfoInAppWithBaseDir<'a>>, String> {
-    // Create a hash map from app URIs to PkgsInfoInApp
-    let mut uri_to_pkg_info: HashMap<
-        Option<String>,
-        PkgsInfoInAppWithBaseDir<'a>,
-    > = HashMap::new();
-
-    // Process all available apps to map URIs to PkgsInfoInApp
-    for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
-        if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
-            if let Some(property) = &app_pkg.property {
-                if let Some(ten) = &property._ten {
-                    // Map the URI to the PkgsInfoInApp, using None if URI is
-                    // None
-                    let key = ten.uri.clone();
-
-                    // Check if the key already exists
-                    if let Some(existing) = uri_to_pkg_info.get(&key) {
-                        let error_message = if key.is_none() {
-                            format!(
-                                "Found two apps with unspecified URI in both '{}' and '{}'",
-                                existing.base_dir,
-                                base_dir
-                            )
-                        } else {
-                            format!(
-                                "Duplicate app uri '{}' found in both '{}' and '{}'",
-                                key.as_ref().unwrap(),
-                                existing.base_dir,
-                                base_dir
-                            )
-                        };
-
-                        return Err(error_message);
-                    }
-
-                    uri_to_pkg_info.insert(
-                        key,
-                        PkgsInfoInAppWithBaseDir {
-                            pkgs_info_in_app: base_dir_pkg_info,
-                            base_dir,
-                        },
-                    );
-                }
-            }
-        }
-    }
-
-    Ok(uri_to_pkg_info)
-}
-
-pub fn pkg_info_find_by_graph_info<'a>(
+pub fn belonging_pkg_info_find_by_graph_info<'a>(
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     graph_info: &GraphInfo,
 ) -> Result<Option<&'a PkgInfo>> {
@@ -164,7 +108,7 @@ pub fn pkg_info_find_by_graph_info<'a>(
     }
 }
 
-pub fn pkg_info_find_by_graph_info_mut<'a>(
+pub fn belonging_pkg_info_find_by_graph_info_mut<'a>(
     pkgs_cache: &'a mut HashMap<String, PkgsInfoInApp>,
     graph_info: &GraphInfo,
 ) -> Result<Option<&'a mut PkgInfo>> {

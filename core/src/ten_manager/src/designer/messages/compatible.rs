@@ -13,7 +13,10 @@ use uuid::Uuid;
 
 use ten_rust::{
     graph::node::GraphNode,
-    pkg_info::message::{MsgDirection, MsgType},
+    pkg_info::{
+        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        message::{MsgDirection, MsgType},
+    },
 };
 
 use crate::{
@@ -23,10 +26,8 @@ use crate::{
         DesignerState,
     },
     graph::compatible::{
-        get_compatible_cmd_extension, get_compatible_data_like_msg_extension,
-        get_pkg_info_for_extension_graph_node, CompatibleExtensionAndMsg,
+        get_compatible_msg_extension, CompatibleExtensionAndMsg,
     },
-    pkg_info::create_uri_to_pkg_info_map,
 };
 
 /// Represents the request payload for retrieving compatible messages.
@@ -205,111 +206,111 @@ pub async fn get_compatible_messages_endpoint(
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
 
-        if let Some(extension_pkg_info) = get_pkg_info_for_extension_graph_node(
+        if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
             &extension_graph_node.app,
             &extension_graph_node.addon,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
             pkgs_cache,
         ) {
-            let compatible_list = match msg_ty {
-                MsgType::Cmd => {
-                    let src_cmd_schema = extension_pkg_info
-                        .schema_store
-                        .as_ref()
-                        .and_then(|schema_store| match msg_dir {
-                            MsgDirection::In => schema_store
-                                .cmd_in
-                                .get(request_payload.msg_name.as_str()),
-                            MsgDirection::Out => schema_store
-                                .cmd_out
-                                .get(request_payload.msg_name.as_str()),
-                        });
+            let compatible_list =
+                match msg_ty {
+                    MsgType::Cmd => {
+                        let src_cmd_schema = extension_pkg_info
+                            .schema_store
+                            .as_ref()
+                            .and_then(|schema_store| match msg_dir {
+                                MsgDirection::In => schema_store
+                                    .cmd_in
+                                    .get(request_payload.msg_name.as_str()),
+                                MsgDirection::Out => schema_store
+                                    .cmd_out
+                                    .get(request_payload.msg_name.as_str()),
+                            });
 
-                    match get_compatible_cmd_extension(
-                        extension_graph_nodes,
-                        &uri_to_pkg_info,
-                        app_base_dir_of_graph,
-                        pkgs_cache,
-                        &desired_msg_dir,
-                        src_cmd_schema,
-                        request_payload.msg_name.as_str(),
-                    ) {
-                        Ok(results) => results,
-                        Err(err) => {
-                            let error_response = ErrorResponse::from_error(
-                                &err,
-                                format!(
-                                    "Failed to find compatible cmd/{}:",
-                                    request_payload.msg_name
-                                )
-                                .as_str(),
-                            );
-                            return Ok(
-                                HttpResponse::NotFound().json(error_response)
-                            );
+                        match get_compatible_msg_extension(
+                            extension_graph_nodes,
+                            &uri_to_pkg_info,
+                            app_base_dir_of_graph,
+                            pkgs_cache,
+                            &desired_msg_dir,
+                            src_cmd_schema,
+                            &msg_ty,
+                            request_payload.msg_name.clone(),
+                        ) {
+                            Ok(results) => results,
+                            Err(err) => {
+                                let error_response = ErrorResponse::from_error(
+                                    &err,
+                                    format!(
+                                        "Failed to find compatible cmd/{}:",
+                                        request_payload.msg_name
+                                    )
+                                    .as_str(),
+                                );
+                                return Ok(HttpResponse::NotFound()
+                                    .json(error_response));
+                            }
                         }
                     }
-                }
-                _ => {
-                    let src_msg_schema = extension_pkg_info
-                        .schema_store
-                        .as_ref()
-                        .and_then(|schema_store| match msg_ty {
-                            MsgType::Data => match msg_dir {
-                                MsgDirection::In => schema_store
-                                    .data_in
-                                    .get(request_payload.msg_name.as_str()),
-                                MsgDirection::Out => schema_store
-                                    .data_out
-                                    .get(request_payload.msg_name.as_str()),
-                            },
-                            MsgType::AudioFrame => match msg_dir {
-                                MsgDirection::In => schema_store
-                                    .audio_frame_in
-                                    .get(request_payload.msg_name.as_str()),
-                                MsgDirection::Out => schema_store
-                                    .audio_frame_out
-                                    .get(request_payload.msg_name.as_str()),
-                            },
-                            MsgType::VideoFrame => match msg_dir {
-                                MsgDirection::In => schema_store
-                                    .video_frame_in
-                                    .get(request_payload.msg_name.as_str()),
-                                MsgDirection::Out => schema_store
-                                    .video_frame_out
-                                    .get(request_payload.msg_name.as_str()),
-                            },
-                            _ => panic!("should not happen."),
-                        });
+                    _ => {
+                        let src_msg_schema = extension_pkg_info
+                            .schema_store
+                            .as_ref()
+                            .and_then(|schema_store| match msg_ty {
+                                MsgType::Data => match msg_dir {
+                                    MsgDirection::In => schema_store
+                                        .data_in
+                                        .get(request_payload.msg_name.as_str()),
+                                    MsgDirection::Out => schema_store
+                                        .data_out
+                                        .get(request_payload.msg_name.as_str()),
+                                },
+                                MsgType::AudioFrame => match msg_dir {
+                                    MsgDirection::In => schema_store
+                                        .audio_frame_in
+                                        .get(request_payload.msg_name.as_str()),
+                                    MsgDirection::Out => schema_store
+                                        .audio_frame_out
+                                        .get(request_payload.msg_name.as_str()),
+                                },
+                                MsgType::VideoFrame => match msg_dir {
+                                    MsgDirection::In => schema_store
+                                        .video_frame_in
+                                        .get(request_payload.msg_name.as_str()),
+                                    MsgDirection::Out => schema_store
+                                        .video_frame_out
+                                        .get(request_payload.msg_name.as_str()),
+                                },
+                                _ => panic!("should not happen."),
+                            });
 
-                    match get_compatible_data_like_msg_extension(
-                        extension_graph_nodes,
-                        &uri_to_pkg_info,
-                        app_base_dir_of_graph,
-                        pkgs_cache,
-                        &desired_msg_dir,
-                        src_msg_schema.and_then(|schema| schema.msg.as_ref()),
-                        &msg_ty,
-                        request_payload.msg_name.clone(),
-                    ) {
-                        Ok(results) => results,
-                        Err(err) => {
-                            let error_response = ErrorResponse::from_error(
-                                &err,
-                                format!(
-                                    "Failed to find compatible {}:",
-                                    request_payload.msg_name
-                                )
-                                .as_str(),
-                            );
-                            return Ok(
-                                HttpResponse::NotFound().json(error_response)
-                            );
+                        match get_compatible_msg_extension(
+                            extension_graph_nodes,
+                            &uri_to_pkg_info,
+                            app_base_dir_of_graph,
+                            pkgs_cache,
+                            &desired_msg_dir,
+                            src_msg_schema,
+                            &msg_ty,
+                            request_payload.msg_name.clone(),
+                        ) {
+                            Ok(results) => results,
+                            Err(err) => {
+                                let error_response = ErrorResponse::from_error(
+                                    &err,
+                                    format!(
+                                        "Failed to find compatible {}:",
+                                        request_payload.msg_name
+                                    )
+                                    .as_str(),
+                                );
+                                return Ok(HttpResponse::NotFound()
+                                    .json(error_response));
+                            }
                         }
                     }
-                }
-            };
+                };
 
             let response_data: Vec<GetCompatibleMsgsSingleResponseData> =
                 compatible_list.into_iter().map(Into::into).collect();

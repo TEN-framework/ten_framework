@@ -9,6 +9,9 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use ten_rust::pkg_info::{
+    create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+};
 use uuid::Uuid;
 
 use ten_rust::graph::node::GraphNode;
@@ -20,8 +23,6 @@ use crate::designer::common::{
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
-use crate::graph::compatible::get_pkg_info_for_extension_graph_node;
-use crate::pkg_info::create_uri_to_pkg_info_map;
 
 use super::{get_extension_nodes_in_graph, DesignerApi};
 
@@ -149,7 +150,7 @@ pub async fn get_graph_nodes_endpoint(
     let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
     for extension_graph_node in extension_graph_nodes {
-        let pkg_info = get_pkg_info_for_extension_graph_node(
+        let pkg_info = get_pkg_info_for_extension_addon(
             &extension_graph_node.app,
             &extension_graph_node.addon,
             &uri_to_pkg_info,
