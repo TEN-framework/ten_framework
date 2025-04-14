@@ -31,6 +31,7 @@
       "selectLoadedApp": "选择已加载应用",
       "addNode": "添加节点",
       "addConnection": "添加连接",
+      "addConnectionFromNode": "从 {{node}} 添加连接",
       "about": "关于图谱"
     },
     "menuHelp": {
@@ -99,7 +100,11 @@
     "reset": "重置",
     "chooseBaseDir": "选择基础目录",
     "deleteNodeConfirmationWithName": "确定要删除节点 {{name}} 吗？",
-    "update": "更新"
+    "update": "更新",
+    "create": "创建",
+    "deleteConnectionConfirmation": "确定要删除此连接吗？",
+    "deleteConnectionSuccess": "连接删除成功",
+    "deleteConnectionFailed": "连接删除失败"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -163,7 +168,7 @@
     "graph": {
       "title": "节点",
       "titleAddNode": "添加节点",
-      "graphAppBaseDir": "基础目录",
+      "graphId": "图谱 ID",
       "graphName": "图谱名称",
       "nodeName": "节点名称",
       "addonName": "插件名称",
@@ -185,7 +190,11 @@
       "messageType": "消息类型",
       "messageName": "消息名称",
       "addConnection": "添加连接",
-      "titleUpdateNodePropertyByName": "更新节点 [{{name}}] 属性"
+      "titleUpdateNodePropertyByName": "更新节点 [{{name}}] 属性",
+      "updateNodeProperty": "更新属性",
+      "updateNodePropertySuccess": "节点属性更新成功",
+      "updateNodePropertyFailed": "节点属性更新失败",
+      "noPropertySchema": "未找到属性模式"
     },
     "doc": {
       "title": "文档"

@@ -24,10 +24,13 @@ import {
   EWidgetCategory,
 } from "@/types/widgets";
 import {
-  APPS_MANAGER_POPUP_ID,
-  GRAPH_SELECT_POPUP_ID,
+  APPS_MANAGER_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+  GRAPH_SELECT_WIDGET_ID,
 } from "@/constants/widgets";
 import { useWidgetStore, useAppStore } from "@/store";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
+import { LoadedAppsPopupTitle } from "../Popup/Default/App";
 
 export default function StatusBar(props: { className?: string }) {
   const { className } = props;
@@ -60,9 +63,14 @@ const StatusApps = () => {
 
   const openAppsManagerPopup = () => {
     appendWidgetIfNotExists({
-      id: APPS_MANAGER_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: APPS_MANAGER_WIDGET_ID,
+      widget_id: APPS_MANAGER_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LoadedAppsPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.AppsManager,
       },
@@ -72,17 +80,15 @@ const StatusApps = () => {
   React.useEffect(() => {
     if (
       !currentWorkspace?.initialized &&
-      !currentWorkspace?.baseDir &&
+      !currentWorkspace?.app?.base_dir &&
       data?.app_info?.[0]?.base_dir
     ) {
       updateCurrentWorkspace({
-        baseDir: data?.app_info?.[0]?.base_dir,
-        graphName: null,
-        appUri: data?.app_info?.[0]?.app_uri,
+        app: data?.app_info?.[0],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, currentWorkspace?.baseDir, currentWorkspace?.initialized]);
+  }, [data, currentWorkspace?.app?.base_dir, currentWorkspace?.initialized]);
 
   React.useEffect(() => {
     if (error) {
@@ -117,27 +123,36 @@ const StatusWorkspace = () => {
   const { appendWidgetIfNotExists } = useWidgetStore();
 
   const [baseDirAbbrMemo, baseDirMemo] = React.useMemo(() => {
-    if (!currentWorkspace.baseDir) {
+    if (!currentWorkspace?.app?.base_dir) {
       return [null, null];
     }
-    const lastFolderName = currentWorkspace.baseDir.split("/").pop();
-    return [`...${lastFolderName}`, currentWorkspace.baseDir];
-  }, [currentWorkspace.baseDir]);
+    const lastFolderName = currentWorkspace.app.base_dir.split("/").pop();
+    return [`...${lastFolderName}`, currentWorkspace.app.base_dir];
+  }, [currentWorkspace?.app?.base_dir]);
 
   const graphNameMemo = React.useMemo(() => {
-    if (!currentWorkspace.graphName) {
+    if (!currentWorkspace.graph?.name) {
       return null;
     }
-    return currentWorkspace.graphName;
-  }, [currentWorkspace.graphName]);
+    return currentWorkspace.graph.name;
+  }, [currentWorkspace.graph?.name]);
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GRAPH_SELECT_WIDGET_ID,
+      widget_id: GRAPH_SELECT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphSelectPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
+      },
+      popup: {
+        width: 0.5,
+        height: 0.8,
       },
     });
   };

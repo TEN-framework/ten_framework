@@ -5,203 +5,352 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+// import { PinIcon } from "lucide-react";
 
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useDialogStore } from "@/store";
+import { TerminalPopupContent } from "@/components/Popup/Terminal";
+import { CustomNodeConnPopupContent } from "@/components/Popup/CustomNodeConn";
+import { LogViewerPopupContent } from "@/components/Popup/LogViewer";
+import { GraphPopupContent } from "@/components/Popup/Graph";
+import { PopupTabContentDefault } from "@/components/Popup/Default";
+import { ExtensionPopupContent } from "@/components/Popup/Default/Extension";
+import { EditorPopupContent } from "@/components/Popup/Editor";
 import {
-  EDefaultWidgetType,
+  PopupBase,
+  PopupTabsBar,
+  PopupTabsBarItem,
+  PopupTabsBarContent,
+} from "@/components/Popup/Base";
+import { groupWidgetsById } from "@/components/Popup/utils";
+import {
   EWidgetCategory,
   EWidgetDisplayType,
+  EWidgetPredefinedCheck,
+  IWidget,
 } from "@/types/widgets";
-import TerminalPopup from "@/components/Popup/Terminal";
-import EditorPopup from "@/components/Popup/Editor";
-import CustomNodeConnPopup from "@/components/Popup/CustomNodeConn";
-import { LogViewerPopup } from "@/components/Popup/LogViewer";
-import { GraphSelectPopup } from "@/components/Popup/Default/GraphSelect";
-import { AboutPopup } from "@/components/Popup/Default/About";
-import { PreferencesPopup } from "@/components/Popup/Default/Preferences";
-import {
-  AppFolderPopup,
-  LoadedAppsPopup,
-  AppRunPopup,
-  AppCreatePopup,
-} from "@/components/Popup/Default/App";
-import {
-  ExtensionStorePopup,
-  ExtensionPopup,
-} from "@/components/Popup/Default/Extension";
-import { DocRefPopup } from "@/components/Popup/Default/DocRef";
-import { GraphPopup } from "@/components/Popup/Graph";
-import { groupWidgetsById } from "@/components/Popup/utils";
+import { cn } from "@/lib/utils";
+import { getCurrentWindowSize } from "@/utils";
 
-export function GlobalPopups() {
-  const { widgets, removeWidget } = useWidgetStore();
+const PopupWithTabs = (props: {
+  widgets: IWidget[];
+  groupId: string;
+  containerId: string;
+  size?: {
+    width?: number;
+    height?: number;
+    windowWidth?: number;
+    windowHeight?: number;
+    initialPosition?: string;
+  };
+}) => {
+  const { widgets, groupId, containerId, size } = props;
 
-  const [
-    ,
-    [editorWidgetsMemo],
-    [terminalWidgetsMemo],
-    [customConnectionWidgetsMemo],
-    [logViewerWidgetsMemo],
-    [defaultWidgetsMemo, defaultSubTabWidgetsMemo],
-    [extensionWidgetsMemo],
-    [graphWidgetsMemo],
-  ] = React.useMemo(() => {
-    // get all widgets that are either popup or popup tab
-    const popupAndSubTabWidgets = widgets.filter((widget) =>
-      [EWidgetDisplayType.Popup, EWidgetDisplayType.PopupTab].includes(
-        widget.display_type
+  const [activeWidgetId, setActiveWidgetId] = React.useState<string>(
+    widgets[0].widget_id
+  );
+
+  const { removeWidgets, updateWidgetDisplayTypeBulk } = useWidgetStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { t } = useTranslation();
+
+  const handleClose = async (type: "close" | "pin-to-dock" = "close") => {
+    // Check the predefined checks
+    const predefinedChecks = widgets
+      .map((widget) => widget.actions?.checks)
+      .filter((checks) => checks !== undefined)
+      .flat();
+    const uniqueChecks: {
+      check: EWidgetPredefinedCheck;
+      passed: boolean | undefined;
+    }[] = [...new Set(predefinedChecks)].map((check) => ({
+      check,
+      passed: undefined,
+    }));
+    for (const check of uniqueChecks) {
+      switch (check.check) {
+        case EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES:
+          // eslint-disable-next-line no-case-declarations
+          const editorWidgets = widgets.filter(
+            (widget) => widget.category === EWidgetCategory.Editor
+          );
+          if (editorWidgets.length > 0) {
+            const hasUnsavedChanges = editorWidgets.some(
+              (widget) => widget.metadata.isContentChanged
+            );
+            check.passed = !hasUnsavedChanges;
+          } else {
+            check.passed = true;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    if (
+      uniqueChecks.some(
+        (check) =>
+          check.check === EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES &&
+          check.passed === false
       )
-    );
-    // 1. group editor widgets by id
-    const editorRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Editor
-    );
-    const editorWidgets = groupWidgetsById(editorRawWidgets);
+    ) {
+      console.warn("Some widgets are not ready to be closed");
+      const dialogId = containerId + groupId + "close-popup-dialog";
+      appendDialog({
+        id: dialogId,
+        title: t("action.confirm"),
+        content:
+          type === "pin-to-dock"
+            ? t("popup.editor.confirmPinToDock")
+            : t("popup.editor.confirmCloseAllTabs"),
+        confirmLabel:
+          type === "pin-to-dock" ? t("action.pinToDock") : t("action.discard"),
+        cancelLabel: t("action.cancel"),
+        onConfirm: async () => {
+          if (type === "pin-to-dock") {
+            updateWidgetDisplayTypeBulk(
+              widgets.map((widget) => widget.widget_id),
+              EWidgetDisplayType.Dock
+            );
+            return;
+          }
+          removeDialog(dialogId);
+        },
+        postConfirm: async () => {
+          if (type === "pin-to-dock") {
+            return;
+          }
+          removeWidgets(widgets.map((widget) => widget.widget_id));
+        },
+      });
+      return; // Do not execute the onClose actions
+    }
 
-    // 2. group terminal widgets by id
-    const terminalRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Terminal
-    );
-    const terminalWidgets = groupWidgetsById(terminalRawWidgets);
+    if (type === "pin-to-dock") {
+      updateWidgetDisplayTypeBulk(
+        widgets.map((widget) => widget.widget_id),
+        EWidgetDisplayType.Dock
+      );
+      return;
+    }
 
-    // 3. group custom connection widgets by id
-    const customConnectionRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.CustomConnection
-    );
-    const customConnectionWidgets = groupWidgetsById(
-      customConnectionRawWidgets
-    );
+    // Execute the onClose actions
+    const widgetOnCloseActions = widgets
+      .map((widget) => widget.actions?.onClose)
+      .filter((action) => action !== undefined);
+    await Promise.all(widgetOnCloseActions.map((action) => action()));
 
-    // 4. group log viewer widgets by id
-    const logViewerRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.LogViewer
-    );
-    const logViewerWidgets = groupWidgetsById(logViewerRawWidgets);
+    // Remove the widgets
+    removeWidgets(widgets.map((widget) => widget.widget_id));
+  };
 
-    // 5. group default widgets by id
-    const defaultRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Default
-    );
-    const defaultWidgets = groupWidgetsById(defaultRawWidgets);
+  const handleSelectWidget = React.useCallback((widget_id: string) => {
+    setActiveWidgetId(widget_id);
+  }, []);
 
-    // 6. group extension widgets by id
-    const extensionRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Extension
-    );
-    const extensionWidgets = groupWidgetsById(extensionRawWidgets);
+  const globalCustomActions = React.useMemo(() => {
+    if (widgets.length > 1) {
+      // return [
+      //   {
+      //     id: "pin-to-dock-" + groupId,
+      //     label: t("action.pinToDock"),
+      //     Icon: PinIcon,
+      //     onClick: () => {
+      //       handleClose("pin-to-dock");
+      //     },
+      //   },
+      // ];
+      return [];
+    }
+    const firstWidget = widgets[0];
+    return firstWidget.actions?.custom_actions;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, widgets]);
 
-    // 7. group graph widgets by id
-    const graphRawWidgets = popupAndSubTabWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.Graph
-    );
-    const graphWidgets = groupWidgetsById(graphRawWidgets);
+  const globalTitle = React.useMemo(() => {
+    if (widgets.length > 1) return undefined;
+    const firstWidget = widgets[0];
+    return firstWidget.title;
+  }, [widgets]);
 
-    return [
-      popupAndSubTabWidgets,
-      editorWidgets,
-      terminalWidgets,
-      customConnectionWidgets,
-      logViewerWidgets,
-      defaultWidgets,
-      extensionWidgets,
-      graphWidgets,
-    ];
+  return (
+    <PopupBase
+      id={`${containerId}-${groupId}`}
+      onClose={handleClose}
+      customActions={globalCustomActions}
+      title={globalTitle}
+      contentClassName={cn("p-0 flex flex-col", {
+        "h-full p-2": widgets.length === 1,
+      })}
+      defaultWidth={
+        size?.width
+          ? size?.width > 1
+            ? size.width
+            : size?.width * (size?.windowWidth || 1)
+          : undefined
+      }
+      defaultHeight={
+        size?.height
+          ? size?.height > 1
+            ? size?.height
+            : size?.height * (size?.windowHeight || 1)
+          : undefined
+      }
+      maxWidth={size?.windowWidth}
+      maxHeight={size?.windowHeight}
+      initialPosition={size?.initialPosition}
+    >
+      <PopupTabs
+        widgets={widgets}
+        selectedWidgetId={activeWidgetId}
+        onSelectWidget={handleSelectWidget}
+      />
+    </PopupBase>
+  );
+};
+
+const WidgetContentRenderMappings: Record<
+  EWidgetCategory,
+  React.ComponentType<{ widget: IWidget }>
+> = {
+  [EWidgetCategory.Default]: PopupTabContentDefault as React.ComponentType<{
+    widget: IWidget;
+  }>,
+  [EWidgetCategory.Extension]: ExtensionPopupContent as React.ComponentType<{
+    widget: IWidget;
+  }>,
+  [EWidgetCategory.Graph]: GraphPopupContent as React.ComponentType<{
+    widget: IWidget;
+  }>,
+  [EWidgetCategory.CustomConnection]:
+    CustomNodeConnPopupContent as React.ComponentType<{ widget: IWidget }>,
+  [EWidgetCategory.Terminal]: TerminalPopupContent as React.ComponentType<{
+    widget: IWidget;
+  }>,
+  [EWidgetCategory.LogViewer]: LogViewerPopupContent as React.ComponentType<{
+    widget: IWidget;
+  }>,
+  [EWidgetCategory.Editor]: EditorPopupContent as React.ComponentType<{
+    widget: IWidget;
+  }>,
+};
+
+const PopupTabs = (props: {
+  widgets: IWidget[];
+  selectedWidgetId: string;
+  onSelectWidget: (widget_id: string) => void;
+}) => {
+  const { widgets, selectedWidgetId, onSelectWidget } = props;
+
+  const { removeWidget } = useWidgetStore();
+
+  const showTabsBar = React.useMemo(() => {
+    return widgets?.length > 1;
   }, [widgets]);
 
   return (
     <>
-      {terminalWidgetsMemo.map((widget) => (
-        <TerminalPopup
-          id={widget.id}
-          key={`TerminalPopup-${widget.id}`}
-          data={widget.metadata}
-          onClose={() => removeWidget(widget.id)}
-        />
-      ))}
-      {editorWidgetsMemo.map((widget) => (
-        <EditorPopup
-          id={widget.id}
-          key={`EditorPopup-${widget.id}`}
-          data={widget.metadata}
-          onClose={() => removeWidget(widget.id)}
-          hasUnsavedChanges={widget.isEditing}
-        />
-      ))}
-      {customConnectionWidgetsMemo.map((widget) => (
-        <CustomNodeConnPopup
-          id={widget.id}
-          key={`CustomNodeConnPopup-${widget.id}`}
-          source={widget.metadata.source}
-          target={widget.metadata.target}
-          filters={widget.metadata.filters}
-          onClose={() => removeWidget(widget.id)}
-        />
-      ))}
-      {logViewerWidgetsMemo.map((widget) => (
-        <LogViewerPopup
-          id={widget.id}
-          key={`LogViewerPopup-${widget.id}`}
-          data={widget.metadata}
-          onStop={widget.metadata?.onStop}
-        />
-      ))}
-      {defaultWidgetsMemo.map((widget) => {
-        switch (widget.metadata.type) {
-          case EDefaultWidgetType.GraphSelect:
-            return <GraphSelectPopup key={`GraphSelectPopup-${widget.id}`} />;
-          case EDefaultWidgetType.About:
-            return <AboutPopup key={`AboutPopup-${widget.id}`} />;
-          case EDefaultWidgetType.AppFolder:
-            return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
-          case EDefaultWidgetType.AppCreate:
-            return <AppCreatePopup key={`AppCreatePopup-${widget.id}`} />;
-          case EDefaultWidgetType.AppsManager:
-            return <LoadedAppsPopup key={`AppsManagerPopup-${widget.id}`} />;
-          case EDefaultWidgetType.AppRun:
+      {showTabsBar && (
+        <PopupTabsBar>
+          {widgets.map((widget) => (
+            <PopupTabsBarItem
+              key={"PopupTabsBarItem" + widget.widget_id}
+              id={widget.widget_id}
+              isActive={widget.widget_id === selectedWidgetId}
+              onSelect={onSelectWidget}
+              onClose={() => {
+                removeWidget(widget.widget_id);
+                if (selectedWidgetId === widget.widget_id) {
+                  const nextWidget = widgets.find(
+                    (w) => w.widget_id !== widget.widget_id
+                  );
+                  if (nextWidget) {
+                    onSelectWidget(nextWidget.widget_id);
+                  }
+                }
+              }}
+            >
+              {widget.title}
+            </PopupTabsBarItem>
+          ))}
+        </PopupTabsBar>
+      )}
+      {widgets.map((widget) => {
+        const Renderer = WidgetContentRenderMappings[widget.category];
+
+        if (!Renderer) return null;
+
+        return (
+          <PopupTabsBarContent
+            key={"PopupTabsBarContent" + widget.widget_id}
+            isActive={widget.widget_id === selectedWidgetId}
+            fullHeight={widgets.length === 1}
+          >
+            <Renderer widget={widget} />
+          </PopupTabsBarContent>
+        );
+      })}
+    </>
+  );
+};
+
+export function GlobalPopups() {
+  const { widgets } = useWidgetStore();
+
+  const currentWindowSizeMemo = React.useMemo(() => {
+    const currentWindowSize = getCurrentWindowSize();
+    return currentWindowSize;
+  }, []);
+
+  const groupedWidgets = React.useMemo(() => {
+    return groupWidgetsById(widgets);
+  }, [widgets]);
+
+  const containerIds = React.useMemo(() => {
+    return Object.keys(groupedWidgets);
+  }, [groupedWidgets]);
+
+  const getGroupByContainerId = React.useCallback(
+    (containerId: string) => {
+      const targetGroups = groupedWidgets[containerId];
+      if (!targetGroups) {
+        return [];
+      }
+      return Object.keys(targetGroups).map((groupId) => {
+        return {
+          groupId,
+          widgets: targetGroups[groupId],
+        };
+      });
+    },
+    [groupedWidgets]
+  );
+
+  return (
+    <>
+      {containerIds.map((containerId) => (
+        <React.Fragment key={containerId}>
+          {getGroupByContainerId(containerId).map((groupObj) => {
+            const firstWidgetSize = groupObj.widgets[0].popup;
+            const size = {
+              width: firstWidgetSize?.width,
+              height: firstWidgetSize?.height,
+              windowWidth: currentWindowSizeMemo?.width,
+              windowHeight: currentWindowSizeMemo?.height,
+              initialPosition: firstWidgetSize?.initialPosition,
+            };
+
             return (
-              <AppRunPopup
-                key={`AppRunPopup-${widget.id}`}
-                id={widget.id}
-                data={widget.metadata}
+              <PopupWithTabs
+                key={groupObj.groupId}
+                widgets={groupObj.widgets}
+                groupId={groupObj.groupId}
+                containerId={containerId}
+                size={size}
               />
             );
-          case EDefaultWidgetType.ExtensionStore:
-            return (
-              <ExtensionStorePopup key={`ExtensionStorePopup-${widget.id}`} />
-            );
-          case EDefaultWidgetType.Preferences:
-            return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
-          case EDefaultWidgetType.DocRef:
-            return <DocRefPopup key={`DocRefPopup-${widget.id}`} />;
-        }
-      })}
-      {defaultSubTabWidgetsMemo.map((widgets) => {
-        if (widgets.length === 0) return null;
-        const firstWidget = widgets[0];
-        switch (firstWidget.metadata.type) {
-          case EDefaultWidgetType.DocRef:
-            return (
-              <DocRefPopup
-                key={`DocRefPopup-${firstWidget.id}`}
-                tabs={widgets}
-              />
-            );
-        }
-      })}
-      {extensionWidgetsMemo.map((widget) => (
-        <ExtensionPopup
-          key={`ExtensionPopup-${widget.id}`}
-          id={widget.id}
-          name={widget.metadata.name}
-          versions={widget.metadata.versions}
-        />
-      ))}
-      {graphWidgetsMemo.map((widget) => (
-        <GraphPopup
-          key={`GraphPopup-${widget.id}`}
-          id={widget.id}
-          metadata={widget.metadata}
-        />
+          })}
+        </React.Fragment>
       ))}
     </>
   );

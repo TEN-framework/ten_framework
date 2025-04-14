@@ -6,9 +6,7 @@
 //
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { PinIcon, OctagonXIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup/Base";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import {
   EWidgetCategory,
@@ -16,91 +14,62 @@ import {
   type ILogViewerWidget,
 } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
+import { GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
 
-const DEFAULT_WIDTH = 800;
-const DEFAULT_HEIGHT = 400;
-
-export function LogViewerPopup(props: {
-  id: string;
-  data: ILogViewerWidget["metadata"];
-  onStop?: () => void;
-}) {
-  const { id, data, onStop } = props;
-
+export const LogViewerPopupTitle = (props: {
+  title?: string | React.ReactNode;
+}) => {
+  const { title } = props;
   const { t } = useTranslation();
-  const {
-    updateWidgetDisplayType,
-    removeWidget,
-    backstageWidgets,
-    appendBackstageWidgetIfNotExists,
-    removeBackstageWidget,
-    removeLogViewerHistory,
-  } = useWidgetStore();
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-medium text-foreground/90 font-sans">
+        {title || t("popup.logViewer.title")}
+      </span>
+    </div>
+  );
+};
 
-  const handlePinToDock = () => {
-    updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
-  };
+export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
+  const { widget } = props;
 
-  const handleClose = () => {
-    removeWidget(id);
-    removeBackstageWidget(id);
-    removeLogViewerHistory(id);
-  };
+  const { backstageWidgets, appendBackstageWidgetIfNotExists } =
+    useWidgetStore();
 
   React.useEffect(() => {
-    const targetBackstageWidget = backstageWidgets.find((w) => w.id === id) as
-      | ILogViewerWidget
-      | undefined;
+    const targetBackstageWidget = backstageWidgets.find(
+      (w) => w.widget_id === widget.widget_id
+    ) as ILogViewerWidget | undefined;
 
-    if (!targetBackstageWidget && data?.scriptType && data?.script) {
+    if (
+      !targetBackstageWidget &&
+      widget.metadata.scriptType &&
+      widget.metadata.script
+    ) {
       appendBackstageWidgetIfNotExists({
-        id,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: widget.widget_id,
+
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
-        metadata: data,
+
+        title: <LogViewerPopupTitle title={widget.metadata.options?.title} />,
+        metadata: widget.metadata,
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backstageWidgets, data?.scriptType, data?.script, id]);
+  }, [backstageWidgets, widget.metadata.scriptType, widget.metadata.script]);
 
   return (
-    <PopupBase
-      id={id}
-      title={
-        <div className="flex items-center gap-1.5">
-          <span className="font-medium text-foreground/90 font-sans">
-            {data?.options?.title || t("popup.logViewer.title")}
-          </span>
-          {/* <span className="text-foreground/50 text-sm font-sans">
-            {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
-          </span> */}
-        </div>
-      }
-      onClose={handleClose}
-      resizable={true}
-      width={DEFAULT_WIDTH}
-      height={DEFAULT_HEIGHT}
-      contentClassName="p-0"
-      customActions={[
-        {
-          id: "pin-to-dock",
-          label: t("action.pinToDock"),
-          Icon: PinIcon,
-          onClick: handlePinToDock,
-        },
-        ...(onStop
-          ? [
-              {
-                id: "stop",
-                label: t("action.stop"),
-                Icon: OctagonXIcon,
-                onClick: onStop,
-              },
-            ]
-          : []),
-      ]}
-    >
-      <LogViewerFrontStageWidget id={id} options={data?.options} />
-    </PopupBase>
+    <LogViewerFrontStageWidget
+      id={widget.widget_id}
+      options={widget.metadata.options}
+    />
   );
-}
+};

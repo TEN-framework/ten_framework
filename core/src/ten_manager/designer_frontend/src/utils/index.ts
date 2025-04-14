@@ -6,8 +6,6 @@
 //
 import { z } from "zod";
 
-export * from "@/utils/popup";
-
 export function getZodDefaults<Schema extends z.AnyZodObject>(schema: Schema) {
   return Object.fromEntries(
     Object.entries(schema.shape).map(([key, value]) => {
@@ -31,3 +29,12 @@ export const stringToJSONSchema = z.string().transform((str, ctx) => {
     return z.NEVER;
   }
 });
+
+export const getCurrentWindowSize = () => {
+  if (typeof window !== "undefined") {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }
+};

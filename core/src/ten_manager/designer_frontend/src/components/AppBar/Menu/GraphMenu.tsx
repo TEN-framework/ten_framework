@@ -23,7 +23,14 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
-import { DOC_REF_POPUP_ID, GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
+import {
+  CONTAINER_DEFAULT_ID,
+  GRAPH_SELECT_WIDGET_ID,
+  GROUP_DOC_REF_ID,
+  DOC_REF_WIDGET_ID,
+  GROUP_GRAPH_ID,
+  GRAPH_ACTIONS_WIDGET_ID,
+} from "@/constants/widgets";
 import {
   EDefaultWidgetType,
   EWidgetCategory,
@@ -31,6 +38,9 @@ import {
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
 import { EDocLinkKey } from "@/types/doc";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
+import { DocRefPopupTitle } from "@/components/Popup/Default/DocRef";
+import { GraphPopupTitle } from "@/components/Popup/Graph";
 
 export function GraphMenu(props: {
   onAutoLayout: () => void;
@@ -41,47 +51,74 @@ export function GraphMenu(props: {
   const { onAutoLayout, disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists, appendTabWidget } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
 
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GRAPH_SELECT_WIDGET_ID,
+      widget_id: GRAPH_SELECT_WIDGET_ID,
+
       category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphSelectPopupTitle />,
       metadata: {
         type: EDefaultWidgetType.GraphSelect,
+      },
+      popup: {
+        width: 0.5,
+        height: 0.8,
       },
     });
   };
 
   const onGraphAct = (type: EGraphActions) => () => {
-    if (!currentWorkspace?.baseDir) return;
+    if (!currentWorkspace?.graph || !currentWorkspace?.app) return;
     appendWidgetIfNotExists({
-      id:
-        `graph-add-` +
-        `${type}-popup-` +
-        `${currentWorkspace.baseDir}-${currentWorkspace?.graphName}`,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_GRAPH_ID,
+      widget_id:
+        GRAPH_ACTIONS_WIDGET_ID +
+        `-${type}-` +
+        `${currentWorkspace?.app?.base_dir}-${currentWorkspace?.graph?.uuid}`,
+
       category: EWidgetCategory.Graph,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <GraphPopupTitle type={type} />,
       metadata: {
         type,
-        base_dir: currentWorkspace.baseDir,
-        graph_name: currentWorkspace?.graphName || undefined,
-        app_uri: currentWorkspace?.appUri || undefined,
+        base_dir: currentWorkspace?.app?.base_dir,
+        graph_id: currentWorkspace?.graph?.uuid,
+        app_uri: currentWorkspace?.app?.app_uri,
+      },
+      popup: {
+        width: 340,
+        height: 0.8,
       },
     });
   };
 
   const openAbout = () => {
-    appendTabWidget({
-      id: DOC_REF_POPUP_ID,
-      sub_id: EDocLinkKey.Graph,
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_DOC_REF_ID,
+      widget_id: DOC_REF_WIDGET_ID + "-" + EDocLinkKey.Graph,
+
       category: EWidgetCategory.Default,
-      display_type: EWidgetDisplayType.PopupTab,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <DocRefPopupTitle name={EDocLinkKey.Graph} />,
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.Graph,
+      },
+      popup: {
+        width: 340,
+        height: 0.8,
+        initialPosition: "top-left",
       },
     });
   };
@@ -131,7 +168,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
             onClick={onGraphAct(EGraphActions.ADD_NODE)}
           >
             <PackagePlusIcon />
@@ -142,7 +179,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace.baseDir}
+            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
             onClick={onGraphAct(EGraphActions.ADD_CONNECTION)}
           >
             <GitPullRequestCreateIcon />

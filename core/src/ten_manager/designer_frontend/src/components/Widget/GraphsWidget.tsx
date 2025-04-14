@@ -10,13 +10,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { ZodProvider } from "@autoform/zod";
 
 import {
   AddNodePayloadSchema,
   AddConnectionPayloadSchema,
   EConnectionType,
   UpdateNodePropertyPayloadSchema,
-  ValidateGraphNodePayloadSchema,
+  ValidatePropertyPayloadSchema,
+  IGraph,
 } from "@/types/graphs";
 import { Button } from "@/components/ui/Button";
 import {
@@ -48,10 +50,10 @@ import {
   retrieveGraphConnections,
   postAddConnection,
   postUpdateNodeProperty,
-  postValidateGraphNode,
+  postValidateProperty,
 } from "@/api/services/graphs";
+import { retrieveExtensionPropertySchema } from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
-import { cn } from "@/lib/utils";
 import {
   generateRawNodes,
   generateRawEdges,
@@ -61,14 +63,15 @@ import {
 } from "@/flow/graph";
 import { useAppStore, useFlowStore } from "@/store";
 import type { TCustomNode } from "@/types/flow";
+import { AutoForm } from "@/components/ui/autoform";
+// eslint-disable-next-line max-len
+import { convertExtensionPropertySchema2ZodSchema } from "@/components/Widget/utils";
+import { cn } from "@/lib/utils";
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const resetNodesAndEdgesByGraphName = async (
-  graphName: string,
-  baseDir?: string | null
-) => {
-  const backendNodes = await retrieveGraphNodes(graphName, baseDir);
-  const backendConnections = await retrieveGraphConnections(graphName, baseDir);
+export const resetNodesAndEdgesByGraph = async (graph: IGraph) => {
+  const backendNodes = await retrieveGraphNodes(graph.uuid);
+  const backendConnections = await retrieveGraphConnections(graph.uuid);
   const rawNodes = generateRawNodes(backendNodes);
   const [rawEdges, rawEdgeAddressMap] = generateRawEdges(backendConnections);
   const nodesWithConnections = updateNodesWithConnections(
@@ -76,7 +79,7 @@ export const resetNodesAndEdgesByGraphName = async (
     rawEdgeAddressMap
   );
   const nodesWithAddonInfo = await updateNodesWithAddonInfo(
-    baseDir ?? "",
+    graph.base_dir,
     nodesWithConnections
   );
 
@@ -90,10 +93,10 @@ export const resetNodesAndEdgesByGraphName = async (
 
 export const GraphAddNodeWidget = (props: {
   base_dir: string;
-  graph_name?: string;
+  graph_id?: string;
   postAddNodeActions?: () => void | Promise<void>;
 }) => {
-  const { base_dir, graph_name, postAddNodeActions } = props;
+  const { base_dir, graph_id, postAddNodeActions } = props;
   const [customAddon, setCustomAddon] = React.useState<string | undefined>(
     undefined
   );
@@ -109,11 +112,9 @@ export const GraphAddNodeWidget = (props: {
   const form = useForm<z.infer<typeof AddNodePayloadSchema>>({
     resolver: zodResolver(AddNodePayloadSchema),
     defaultValues: {
-      graph_app_base_dir: base_dir,
-      graph_name: graph_name,
+      graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
       node_name: undefined,
       addon_name: undefined,
-      addon_app_base_dir: undefined,
       extension_group_name: undefined,
       app_uri: undefined,
       property: "{}" as unknown as Record<string, unknown>,
@@ -125,10 +126,9 @@ export const GraphAddNodeWidget = (props: {
     setIsSubmitting(true);
     try {
       await postAddNode(data);
-      if (currentWorkspace?.graphName === data.graph_name) {
-        const { nodes, edges } = await resetNodesAndEdgesByGraphName(
-          data.graph_name,
-          data.graph_app_base_dir
+      if (currentWorkspace?.graph?.uuid === data.graph_id) {
+        const { nodes, edges } = await resetNodesAndEdgesByGraph(
+          currentWorkspace.graph
         );
         setNodesAndEdges(nodes, edges);
         postAddNodeActions?.();
@@ -146,11 +146,7 @@ export const GraphAddNodeWidget = (props: {
     }
   };
 
-  const {
-    graphs,
-    isLoading: isGraphsLoading,
-    error: graphError,
-  } = useGraphs(base_dir);
+  const { graphs, isLoading: isGraphsLoading, error: graphError } = useGraphs();
   const {
     addons,
     isLoading: isAddonsLoading,
@@ -192,49 +188,28 @@ export const GraphAddNodeWidget = (props: {
       >
         <FormField
           control={form.control}
-          name="graph_app_base_dir"
+          name="graph_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("popup.graph.graphAppBaseDir")}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t("popup.graph.graphAppBaseDir")}
-                  {...field}
-                  readOnly
-                  disabled
-                />
-              </FormControl>
-              {/* <FormDescription>
-            {t("popup.graph.graphAppBaseDirDescription")}
-            </FormDescription> */}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="graph_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.graphName")}</FormLabel>
+              <FormLabel>{t("popup.graph.graphId")}</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
-                    <SelectValue placeholder={t("popup.graph.graphName")} />
+                    <SelectValue placeholder={t("popup.graph.graphId")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>{t("popup.graph.graphName")}</SelectLabel>
+                      <SelectLabel>{t("popup.graph.graphId")}</SelectLabel>
                       {isGraphsLoading ? (
-                        <SelectItem value={t("popup.graph.graphName")}>
+                        <SelectItem value={t("popup.graph.graphId")}>
                           <SpinnerLoading className="size-4" />
                         </SelectItem>
                       ) : (
                         graphs?.map((graph) => (
-                          <SelectItem key={graph.name} value={graph.name}>
+                          <SelectItem key={graph.uuid} value={graph.uuid}>
                             {graph.name}
                           </SelectItem>
                         ))
@@ -326,62 +301,55 @@ export const GraphAddNodeWidget = (props: {
   );
 };
 
-const AddConnectionFormSchema = AddConnectionPayloadSchema.extend({
-  //   dest_app_dir: z.string(),
-  //   dest_graph_name: z.string(),
-});
-
 export const GraphAddConnectionWidget = (props: {
   base_dir: string;
   app_uri?: string | null;
-  graph_name?: string;
+  graph_id?: string;
+  src_extension?: string;
   postAddConnectionActions?: () => void | Promise<void>;
 }) => {
-  const { base_dir, app_uri, graph_name, postAddConnectionActions } = props;
+  const {
+    base_dir,
+    app_uri,
+    graph_id,
+    src_extension,
+    postAddConnectionActions,
+  } = props;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { t } = useTranslation();
   const { nodes, setNodesAndEdges } = useFlowStore();
-  const {
-    graphs,
-    isLoading: isGraphsLoading,
-    error: graphError,
-  } = useGraphs(base_dir);
+  const { graphs, isLoading: isGraphsLoading, error: graphError } = useGraphs();
   const { currentWorkspace } = useAppStore();
 
-  const form = useForm<z.infer<typeof AddConnectionFormSchema>>({
-    resolver: zodResolver(AddConnectionFormSchema),
+  const form = useForm<z.infer<typeof AddConnectionPayloadSchema>>({
+    resolver: zodResolver(AddConnectionPayloadSchema),
     defaultValues: {
-      base_dir: base_dir,
-      graph_name: graph_name,
+      graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
       src_app: app_uri,
-      src_extension: undefined,
+      src_extension: src_extension ?? undefined,
       msg_type: EConnectionType.CMD,
       msg_name: undefined,
       dest_app: app_uri,
-      //   dest_app_dir: base_dir, // extended field, cause dest_app is nullable
-      //   dest_graph_name: graph_name, // extended field, target graph > nodes
       dest_extension: undefined,
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof AddConnectionFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof AddConnectionPayloadSchema>) => {
     setIsSubmitting(true);
     try {
       const payload = AddConnectionPayloadSchema.parse(data);
       if (payload.src_extension === payload.dest_extension) {
         throw new Error(t("popup.graph.sameNodeError"));
-        return;
       }
       console.log("GraphAddConnection", payload);
       await postAddConnection(payload);
       if (
-        currentWorkspace?.graphName === data.graph_name &&
-        data.base_dir === base_dir
+        currentWorkspace?.graph?.uuid === data.graph_id &&
+        currentWorkspace?.app?.base_dir === base_dir
       ) {
-        const { nodes, edges } = await resetNodesAndEdgesByGraphName(
-          data.graph_name,
-          data.base_dir
+        const { nodes, edges } = await resetNodesAndEdgesByGraph(
+          currentWorkspace.graph
         );
         setNodesAndEdges(nodes, edges);
         postAddConnectionActions?.();
@@ -411,25 +379,7 @@ export const GraphAddConnectionWidget = (props: {
       >
         <FormField
           control={form.control}
-          name="base_dir"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.graphAppBaseDir")}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t("popup.graph.graphAppBaseDir")}
-                  {...field}
-                  readOnly
-                  disabled
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="graph_name"
+          name="graph_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("popup.graph.graphName")}</FormLabel>
@@ -450,7 +400,7 @@ export const GraphAddConnectionWidget = (props: {
                         </SelectItem>
                       ) : (
                         graphs?.map((graph) => (
-                          <SelectItem key={graph.name} value={graph.name}>
+                          <SelectItem key={graph.uuid} value={graph.uuid}>
                             {graph.name}
                           </SelectItem>
                         ))
@@ -470,7 +420,11 @@ export const GraphAddConnectionWidget = (props: {
             <FormItem>
               <FormLabel>{t("popup.graph.srcExtension")}</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!!src_extension}
+                >
                   <SelectTrigger className="w-full overflow-hidden">
                     <SelectValue placeholder={t("popup.graph.srcExtension")} />
                   </SelectTrigger>
@@ -576,101 +530,109 @@ export const GraphAddConnectionWidget = (props: {
 export const GraphUpdateNodePropertyWidget = (props: {
   base_dir: string;
   app_uri?: string | null;
-  graph_name?: string;
+  graph_id?: string;
   node: TCustomNode;
   postUpdateNodePropertyActions?: () => void | Promise<void>;
 }) => {
-  const { base_dir, app_uri, graph_name, node, postUpdateNodePropertyActions } =
-    props;
+  const { app_uri, graph_id, node, postUpdateNodePropertyActions } = props;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSchemaLoading, setIsSchemaLoading] = React.useState(false);
+  const [propertySchemaEntries, setPropertySchemaEntries] = React.useState<
+    [string, z.ZodType][]
+  >([]);
 
   const { t } = useTranslation();
 
   const { setNodesAndEdges } = useFlowStore();
   const { currentWorkspace } = useAppStore();
 
-  const form = useForm<z.infer<typeof UpdateNodePropertyPayloadSchema>>({
-    resolver: zodResolver(UpdateNodePropertyPayloadSchema),
-    defaultValues: {
-      graph_app_base_dir: base_dir,
-      graph_name: graph_name,
-      //   addon_app_base_dir: undefined,
-      node_name: node.data.name,
-      addon_name: node.data.addon,
-      extension_group_name: node.data.extension_group,
-      app_uri: app_uri ?? undefined,
-      property: JSON.stringify(
-        node?.data.property || {},
-        null,
-        2
-      ) as unknown as Record<string, unknown>,
-    },
-  });
-
-  const onSubmit = async (
-    data: z.infer<typeof UpdateNodePropertyPayloadSchema>
-  ) => {
-    console.log("GraphUpdateNodeProperty", data);
-    setIsSubmitting(true);
-    try {
-      await postValidateGraphNode(
-        ValidateGraphNodePayloadSchema.parse({
-          ...data,
-          property: JSON.stringify(data.property, null, 2),
-        })
-      );
-      await postUpdateNodeProperty(data);
-      if (currentWorkspace?.graphName === data.graph_name) {
-        const { nodes, edges } = await resetNodesAndEdgesByGraphName(
-          data.graph_name,
-          data.graph_app_base_dir
+  React.useEffect(() => {
+    const fetchSchema = async () => {
+      try {
+        setIsSchemaLoading(true);
+        const schema = await retrieveExtensionPropertySchema({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: node.data.addon,
+        });
+        const propertySchemaEntries = convertExtensionPropertySchema2ZodSchema(
+          schema.property_schema
         );
-        setNodesAndEdges(nodes, edges);
+        setPropertySchemaEntries(propertySchemaEntries);
+      } catch (error) {
+        console.error(error);
+        toast.error(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setIsSchemaLoading(false);
       }
-      toast.success(t("popup.graph.updateNodePropertySuccess"), {
-        description: `Node ${data.node_name} updated successfully`,
-      });
-      postUpdateNodePropertyActions?.();
-    } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unknown error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    };
+
+    fetchSchema();
+  }, [currentWorkspace?.app?.base_dir, node.data.addon]);
+
+  console.log(node?.data.property);
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("space-y-4", "w-full h-full overflow-y-auto px-2")}
-      >
-        <FormField
-          control={form.control}
-          name="property"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.property")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  className="h-full min-h-40"
-                  value={field.value as unknown as string}
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                />
-              </FormControl>
-            </FormItem>
-          )}
+    <>
+      {isSchemaLoading && !propertySchemaEntries && (
+        <SpinnerLoading className="size-4" />
+      )}
+      {propertySchemaEntries?.length > 0 ? (
+        <AutoForm
+          values={node?.data.property || {}}
+          schema={
+            new ZodProvider(z.object(Object.fromEntries(propertySchemaEntries)))
+          }
+          onSubmit={async (data) => {
+            console.log(data);
+            setIsSubmitting(true);
+            try {
+              const nodeData = UpdateNodePropertyPayloadSchema.parse({
+                graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
+                node_name: node.data.name,
+                addon_name: node.data.addon,
+                extension_group_name: node.data.extension_group,
+                app_uri: app_uri ?? undefined,
+                property: JSON.stringify(data, null, 2),
+              });
+              await postValidateProperty(
+                ValidatePropertyPayloadSchema.parse({
+                  property_json_str: JSON.stringify(nodeData.property, null, 2),
+                })
+              );
+              await postUpdateNodeProperty(nodeData);
+              if (currentWorkspace?.graph) {
+                const { nodes, edges } = await resetNodesAndEdgesByGraph(
+                  currentWorkspace.graph
+                );
+                setNodesAndEdges(nodes, edges);
+              }
+              toast.success(t("popup.graph.updateNodePropertySuccess"), {
+                description: `${node.data.name}`,
+              });
+              postUpdateNodePropertyActions?.();
+            } catch (error) {
+              console.error(error);
+              toast.error(t("popup.graph.updateNodePropertyFailed"), {
+                description:
+                  error instanceof Error ? error.message : "Unknown error",
+              });
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
+          withSubmit
+          formProps={{
+            className: cn(
+              "flex flex-col gap-4 overflow-y-auto px-1 h-full",
+              isSubmitting && "disabled"
+            ),
+          }}
         />
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <SpinnerLoading className="size-4" />}
-            {t("popup.graph.updateNodeProperty")}
-          </Button>
+      ) : (
+        <div className="text-center text-sm text-gray-500">
+          {t("popup.graph.noPropertySchema")}
         </div>
-      </form>
-    </Form>
+      )}
+    </>
   );
 };

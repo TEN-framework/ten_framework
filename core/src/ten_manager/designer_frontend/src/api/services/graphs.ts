@@ -20,39 +20,33 @@ import type {
   DeleteNodePayloadSchema,
   IGraph,
   AddConnectionPayloadSchema,
+  DeleteConnectionPayloadSchema,
   UpdateNodePropertyPayloadSchema,
-  ValidateGraphNodePayloadSchema,
+  ValidatePropertyPayloadSchema,
 } from "@/types/graphs";
 
-export const retrieveGraphNodes = async (
-  graphName: string,
-  baseDir?: string | null
-) => {
+export const retrieveGraphNodes = async (graphId: string) => {
   const template = ENDPOINT_GRAPHS.nodes[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    body: { graph_name: graphName, ...(baseDir && { base_dir: baseDir }) },
+    body: { graph_id: graphId },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
 };
 
-export const retrieveGraphConnections = async (
-  graphName: string,
-  baseDir?: string | null
-) => {
+export const retrieveGraphConnections = async (graphId: string) => {
   const template = ENDPOINT_GRAPHS.connections[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    body: { graph_name: graphName, ...(baseDir && { base_dir: baseDir }) },
+    body: { graph_id: graphId },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
 };
 
 // TODO: refine this hook(post should not be used)
-export const useGraphs = (baseDir?: string | null) => {
+export const useGraphs = () => {
   const template = ENDPOINT_GRAPHS.graphs[ENDPOINT_METHOD.POST];
-  const url =
-    prepareReqUrl(template) + `${baseDir ? encodeURIComponent(baseDir) : ""}`;
+  const url = prepareReqUrl(template);
   const queryHookCache = getQueryHookCache();
 
   const [data, setData] = React.useState<IGraph[] | null>(() => {
@@ -66,14 +60,11 @@ export const useGraphs = (baseDir?: string | null) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const fetchData = React.useCallback(async () => {
-    if (baseDir === null) {
-      return;
-    }
     setIsLoading(true);
     try {
       const template = ENDPOINT_GRAPHS.graphs[ENDPOINT_METHOD.POST];
       const req = makeAPIRequest(template, {
-        body: { base_dir: baseDir },
+        body: {},
       });
       const res = await req;
       const parsedData = template.responseSchema.parse(res).data;
@@ -85,7 +76,7 @@ export const useGraphs = (baseDir?: string | null) => {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseDir, url]);
+  }, [url]);
 
   React.useEffect(() => {
     fetchData();
@@ -132,6 +123,17 @@ export const postAddConnection = async (
   return template.responseSchema.parse(res).data;
 };
 
+export const postDeleteConnection = async (
+  data: z.infer<typeof DeleteConnectionPayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.deleteConnection[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
 export const postUpdateNodeProperty = async (
   data: z.infer<typeof UpdateNodePropertyPayloadSchema>
 ) => {
@@ -143,10 +145,10 @@ export const postUpdateNodeProperty = async (
   return template.responseSchema.parse(res).data;
 };
 
-export const postValidateGraphNode = async (
-  data: z.infer<typeof ValidateGraphNodePayloadSchema>
+export const postValidateProperty = async (
+  data: z.infer<typeof ValidatePropertyPayloadSchema>
 ) => {
-  const template = ENDPOINT_GRAPHS.nodesValidate[ENDPOINT_METHOD.POST];
+  const template = ENDPOINT_GRAPHS.nodesPropertyValidate[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: data,
   });

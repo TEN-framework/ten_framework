@@ -31,6 +31,7 @@
       "selectLoadedApp": "Select a Loaded App",
       "addNode": "Add Node",
       "addConnection": "Add Connection",
+      "addConnectionFromNode": "Add Connection from {{node}}",
       "about": "About Graph"
     },
     "menuHelp": {
@@ -99,7 +100,11 @@
     "reset": "Reset",
     "chooseBaseDir": "Choose Base Dir",
     "deleteNodeConfirmationWithName": "Are you sure you want to delete the node {{name}}?",
-    "update": "Update"
+    "update": "Update",
+    "create": "Create",
+    "deleteConnectionConfirmation": "Are you sure you want to delete the connection?",
+    "deleteConnectionSuccess": "Connection deleted successfully",
+    "deleteConnectionFailed": "Failed to delete connection"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -163,8 +168,7 @@
     "graph": {
       "title": "Node",
       "titleAddNode": "Add Node",
-      "graphAppBaseDir": "Base Dir",
-      "graphName": "Graph Name",
+      "graphId": "Graph ID",
       "nodeName": "Node Name",
       "addonName": "Addon Name",
       "searchAddon": "Search Addon",
@@ -185,7 +189,12 @@
       "messageType": "Message Type",
       "messageName": "Message Name",
       "addConnection": "Add Connection",
-      "titleUpdateNodePropertyByName": "Update [{{name}}] Property"
+      "titleUpdateNodePropertyByName": "Update [{{name}}] Property",
+      "updateNodeProperty": "Update Property",
+      "graphName": "Graph Name",
+      "updateNodePropertySuccess": "Node property updated successfully",
+      "updateNodePropertyFailed": "Failed to update node property",
+      "noPropertySchema": "No property schema found"
     },
     "doc": {
       "title": "Documentation"

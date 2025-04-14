@@ -7,7 +7,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import { PopupBase } from "@/components/Popup/Base";
 import { useWidgetStore } from "@/store/widget";
 import {
   GraphAddConnectionWidget,
@@ -17,81 +16,68 @@ import {
 import { EGraphActions } from "@/types/graphs";
 
 import type { IGraphWidget } from "@/types/widgets";
-import type { TCustomNode } from "@/types/flow";
+import { TCustomNode } from "@/types/flow";
 
-const DEFAULT_WIDTH = 400;
-const DEFAULT_HEIGHT = 300;
-
-export const GraphPopup = (props: {
-  id: string;
-  metadata: IGraphWidget<{
-    type: EGraphActions;
-    base_dir: string;
-    graph_name?: string;
-    node?: TCustomNode;
-  }>["metadata"];
+export const GraphPopupTitle = (props: {
+  type: EGraphActions;
+  node?: TCustomNode;
 }) => {
-  const { id, metadata } = props;
-
+  const { type, node } = props;
   const { t } = useTranslation();
-  const { removeWidget } = useWidgetStore();
-
-  const handleClose = () => {
-    removeWidget(id);
-  };
 
   const titleMemo = React.useMemo(() => {
-    switch (metadata.type) {
+    switch (type) {
       case EGraphActions.ADD_NODE:
         return t("popup.graph.titleAddNode");
       case EGraphActions.ADD_CONNECTION:
         return t("popup.graph.titleAddConnection");
       case EGraphActions.UPDATE_NODE_PROPERTY:
         return t("popup.graph.titleUpdateNodePropertyByName", {
-          name: metadata.node?.data.name,
+          name: node?.data.name,
         });
       default:
         return t("popup.graph.title");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metadata.type, metadata.node]);
+  }, [type, node?.data.name]);
+
+  return titleMemo;
+};
+
+export const GraphPopupContent = (props: { widget: IGraphWidget }) => {
+  const { widget } = props;
+
+  const { removeWidget } = useWidgetStore();
+
+  const { type, node } = widget.metadata;
 
   return (
-    <PopupBase
-      id={id}
-      title={titleMemo}
-      onClose={handleClose}
-      resizable={true}
-      width={DEFAULT_WIDTH}
-      height={DEFAULT_HEIGHT}
-      contentClassName="px-0"
-    >
-      {metadata.type === EGraphActions.ADD_NODE && (
+    <>
+      {type === EGraphActions.ADD_NODE && (
         <GraphAddNodeWidget
-          {...metadata}
+          {...widget.metadata}
           postAddNodeActions={() => {
-            removeWidget(id);
+            removeWidget(widget.widget_id);
           }}
         />
       )}
-      {metadata.type === EGraphActions.ADD_CONNECTION && (
+      {type === EGraphActions.ADD_CONNECTION && (
         <GraphAddConnectionWidget
-          {...metadata}
+          {...widget.metadata}
           postAddConnectionActions={() => {
-            removeWidget(id);
+            removeWidget(widget.widget_id);
           }}
         />
       )}
-      {metadata.type === EGraphActions.UPDATE_NODE_PROPERTY &&
-        metadata.node && (
-          <GraphUpdateNodePropertyWidget
-            {...metadata}
-            node={metadata.node}
-            postUpdateNodePropertyActions={() => {
-              removeWidget(id);
-            }}
-          />
-        )}
-    </PopupBase>
+      {type === EGraphActions.UPDATE_NODE_PROPERTY && node && (
+        <GraphUpdateNodePropertyWidget
+          {...widget.metadata}
+          node={node}
+          postUpdateNodePropertyActions={() => {
+            removeWidget(widget.widget_id);
+          }}
+        />
+      )}
+    </>
   );
 };

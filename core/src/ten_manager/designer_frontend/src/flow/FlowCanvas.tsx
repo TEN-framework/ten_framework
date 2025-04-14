@@ -25,24 +25,31 @@ import CustomNode from "@/flow/CustomNode";
 import CustomEdge from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
-import { TerminalData } from "@/components/Popup/Terminal";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore, useAppStore } from "@/store";
 import {
   EWidgetDisplayType,
   EWidgetCategory,
-  type EditorData,
   ELogViewerScriptType,
+  ITerminalWidgetData,
 } from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
-import { ECustomEventName } from "@/utils/popup";
+import { EEventName, eventPubSub } from "@/utils/events";
+import { CustomNodeConnPopupTitle } from "@/components/Popup/CustomNodeConn";
 
 import type { TCustomEdge, TCustomNode } from "@/types/flow";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
+import {
+  CONTAINER_DEFAULT_ID,
+  GROUP_CUSTOM_CONNECTION_ID,
+  GROUP_LOG_VIEWER_ID,
+  GROUP_TERMINAL_ID,
+} from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -59,7 +66,12 @@ interface FlowCanvasProps {
 
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
   ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, className }) => {
-    const { appendWidget, appendWidgetIfNotExists } = useWidgetStore();
+    const {
+      appendWidget,
+      appendWidgetIfNotExists,
+      removeBackstageWidget,
+      removeLogViewerHistory,
+    } = useWidgetStore();
     const { currentWorkspace } = useAppStore();
 
     const [contextMenu, setContextMenu] = useState<{
@@ -71,22 +83,22 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       node?: TCustomNode;
     }>({ visible: false, x: 0, y: 0 });
 
-    const launchTerminal = (data: TerminalData) => {
+    const launchTerminal = (data: ITerminalWidgetData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
       appendWidget({
-        id: newPopup.id,
-        category: EWidgetCategory.Terminal,
-        metadata: newPopup.data,
-        display_type: EWidgetDisplayType.Popup,
-      });
-    };
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_TERMINAL_ID,
+        widget_id: newPopup.id,
 
-    const launchEditor = (data: EditorData) => {
-      appendWidgetIfNotExists({
-        id: `${data.url}-${Date.now()}`,
-        category: EWidgetCategory.Editor,
-        metadata: data,
-        display_type: EWidgetDisplayType.Dock,
+        category: EWidgetCategory.Terminal,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: data.title,
+        metadata: newPopup.data,
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
       });
     };
 
@@ -105,23 +117,44 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const filters = metadata?.filters;
       console.log("filters", filters);
       appendWidgetIfNotExists({
-        id,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_CUSTOM_CONNECTION_ID,
+        widget_id: id,
+
         category: EWidgetCategory.CustomConnection,
-        metadata: { id, source, target, filters },
         display_type: EWidgetDisplayType.Popup,
+
+        title: <CustomNodeConnPopupTitle source={source} target={target} />,
+        metadata: { id, source, target, filters },
       });
     };
 
     const launchLogViewer = () => {
+      const widgetId = `logViewer-${Date.now()}`;
       appendWidgetIfNotExists({
-        id: `logViewer-${Date.now()}`,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: widgetId,
+
         category: EWidgetCategory.LogViewer,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle />,
         metadata: {
           wsUrl: "",
           scriptType: ELogViewerScriptType.DEFAULT,
           script: {},
         },
-        display_type: EWidgetDisplayType.Popup,
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
+        actions: {
+          onClose: () => {
+            removeBackstageWidget(widgetId);
+            removeLogViewerHistory(widgetId);
+          },
+        },
       });
     };
 
@@ -133,11 +166,10 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             x={contextMenu.x}
             y={contextMenu.y}
             node={contextMenu.node}
-            baseDir={currentWorkspace?.baseDir}
-            graphName={currentWorkspace?.graphName}
+            baseDir={currentWorkspace?.app?.base_dir}
+            graphId={currentWorkspace?.graph?.uuid}
             onClose={closeContextMenu}
             onLaunchTerminal={launchTerminal}
-            onLaunchEditor={launchEditor}
             onLaunchLogViewer={launchLogViewer}
           />
         );
@@ -195,29 +227,25 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const handleClick = () => {
         closeContextMenu();
       };
-      const handleCustomNodeAction = (event: CustomEvent) => {
-        switch (event.detail.action) {
-          case "connections":
-            launchConnPopup(
-              event.detail.source,
-              event.detail.target,
-              event.detail.metadata
-            );
-            break;
-          default:
-            break;
-        }
-      };
+
       window.addEventListener("click", handleClick);
-      window.addEventListener(
-        ECustomEventName.CustomNodeAction,
-        handleCustomNodeAction as EventListener
+      const { id: customNodeActionPopupId } = eventPubSub.subscribe(
+        EEventName.CustomNodeActionPopup,
+        (data) => {
+          switch (data.action) {
+            case "connections":
+              launchConnPopup(data.source, data.target, data.metadata);
+              break;
+            default:
+              break;
+          }
+        }
       );
       return () => {
         window.removeEventListener("click", handleClick);
-        window.removeEventListener(
-          ECustomEventName.CustomNodeAction,
-          handleCustomNodeAction as EventListener
+        eventPubSub.unsubById(
+          EEventName.CustomNodeActionPopup,
+          customNodeActionPopupId
         );
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps

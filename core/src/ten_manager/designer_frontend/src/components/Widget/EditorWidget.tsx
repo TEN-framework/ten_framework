@@ -11,40 +11,42 @@ import React, {
   useImperativeHandle,
 } from "react";
 import Editor from "@monaco-editor/react";
-import { type editor } from "monaco-editor";
+import { type editor as MonacoEditor } from "monaco-editor";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { retrieveFileContent, putFileContent } from "@/api/services/fileSystem";
 import { ThemeProviderContext } from "@/components/theme-context";
-import { useDialogStore } from "@/store/dialog";
-import { useWidgetStore } from "@/store/widget";
+import { useDialogStore, useWidgetStore } from "@/store";
 
-import type { EditorData } from "@/types/widgets";
+import type {
+  IEditorWidgetData,
+  IEditorWidgetRef,
+  TEditorCheck,
+  IEditorWidget,
+} from "@/types/widgets";
 
 export interface EditorWidgetProps {
   id: string;
-  data: EditorData;
+  data: IEditorWidgetData;
 }
 
-export type TEditorOnClose = {
-  postConfirm?: () => Promise<void>;
-  postCancel?: () => Promise<void>;
-  title?: string;
-  content?: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  hasUnsavedChanges?: boolean;
-};
-
-const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
+const EditorWidget = React.forwardRef<IEditorWidgetRef, EditorWidgetProps>(
   ({ id, data }, ref) => {
     const [fileContent, setFileContent] = useState(data.content);
 
     const { t } = useTranslation();
     const { appendDialog, removeDialog } = useDialogStore();
-    const { updateEditorStatus } = useWidgetStore();
-    const editorRef = React.useRef<editor.IStandaloneCodeEditor | null>(null);
+    const { updateEditorStatus, widgets } = useWidgetStore();
+
+    const editorRef = React.useRef<MonacoEditor.IStandaloneCodeEditor | null>(
+      null
+    );
+    const isEditingRef = React.useRef<boolean | undefined>(undefined);
+
+    const targetWidget = widgets.find(
+      (widget) => widget.widget_id === id
+    ) as IEditorWidget;
 
     // Fetch the specified file content from the backend.
     useEffect(() => {
@@ -65,6 +67,8 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
     const saveFile = async (content: string) => {
       try {
         await putFileContent(data.url, { content });
+        isEditingRef.current = false;
+        updateEditorStatus(id, false);
         console.log(t("toast.saveFileSuccess"));
         toast.success(t("toast.saveFileSuccess"));
         // We can add UI prompts, such as displaying a success notification.
@@ -81,17 +85,21 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
 
     useImperativeHandle(ref, () => ({
       id,
-      onClose: ({
+      isEditing: isEditingRef.current,
+      editor: editorRef.current,
+      save: async () => {
+        await saveFile(fileContent);
+      },
+      check: ({
         postConfirm = () => Promise.resolve(),
         postCancel = () => Promise.resolve(),
         title = t("action.confirm"),
         content = t("popup.editor.confirmSaveFile"),
         confirmLabel = t("action.save"),
         cancelLabel = t("action.discard"),
-        hasUnsavedChanges = false,
-      }: TEditorOnClose) => {
+      }: TEditorCheck) => {
         const dialogId = `confirm-dialog-imperative-${id}`;
-        if (!hasUnsavedChanges) {
+        if (!isEditingRef.current) {
           removeDialog(dialogId);
           postConfirm();
           return;
@@ -103,15 +111,18 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
           confirmLabel,
           cancelLabel,
           onConfirm: async () => {
-            updateEditorStatus(id, false);
             await saveFile(fileContent);
             removeDialog(dialogId);
           },
           onCancel: async () => {
             removeDialog(dialogId);
           },
-          postConfirm: postConfirm,
-          postCancel: postCancel,
+          postConfirm: async () => {
+            await postConfirm();
+          },
+          postCancel: async () => {
+            await postCancel();
+          },
         });
       },
     }));
@@ -129,8 +140,11 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
               automaticLayout: true,
             }}
             onChange={(value) => {
-              updateEditorStatus(id, true);
               setFileContent(value || "");
+              isEditingRef.current = true;
+              if (targetWidget && !targetWidget?.metadata?.isContentChanged) {
+                updateEditorStatus(id, true);
+              }
             }}
             onMount={(editor) => {
               editorRef.current = editor;

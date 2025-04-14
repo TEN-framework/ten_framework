@@ -8,7 +8,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon, XIcon } from "lucide-react";
 
-import { PopupBase } from "@/components/Popup/Base";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";
@@ -19,25 +18,21 @@ import {
   extensionConnectionColumns1,
   extensionConnectionColumns2,
 } from "@/components/DataTable/ConnectionTable";
-import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+import { dispatchCustomNodeActionPopup } from "@/utils/events";
 
-import type { CustomConnectionData } from "@/types/widgets";
+import type {
+  ICustomConnectionWidgetData,
+  ICustomConnectionWidget,
+} from "@/types/widgets";
 import { EConnectionType } from "@/types/graphs";
 
-const DEFAULT_WIDTH = 800;
 const SUPPORTED_FILTERS = ["type"];
 
-export interface CustomNodeConnPopupProps extends CustomConnectionData {
-  onClose?: () => void;
-}
-
-const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
-  id,
-  source,
-  target,
-  filters,
-  onClose,
+export const CustomNodeConnPopupTitle = (props: {
+  source: string;
+  target?: string;
 }) => {
+  const { source, target } = props;
   const { t } = useTranslation();
 
   const titleMemo = React.useMemo(() => {
@@ -51,27 +46,30 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, target]);
 
+  return titleMemo;
+};
+
+export const CustomNodeConnPopupContent = (props: {
+  widget: ICustomConnectionWidget;
+}) => {
+  const { widget } = props;
+  const { source, target, filters } = widget.metadata;
+
   return (
-    <PopupBase
-      id={id}
-      title={titleMemo}
-      onClose={() => onClose?.()}
-      width={DEFAULT_WIDTH}
-      resizable
-    >
-      <div className="flex flex-col gap-2 w-full h-[328px]">
-        {source && target && (
-          <EdgeInfoContent source={source} target={target} filters={filters} />
-        )}
-        {source && !target && (
-          <CustomNodeConnPopupContent source={source} filters={filters} />
-        )}
-      </div>
-    </PopupBase>
+    <div className="flex flex-col gap-2 w-full h-[328px]">
+      {source && target && (
+        <EdgeInfoContent source={source} target={target} filters={filters} />
+      )}
+      {source && !target && (
+        <CustomNodeConnContent source={source} filters={filters} />
+      )}
+    </div>
   );
 };
 
-export default CustomNodeConnPopup;
+export interface CustomNodeConnPopupProps extends ICustomConnectionWidgetData {
+  onClose?: () => void;
+}
 
 function EdgeInfoContent(props: {
   source: string;
@@ -128,7 +126,12 @@ function EdgeInfoContent(props: {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => dispatchCustomNodeActionPopup("connections", source)}
+          onClick={() =>
+            dispatchCustomNodeActionPopup({
+              action: "connections",
+              source,
+            })
+          }
         >
           <BlocksIcon className="w-4 h-4" />
           <span>{source}</span>
@@ -137,7 +140,12 @@ function EdgeInfoContent(props: {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => dispatchCustomNodeActionPopup("connections", target)}
+          onClick={() =>
+            dispatchCustomNodeActionPopup({
+              action: "connections",
+              source: target,
+            })
+          }
         >
           <BlocksIcon className="w-4 h-4" />
           <span>{target}</span>
@@ -156,7 +164,7 @@ function EdgeInfoContent(props: {
   );
 }
 
-function CustomNodeConnPopupContent(props: {
+function CustomNodeConnContent(props: {
   source: string;
   filters?: {
     type?: EConnectionType;

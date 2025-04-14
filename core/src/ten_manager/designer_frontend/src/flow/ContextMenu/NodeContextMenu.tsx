@@ -11,6 +11,9 @@ import {
   TerminalIcon,
   Trash2Icon,
   LogsIcon,
+  SaveIcon,
+  GitPullRequestCreateIcon,
+  // PinIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,18 +22,27 @@ import ContextMenu, {
   type IContextMenuItem,
 } from "@/flow/ContextMenu/ContextMenu";
 import { useDialogStore, useFlowStore, useWidgetStore } from "@/store";
-import { postDeleteNode } from "@/api/services/graphs";
-// eslint-disable-next-line max-len
-import { resetNodesAndEdgesByGraphName } from "@/components/Widget/GraphsWidget";
+import { postDeleteNode, useGraphs } from "@/api/services/graphs";
+import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
-  type TerminalData,
-  type EditorData,
+  type ITerminalWidgetData,
+  type IEditorWidgetData,
+  type IEditorWidgetRef,
+  EWidgetPredefinedCheck,
 } from "@/types/widgets";
 import { EGraphActions } from "@/types/graphs";
 
 import type { TCustomNode } from "@/types/flow";
+import {
+  GRAPH_ACTIONS_WIDGET_ID,
+  CONTAINER_DEFAULT_ID,
+  GROUP_EDITOR_ID,
+} from "@/constants/widgets";
+import { GROUP_GRAPH_ID } from "@/constants/widgets";
+import { GraphPopupTitle } from "@/components/Popup/Graph";
+import { EditorPopupTitle } from "@/components/Popup/Editor";
 
 interface NodeContextMenuProps {
   visible: boolean;
@@ -38,10 +50,9 @@ interface NodeContextMenuProps {
   y: number;
   node: TCustomNode;
   baseDir?: string | null;
-  graphName?: string | null;
+  graphId?: string | null;
   onClose: () => void;
-  onLaunchTerminal: (data: TerminalData) => void;
-  onLaunchEditor: (data: EditorData) => void;
+  onLaunchTerminal: (data: ITerminalWidgetData) => void;
   onLaunchLogViewer?: () => void;
 }
 
@@ -51,16 +62,68 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   y,
   node,
   baseDir,
-  graphName,
+  graphId,
   onClose,
   onLaunchTerminal,
-  onLaunchEditor,
   onLaunchLogViewer,
 }) => {
   const { t } = useTranslation();
   const { appendDialog, removeDialog } = useDialogStore();
   const { setNodesAndEdges } = useFlowStore();
   const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const { graphs } = useGraphs();
+
+  const editorRefMappings = React.useRef<
+    Record<string, React.RefObject<IEditorWidgetRef>>
+  >({});
+
+  const launchEditor = (data: IEditorWidgetData) => {
+    const widgetId = `${data.url}-${Date.now()}`;
+    appendWidgetIfNotExists({
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_EDITOR_ID,
+      widget_id: widgetId,
+
+      category: EWidgetCategory.Editor,
+      display_type: EWidgetDisplayType.Popup,
+
+      title: <EditorPopupTitle title={data.title} widgetId={widgetId} />,
+      metadata: data,
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
+      actions: {
+        checks: [EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES],
+        custom_actions: [
+          {
+            id: "save-file",
+            label: t("action.save"),
+            Icon: SaveIcon,
+            onClick: () => {
+              editorRefMappings?.current?.[widgetId]?.current?.save?.();
+            },
+          },
+          // {
+          //   id: "pin-to-dock",
+          //   label: t("action.pinToDock"),
+          //   Icon: PinIcon,
+          //   onClick: () => {
+          //     onClose();
+          //     editorRefMappings?.current?.[widgetId]?.current?.check?.({
+          //       title: t("action.confirm"),
+          //       content: t("popup.editor.confirmSaveChanges"),
+          //       postConfirm: async () => {
+          //         updateWidgetDisplayType(widgetId, EWidgetDisplayType.Dock);
+          //       },
+          //     });
+          //   },
+          // },
+        ],
+      },
+    });
+  };
 
   const items: IContextMenuItem[] = [
     {
@@ -75,10 +138,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           onClick: () => {
             onClose();
             if (node?.data.url)
-              onLaunchEditor({
+              launchEditor({
                 title: `${node.data.name} manifest.json`,
                 content: "",
                 url: `${node.data.url}/manifest.json`,
+                refs: editorRefMappings.current,
               });
           },
         },
@@ -89,10 +153,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           onClick: () => {
             onClose();
             if (node?.data.url)
-              onLaunchEditor({
+              launchEditor({
                 title: `${node.data.name} property.json`,
                 content: "",
                 url: `${node.data.url}/property.json`,
+                refs: editorRefMappings.current,
               });
           },
         },
@@ -105,21 +170,71 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       _type: EContextMenuItemType.BUTTON,
       label: t("action.update") + " " + t("popup.node.properties"),
       icon: <FilePenLineIcon />,
-      disabled: !baseDir || !graphName,
+      disabled: !baseDir || !graphId,
       onClick: () => {
-        if (!baseDir || !graphName) return;
-        onClose();
+        if (!baseDir || !graphId) return;
         appendWidgetIfNotExists({
-          id: "update-node-property-widget-" + node.data.name,
+          container_id: CONTAINER_DEFAULT_ID,
+          group_id: GROUP_GRAPH_ID,
+          widget_id: GRAPH_ACTIONS_WIDGET_ID + `-update-` + node.data.name,
+
           category: EWidgetCategory.Graph,
           display_type: EWidgetDisplayType.Popup,
+
+          title: (
+            <GraphPopupTitle
+              type={EGraphActions.UPDATE_NODE_PROPERTY}
+              node={node}
+            />
+          ),
           metadata: {
             type: EGraphActions.UPDATE_NODE_PROPERTY,
             base_dir: baseDir,
-            graph_name: graphName,
+            graph_id: graphId,
             node: node,
           },
+          popup: {
+            width: 340,
+            height: 0.8,
+          },
         });
+        onClose();
+      },
+    },
+    {
+      _type: EContextMenuItemType.BUTTON,
+      label: t("header.menuGraph.addConnectionFromNode", {
+        node: node.data.name,
+      }),
+      icon: <GitPullRequestCreateIcon />,
+      disabled: !baseDir || !graphId,
+      onClick: () => {
+        if (!baseDir || !graphId) return;
+        appendWidgetIfNotExists({
+          container_id: CONTAINER_DEFAULT_ID,
+          group_id: GROUP_GRAPH_ID,
+          widget_id:
+            GRAPH_ACTIONS_WIDGET_ID +
+            `-${EGraphActions.ADD_CONNECTION}-` +
+            `${node.data.name}`,
+
+          category: EWidgetCategory.Graph,
+          display_type: EWidgetDisplayType.Popup,
+
+          title: <GraphPopupTitle type={EGraphActions.ADD_CONNECTION} />,
+          metadata: {
+            type: EGraphActions.ADD_CONNECTION,
+            base_dir: baseDir,
+            graph_id: graphId,
+            node: node,
+            src_extension: node.data.name,
+          },
+          popup: {
+            width: 340,
+            height: 0.8,
+          },
+        });
+        onClose();
       },
     },
     {
@@ -149,7 +264,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
     {
       _type: EContextMenuItemType.BUTTON,
       label: t("action.delete"),
-      disabled: !baseDir || !graphName,
+      disabled: !baseDir || !graphId,
       icon: <Trash2Icon />,
       onClick: () => {
         onClose();
@@ -164,14 +279,13 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             removeDialog("delete-node-dialog-" + node.data.name);
           },
           onConfirm: async () => {
-            if (!baseDir || !graphName) {
+            if (!baseDir || !graphId) {
               removeDialog("delete-node-dialog-" + node.data.name);
               return;
             }
             try {
               await postDeleteNode({
-                base_dir: baseDir,
-                graph_name: graphName,
+                graph_id: graphId,
                 node_name: node.data.name,
                 addon_name: node.data.addon,
                 extension_group_name: node.data.extension_group,
@@ -179,10 +293,11 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
               toast.success(t("popup.node.deleteNodeSuccess"), {
                 description: `${node.data.name}`,
               });
-              const { nodes, edges } = await resetNodesAndEdgesByGraphName(
-                graphName,
-                baseDir
-              );
+              const graph = graphs?.find((graph) => graph.uuid === graphId);
+              if (!graph) {
+                throw new Error("Graph not found");
+              }
+              const { nodes, edges } = await resetNodesAndEdgesByGraph(graph);
               setNodesAndEdges(nodes, edges);
             } catch (error: unknown) {
               toast.error(t("action.deleteNodeFailed"), {

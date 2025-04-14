@@ -41,6 +41,14 @@ import {
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import { postReloadApps } from "@/api/services/apps";
+import {
+  EXTENSION_WIDGET_ID,
+  GROUP_EXTENSION_ID,
+  GROUP_LOG_VIEWER_ID,
+} from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
+import { ExtensionPopupTitle } from "@/components/Popup/Default/Extension";
 
 export const ExtensionList = (props: {
   items: (ITenPackage | ITenPackageLocal)[];
@@ -117,7 +125,11 @@ export const ExtensionBaseItem = React.forwardRef<
   const { item, className, isInstalled, _type, readOnly, ...rest } = props;
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
   const { mutate } = useListTenCloudStorePackages();
 
@@ -129,10 +141,16 @@ export const ExtensionBaseItem = React.forwardRef<
       if (!baseDir || !item) {
         return;
       }
+      const widgetId = "ext-install-" + item.hash;
       appendWidgetIfNotExists({
-        id: "ext-install-" + item.hash,
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_LOG_VIEWER_ID,
+        widget_id: widgetId,
+
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
+
+        title: <LogViewerPopupTitle />,
         metadata: {
           wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
           scriptType: ELogViewerScriptType.INSTALL,
@@ -150,6 +168,16 @@ export const ExtensionBaseItem = React.forwardRef<
           postActions: () => {
             mutate();
             postReloadApps(baseDir);
+          },
+        },
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
+        actions: {
+          onClose: () => {
+            removeBackstageWidget(widgetId);
+            removeLogViewerHistory(widgetId);
           },
         },
       });
@@ -222,9 +250,9 @@ export const ExtensionBaseItem = React.forwardRef<
               "shadow-none rounded-none",
               "hover:bg-gray-200 dark:hover:bg-gray-700"
             )}
-            disabled={readOnly || !currentWorkspace?.baseDir}
+            disabled={readOnly || !currentWorkspace?.app?.base_dir}
             onClick={handleInstall(
-              currentWorkspace?.baseDir || "",
+              currentWorkspace?.app?.base_dir || "",
               item as IListTenCloudStorePackage
             )}
           >
@@ -260,9 +288,14 @@ export const ExtensionStoreItem = (props: {
 
   const handleClick = () => {
     appendWidgetIfNotExists({
-      id: `extension-${item.name}`,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_EXTENSION_ID,
+      widget_id: EXTENSION_WIDGET_ID + "-" + item.name,
+
       category: EWidgetCategory.Extension,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <ExtensionPopupTitle name={item.name} />,
       metadata: {
         name: item.name,
         versions: versions || [],

@@ -35,6 +35,9 @@ import {
 import type { IListTenCloudStorePackage } from "@/types/extension";
 import { useListTenCloudStorePackages } from "@/api/services/extension";
 import { postReloadApps } from "@/api/services/apps";
+import { GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
+import { CONTAINER_DEFAULT_ID } from "@/constants/widgets";
+import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
 
 export const ExtensionTooltipContent = (props: {
   item: IListTenCloudStorePackage;
@@ -129,7 +132,11 @@ export const ExtensionDetails = (props: {
   }, [addons, name]);
 
   const { t } = useTranslation();
-  const { appendWidgetIfNotExists } = useWidgetStore();
+  const {
+    appendWidgetIfNotExists,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+  } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
 
   const osArchMemo = React.useMemo(() => {
@@ -171,19 +178,25 @@ export const ExtensionDetails = (props: {
   };
 
   const handleInstall = () => {
-    if (!currentWorkspace.baseDir || !selectedVersionItemMemo) {
+    if (!currentWorkspace.app?.base_dir || !selectedVersionItemMemo) {
       return;
     }
+    const widgetId = "ext-install-" + selectedVersionItemMemo.hash;
     appendWidgetIfNotExists({
-      id: "ext-install-" + selectedVersionItemMemo.hash,
+      container_id: CONTAINER_DEFAULT_ID,
+      group_id: GROUP_LOG_VIEWER_ID,
+      widget_id: widgetId,
+
       category: EWidgetCategory.LogViewer,
       display_type: EWidgetDisplayType.Popup,
+
+      title: <LogViewerPopupTitle />,
       metadata: {
         wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
         scriptType: ELogViewerScriptType.INSTALL,
         script: {
           type: ELogViewerScriptType.INSTALL,
-          base_dir: currentWorkspace.baseDir,
+          base_dir: currentWorkspace.app?.base_dir,
           pkg_type: selectedVersionItemMemo.type,
           pkg_name: selectedVersionItemMemo.name,
           pkg_version: selectedVersionItemMemo.version,
@@ -194,9 +207,19 @@ export const ExtensionDetails = (props: {
         },
         postActions: () => {
           mutate();
-          if (currentWorkspace.baseDir) {
-            postReloadApps(currentWorkspace.baseDir);
+          if (currentWorkspace.app?.base_dir) {
+            postReloadApps(currentWorkspace.app.base_dir);
           }
+        },
+      },
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
+      actions: {
+        onClose: () => {
+          removeBackstageWidget(widgetId);
+          removeLogViewerHistory(widgetId);
         },
       },
     });

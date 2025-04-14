@@ -61,6 +61,8 @@ export interface IBackendConnection {
 export interface IGraph {
   name: string;
   auto_start: boolean;
+  base_dir: string;
+  uuid: string;
 }
 
 export type TConnectionItem = {
@@ -78,9 +80,7 @@ export enum EGraphActions {
 }
 
 export const AddNodePayloadSchema = z.object({
-  graph_app_base_dir: z.string(),
-  graph_name: z.string(),
-  addon_app_base_dir: z.string().optional(),
+  graph_id: z.string(),
   node_name: z.string(),
   addon_name: z.string(),
   extension_group_name: z.string().optional(),
@@ -91,8 +91,7 @@ export const AddNodePayloadSchema = z.object({
 });
 
 export const DeleteNodePayloadSchema = z.object({
-  base_dir: z.string(),
-  graph_name: z.string(),
+  graph_id: z.string(),
   node_name: z.string(),
   addon_name: z.string(),
   extension_group_name: z.string().optional(),
@@ -100,8 +99,7 @@ export const DeleteNodePayloadSchema = z.object({
 });
 
 export const AddConnectionPayloadSchema = z.object({
-  base_dir: z.string(),
-  graph_name: z.string(),
+  graph_id: z.string(),
   src_app: z.string().nullable().optional(),
   src_extension: z.string(),
   msg_type: z.nativeEnum(EConnectionType),
@@ -111,8 +109,22 @@ export const AddConnectionPayloadSchema = z.object({
   msg_conversion: z.unknown().optional(), // TODO: add msg_conversion type
 });
 
-export const ValidateGraphNodePayloadSchema = z.object({
-  addon_app_base_dir: z.string().optional(),
+export const DeleteConnectionPayloadSchema = z.object({
+  graph_id: z.string(),
+  src_app: z.string().nullable().optional(),
+  src_extension: z.string(),
+  msg_type: z.nativeEnum(EConnectionType),
+  msg_name: z.string(),
+  dest_app: z.string().nullable().optional(),
+  dest_extension: z.string(),
+});
+
+export const ValidatePropertyPayloadSchema = z.object({
+  property_json_str: z.string().default("{}"),
+});
+
+export const UpdateNodePropertyPayloadSchema = z.object({
+  graph_id: z.string(),
   node_name: z.string(),
   addon_name: z.string(),
   extension_group_name: z.string().optional(),
@@ -121,9 +133,3 @@ export const ValidateGraphNodePayloadSchema = z.object({
     .pipe(z.record(z.string(), z.unknown()))
     .default("{}"),
 });
-
-export const UpdateNodePropertyPayloadSchema =
-  ValidateGraphNodePayloadSchema.extend({
-    graph_app_base_dir: z.string(),
-    graph_name: z.string(),
-  });

@@ -10,27 +10,34 @@ import { devtools } from "zustand/middleware";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
+  TWidgetCustomAction,
   type IWidget,
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
 import { PREFERENCES_SCHEMA_LOG } from "@/types/apps";
-import { dispatchBringToFrontPopup } from "@/utils/popup";
+import { dispatchBringToFront } from "@/utils/events";
 
 export const useWidgetStore = create<{
   widgets: IWidget[];
   appendWidget: (widget: IWidget) => void;
   appendWidgetIfNotExists: (widget: IWidget) => void;
-  appendTabWidget: (widget: IWidget) => void;
   removeWidget: (widgetId: string) => void;
-  removeTabWidget: (widgetId: string, subId: string) => void;
   removeWidgets: (widgetIds: string[]) => void;
   updateWidgetDisplayType: (
     widgetId: string,
     displayType: EWidgetDisplayType
   ) => void;
+  updateWidgetDisplayTypeBulk: (
+    widgetIds: string[],
+    displayType: EWidgetDisplayType
+  ) => void;
+  appendWidgetCustomAction: (
+    widgetId: string,
+    action: TWidgetCustomAction
+  ) => void;
 
   // editor ---
-  updateEditorStatus: (widgetId: string, isEditing: boolean) => void;
+  updateEditorStatus: (widgetId: string, isContentChanged: boolean) => void;
 
   // backstage(ws) ---
   backstageWidgets: IWidget[];
@@ -76,38 +83,27 @@ export const useWidgetStore = create<{
       set((state) => ({ widgets: [...state.widgets, widget] })),
     appendWidgetIfNotExists: (widget: IWidget) => {
       set((state) => ({
-        widgets: state.widgets.find((w) => w.id === widget.id)
-          ? state.widgets
-          : [...state.widgets, widget],
-      }));
-      dispatchBringToFrontPopup(widget.id);
-    },
-    appendTabWidget: (widget: IWidget) => {
-      set((state) => ({
         widgets: state.widgets.find(
           (w) =>
-            w.id === widget.id &&
-            w.display_type === EWidgetDisplayType.PopupTab &&
-            w?.sub_id === widget?.sub_id
+            w.container_id === widget.container_id &&
+            w.group_id === widget.group_id &&
+            w.widget_id === widget.widget_id
         )
           ? state.widgets
           : [...state.widgets, widget],
       }));
-      dispatchBringToFrontPopup(widget.id, widget.sub_id);
+      dispatchBringToFront({
+        widget_id: widget.widget_id,
+        group_id: widget.group_id,
+      });
     },
     removeWidget: (widgetId: string) =>
       set((state) => ({
-        widgets: state.widgets.filter((w) => w.id !== widgetId),
-      })),
-    removeTabWidget: (widgetId: string, subId: string) =>
-      set((state) => ({
-        widgets: state.widgets.filter(
-          (w) => w.id !== widgetId || w.sub_id !== subId
-        ),
+        widgets: state.widgets.filter((w) => w.widget_id !== widgetId),
       })),
     removeWidgets: (widgetIds: string[]) =>
       set((state) => ({
-        widgets: state.widgets.filter((w) => !widgetIds.includes(w.id)),
+        widgets: state.widgets.filter((w) => !widgetIds.includes(w.widget_id)),
       })),
     updateWidgetDisplayType: (
       widgetId: string,
@@ -115,16 +111,45 @@ export const useWidgetStore = create<{
     ) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
-          w.id === widgetId ? { ...w, display_type: displayType } : w
+          w.widget_id === widgetId ? { ...w, display_type: displayType } : w
         ),
+      })),
+    updateWidgetDisplayTypeBulk: (
+      widgetIds: string[],
+      displayType: EWidgetDisplayType
+    ) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) =>
+          widgetIds.includes(w.widget_id)
+            ? { ...w, display_type: displayType }
+            : w
+        ),
+      })),
+    appendWidgetCustomAction: (widgetId: string, action: TWidgetCustomAction) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) => {
+          if (w.widget_id === widgetId) {
+            if (w.actions) {
+              w.actions.custom_actions = [
+                ...(w.actions.custom_actions || []),
+                action,
+              ];
+            } else {
+              w.actions = {
+                custom_actions: [action],
+              };
+            }
+          }
+          return w;
+        }),
       })),
 
     // editor ---
-    updateEditorStatus: (widgetId: string, isEditing: boolean) =>
+    updateEditorStatus: (widgetId: string, isContentChanged: boolean) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
-          w.id === widgetId && w.category === EWidgetCategory.Editor
-            ? { ...w, isEditing }
+          w.widget_id === widgetId && w.category === EWidgetCategory.Editor
+            ? { ...w, metadata: { ...w.metadata, isContentChanged } }
             : w
         ),
       })),
@@ -137,20 +162,22 @@ export const useWidgetStore = create<{
       })),
     appendBackstageWidgetIfNotExists: (widget: IWidget) =>
       set((state) => ({
-        backstageWidgets: state.backstageWidgets.find((w) => w.id === widget.id)
+        backstageWidgets: state.backstageWidgets.find(
+          (w) => w.widget_id === widget.widget_id
+        )
           ? state.backstageWidgets
           : [...state.backstageWidgets, widget],
       })),
     removeBackstageWidget: (widgetId: string) =>
       set((state) => ({
         backstageWidgets: state.backstageWidgets.filter(
-          (w) => w.id !== widgetId
+          (w) => w.widget_id !== widgetId
         ),
       })),
     removeBackstageWidgets: (widgetIds: string[]) =>
       set((state) => ({
         backstageWidgets: state.backstageWidgets.filter(
-          (w) => !widgetIds.includes(w.id)
+          (w) => !widgetIds.includes(w.widget_id)
         ),
       })),
 

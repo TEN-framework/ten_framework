@@ -34,7 +34,12 @@ export function CustomEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={path} style={style} markerEnd={markerEnd} />
+      <BaseEdge
+        id={id}
+        path={path}
+        style={{ ...style, strokeWidth: 2 }}
+        markerEnd={markerEnd}
+      />
       {selected && (
         <path
           id={id}

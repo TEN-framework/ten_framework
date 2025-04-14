@@ -17,8 +17,10 @@ import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 import { EWSMessageType } from "@/types/apps";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
-  const { id, metadata: { wsUrl, scriptType, script, postActions } = {} } =
-    props;
+  const {
+    widget_id: id,
+    metadata: { wsUrl, scriptType, script, postActions } = {},
+  } = props;
 
   const { appendLogViewerHistory } = useWidgetStore();
 
@@ -51,7 +53,9 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
           appendLogViewerHistory(id, [line]);
         } else if (msg.type === EWSMessageType.EXIT) {
           const code = msg.code;
+          const errMsg = msg?.error_message;
           appendLogViewerHistory(id, [
+            errMsg,
             `Process exited with code ${code}. Closing...`,
           ]);
 
@@ -109,7 +113,7 @@ export function LogViewerFrontStageWidget(props: {
   }, [logViewerHistory, id]);
 
   const currentWidget = React.useMemo(() => {
-    return widgets.find((w) => w.id === id);
+    return widgets.find((w) => w.widget_id === id);
   }, [widgets, id]);
 
   return (
