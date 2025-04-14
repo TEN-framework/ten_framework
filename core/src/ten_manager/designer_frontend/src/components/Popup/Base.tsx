@@ -423,13 +423,16 @@ export const PopupBase = (props: IPopupBaseProps) => {
         className={cn(
           "p-2.5 overflow-hidden flex w-full",
           "h-full opacity-100",
-          {
-            ["py-0 h-0 opacity-0"]: isCollapsed,
-          },
           contentClassName
         )}
         style={{
           pointerEvents: isResizing ? "none" : "auto",
+          ...(isCollapsed && {
+            paddingTop: 0,
+            paddingBottom: 0,
+            opacity: 0,
+            height: 0,
+          }),
         }}
       >
         {children}

@@ -180,7 +180,7 @@ const PopupWithTabs = (props: {
       customActions={globalCustomActions}
       title={globalTitle}
       contentClassName={cn("p-0 flex flex-col", {
-        "h-full p-2": widgets.length === 1,
+        "h-fit p-2": widgets.length === 1,
       })}
       defaultWidth={
         size?.width
