@@ -55,6 +55,11 @@ export const ExtensionMenu = (props: {
       metadata: {
         type: EDefaultWidgetType.ExtensionStore,
       },
+      popup: {
+        width: 340,
+        height: 0.8,
+        initialPosition: "top-left",
+      },
     });
   };
 
@@ -71,6 +76,11 @@ export const ExtensionMenu = (props: {
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.Extension,
+      },
+      popup: {
+        width: 340,
+        height: 0.8,
+        initialPosition: "top-left",
       },
     });
   };

@@ -57,6 +57,10 @@ export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
 
         title: <LogViewerPopupTitle title={widget.metadata.options?.title} />,
         metadata: widget.metadata,
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

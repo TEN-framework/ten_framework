@@ -170,6 +170,10 @@ export const ExtensionBaseItem = React.forwardRef<
             postReloadApps(baseDir);
           },
         },
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
         actions: {
           onClose: () => {
             removeBackstageWidget(widgetId);

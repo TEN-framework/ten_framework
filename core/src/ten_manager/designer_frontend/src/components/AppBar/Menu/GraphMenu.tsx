@@ -107,6 +107,11 @@ export function GraphMenu(props: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.Graph,
       },
+      popup: {
+        width: 340,
+        height: 0.8,
+        initialPosition: "top-left",
+      },
     });
   };
 

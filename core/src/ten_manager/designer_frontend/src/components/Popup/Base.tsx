@@ -45,12 +45,13 @@ export interface IPopupBaseProps {
   defaultHeight?: number;
   maxWidth?: number;
   maxHeight?: number;
-  initialPosition?:
-    | "center"
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right";
+  initialPosition?: string;
+  // initialPosition?:
+  //   | "center"
+  //   | "top-left"
+  //   | "top-right"
+  //   | "bottom-left"
+  //   | "bottom-right";
   customActions?: TWidgetCustomAction[];
   onResizing?: () => void;
   onResized?: () => void;
@@ -278,10 +279,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
     if (popupRef.current) {
       const { innerWidth, innerHeight } = window;
       const rect = popupRef.current.getBoundingClientRect();
-      if (initialPosition === "center") {
-        popupRef.current.style.left = `${(innerWidth - rect.width) / 2}px`;
-        popupRef.current.style.top = `${(innerHeight - rect.height) / 2}px`;
-      } else if (initialPosition === "top-left") {
+      if (initialPosition === "top-left") {
         popupRef.current.style.left = `40px`;
         popupRef.current.style.top = `60px`;
       } else if (initialPosition === "top-right") {
@@ -293,6 +291,10 @@ export const PopupBase = (props: IPopupBaseProps) => {
       } else if (initialPosition === "bottom-right") {
         popupRef.current.style.left = `${innerWidth - rect.width - 40}px`;
         popupRef.current.style.top = `${innerHeight - rect.height - 40}px`;
+      } else {
+        // center
+        popupRef.current.style.left = `${(innerWidth - rect.width) / 2}px`;
+        popupRef.current.style.top = `${(innerHeight - rect.height) / 2}px`;
       }
       handleBringToFront();
     }

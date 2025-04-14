@@ -47,6 +47,13 @@ export interface IWidgetBase<
   // The metadata of the tab/widget
   metadata: T;
   actions?: A;
+  popup?: {
+    width?: number;
+    height?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    initialPosition?: string;
+  };
 }
 
 export type TWidgetCustomAction = {

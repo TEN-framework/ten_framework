@@ -212,6 +212,10 @@ export const ExtensionDetails = (props: {
           }
         },
       },
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
       actions: {
         onClose: () => {
           removeBackstageWidget(widgetId);

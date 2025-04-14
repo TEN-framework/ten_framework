@@ -67,6 +67,10 @@ export function AppMenu(props: {
       metadata: {
         type: EDefaultWidgetType.AppFolder,
       },
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
     });
   };
 
@@ -115,6 +119,11 @@ export function AppMenu(props: {
       metadata: {
         type: EDefaultWidgetType.DocRef,
         doc_link_key: EDocLinkKey.App,
+      },
+      popup: {
+        width: 340,
+        height: 0.8,
+        initialPosition: "top-left",
       },
     });
   };

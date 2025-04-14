@@ -141,6 +141,10 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           scriptType: ELogViewerScriptType.DEFAULT,
           script: {},
         },
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
         actions: {
           onClose: () => {
             removeBackstageWidget(widgetId);

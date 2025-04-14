@@ -30,13 +30,21 @@ import {
   IWidget,
 } from "@/types/widgets";
 import { cn } from "@/lib/utils";
+import { getCurrentWindowSize } from "@/utils";
 
 const PopupWithTabs = (props: {
   widgets: IWidget[];
   groupId: string;
   containerId: string;
+  size?: {
+    width?: number;
+    height?: number;
+    windowWidth?: number;
+    windowHeight?: number;
+    initialPosition?: string;
+  };
 }) => {
-  const { widgets, groupId, containerId } = props;
+  const { widgets, groupId, containerId, size } = props;
 
   const [activeWidgetId, setActiveWidgetId] = React.useState<string>(
     widgets[0].widget_id
@@ -174,6 +182,23 @@ const PopupWithTabs = (props: {
       contentClassName={cn("p-0 flex flex-col", {
         "h-full p-2": widgets.length === 1,
       })}
+      defaultWidth={
+        size?.width
+          ? size?.width > 1
+            ? size.width
+            : size?.width * (size?.windowWidth || 1)
+          : undefined
+      }
+      defaultHeight={
+        size?.height
+          ? size?.height > 1
+            ? size?.height
+            : size?.height * (size?.windowHeight || 1)
+          : undefined
+      }
+      maxWidth={size?.windowWidth}
+      maxHeight={size?.windowHeight}
+      initialPosition={size?.initialPosition}
     >
       <PopupTabs
         widgets={widgets}
@@ -272,6 +297,11 @@ const PopupTabs = (props: {
 export function GlobalPopups() {
   const { widgets } = useWidgetStore();
 
+  const currentWindowSizeMemo = React.useMemo(() => {
+    const currentWindowSize = getCurrentWindowSize();
+    return currentWindowSize;
+  }, []);
+
   const groupedWidgets = React.useMemo(() => {
     return groupWidgetsById(widgets);
   }, [widgets]);
@@ -300,14 +330,26 @@ export function GlobalPopups() {
     <>
       {containerIds.map((containerId) => (
         <React.Fragment key={containerId}>
-          {getGroupByContainerId(containerId).map((groupObj) => (
-            <PopupWithTabs
-              key={groupObj.groupId}
-              widgets={groupObj.widgets}
-              groupId={groupObj.groupId}
-              containerId={containerId}
-            />
-          ))}
+          {getGroupByContainerId(containerId).map((groupObj) => {
+            const firstWidgetSize = groupObj.widgets[0].popup;
+            const size = {
+              width: firstWidgetSize?.width,
+              height: firstWidgetSize?.height,
+              windowWidth: currentWindowSizeMemo?.width,
+              windowHeight: currentWindowSizeMemo?.height,
+              initialPosition: firstWidgetSize?.initialPosition,
+            };
+
+            return (
+              <PopupWithTabs
+                key={groupObj.groupId}
+                widgets={groupObj.widgets}
+                groupId={groupObj.groupId}
+                containerId={containerId}
+                size={size}
+              />
+            );
+          })}
         </React.Fragment>
       ))}
     </>

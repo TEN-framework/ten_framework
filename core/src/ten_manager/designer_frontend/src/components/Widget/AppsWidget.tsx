@@ -129,6 +129,10 @@ export const AppsManagerWidget = (props: { className?: string }) => {
       metadata: {
         type: EDefaultWidgetType.AppFolder,
       },
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
     });
   };
 
@@ -215,6 +219,10 @@ export const AppsManagerWidget = (props: { className?: string }) => {
         postActions: () => {
           postReloadApps(baseDir);
         },
+      },
+      popup: {
+        width: 0.5,
+        height: 0.8,
       },
       actions: {
         onClose: () => {

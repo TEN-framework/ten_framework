@@ -42,7 +42,7 @@ import { LogViewerPopupTitle } from "../LogViewer";
 
 export const AppFolderPopupTitle = () => {
   const { t } = useTranslation();
-  return t("popup.default.openAppFolder");
+  return t("header.menuApp.openAppFolder");
 };
 
 export const AppFolderPopupContent = (props: { widget: IWidget }) => {
@@ -156,6 +156,10 @@ export const AppRunPopupContent = (props: { widget: IDefaultWidget }) => {
           base_dir: baseDir,
           name: selectedScript,
         },
+      },
+      popup: {
+        width: 0.5,
+        height: 0.8,
       },
       actions: {
         onClose: () => {
