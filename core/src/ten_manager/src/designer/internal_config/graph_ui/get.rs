@@ -26,12 +26,23 @@ pub struct GetGraphUiResponseData {
 }
 
 pub async fn get_graph_ui_endpoint(
-    _request_payload: web::Json<GetGraphUiRequestPayload>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    request_payload: web::Json<GetGraphUiRequestPayload>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let response_data = GetGraphUiResponseData {
-        graph_geometry: None,
-    };
+    let graph_id = request_payload.graph_id;
+
+    let state_read = state.read().unwrap();
+
+    // Look for the graph geometry with the given graph_id.
+    let graph_geometry = state_read
+        .tman_internal_config
+        .graph_ui
+        .graphs_geometry
+        .get(&graph_id)
+        .cloned();
+
+    let response_data = GetGraphUiResponseData { graph_geometry };
+
     let response = ApiResponse {
         status: Status::Ok,
         data: response_data,
