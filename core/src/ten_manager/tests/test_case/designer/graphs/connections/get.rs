@@ -43,12 +43,17 @@ mod tests {
 
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("../test_data_embed/app_manifest.json")
                     .to_string(),
                 include_str!("../test_data_embed/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_1_manifest.json"
                 )
@@ -56,6 +61,10 @@ mod tests {
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_2_manifest.json"
                 )
@@ -63,6 +72,10 @@ mod tests {
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_3"
+                ),
                 include_str!(
                     "../test_data_embed/extension_addon_3_manifest.json"
                 )
@@ -72,26 +85,39 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
+        // Find the UUID for the graph with name "default"
+        let default_graph_uuid = designer_state
+            .graphs_cache
+            .iter()
+            .find_map(|(uuid, graph)| {
+                if graph.name.as_ref().is_some_and(|name| name == "default") {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            })
+            .expect("No graph with name 'default' found");
+
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections_endpoint),
-            ),
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections",
+                    web::post().to(get_graph_connections_endpoint),
+                ),
         )
         .await;
 
         let request_payload = GetGraphConnectionsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
+            graph_id: default_graph_uuid,
         };
 
         let req = test::TestRequest::post()
@@ -146,17 +172,26 @@ mod tests {
         // 'property.json'.
         let all_pkgs_json_str = vec![
             (
+                TEST_DIR.to_string(),
                 include_str!("test_data_embed/get_connections_have_all_data_type/app_manifest.json")
                     .to_string(),
                 include_str!("test_data_embed/get_connections_have_all_data_type/app_property.json")
                     .to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_2"
+                ),
                 include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_2_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -164,25 +199,38 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
 
+        // Find the UUID for the graph with name "default"
+        let default_graph_uuid = designer_state
+            .graphs_cache
+            .iter()
+            .find_map(|(uuid, graph)| {
+                if graph.name.as_ref().is_some_and(|name| name == "default") {
+                    Some(*uuid)
+                } else {
+                    None
+                }
+            })
+            .expect("No graph with name 'default' found");
+
         let designer_state = Arc::new(RwLock::new(designer_state));
         let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections_endpoint),
-            ),
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections",
+                    web::post().to(get_graph_connections_endpoint),
+                ),
         )
         .await;
 
         let request_payload = GetGraphConnectionsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
+            graph_id: default_graph_uuid,
         };
 
         let req = test::TestRequest::post()

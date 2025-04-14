@@ -12,6 +12,9 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
+    use ten_rust::pkg_info::message::MsgType;
+    use uuid::Uuid;
+
     use ten_manager::{
         config::TmanConfig,
         constants::TEST_DIR,
@@ -24,11 +27,8 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
+        graph::{graphs_cache_find_by_id, graphs_cache_find_by_name},
         output::TmanOutputCli,
-    };
-    use ten_rust::pkg_info::{
-        message::MsgType, pkg_type::PkgType,
-        predefined_graphs::pkg_predefined_graphs_find,
     };
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -43,12 +43,12 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -67,8 +67,7 @@ mod tests {
 
         // Try to delete a connection from a non-existent graph.
         let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "non_existent_graph".to_string(),
+            graph_id: Uuid::new_v4(),
             src_app: None,
             src_extension: "source_extension".to_string(),
             msg_type: MsgType::Cmd,
@@ -92,9 +91,7 @@ mod tests {
 
         let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Fail);
-        assert!(response
-            .message
-            .contains("Graph 'non_existent_graph' not found"));
+        assert!(response.message.contains("Graph not found"));
     }
 
     #[actix_web::test]
@@ -107,17 +104,34 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Try to delete a non-existent connection.
+        let request_payload = DeleteGraphConnectionRequestPayload {
+            graph_id: *graph_id,
+            src_app: None,
+            src_extension: "nonexistent_extension".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "nonexistent_message".to_string(),
+            dest_app: None,
+            dest_extension: "nonexistent_destination".to_string(),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -128,18 +142,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Try to delete a non-existent connection.
-        let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-            graph_name: "default_with_app_uri".to_string(),
-            src_app: None,
-            src_extension: "nonexistent_extension".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "nonexistent_message".to_string(),
-            dest_app: None,
-            dest_extension: "nonexistent_destination".to_string(),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/delete")
@@ -195,17 +197,25 @@ mod tests {
 
         // Inject the test app into the mock.
         let all_pkgs_json = vec![(
+            temp_dir_path.clone(),
             std::fs::read_to_string(&manifest_path).unwrap(),
             std::fs::read_to_string(&property_path).unwrap(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        let graph_id_clone = *graph_id;
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -221,8 +231,7 @@ mod tests {
 
         // Delete a connection from the default_with_app_uri graph.
         let request_payload = DeleteGraphConnectionRequestPayload {
-            base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: graph_id_clone,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
             msg_type: MsgType::Cmd,
@@ -255,13 +264,7 @@ mod tests {
         let DesignerState { graphs_cache, .. } = &*state_read;
 
         if let Some(predefined_graph) =
-            pkg_predefined_graphs_find(graphs_cache, |g| {
-                g.name == "default_with_app_uri"
-                    && (g.app_base_dir.is_some()
-                        && g.app_base_dir.as_ref().unwrap() == &temp_dir_path)
-                    && (g.belonging_pkg_type.is_some()
-                        && g.belonging_pkg_type.unwrap() == PkgType::App)
-            })
+            graphs_cache_find_by_id(graphs_cache, &graph_id_clone)
         {
             // Check if the connection is gone.
             let connection_exists = predefined_graph

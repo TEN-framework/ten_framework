@@ -30,7 +30,12 @@ pub async fn get_app_scripts_endpoint(
     request_payload: web::Json<GetPackagesScriptsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
     if let Some(base_dir_pkg_info) =
         &state_read.pkgs_cache.get(&request_payload.base_dir)
@@ -38,8 +43,8 @@ pub async fn get_app_scripts_endpoint(
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             let scripts = app_pkg
                 .manifest
+                .scripts
                 .as_ref()
-                .and_then(|m| m.scripts.as_ref())
                 .map(|scripts| scripts.keys().cloned().collect());
 
             let response = ApiResponse {

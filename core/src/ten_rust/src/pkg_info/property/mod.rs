@@ -20,8 +20,11 @@ use super::{
     pkg_type::PkgType,
     utils::read_file_to_string,
 };
-use crate::graph::{graph_info::GraphInfo, is_app_default_loc_or_none};
 use crate::json_schema;
+use crate::{
+    graph::{graph_info::GraphInfo, is_app_default_loc_or_none},
+    json_schema::ten_validate_property_json_string,
+};
 
 /// Represents the property configuration of a TEN package.
 ///
@@ -60,6 +63,8 @@ pub fn parse_property_from_str(
     belonging_pkg_type: Option<PkgType>,
     belonging_pkg_name: Option<String>,
 ) -> Result<Property> {
+    ten_validate_property_json_string(s)?;
+
     let mut property: Property = serde_json::from_str(s)?;
 
     // Extract _ten field from all_fields if it exists.
@@ -70,7 +75,6 @@ pub fn parse_property_from_str(
         let mut ten_in_property = TenInProperty {
             predefined_graphs: None,
             uri: None,
-            additional_fields: HashMap::new(),
         };
 
         // Get other fields from ten_value using serde.
@@ -114,15 +118,6 @@ pub fn parse_property_from_str(
                     ten_in_property.uri = Some(uri_str.to_string());
                 }
             }
-
-            // Handle all other fields as additional_fields
-            for (key, value) in map {
-                if key != "predefined_graphs" && key != "uri" {
-                    ten_in_property
-                        .additional_fields
-                        .insert(key.to_string(), value.clone());
-                }
-            }
         }
 
         property._ten = Some(ten_in_property);
@@ -140,13 +135,15 @@ fn validate_predefined_graphs(graphs: &[GraphInfo]) -> Result<()> {
     let mut seen_graph_names = std::collections::HashSet::new();
 
     for graph in graphs.iter() {
-        // Note: We're storing references to graph names, which is correct.
-        if !seen_graph_names.insert(&graph.name) {
-            return Err(anyhow::anyhow!(
-                "Duplicate predefined graph name detected: '{}'. \
-                Each predefined_graph must have a unique 'name'.",
-                graph.name
-            ));
+        if let Some(name) = &graph.name {
+            // Note: We're storing references to graph names, which is correct.
+            if !seen_graph_names.insert(name) {
+                return Err(anyhow::anyhow!(
+                    "Duplicate predefined graph name detected: '{}'. \
+                    Each predefined_graph must have a unique 'name'.",
+                    name
+                ));
+            }
         }
     }
 
@@ -176,17 +173,6 @@ impl Property {
 
         Ok(())
     }
-
-    /// Returns the application URI from the property configuration.
-    pub fn get_app_uri(&self) -> Option<String> {
-        if let Some(_ten) = &self._ten {
-            if let Some(uri) = &_ten.uri {
-                return Some(uri.clone());
-            }
-        }
-
-        None
-    }
 }
 
 /// Represents the TEN-specific configuration within a property.json file.
@@ -199,8 +185,6 @@ impl Property {
 ///   graphs_cache. These graphs are predefined by the package.
 /// * `uri` - Optional URI for the application. If not specified, defaults to
 ///   localhost.
-/// * `additional_fields` - Captures any additional fields in the TEN
-///   configuration that aren't explicitly defined in this struct.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TenInProperty {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -208,9 +192,6 @@ pub struct TenInProperty {
 
     #[serde(skip_serializing_if = "is_app_default_loc_or_none")]
     pub uri: Option<String>,
-
-    #[serde(flatten)]
-    pub additional_fields: HashMap<String, Value>,
 }
 
 pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {

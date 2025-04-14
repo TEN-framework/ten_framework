@@ -163,14 +163,14 @@ pub async fn execute_cmd(
         .context("Failed to get current working directory")?;
 
     create_pkg_in_path(
-        tman_config,
+        &tman_config,
         &cwd,
         &command_data.pkg_type,
         &command_data.pkg_name,
         &command_data.template_name,
         &command_data.template_version_req,
         Some(&command_data.template_data),
-        out.clone(),
+        &out,
     )
     .await
     .context("Failed to create the package")?;

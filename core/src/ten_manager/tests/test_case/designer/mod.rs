@@ -10,6 +10,7 @@ mod builtin_function_install;
 mod dir_list;
 mod doc_link;
 mod env;
+mod extensions;
 mod get_apps;
 mod get_graphs;
 mod get_packages_scripts;

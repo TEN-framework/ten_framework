@@ -137,6 +137,7 @@ mod tests {
                 property_json_str: r#"
                 {
                   "_ten": {
+                    "log_level": 2,
                     "log": {
                       "level": 2,
                       "file": "api.log"

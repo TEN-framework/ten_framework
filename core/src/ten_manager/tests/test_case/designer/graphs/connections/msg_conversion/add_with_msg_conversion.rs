@@ -23,6 +23,7 @@ mod tests {
             response::ApiResponse,
             DesignerState,
         },
+        graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
     use ten_rust::{
@@ -79,28 +80,43 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/connections/add",
-                web::post().to(add_graph_connection_endpoint),
-            ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // Create msg_conversion rules.
         let msg_conversion = MsgAndResultConversion {
@@ -134,8 +150,7 @@ mod tests {
         // Add a connection between existing nodes in the default graph.
         // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
             msg_type: MsgType::Cmd,
@@ -144,6 +159,16 @@ mod tests {
             dest_extension: "extension_2".to_string(),
             msg_conversion: Some(msg_conversion),
         };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/graphs/connections/add",
+                web::post().to(add_graph_connection_endpoint),
+            ),
+        )
+        .await;
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -233,28 +258,43 @@ mod tests {
         let empty_property = r#"{"_ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
-            (app_manifest_json_str, app_property_json_str),
-            (ext1_manifest, empty_property.clone()),
-            (ext2_manifest, empty_property.clone()),
+            (
+                test_dir.clone(),
+                app_manifest_json_str,
+                app_property_json_str,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                ext1_manifest,
+                empty_property.clone(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    test_dir.clone(),
+                    "/ten_packages/extension/extension_2"
+                ),
+                ext2_manifest,
+                empty_property.clone(),
+            ),
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &test_dir,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        let app = test::init_service(
-            App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/connections/add",
-                web::post().to(add_graph_connection_endpoint),
-            ),
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
         )
-        .await;
+        .unwrap();
 
         // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
@@ -286,8 +326,7 @@ mod tests {
 
         // Add a connection between existing nodes in the default graph.
         let request_payload = AddGraphConnectionRequestPayload {
-            base_dir: test_dir.clone(),
-            graph_name: "default_with_app_uri".to_string(),
+            graph_id: *graph_id,
             src_app: Some("http://example.com:8000".to_string()),
             src_extension: "extension_1".to_string(),
             msg_type: MsgType::Cmd,
@@ -296,6 +335,16 @@ mod tests {
             dest_extension: "extension_2".to_string(),
             msg_conversion: Some(msg_conversion),
         };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/graphs/connections/add",
+                web::post().to(add_graph_connection_endpoint),
+            ),
+        )
+        .await;
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")

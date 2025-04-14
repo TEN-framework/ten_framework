@@ -10,9 +10,12 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::designer::{
-    response::{ApiResponse, ErrorResponse, Status},
-    DesignerState,
+use crate::{
+    designer::{
+        response::{ApiResponse, ErrorResponse, Status},
+        DesignerState,
+    },
+    graph::graphs_cache_remove_by_app_base_dir,
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -29,13 +32,22 @@ pub async fn unload_app_endpoint(
     request_payload: web::Json<UnloadAppRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
+    let mut state_write = state.write().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire write lock: {}",
+            e
+        ))
+    })?;
+
+    // Destructure to avoid multiple mutable borrows.
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &mut *state_write;
 
     // Check if the base_dir exists in pkgs_cache.
-    if !state_write
-        .pkgs_cache
-        .contains_key(&request_payload.base_dir)
-    {
+    if !pkgs_cache.contains_key(&request_payload.base_dir) {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: format!(
@@ -47,7 +59,12 @@ pub async fn unload_app_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    state_write.pkgs_cache.remove(&request_payload.base_dir);
+    // Remove the app from pkgs_cache.
+    pkgs_cache.remove(&request_payload.base_dir);
+
+    // Remove any graphs associated with this app.
+    let base_dir = &request_payload.base_dir;
+    graphs_cache_remove_by_app_base_dir(graphs_cache, base_dir);
 
     let response = ApiResponse {
         status: Status::Ok,
@@ -57,4 +74,3 @@ pub async fn unload_app_endpoint(
 
     Ok(HttpResponse::Ok().json(response))
 }
-

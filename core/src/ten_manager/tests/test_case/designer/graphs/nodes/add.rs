@@ -26,9 +26,11 @@ mod tests {
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
         },
+        graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
     use ten_rust::pkg_info::{constants::PROPERTY_JSON_FILENAME, localhost};
+    use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
 
@@ -42,12 +44,12 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
@@ -66,9 +68,7 @@ mod tests {
 
         // Try to add a node to a non-existent graph.
         let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "non_existent_graph".to_string(),
-            addon_app_base_dir: None,
+            graph_id: Uuid::new_v4(),
             node_name: "test_node".to_string(),
             addon_name: "test_addon".to_string(),
             extension_group_name: None,
@@ -104,17 +104,31 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) =
+            graphs_cache_find_by_name(&designer_state.graphs_cache, "default")
+                .unwrap();
+
+        // Try to add a node with localhost app URI (which is not allowed).
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "test_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some(localhost().to_string()),
+            property: None,
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -126,23 +140,13 @@ mod tests {
         )
         .await;
 
-        // Try to add a node with localhost app URI (which is not allowed).
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
-            addon_app_base_dir: None,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some(localhost().to_string()),
-            property: None,
-        };
-
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
             .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
+
+        println!("Response: {:?}", resp);
 
         // Should fail with a 400 Bad Request.
         assert_eq!(resp.status(), 400);
@@ -166,17 +170,33 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Add a node to the default graph with the same app URI as other nodes
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "test_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: None,
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -187,18 +207,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Add a node to the default graph with the same app URI as other nodes
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: None,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: None,
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -233,17 +241,31 @@ mod tests {
         };
 
         let all_pkgs_json_str = vec![(
+            TEST_DIR.to_string(),
             include_str!("../test_data_embed/app_manifest.json").to_string(),
             include_str!("../test_data_embed/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) =
+            graphs_cache_find_by_name(&designer_state.graphs_cache, "default")
+                .unwrap();
+
+        // Add a node to the default graph with the same app URI as other nodes.
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "test_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: None,
+            property: None,
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -254,18 +276,6 @@ mod tests {
             ),
         )
         .await;
-
-        // Add a node to the default graph with the same app URI as other nodes.
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: TEST_DIR.to_string(),
-            graph_name: "default".to_string(),
-            addon_app_base_dir: None,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: None,
-            property: None,
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -324,17 +334,33 @@ mod tests {
 
         // Inject the test app into the mock.
         let all_pkgs_json = vec![(
+            temp_dir_path.clone(),
             fs::read_to_string(&manifest_path).unwrap(),
             fs::read_to_string(&property_path).unwrap(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "test_graph",
+        )
+        .unwrap();
+
+        // Add a node to the test-graph.
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "new_node".to_string(),
+            addon_name: "new_addon".to_string(),
+            extension_group_name: None,
+            app_uri: None,
+            property: None,
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -347,18 +373,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Add a node to the test-graph.
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "test-graph".to_string(),
-            addon_app_base_dir: None,
-            node_name: "new-node".to_string(),
-            addon_name: "new-addon".to_string(),
-            extension_group_name: None,
-            app_uri: None,
-            property: None,
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -419,10 +433,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -430,12 +450,29 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -450,20 +487,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: Some(temp_dir_path.clone()),
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": "test_value_for_delete"
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -525,10 +548,16 @@ mod tests {
         // Inject the test app into the mock.
         let all_pkgs_json_str = vec![
             (
+                temp_dir_path.clone(),
                 input_manifest_json_str.to_string(),
                 input_property_json_str.to_string(),
             ),
             (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
                 include_str!("test_data_embed/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
@@ -536,12 +565,29 @@ mod tests {
         ];
 
         let inject_ret = inject_all_pkgs_for_mock(
-            &temp_dir_path,
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
             all_pkgs_json_str,
         );
         assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "default_with_app_uri",
+        )
+        .unwrap();
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_id: *graph_id,
+            node_name: "test_delete_node".to_string(),
+            addon_name: "test_addon".to_string(),
+            extension_group_name: None,
+            app_uri: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": 13
+            })),
+        };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -556,20 +602,6 @@ mod tests {
                 ),
         )
         .await;
-
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_app_base_dir: temp_dir_path.clone(),
-            graph_name: "default_with_app_uri".to_string(),
-            addon_app_base_dir: Some(temp_dir_path.clone()),
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": 13
-            })),
-        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")

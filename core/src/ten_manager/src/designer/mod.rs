@@ -85,10 +85,18 @@ pub fn configure_routes(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
             )
+            .route(
+                "/apps/property/schema",
+                web::post().to(apps::property::schema::get_app_property_schema_endpoint),
+            )
             // Extension endpoints.
             .route(
                 "/extensions/create",
                 web::post().to(extensions::create::create_extension_endpoint),
+            )
+            .route(
+                "/extensions/property/schema",
+                web::post().to(extensions::property::schema::get_extension_property_schema_endpoint),
             )
             // Manifest validation endpoints.
             .route(
@@ -123,10 +131,6 @@ pub fn configure_routes(
             .route(
                 "/graphs/nodes/property/update",
                 web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
-            )
-            .route(
-                "/graphs/nodes/validate",
-                web::post().to(graphs::nodes::validate::validate_graph_node_endpoint),
             )
             // Graph connections endpoints.
             .route(
@@ -191,7 +195,7 @@ pub fn configure_routes(
                 "/ws/terminal",
                 web::get().to(terminal::ws_terminal_endpoint),
             )
-            // Misc endpoints.
+            // Doc endpoints.
             .route(
                 "/help-text",
                 web::post().to(help_text::get_help_text_endpoint),
@@ -200,10 +204,12 @@ pub fn configure_routes(
                 "/doc-link",
                 web::post().to(doc_link::get_doc_link_endpoint),
             )
+            // Registry endpoints.
             .route(
                 "/registry/packages",
                 web::get().to(registry::packages::get_packages_endpoint),
             )
+            // Environment endpoints.
             .route("/env", web::get().to(env::get_env_endpoint)),
     );
 }

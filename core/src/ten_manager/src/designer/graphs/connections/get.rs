@@ -8,10 +8,9 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
-use ten_rust::pkg_info::pkg_type::PkgType;
-use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -20,8 +19,7 @@ use super::DesignerMessageFlow;
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphConnectionsRequestPayload {
-    pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -107,23 +105,19 @@ pub async fn get_graph_connections_endpoint(
     request_payload: web::Json<GetGraphConnectionsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
-    // If the app package has predefined graphs, find the one with the
-    // specified graph_name.
-    if let Some(predefined_graph) =
-        pkg_predefined_graphs_find(&state_read.graphs_cache, |g| {
-            g.name == request_payload.graph_name
-                && (g.app_base_dir.is_some()
-                    && g.app_base_dir.as_ref().unwrap()
-                        == &request_payload.base_dir)
-                && (g.belonging_pkg_type.is_some()
-                    && g.belonging_pkg_type.unwrap() == PkgType::App)
-        })
+    // Look up the graph directly by UUID from graphs_cache
+    if let Some(graph_info) =
+        state_read.graphs_cache.get(&request_payload.graph_id)
     {
         // Convert the connections field to RespConnection.
-        let connections: Option<_> =
-            predefined_graph.graph.connections.as_ref();
+        let connections: Option<_> = graph_info.graph.connections.as_ref();
         let resp_connections: Vec<GraphConnectionsSingleResponseData> =
             match connections {
                 Some(connections) => {

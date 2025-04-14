@@ -9,27 +9,26 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-
-use ten_rust::graph::extension::{
-    get_extension_nodes_in_graph, get_pkg_info_for_extension,
+use ten_rust::pkg_info::{
+    create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
 };
+use uuid::Uuid;
+
 use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 
 use crate::designer::common::{
-    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
-    get_designer_property_hashmap_from_pkg,
+    get_designer_api_msg_from_pkg, get_designer_property_hashmap_from_pkg,
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
-use super::DesignerApi;
+use super::{get_extension_nodes_in_graph, DesignerApi};
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphNodesRequestPayload {
-    pub base_dir: String,
-    pub graph_name: String,
+    pub graph_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -94,46 +93,53 @@ impl From<GraphNodesSingleResponseData> for GraphNode {
 }
 
 /// Retrieve graph nodes for a specific graph.
-///
-/// # Parameters
-/// - `state`: The state of the designer.
-/// - `path`: The name of the graph.
 pub async fn get_graph_nodes_endpoint(
     request_payload: web::Json<GetGraphNodesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    let state_read = state.read().map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to acquire read lock: {}",
+            e
+        ))
+    })?;
 
-    if let Some(base_dir_pkg_info) =
-        &state_read.pkgs_cache.get(&request_payload.base_dir)
-    {
-        if base_dir_pkg_info.app_pkg_info.is_none() {
+    let DesignerState {
+        pkgs_cache,
+        graphs_cache,
+        ..
+    } = &*state_read;
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
             let error_response = ErrorResponse {
                 status: Status::Fail,
-                message: "Application package information is missing"
-                    .to_string(),
+                message: error_message,
                 error: None,
             };
-            return Ok(HttpResponse::NotFound().json(error_response));
+            return Ok(HttpResponse::BadRequest().json(error_response));
         }
+    };
 
-        // Get extension package information directly, if available
-        let extensions_slice = base_dir_pkg_info.get_extensions();
+    let graph_id = &request_payload.graph_id;
 
-        let graph_name = &request_payload.graph_name;
+    let graph_info = graphs_cache.get(&request_payload.graph_id);
+    let app_base_dir_of_graph = match graph_info {
+        Some(graph_info) => graph_info.app_base_dir.as_ref(),
+        None => None,
+    };
 
-        let extension_graph_nodes = match get_extension_nodes_in_graph(
-            &request_payload.base_dir,
-            &request_payload.graph_name,
-            &state_read.graphs_cache,
-        ) {
+    let extension_graph_nodes =
+        match get_extension_nodes_in_graph(graph_id, graphs_cache) {
             Ok(exts) => exts,
             Err(err) => {
                 let error_response = ErrorResponse::from_error(
                     &err,
                     format!(
                         "Error fetching runtime extensions for graph '{}'",
-                        graph_name
+                        graph_id
                     )
                     .as_str(),
                 );
@@ -141,152 +147,105 @@ pub async fn get_graph_nodes_endpoint(
             }
         };
 
-        let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
+    let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
-        for extension_graph_node in &extension_graph_nodes {
-            let pkg_info = get_pkg_info_for_extension(
-                extension_graph_node,
-                extensions_slice,
-            );
-            if let Some(pkg_info) = pkg_info {
-                resp_extensions.push(GraphNodesSingleResponseData {
-                    addon: extension_graph_node.addon.clone(),
-                    name: extension_graph_node.type_and_name.name.clone(),
-                    extension_group: extension_graph_node
-                        .extension_group
-                        .clone(),
-                    app: extension_graph_node.app.clone(),
-                    api: pkg_info
-                        .manifest
+    for extension_graph_node in extension_graph_nodes {
+        let pkg_info = get_pkg_info_for_extension_addon(
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
+            &uri_to_pkg_info,
+            app_base_dir_of_graph,
+            pkgs_cache,
+        );
+        if let Some(pkg_info) = pkg_info {
+            resp_extensions.push(GraphNodesSingleResponseData {
+                addon: extension_graph_node.addon.clone(),
+                name: extension_graph_node.type_and_name.name.clone(),
+                extension_group: extension_graph_node.extension_group.clone(),
+                app: extension_graph_node.app.clone(),
+                api: pkg_info.manifest.api.as_ref().map(|api| DesignerApi {
+                    property: api
+                        .property
                         .as_ref()
-                        .and_then(|manifest| manifest.api.as_ref())
-                        .map(|api| DesignerApi {
-                            property: api
-                                .property
-                                .as_ref()
-                                .filter(|p| !p.is_empty())
-                                .map(|p| {
-                                    get_designer_property_hashmap_from_pkg(
-                                        p.clone(),
-                                    )
-                                }),
-
-                            cmd_in: api
-                                .cmd_in
-                                .as_ref()
-                                .filter(|c| !c.is_empty())
-                                .map(|c| {
-                                    get_designer_api_cmd_likes_from_pkg(
-                                        c.clone(),
-                                    )
-                                }),
-
-                            cmd_out: api
-                                .cmd_out
-                                .as_ref()
-                                .filter(|c| !c.is_empty())
-                                .map(|c| {
-                                    get_designer_api_cmd_likes_from_pkg(
-                                        c.clone(),
-                                    )
-                                }),
-
-                            data_in: api
-                                .data_in
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
-
-                            data_out: api
-                                .data_out
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
-
-                            audio_frame_in: api
-                                .audio_frame_in
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
-
-                            audio_frame_out: api
-                                .audio_frame_out
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
-
-                            video_frame_in: api
-                                .video_frame_in
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
-
-                            video_frame_out: api
-                                .video_frame_out
-                                .as_ref()
-                                .filter(|d| !d.is_empty())
-                                .map(|d| {
-                                    get_designer_api_data_likes_from_pkg(
-                                        d.clone(),
-                                    )
-                                }),
+                        .filter(|p| !p.is_empty())
+                        .map(|p| {
+                            get_designer_property_hashmap_from_pkg(p.clone())
                         }),
-                    property: extension_graph_node.property.clone(),
-                    is_installed: true,
-                });
-            } else {
-                match GraphNodesSingleResponseData::try_from(
-                    extension_graph_node.clone(),
-                ) {
-                    Ok(designer_ext) => {
-                        resp_extensions.push(designer_ext);
-                    }
-                    Err(e) => {
-                        let error_response = ErrorResponse::from_error(
-                            &e,
-                            "This graph node's content is not a valid graph node.",
-                        );
-                        return Ok(
-                            HttpResponse::NotFound().json(error_response)
-                        );
-                    }
+
+                    cmd_in: api
+                        .cmd_in
+                        .as_ref()
+                        .filter(|c| !c.is_empty())
+                        .map(|c| get_designer_api_msg_from_pkg(c.clone())),
+
+                    cmd_out: api
+                        .cmd_out
+                        .as_ref()
+                        .filter(|c| !c.is_empty())
+                        .map(|c| get_designer_api_msg_from_pkg(c.clone())),
+
+                    data_in: api
+                        .data_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+
+                    data_out: api
+                        .data_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+
+                    audio_frame_in: api
+                        .audio_frame_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+
+                    audio_frame_out: api
+                        .audio_frame_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+
+                    video_frame_in: api
+                        .video_frame_in
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+
+                    video_frame_out: api
+                        .video_frame_out
+                        .as_ref()
+                        .filter(|d| !d.is_empty())
+                        .map(|d| get_designer_api_msg_from_pkg(d.clone())),
+                }),
+                property: extension_graph_node.property.clone(),
+                is_installed: true,
+            });
+        } else {
+            match GraphNodesSingleResponseData::try_from(
+                extension_graph_node.clone(),
+            ) {
+                Ok(designer_ext) => {
+                    resp_extensions.push(designer_ext);
+                }
+                Err(e) => {
+                    let error_response = ErrorResponse::from_error(
+                        &e,
+                        "This graph node's content is not a valid graph node.",
+                    );
+                    return Ok(HttpResponse::NotFound().json(error_response));
                 }
             }
         }
-
-        let response = ApiResponse {
-            status: Status::Ok,
-            data: resp_extensions,
-            meta: None,
-        };
-
-        Ok(HttpResponse::Ok().json(response))
-    } else {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "Package information is missing".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
     }
+
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: resp_extensions,
+        meta: None,
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }

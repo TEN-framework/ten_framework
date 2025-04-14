@@ -4,9 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod add;
-pub mod delete;
-
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -120,8 +117,8 @@ impl GraphConnection {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> Option<&str> {
-        self.app.as_deref()
+    pub fn get_app_uri(&self) -> Option<&String> {
+        self.app.as_ref()
     }
 }
 
@@ -228,7 +225,7 @@ impl GraphDestination {
         Ok(())
     }
 
-    pub fn get_app_uri(&self) -> Option<&str> {
-        self.app.as_deref()
+    pub fn get_app_uri(&self) -> Option<&String> {
+        self.app.as_ref()
     }
 }

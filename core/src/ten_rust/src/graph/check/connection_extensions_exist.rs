@@ -22,7 +22,7 @@ impl Graph {
             for dest in &flow.dest {
                 let dest_extension = format!(
                     "{}:{}",
-                    Graph::option_str_to_string(dest.get_app_uri()),
+                    dest.get_app_uri().map_or("", |s| s.as_str()),
                     dest.extension
                 );
 
@@ -66,7 +66,7 @@ impl Graph {
             if node.type_and_name.pkg_type == PkgType::Extension {
                 let unique_ext_name = format!(
                     "{}:{}",
-                    Graph::option_str_to_string(node.get_app_uri()),
+                    node.get_app_uri().map_or("", |s| s.as_str()),
                     node.type_and_name.name
                 );
                 all_extensions.push(unique_ext_name);
@@ -78,7 +78,7 @@ impl Graph {
             // First, verify the source extension exists.
             let src_extension = format!(
                 "{}:{}",
-                Graph::option_str_to_string(connection.get_app_uri()),
+                connection.get_app_uri().map_or("", |s| s.as_str()),
                 connection.extension
             );
             if !all_extensions.contains(&src_extension) {

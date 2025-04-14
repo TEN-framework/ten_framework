@@ -76,26 +76,36 @@ pub async fn create_extension_endpoint(
         return Ok(HttpResponse::Conflict().json(error_response));
     }
 
-    // Clone necessary values from state before the async call.
     let tman_config_clone;
     let out_clone;
-
     {
-        let state_write = state.write().unwrap();
-        tman_config_clone = state_write.tman_config.clone();
-        out_clone = state_write.out.clone();
+        let state_read = state.read().map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to acquire read lock: {}",
+                e
+            ))
+        })?;
+
+        // Destructure to avoid multiple mutable borrows.
+        let DesignerState {
+            tman_config, out, ..
+        } = &*state_read;
+
+        // Clone the values we need
+        tman_config_clone = tman_config.clone();
+        out_clone = out.clone();
     }
 
     // Create extension using create_pkg_in_path.
     match create_pkg_in_path(
-        tman_config_clone,
+        &tman_config_clone,
         Path::new(&base_dir),
         &PkgType::Extension,
         &extension_name,
         &template_name,
         &VersionReq::default(),
         None,
-        out_clone,
+        &out_clone,
     )
     .await
     {
@@ -103,8 +113,12 @@ pub async fn create_extension_endpoint(
             let extension_path_str =
                 extension_path.to_string_lossy().to_string();
 
-            // Re-acquire the lock for updating the cache.
-            let mut state_write = state.write().unwrap();
+            let mut state_write = state.write().map_err(|e| {
+                actix_web::error::ErrorInternalServerError(format!(
+                    "Failed to acquire write lock: {}",
+                    e
+                ))
+            })?;
 
             // Destructure to avoid multiple mutable borrows.
             let DesignerState {

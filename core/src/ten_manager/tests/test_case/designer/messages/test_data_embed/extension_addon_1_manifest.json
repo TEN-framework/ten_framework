@@ -26,19 +26,28 @@
             "type": "string"
           }
         },
-        "required": ["foo"]
+        "required": [
+          "foo"
+        ]
       },
       {
-        "name": "has_required_mismatch",
+        "name": "has_not_required",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "cmd1",
         "property": {
           "foo": {
             "type": "string"
           }
         },
-        "required": ["foo"]
-      },
-      {
-        "name": "cmd1"
+        "required": [
+          "foo"
+        ]
       },
       {
         "name": "cmd2",
@@ -71,6 +80,14 @@
             }
           }
         }
+      },
+      {
+        "name": "cmd5",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        }
       }
     ],
     "data_out": [
@@ -98,7 +115,9 @@
                 "type": "bool"
               }
             },
-            "required": ["c"]
+            "required": [
+              "c"
+            ]
           }
         }
       }
