@@ -15,6 +15,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use tempfile::tempdir;
 
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_manager::{
         config::TmanConfig,
         designer::{
@@ -53,6 +54,7 @@ mod tests {
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -104,6 +106,7 @@ mod tests {
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -147,6 +150,7 @@ mod tests {
     async fn test_list_dir_with_non_existing_path() {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

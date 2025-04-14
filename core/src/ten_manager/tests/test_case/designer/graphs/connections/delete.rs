@@ -16,7 +16,7 @@ mod tests {
     use uuid::Uuid;
 
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::connections::delete::{

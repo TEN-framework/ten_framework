@@ -13,8 +13,9 @@ use actix_web::{test, web, App};
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-use ten_manager::designer::builtin_function::{
-    builtin_function_endpoint, msg::InboundMsg,
+use ten_manager::{
+    config::internal::TmanInternalConfig,
+    designer::builtin_function::{builtin_function_endpoint, msg::InboundMsg},
 };
 use ten_manager::{
     config::TmanConfig, designer::DesignerState, output::TmanOutputCli,
@@ -106,6 +107,7 @@ async fn test_ws_builtin_function_install_all() {
 async fn test_cmd_builtin_function_install_all() {
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

@@ -12,6 +12,7 @@ mod tests {
     use actix_web::{test, web, App};
     use tempfile::tempdir;
 
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::DEFAULT_APP_CPP;
     use ten_manager::designer::apps::create::{

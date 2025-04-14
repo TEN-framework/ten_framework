@@ -11,6 +11,7 @@ mod tests {
 
     use actix_web::{test, web, App};
 
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
     use ten_manager::designer::apps::addons::{

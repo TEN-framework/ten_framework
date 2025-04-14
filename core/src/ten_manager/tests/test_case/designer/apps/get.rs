@@ -10,6 +10,7 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{test, web, App};
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
     use ten_manager::config::TmanConfig;

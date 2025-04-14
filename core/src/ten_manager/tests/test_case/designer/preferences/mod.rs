@@ -10,6 +10,7 @@ use std::sync::{Arc, RwLock};
 use actix_web::{test, web, App};
 use serde_json::{self, json};
 
+use ten_manager::config::internal::TmanInternalConfig;
 use ten_manager::{
     config::TmanConfig,
     designer::{
@@ -37,6 +38,7 @@ async fn test_get_preferences_success() {
     // Create test state.
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -84,6 +86,7 @@ async fn test_get_preferences_invalid_path() {
     // Create test state.
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -179,6 +182,7 @@ async fn test_update_preferences_success() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -249,6 +253,7 @@ async fn test_update_preferences_invalid_schema() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -296,6 +301,7 @@ async fn test_update_preferences_field_success() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -360,6 +366,7 @@ async fn test_update_preferences_field_invalid_value() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -403,6 +410,7 @@ async fn test_update_preferences_field_invalid_field() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -451,6 +459,7 @@ async fn test_update_preferences_field_locale() {
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

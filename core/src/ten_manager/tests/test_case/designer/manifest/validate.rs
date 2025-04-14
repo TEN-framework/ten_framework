@@ -9,7 +9,7 @@ use std::sync::{Arc, RwLock};
 use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     designer::{
         manifest::validate::{
             validate_manifest_endpoint, ValidateManifestRequestPayload,
@@ -26,6 +26,7 @@ async fn test_validate_manifest_valid() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -80,6 +81,7 @@ async fn test_validate_manifest_with_api() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -168,6 +170,7 @@ async fn test_validate_app_manifest_with_incorrect_api() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -258,6 +261,7 @@ async fn test_validate_app_manifest_with_correct_api() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -319,6 +323,7 @@ async fn test_validate_manifest_missing_required_fields() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -375,6 +380,7 @@ async fn test_validate_manifest_invalid_type() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -433,6 +439,7 @@ async fn test_validate_manifest_invalid_version_format() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
@@ -491,6 +498,7 @@ async fn test_validate_manifest_invalid_json_syntax() {
     // Create the application state.
     let designer_state = Arc::new(RwLock::new(DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),

@@ -10,6 +10,7 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{test, web, App};
+    use ten_manager::config::internal::TmanInternalConfig;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
     use ten_manager::config::TmanConfig;

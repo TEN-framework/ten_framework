@@ -13,7 +13,7 @@ mod tests {
 
     use actix_web::{http::StatusCode, test, web, App};
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         designer::{
             property::validate::{
                 validate_property_endpoint, ValidatePropertyRequestPayload,

@@ -8,6 +8,7 @@ use std::process;
 use std::sync::Arc;
 
 use console::Emoji;
+use ten_manager::config::internal::TmanInternalConfig;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd_line;
@@ -60,6 +61,7 @@ fn main() {
 
     let result = run_tman_command(
         parsed_cmd.tman_config,
+        Arc::new(TmanInternalConfig::default()),
         parsed_cmd.command_data.unwrap(),
         out.clone(),
     );

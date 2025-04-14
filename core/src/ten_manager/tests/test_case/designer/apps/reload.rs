@@ -10,17 +10,19 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{http::StatusCode, test, web, App};
+    use ten_manager::{
+        config::{internal::TmanInternalConfig, TmanConfig},
+        constants::TEST_DIR,
+        designer::{
+            apps::reload::{reload_app_endpoint, ReloadPkgsRequestPayload},
+            response::{ErrorResponse, Status},
+            DesignerState,
+        },
+        output::TmanOutputCli,
+    };
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
-    use ten_manager::config::TmanConfig;
-    use ten_manager::constants::TEST_DIR;
-    use ten_manager::designer::apps::reload::{
-        reload_app_endpoint, ReloadPkgsRequestPayload,
-    };
-    use ten_manager::designer::response::{ErrorResponse, Status};
-    use ten_manager::designer::DesignerState;
-    use ten_manager::output::TmanOutputCli;
 
     /// Test error case when the specified base_dir doesn't exist in pkgs_cache.
     #[actix_web::test]
@@ -104,6 +106,7 @@ mod tests {
                 verbose: true,
                 ..TmanConfig::default()
             }),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
