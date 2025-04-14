@@ -360,8 +360,9 @@ static void ten_nodejs_addon_register_func(TEN_UNUSED TEN_ADDON_TYPE addon_type,
       addon_manager_bridge->js_register_single_addon, ctx);
   TEN_ASSERT(rc, "Failed to invoke JS addon manager registerSingleAddon().");
 
-  // Wait for the event completed. This can be removed if we change the
-  // addon register function to be async.
+  // TODO(xilin): This event wait can be removed in the future by making the
+  // ten_addon_register function asynchronous. Currently, we need to wait for
+  // the JS thread to complete the registration before proceeding.
   ten_event_wait(ctx->completed, -1);
 
   ten_addon_t *addon_instance = ctx->c_addon;
