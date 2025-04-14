@@ -185,7 +185,8 @@
       "messageType": "Message Type",
       "messageName": "Message Name",
       "addConnection": "Add Connection",
-      "titleUpdateNodePropertyByName": "Update [{{name}}] Property"
+      "titleUpdateNodePropertyByName": "Update [{{name}}] Property",
+      "updateNodeProperty": "Update Property"
     },
     "doc": {
       "title": "Documentation"

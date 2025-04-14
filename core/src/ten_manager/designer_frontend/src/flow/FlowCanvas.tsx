@@ -95,6 +95,10 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
         title: data.title,
         metadata: newPopup.data,
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
       });
     };
 

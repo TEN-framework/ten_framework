@@ -89,6 +89,10 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
 
       title: <EditorPopupTitle title={data.title} widgetId={widgetId} />,
       metadata: data,
+      popup: {
+        width: 0.5,
+        height: 0.8,
+      },
       actions: {
         checks: [EWidgetPredefinedCheck.EDITOR_UNSAVED_CHANGES],
         custom_actions: [
