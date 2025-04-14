@@ -12,6 +12,9 @@
           },
           "updated_property": {
             "type": "string"
+          },
+          "original_source": {
+            "type": "uint32"
           }
         }
       },

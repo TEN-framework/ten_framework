@@ -15,20 +15,13 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         graph_info::GraphInfo,
         msg_conversion::MsgAndResultConversion,
     },
-    pkg_info::{
-        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
-        message::{MsgDirection, MsgType},
-    },
-    schema::store::{
-        are_msg_schemas_compatible, create_msg_schema_from_manifest,
-        find_msg_schema_from_all_pkgs_info,
-    },
+    pkg_info::{create_uri_to_pkg_info_map, message::MsgType},
 };
 
 use crate::{
@@ -36,12 +29,12 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{
-        graphs_cache_find_by_id_mut,
-        msg_conversion::msg_conversion_get_final_target_schema,
-        update_graph_connections_all_fields,
-    },
+    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
+};
+
+use super::validate::{
+    validate_msg_conversion_schema, MsgConversionValidateInfo,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -107,78 +100,6 @@ fn update_graph_info(
                     }
                 }
                 break;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-fn check_msg_conversion_schema(
-    graph_info: &mut GraphInfo,
-    request_payload: &web::Json<
-        UpdateGraphConnectionMsgConversionRequestPayload,
-    >,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-) -> Result<()> {
-    if let Some(msg_conversion) = &request_payload.msg_conversion {
-        let src_extension_addon =
-            graph_info.graph.get_addon_name_of_extension(
-                request_payload.src_app.as_ref(),
-                &request_payload.src_extension,
-            )?;
-
-        let converted_schema = msg_conversion_get_final_target_schema(
-            uri_to_pkg_info,
-            graph_info.app_base_dir.as_ref(),
-            pkgs_cache,
-            &request_payload.src_app,
-            src_extension_addon,
-            &request_payload.msg_type,
-            &request_payload.msg_name,
-            &request_payload.msg_name,
-            msg_conversion,
-        )
-        .unwrap();
-
-        eprintln!(
-            "msg_conversion converted_schema: {}",
-            serde_json::to_string_pretty(&converted_schema).unwrap()
-        );
-
-        if let Ok(Some(src_ten_msg_schema)) =
-            create_msg_schema_from_manifest(&converted_schema)
-        {
-            let dest_extension_addon =
-                graph_info.graph.get_addon_name_of_extension(
-                    request_payload.dest_app.as_ref(),
-                    &request_payload.dest_extension,
-                )?;
-
-            if let Some(dest_extension_pkg_info) =
-                get_pkg_info_for_extension_addon(
-                    &request_payload.dest_app,
-                    dest_extension_addon,
-                    uri_to_pkg_info,
-                    graph_info.app_base_dir.as_ref(),
-                    pkgs_cache,
-                )
-            {
-                if let Some(dest_ten_msg_schema) =
-                    find_msg_schema_from_all_pkgs_info(
-                        dest_extension_pkg_info,
-                        &request_payload.msg_type,
-                        &request_payload.msg_name,
-                        MsgDirection::In,
-                    )
-                {
-                    are_msg_schemas_compatible(
-                        Some(&src_ten_msg_schema),
-                        Some(dest_ten_msg_schema),
-                        false,
-                    )?;
-                }
             }
         }
     }
@@ -311,22 +232,30 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
-    update_graph_info(graph_info, &request_payload).map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to update graph info: {}",
-            e
-        ))
-    })?;
-
-    check_msg_conversion_schema(
+    validate_msg_conversion_schema(
         graph_info,
-        &request_payload,
+        &MsgConversionValidateInfo {
+            src_app: &request_payload.src_app,
+            src_extension: &request_payload.src_extension,
+            msg_type: &request_payload.msg_type,
+            msg_name: &request_payload.msg_name,
+            dest_app: &request_payload.dest_app,
+            dest_extension: &request_payload.dest_extension,
+            msg_conversion: &request_payload.msg_conversion,
+        },
         &uri_to_pkg_info,
         pkgs_cache,
     )
     .map_err(|e| {
         actix_web::error::ErrorInternalServerError(format!(
             "Failed to check message conversion schema: {}",
+            e
+        ))
+    })?;
+
+    update_graph_info(graph_info, &request_payload).map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!(
+            "Failed to update graph info: {}",
             e
         ))
     })?;
