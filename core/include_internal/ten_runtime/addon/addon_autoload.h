@@ -29,3 +29,12 @@ ten_addon_try_load_specific_addon_using_native_addon_loader(
 TEN_RUNTIME_PRIVATE_API void
 ten_addon_try_load_specific_addon_using_all_addon_loaders(
     TEN_ADDON_TYPE addon_type, const char *addon_name);
+
+// Traverse the <app_base_dir>/ten_packages/extension/ directory and attempt
+// to load all extension addons using all available addon_loaders. After this
+// method completes, all addons in the directory are expected to be loaded.
+// However, it only performs loading (phase 1) without executing registration
+// (phase 2). This means all register functions are added to the addon_manager's
+// registry but not executed.
+TEN_RUNTIME_PRIVATE_API bool ten_addon_load_all_extensions_from_app_base_dir(
+    const char *app_base_dir, ten_error_t *err);

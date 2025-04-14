@@ -617,6 +617,22 @@ void send_ten_msg_with_req_body(
 
             cmd = ten::cmd_t::create(
                 cmd_json["_ten"]["name"].get<std::string>().c_str());
+
+            // If the cmd_json contains "dest", it means the command
+            // should be sent to a specific extension.
+            if (cmd_json["_ten"].contains("dest")) {
+              auto dest = cmd_json["_ten"]["dest"];
+
+              try {
+                cmd->set_dest(dest["app"].get<std::string>().c_str(),
+                              dest["graph"].get<std::string>().c_str(),
+                              dest["extension_group"].get<std::string>().c_str(),
+                              dest["extension"].get<std::string>().c_str());
+              } catch (const std::exception &e) {
+                TEN_LOGW("Failed to set the destination of the command: %s",
+                         e.what());
+              }
+            }
           }
         }
 

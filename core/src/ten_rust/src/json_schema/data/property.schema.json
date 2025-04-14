@@ -490,6 +490,9 @@
         "one_event_loop_per_engine": {
           "type": "boolean"
         },
+        "preload_all_addons": {
+          "type": "boolean"
+        },
         "telemetry": {
           "type": "object",
           "additionalProperties": false,

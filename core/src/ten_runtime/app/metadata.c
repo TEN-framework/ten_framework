@@ -205,6 +205,27 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
+bool ten_app_init_preload_all_addons(ten_app_t *self, ten_value_t *value) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(ten_value_check_integrity(value), "Should not happen.");
+
+  if (!ten_value_is_bool(value)) {
+    TEN_LOGE("Invalid value type for property: %s", TEN_STR_PRELOAD_ALL_ADDONS);
+    return false;
+  }
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  self->preload_all_addons = ten_value_get_bool(value, &err);
+
+  ten_error_deinit(&err);
+
+  return true;
+}
+
 static bool ten_app_determine_ten_namespace_properties(
     ten_app_t *self, ten_value_t *ten_namespace_properties) {
   TEN_ASSERT(self, "Should not happen.");

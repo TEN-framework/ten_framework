@@ -159,6 +159,7 @@
 #define TEN_STR_NONCE "nonce"
 #define TEN_STR_PROPERTIES "properties"
 #define TEN_STR_LONG_RUNNING_MODE "long_running_mode"
+#define TEN_STR_PRELOAD_ALL_ADDONS "preload_all_addons"
 #define TEN_STR_TYPE "type"
 #define TEN_STR_APP "app"
 #define TEN_STR_NAME "name"

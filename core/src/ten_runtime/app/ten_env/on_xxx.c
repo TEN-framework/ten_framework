@@ -138,6 +138,17 @@ static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
+  if (self->preload_all_addons) {
+    if (!ten_addon_load_all_extensions_from_app_base_dir(
+            ten_string_get_raw_str(&self->base_dir), &err)) {
+      TEN_LOGW(
+          "Failed to load extensions from app base dir during preload all "
+          "addons: %s",
+          ten_error_message(&err));
+      goto error;
+    }
+  }
+
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     TEN_LOGW("[%s] Failed to get predefined graphs from property.",
              ten_app_get_uri(self));
