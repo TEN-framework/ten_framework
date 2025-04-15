@@ -216,14 +216,14 @@ pub async fn update_graph_node_property_endpoint(
     };
 
     // Find the node in the graph.
-    let graph_node = graph_info.graph.nodes.iter().any(|node| {
+    let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
         node.type_and_name.name == request_payload.node_name
             && node.addon == request_payload.addon_name
             && node.extension_group == request_payload.extension_group_name
             && node.app == request_payload.app_uri
     });
 
-    if !graph_node {
+    if graph_node.is_none() {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: format!(
@@ -236,6 +236,9 @@ pub async fn update_graph_node_property_endpoint(
         };
         return Ok(HttpResponse::NotFound().json(error_response));
     }
+
+    // Update the node's property.
+    graph_node.unwrap().property = request_payload.property.clone();
 
     update_property_all_fields(pkgs_cache, graph_info, &request_payload)
         .map_err(|e| {
