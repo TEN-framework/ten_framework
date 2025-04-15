@@ -56,7 +56,7 @@ export const CustomNodeConnPopupContent = (props: {
   const { source, target, filters } = widget.metadata;
 
   return (
-    <div className="flex flex-col gap-2 w-full h-[328px]">
+    <div className="flex flex-col gap-2 w-full h-full">
       {source && target && (
         <EdgeInfoContent source={source} target={target} filters={filters} />
       )}
