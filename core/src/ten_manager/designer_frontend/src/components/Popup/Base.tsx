@@ -298,7 +298,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
         popupRef.current.style.zIndex = (highestZIndex + 1).toString();
       }
     },
-    [groupId, onSelectWidget]
+    [onSelectWidget]
   );
 
   React.useEffect(() => {

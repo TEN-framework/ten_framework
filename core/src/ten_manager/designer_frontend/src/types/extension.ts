@@ -68,3 +68,33 @@ export interface ITenPackage extends IListTenCloudStorePackage {
   isInstalled?: boolean;
   _type: EPackageSource.Default;
 }
+
+export const ExtensionPropertySchema = z.record(
+  z.string(),
+  z.object({
+    type: z.string(),
+    required: z.any().optional(),
+    items: z.any().optional(),
+    properties: z.any().optional(),
+  })
+);
+
+export const ExtensionConnectionItemSchema = z.object({
+  name: z.string(),
+  property: z.record(z.string(), z.any()).optional(),
+  required: z.array(z.string()).optional(),
+  result: z.any().optional(),
+});
+
+export const ExtensionSchema = z.object({
+  property: ExtensionPropertySchema.optional(),
+  required: z.array(z.string()).optional(),
+  cmd_in: z.array(ExtensionConnectionItemSchema).optional(),
+  cmd_out: z.array(ExtensionConnectionItemSchema).optional(),
+  data_in: z.array(ExtensionConnectionItemSchema).optional(),
+  data_out: z.array(ExtensionConnectionItemSchema).optional(),
+  audio_frame_in: z.array(ExtensionConnectionItemSchema).optional(),
+  audio_frame_out: z.array(ExtensionConnectionItemSchema).optional(),
+  video_frame_in: z.array(ExtensionConnectionItemSchema).optional(),
+  video_frame_out: z.array(ExtensionConnectionItemSchema).optional(),
+});

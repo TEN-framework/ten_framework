@@ -55,11 +55,11 @@ export const useListTenCloudStorePackages = (options?: {
   };
 };
 
-export const retrieveExtensionPropertySchema = async (options: {
+export const retrieveExtensionSchema = async (options: {
   appBaseDir: string;
   addonName: string;
 }) => {
-  const template = ENDPOINT_EXTENSION.propertySchema[ENDPOINT_METHOD.POST];
+  const template = ENDPOINT_EXTENSION.schema[ENDPOINT_METHOD.POST];
   const payload = template.requestPayload.parse({
     app_base_dir: options.appBaseDir,
     addon_name: options.addonName,
@@ -68,5 +68,5 @@ export const retrieveExtensionPropertySchema = async (options: {
     body: payload,
   });
   const res = await req;
-  return template.responseSchema.parse(res).data;
+  return template.responseSchema.parse(res).data.schema;
 };

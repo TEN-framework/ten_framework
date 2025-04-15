@@ -50,7 +50,7 @@ import {
   postAddConnection,
   postUpdateNodeProperty,
 } from "@/api/services/graphs";
-import { retrieveExtensionPropertySchema } from "@/api/services/extension";
+import { retrieveExtensionSchema } from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
 import {
   generateRawNodes,
@@ -117,10 +117,10 @@ export const GraphAddNodeWidget = (props: {
     resolver: zodResolver(AddNodePayloadSchema),
     defaultValues: {
       graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-      node_name: undefined,
-      addon_name: undefined,
-      extension_group_name: undefined,
-      app_uri: undefined,
+      name: undefined,
+      addon: undefined,
+      extension_group: undefined,
+      app: undefined,
       property: "{}" as unknown as Record<string, unknown>,
     },
   });
@@ -137,7 +137,7 @@ export const GraphAddNodeWidget = (props: {
         postAddNodeActions?.();
       }
       toast.success(t("popup.graph.addNodeSuccess"), {
-        description: `Node ${data.node_name} added successfully`,
+        description: `Node ${data.name} added successfully`,
       });
     } catch (error) {
       console.error(error);
@@ -228,7 +228,7 @@ export const GraphAddNodeWidget = (props: {
 
         <FormField
           control={form.control}
-          name="node_name"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("popup.graph.nodeName")}</FormLabel>
@@ -242,7 +242,7 @@ export const GraphAddNodeWidget = (props: {
 
         <FormField
           control={form.control}
-          name="addon_name"
+          name="addon"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("popup.graph.addonName")}</FormLabel>
@@ -552,12 +552,12 @@ export const GraphUpdateNodePropertyWidget = (props: {
     const fetchSchema = async () => {
       try {
         setIsSchemaLoading(true);
-        const schema = await retrieveExtensionPropertySchema({
+        const schema = await retrieveExtensionSchema({
           appBaseDir: currentWorkspace?.app?.base_dir ?? "",
           addonName: node.data.addon,
         });
         const propertySchemaEntries = convertExtensionPropertySchema2ZodSchema(
-          schema.property_schema
+          schema.property ?? {}
         );
         setPropertySchemaEntries(propertySchemaEntries);
       } catch (error) {
@@ -587,10 +587,10 @@ export const GraphUpdateNodePropertyWidget = (props: {
             try {
               const nodeData = UpdateNodePropertyPayloadSchema.parse({
                 graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-                node_name: node.data.name,
-                addon_name: node.data.addon,
-                extension_group_name: node.data.extension_group,
-                app_uri: app_uri ?? undefined,
+                name: node.data.name,
+                addon: node.data.addon,
+                extension_group: node.data.extension_group,
+                app: app_uri ?? undefined,
                 property: JSON.stringify(data, null, 2),
               });
               await postUpdateNodeProperty(nodeData);
