@@ -501,6 +501,7 @@ export const GraphAddConnectionWidget = (props: {
 
   React.useEffect(() => {
     const fetchNodeSchema = async () => {
+      if (!form.watch("src_extension")) return;
       try {
         form.setValue("msg_name", undefined as unknown as string);
         setIsMsgNameLoading(true);

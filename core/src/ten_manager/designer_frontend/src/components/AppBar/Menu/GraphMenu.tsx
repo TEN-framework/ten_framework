@@ -96,7 +96,6 @@ export function GraphMenu(props: {
       },
       popup: {
         width: 340,
-        height: 0.8,
       },
     });
   };
@@ -168,7 +167,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
+            disabled={!currentWorkspace || !currentWorkspace?.graph}
             onClick={onGraphAct(EGraphActions.ADD_NODE)}
           >
             <PackagePlusIcon />
@@ -179,7 +178,7 @@ export function GraphMenu(props: {
           <Button
             className="w-full justify-start"
             variant="ghost"
-            disabled={!currentWorkspace || !currentWorkspace?.app?.base_dir}
+            disabled={!currentWorkspace || !currentWorkspace?.graph}
             onClick={onGraphAct(EGraphActions.ADD_CONNECTION)}
           >
             <GitPullRequestCreateIcon />

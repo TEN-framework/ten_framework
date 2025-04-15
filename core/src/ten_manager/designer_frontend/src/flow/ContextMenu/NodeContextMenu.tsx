@@ -231,7 +231,6 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           },
           popup: {
             width: 340,
-            height: 0.8,
           },
         });
         onClose();
