@@ -86,6 +86,23 @@ pub async fn replace_graph_node_endpoint(
         }
     };
 
+    // Check if property conforms to schema.
+    if let Err(e) = validate_extension_property(
+        &request_payload.property,
+        &request_payload.app,
+        &request_payload.addon,
+        &uri_to_pkg_info,
+        &graph_info.app_base_dir,
+        pkgs_cache,
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to validate extension property: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
+
     // Find the graph node in the graph.
     let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
         node.type_and_name.name == request_payload.name
@@ -104,23 +121,6 @@ pub async fn replace_graph_node_endpoint(
             error: None,
         };
         return Ok(HttpResponse::NotFound().json(error_response));
-    }
-
-    // Check if property conforms to schema.
-    if let Err(e) = validate_extension_property(
-        &request_payload.property,
-        &request_payload.app,
-        &request_payload.addon,
-        &uri_to_pkg_info,
-        &graph_info.app_base_dir,
-        pkgs_cache,
-    ) {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: format!("Failed to validate extension property: {}", e),
-            error: None,
-        };
-        return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
     // Replace the addon and property of the graph node.

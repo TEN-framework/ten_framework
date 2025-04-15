@@ -26,6 +26,9 @@ mod tests {
         graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
+    use ten_rust::pkg_info::constants::{
+        MANIFEST_JSON_FILENAME, PROPERTY_JSON_FILENAME,
+    };
     use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -166,8 +169,27 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_replace_graph_node_update_fails() {
-        // Setup a designer state.
+    async fn test_replace_graph_node_with_property_success() {
+        // Create a test directory with property.json file.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
+
+        // Read test data from embedded JSON files.
+        let input_property_json_str =
+            include_str!("../test_data_embed/app_property.json");
+        let input_manifest_json_str =
+            include_str!("../test_data_embed/app_manifest.json");
+
+        // Write input files to temp directory.
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, input_property_json_str).unwrap();
+
+        let manifest_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+
+        // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
@@ -176,12 +198,24 @@ mod tests {
             graphs_cache: HashMap::new(),
         };
 
-        // Inject test data.
-        let all_pkgs_json_str = vec![(
-            TEST_DIR.to_string(),
-            include_str!("../test_data_embed/app_manifest.json").to_string(),
-            include_str!("../test_data_embed/app_property.json").to_string(),
-        )];
+        // Inject the test app into the mock.
+        let all_pkgs_json_str = vec![
+            (
+                temp_dir_path.clone(),
+                input_manifest_json_str.to_string(),
+                input_property_json_str.to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/test_addon_manifest.json")
+                    .to_string(),
+                "{}".to_string(),
+            ),
+        ];
 
         let inject_ret = inject_all_pkgs_for_mock(
             &mut designer_state.pkgs_cache,
@@ -191,10 +225,9 @@ mod tests {
         assert!(inject_ret.is_ok());
 
         // Get an existing graph ID with a node we can replace.
-        let graphs_cache_clone = designer_state.graphs_cache.clone();
         let graph_id = {
             let (id, _) = graphs_cache_find_by_name(
-                &graphs_cache_clone,
+                &designer_state.graphs_cache,
                 "default_with_app_uri",
             )
             .unwrap();
@@ -230,18 +263,13 @@ mod tests {
                 .clone()
         };
 
-        // Try to replace a node with a complex property that should cause an
-        // update failure.
+        // Try to replace a node with an invalid property (integer instead of
+        // string).
         let node_name = existing_node_name;
         let node_addon = "test_addon".to_string();
         let node_app = Some("http://example.com:8000".to_string());
         let node_property = Some(serde_json::json!({
-            "complex_nested_object": {
-                "array": [1, 2, 3],
-                "nested": {
-                    "value": "some value"
-                }
-            }
+            "test_property": "new_value"
         }));
 
         let request_payload = ReplaceGraphNodeRequestPayload {
@@ -258,56 +286,196 @@ mod tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
 
-        // The actual response status depends on how the endpoint handles file
-        // operation errors. In some environments it might return 400,
-        // in others 200 with a warning.
-        let status = resp.status().as_u16();
+        // The response should be 200 OK.
+        let status = resp.status();
+        assert_eq!(status, 200);
+
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
         println!("Response status: {}", status);
         println!("Response body: {}", body_str);
 
-        // We should either get a 400 error response or a 200 success response
-        match status {
-            400 => {
-                // If we get a 400, it should be because updating property.json
-                // failed
-                let response: ErrorResponse =
-                    serde_json::from_str(body_str).unwrap();
-                assert_eq!(response.status, Status::Fail);
-                assert!(response
-                    .message
-                    .contains("Failed to update property.json file"));
-            }
-            200 => {
-                // If we get a 200, the node was updated in memory, but the file
-                // update might have failed (with a warning)
-                let response: ApiResponse<ReplaceGraphNodeResponsePayload> =
-                    serde_json::from_str(body_str).unwrap();
-                assert_eq!(response.status, Status::Ok);
-                assert!(response.data.success);
+        // Read the updated property.json file to verify it hasn't changed.
+        let updated_property_content =
+            std::fs::read_to_string(&property_path).unwrap();
+        let expected_property_content =
+            include_str!("test_data_embed/expected_app_property_1.json");
 
-                // Verify the node was actually updated in memory
-                let designer_state = designer_state_arc.read().unwrap();
-                let graph_info =
-                    designer_state.graphs_cache.get(&graph_id).unwrap();
-                let updated_node = graph_info
-                    .graph
-                    .nodes
-                    .iter()
-                    .find(|node| {
-                        node.type_and_name.name == node_name
-                            && node.app == node_app
-                    })
-                    .unwrap();
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: serde_json::Value =
+            serde_json::from_str(&updated_property_content).unwrap();
+        let expected_property: serde_json::Value =
+            serde_json::from_str(expected_property_content).unwrap();
 
-                assert_eq!(updated_node.addon, node_addon);
-            }
-            _ => {
-                // Any other status code is unexpected
-                panic!("Unexpected response status: {}", status);
-            }
-        }
+        println!(
+            "Updated property: {}",
+            serde_json::to_string_pretty(&updated_property).unwrap()
+        );
+        println!(
+            "Expected property: {}",
+            serde_json::to_string_pretty(&expected_property).unwrap()
+        );
+
+        // Compare the updated property with the expected property.
+        assert_eq!(
+            updated_property, expected_property,
+            "Property file should not have changed"
+        );
+    }
+
+    #[actix_web::test]
+    async fn test_replace_graph_node_update_fails() {
+        // Create a test directory with property.json file.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
+
+        // Read test data from embedded JSON files.
+        let input_property_json_str =
+            include_str!("../test_data_embed/app_property.json");
+        let input_manifest_json_str =
+            include_str!("../test_data_embed/app_manifest.json");
+
+        // Write input files to temp directory.
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, input_property_json_str).unwrap();
+
+        let manifest_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+
+        // Initialize test state.
+        let mut designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
+        };
+
+        // Inject the test app into the mock.
+        let all_pkgs_json_str = vec![
+            (
+                temp_dir_path.clone(),
+                input_manifest_json_str.to_string(),
+                input_property_json_str.to_string(),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    temp_dir_path.clone(),
+                    "/ten_packages/extension/extension_1"
+                ),
+                include_str!("test_data_embed/test_addon_manifest.json")
+                    .to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        // Get an existing graph ID with a node we can replace.
+        let graph_id = {
+            let (id, _) = graphs_cache_find_by_name(
+                &designer_state.graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+            *id
+        };
+
+        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+
+        // Setup test app.
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state_arc.clone()))
+                .route(
+                    "/api/designer/v1/graphs/nodes/replace",
+                    web::post().to(replace_graph_node_endpoint),
+                ),
+        )
+        .await;
+
+        // Find an existing node name for our test.
+        let existing_node_name = {
+            let designer_state = designer_state_arc.read().unwrap();
+            let graph_info =
+                designer_state.graphs_cache.get(&graph_id).unwrap();
+            // Assuming there's at least one node in the graph.
+            graph_info
+                .graph
+                .nodes
+                .first()
+                .unwrap()
+                .type_and_name
+                .name
+                .clone()
+        };
+
+        // Try to replace a node with an invalid property (integer instead of
+        // string).
+        let node_name = existing_node_name;
+        let node_addon = "test_addon".to_string();
+        let node_app = Some("http://example.com:8000".to_string());
+        let node_property = Some(serde_json::json!({
+            "test_property": 13
+        }));
+
+        let request_payload = ReplaceGraphNodeRequestPayload {
+            graph_id,
+            name: node_name.clone(),
+            addon: node_addon.clone(),
+            app: node_app.clone(),
+            property: node_property.clone(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/nodes/replace")
+            .set_json(request_payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // The response should be 400 Bad Request.
+        let status = resp.status();
+        assert_eq!(status, 400);
+
+        let body = test::read_body(resp).await;
+        let body_str = std::str::from_utf8(&body).unwrap();
+        println!("Response status: {}", status);
+        println!("Response body: {}", body_str);
+
+        // The response should indicate failure.
+        let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
+        assert_eq!(response.status, Status::Fail);
+        assert!(
+            response
+                .message
+                .contains("Failed to validate extension property")
+                || response.message.contains("Property validation failed")
+        );
+
+        // Read the updated property.json file to verify it hasn't changed.
+        let updated_property_content =
+            std::fs::read_to_string(&property_path).unwrap();
+
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: serde_json::Value =
+            serde_json::from_str(&updated_property_content).unwrap();
+        let input_property: serde_json::Value =
+            serde_json::from_str(input_property_json_str).unwrap();
+
+        // Compare the updated property with the input property (should be
+        // unchanged).
+        assert_eq!(
+            updated_property, input_property,
+            "Property file should not have changed"
+        );
     }
 
     #[actix_web::test]
