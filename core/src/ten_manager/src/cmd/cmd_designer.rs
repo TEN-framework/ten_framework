@@ -117,8 +117,8 @@ pub async fn execute_cmd(
     };
 
     let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: tman_config.clone(),
-        tman_internal_config: tman_internal_config.clone(),
+        tman_config,
+        tman_internal_config,
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
