@@ -27,9 +27,10 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{graphs_cache_find_by_id_mut, update_graph_node_all_fields},
-    pkg_info::belonging_pkg_info_find_by_graph_info_mut,
+    graph::graphs_cache_find_by_id_mut,
 };
+
+use super::{update_graph_node_in_property_all_fields, GraphNodeUpdateAction};
 
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphNodeRequestPayload {
@@ -204,46 +205,22 @@ pub async fn add_graph_node_endpoint(
         &request_payload.app_uri,
     ) {
         Ok(_) => {
-            if let Ok(Some(pkg_info)) =
-                belonging_pkg_info_find_by_graph_info_mut(
-                    pkgs_cache, graph_info,
-                )
-            {
-                // Create the graph node.
-                let new_node = GraphNode {
-                    type_and_name: PkgTypeAndName {
-                        pkg_type: PkgType::Extension,
-                        name: request_payload.node_name.to_string(),
-                    },
-                    addon: request_payload.addon_name.to_string(),
-                    extension_group: request_payload
-                        .extension_group_name
-                        .clone(),
-                    app: request_payload.app_uri.clone(),
-                    property: request_payload.property.clone(),
-                };
-
-                // Update property.json file with the new graph node.
-                if let Some(property) = &mut pkg_info.property {
-                    // Write the updated property_all_fields map to
-                    // property.json.
-                    let nodes_to_add = vec![new_node.clone()];
-
-                    if let Err(e) = update_graph_node_all_fields(
-                        &pkg_info.url,
-                        &mut property.all_fields,
-                        graph_info.name.as_ref().unwrap(),
-                        Some(&nodes_to_add),
-                        None,
-                        None,
-                    ) {
-                        eprintln!(
-                            "Warning: Failed to update property.json file: {}",
-                            e
-                        );
-                    }
-                }
-            }
+            update_graph_node_in_property_all_fields(
+                pkgs_cache,
+                graph_info,
+                &request_payload.node_name,
+                &request_payload.addon_name,
+                &request_payload.extension_group_name,
+                &request_payload.app_uri,
+                &request_payload.property,
+                GraphNodeUpdateAction::Add,
+            )
+            .map_err(|e| {
+                actix_web::error::ErrorInternalServerError(format!(
+                    "Failed to update property.json file: {}",
+                    e
+                ))
+            })?;
 
             let response = ApiResponse {
                 status: Status::Ok,
