@@ -12,7 +12,7 @@ import {
   prepareReqUrl,
   getQueryHookCache,
 } from "@/api/services/utils";
-import { ENDPOINT_GRAPHS } from "@/api/endpoints";
+import { ENDPOINT_GRAPH_UI, ENDPOINT_GRAPHS } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
 import type {
@@ -22,7 +22,8 @@ import type {
   AddConnectionPayloadSchema,
   DeleteConnectionPayloadSchema,
   UpdateNodePropertyPayloadSchema,
-  ValidatePropertyPayloadSchema,
+  SetGraphUiPayloadSchema,
+  GraphUiNodeGeometrySchema,
 } from "@/types/graphs";
 
 export const retrieveGraphNodes = async (graphId: string) => {
@@ -145,13 +146,25 @@ export const postUpdateNodeProperty = async (
   return template.responseSchema.parse(res).data;
 };
 
-export const postValidateProperty = async (
-  data: z.infer<typeof ValidatePropertyPayloadSchema>
+export const postSetGraphNodeGeometry = async (
+  data: z.infer<typeof SetGraphUiPayloadSchema>
 ) => {
-  const template = ENDPOINT_GRAPHS.nodesPropertyValidate[ENDPOINT_METHOD.POST];
+  const template = ENDPOINT_GRAPH_UI.set[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
     body: data,
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
+};
+
+export const postGetGraphNodeGeometry = async (
+  graphId: string
+): Promise<z.infer<typeof GraphUiNodeGeometrySchema>[]> => {
+  const template = ENDPOINT_GRAPH_UI.get[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { graph_id: graphId },
+  });
+  const res = await req;
+  const data = template.responseSchema.parse(res).data;
+  return data?.graph_geometry?.nodes_geometry || [];
 };

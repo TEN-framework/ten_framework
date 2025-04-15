@@ -16,9 +16,9 @@ import ContextMenu, {
 import { dispatchCustomNodeActionPopup } from "@/utils/events";
 import { useDialogStore, useAppStore, useFlowStore } from "@/store";
 import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
+import { postDeleteConnection } from "@/api/services/graphs";
 
 import type { TCustomEdge } from "@/types/flow";
-import { postDeleteConnection } from "@/api/services/graphs";
 
 interface EdgeContextMenuProps {
   visible: boolean;
@@ -68,7 +68,12 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
       label: t("action.delete"),
       icon: <TrashIcon />,
       onClick: () => {
-        const dialogId = edge.source + edge.target + "close-popup-dialog";
+        const dialogId =
+          edge.source +
+          edge.target +
+          edge.type +
+          edge.id +
+          "delete-popup-dialog";
         if (!currentWorkspace?.graph) {
           return;
         }

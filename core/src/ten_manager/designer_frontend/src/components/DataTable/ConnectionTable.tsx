@@ -20,12 +20,12 @@ import {
 import {
   BlocksIcon,
   ArrowBigRightDashIcon,
-  // MoreHorizontal,
+  MoreHorizontal,
   ArrowUpDown,
   ArrowUpIcon,
   ArrowDownIcon,
 } from "lucide-react";
-// import { toast } from "sonner";
+import { toast } from "sonner";
 
 import {
   Table,
@@ -37,24 +37,29 @@ import {
 } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/DropdownMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  // DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import { cn } from "@/lib/utils";
 import { dispatchCustomNodeActionPopup } from "@/utils/events";
-
+import { useDialogStore, useAppStore, useFlowStore } from "@/store";
+import { postDeleteConnection } from "@/api/services/graphs";
+import { resetNodesAndEdgesByGraph } from "@/components/Widget/GraphsWidget";
 import { EConnectionType } from "@/types/graphs";
+
+import type { TCustomEdge } from "@/types/flow";
 
 export type TConnection = {
   id: string;
   source: string;
   target: string;
   type?: EConnectionType;
+  _meta: TCustomEdge;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -113,6 +118,110 @@ export const commonConnectionColumns: ColumnDef<TConnection>[] = [
   },
 ];
 
+export const ActionDropdownMenu = (props: { edge: TCustomEdge }) => {
+  const { edge } = props;
+
+  const { t } = useTranslation();
+
+  const { appendDialog, removeDialog } = useDialogStore();
+  const { currentWorkspace } = useAppStore();
+  const { setNodesAndEdges } = useFlowStore();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">
+            <Translation>
+              {(t) => <div className="">{t("dataTable.openMenu")}</div>}
+            </Translation>
+          </span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="z-2000">
+        <DropdownMenuLabel>
+          <Translation>
+            {(t) => <div className="">{t("dataTable.actions")}</div>}
+          </Translation>
+        </DropdownMenuLabel>
+        {/* <DropdownMenuItem
+      onClick={() => {
+        toast.info("View Details", {
+          description:
+            "Source: " +
+            source +
+            ", Target: " +
+            target +
+            ", Type: " +
+            type,
+        });
+      }}
+    >
+      <Translation>
+        {(t) => <div className="">{t("dataTable.viewDetails")}</div>}
+      </Translation>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator /> */}
+        <DropdownMenuItem
+          onClick={() => {
+            const dialogId =
+              edge.source +
+              edge.target +
+              edge.type +
+              edge.id +
+              "delete-popup-dialog";
+            if (!currentWorkspace?.graph) {
+              return;
+            }
+            appendDialog({
+              id: dialogId,
+              title: t("action.confirm"),
+              content: t("action.deleteConnectionConfirmation"),
+              confirmLabel: t("action.delete"),
+              cancelLabel: t("action.cancel"),
+              onConfirm: async () => {
+                try {
+                  await postDeleteConnection({
+                    graph_id: currentWorkspace!.graph!.uuid,
+                    src_app: edge.data!.app,
+                    src_extension: edge.source,
+                    msg_type: edge.data!.connectionType,
+                    msg_name: edge.data!.name,
+                    dest_app: edge.data!.app,
+                    dest_extension: edge.target,
+                  });
+                  toast.success(t("action.deleteConnectionSuccess"));
+                  const { nodes, edges } = await resetNodesAndEdgesByGraph(
+                    currentWorkspace!.graph!
+                  );
+                  setNodesAndEdges(nodes, edges);
+                } catch (error) {
+                  console.error(error);
+                  toast.error(t("action.deleteConnectionFailed"), {
+                    description:
+                      error instanceof Error ? error.message : "Unknown error",
+                  });
+                } finally {
+                  removeDialog(dialogId);
+                }
+              },
+              onCancel: async () => {
+                removeDialog(dialogId);
+              },
+              postConfirm: async () => {},
+            });
+          }}
+        >
+          <Translation>
+            {(t) => <div className="">{t("dataTable.delete")}</div>}
+          </Translation>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const connectionColumns: ColumnDef<TConnection>[] = [
   ...commonConnectionColumns,
@@ -132,111 +241,20 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
       </Translation>
     ),
   },
-  // {
-  //   id: "actions",
-  //   header: () => (
-  //     <Translation>
-  //       {(t) => <div className="">{t("dataTable.actions")}</div>}
-  //     </Translation>
-  //   ),
-  //   cell: ({ row }) => {
-  //     const connection = row.original;
-  //     const { source, target, type } = connection;
+  {
+    id: "actions",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.actions")}</div>}
+      </Translation>
+    ),
+    cell: ({ row }) => {
+      const connection = row.original;
+      const { _meta } = connection;
 
-  //     return (
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild>
-  //           <Button variant="ghost" className="h-8 w-8 p-0">
-  //             <span className="sr-only">
-  //               <Translation>
-  //                 {(t) => <div className="">{t("dataTable.openMenu")}</div>}
-  //               </Translation>
-  //             </span>
-  //             <MoreHorizontal className="h-4 w-4" />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end" className="z-2000">
-  //           <DropdownMenuLabel>
-  //             <Translation>
-  //               {(t) => <div className="">{t("dataTable.actions")}</div>}
-  //             </Translation>
-  //           </DropdownMenuLabel>
-  //           <DropdownMenuItem
-  //             onClick={() => {
-  //               toast.info("View Details", {
-  //                 description:
-  //                   "Source: " +
-  //                   source +
-  //                   ", Target: " +
-  //                   target +
-  //                   ", Type: " +
-  //                   type,
-  //               });
-  //             }}
-  //           >
-  //             <Translation>
-  //               {(t) => <div className="">{t("dataTable.viewDetails")}</div>}
-  //             </Translation>
-  //           </DropdownMenuItem>
-  //           <DropdownMenuSeparator />
-  //           <DropdownMenuItem
-  //             onClick={() => {
-  //               const dialogId =
-  //                 edge.source + edge.target + "close-popup-dialog";
-  //               if (!currentWorkspace?.graph) {
-  //                 return;
-  //               }
-  //               appendDialog({
-  //                 id: dialogId,
-  //                 title: t("action.confirm"),
-  //                 content: t("action.deleteConnectionConfirmation"),
-  //                 confirmLabel: t("action.delete"),
-  //                 cancelLabel: t("action.cancel"),
-  //                 onConfirm: async () => {
-  //                   try {
-  //                     await postDeleteConnection({
-  //                       graph_id: currentWorkspace!.graph!.uuid,
-  //                       src_app: edge.data!.app,
-  //                       src_extension: edge.source,
-  //                       msg_type: edge.data!.connectionType,
-  //                       msg_name: edge.data!.name,
-  //                       dest_app: edge.data!.app,
-  //                       dest_extension: edge.target,
-  //                     });
-  //                     toast.success(t("action.deleteConnectionSuccess"));
-  // eslint-disable-next-line max-len
-  //                     const { nodes, edges } = await resetNodesAndEdgesByGraph(
-  //                       currentWorkspace!.graph!
-  //                     );
-  //                     setNodesAndEdges(nodes, edges);
-  //                   } catch (error) {
-  //                     console.error(error);
-  //                     toast.error(t("action.deleteConnectionFailed"), {
-  //                       description:
-  //                         error instanceof Error
-  //                           ? error.message
-  //                           : "Unknown error",
-  //                     });
-  //                   } finally {
-  //                     removeDialog(dialogId);
-  //                   }
-  //                 },
-  //                 onCancel: async () => {
-  //                   removeDialog(dialogId);
-  //                 },
-  //                 postConfirm: async () => {},
-  //               });
-  //             }}
-  //           >
-  //             <Translation>
-  //               {(t) => <div className="">{t("dataTable.delete")}</div>}
-  //             </Translation>
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
-  //       </DropdownMenu>
-  //     );
-  //   },
-  // },
+      return <ActionDropdownMenu edge={_meta} />;
+    },
+  },
 ];
 
 // eslint-disable-next-line react-refresh/only-export-components

@@ -104,8 +104,11 @@ export const ENDPOINT_COMMON = {
   },
 };
 
-export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";
-export { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints/fileSystem";
+export { ENDPOINT_GRAPHS, ENDPOINT_GRAPH_UI } from "@/api/endpoints/graphs";
+export {
+  ENDPOINT_FILE_SYSTEM,
+  ENDPOINT_FILE_VALIDATE,
+} from "@/api/endpoints/fileSystem";
 export {
   ENDPOINT_APPS,
   ENDPOINT_ADDONS,

@@ -15,7 +15,12 @@ import { type editor as MonacoEditor } from "monaco-editor";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-import { retrieveFileContent, putFileContent } from "@/api/services/fileSystem";
+import {
+  retrieveFileContent,
+  putFileContent,
+  validateManifest,
+  validateProperty,
+} from "@/api/services/fileSystem";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { useDialogStore, useWidgetStore } from "@/store";
 
@@ -66,6 +71,12 @@ const EditorWidget = React.forwardRef<IEditorWidgetRef, EditorWidgetProps>(
 
     const saveFile = async (content: string) => {
       try {
+        if (data.url?.includes("manifest.json")) {
+          await validateManifest(content);
+        }
+        if (data.url?.includes("property.json")) {
+          await validateProperty(content);
+        }
         await putFileContent(data.url, { content });
         isEditingRef.current = false;
         updateEditorStatus(id, false);

@@ -17,7 +17,6 @@ import {
   AddConnectionPayloadSchema,
   EConnectionType,
   UpdateNodePropertyPayloadSchema,
-  ValidatePropertyPayloadSchema,
   IGraph,
 } from "@/types/graphs";
 import { Button } from "@/components/ui/Button";
@@ -50,7 +49,6 @@ import {
   retrieveGraphConnections,
   postAddConnection,
   postUpdateNodeProperty,
-  postValidateProperty,
 } from "@/api/services/graphs";
 import { retrieveExtensionPropertySchema } from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
@@ -60,6 +58,7 @@ import {
   updateNodesWithConnections,
   updateNodesWithAddonInfo,
   generateNodesAndEdges,
+  syncGraphNodeGeometry,
 } from "@/flow/graph";
 import { useAppStore, useFlowStore } from "@/store";
 import type { TCustomNode } from "@/types/flow";
@@ -88,7 +87,12 @@ export const resetNodesAndEdgesByGraph = async (graph: IGraph) => {
     rawEdges
   );
 
-  return { nodes: layoutedNodes, edges: layoutedEdges };
+  const nodesWithGeometry = await syncGraphNodeGeometry(
+    graph.uuid,
+    layoutedNodes
+  );
+
+  return { nodes: nodesWithGeometry, edges: layoutedEdges };
 };
 
 export const GraphAddNodeWidget = (props: {
@@ -594,11 +598,6 @@ export const GraphUpdateNodePropertyWidget = (props: {
                 app_uri: app_uri ?? undefined,
                 property: JSON.stringify(data, null, 2),
               });
-              await postValidateProperty(
-                ValidatePropertyPayloadSchema.parse({
-                  property_json_str: JSON.stringify(nodeData.property, null, 2),
-                })
-              );
               await postUpdateNodeProperty(nodeData);
               if (currentWorkspace?.graph) {
                 const { nodes, edges } = await resetNodesAndEdgesByGraph(

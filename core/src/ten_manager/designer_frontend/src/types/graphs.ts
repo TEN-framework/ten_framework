@@ -119,10 +119,6 @@ export const DeleteConnectionPayloadSchema = z.object({
   dest_extension: z.string(),
 });
 
-export const ValidatePropertyPayloadSchema = z.object({
-  property_json_str: z.string().default("{}"),
-});
-
 export const UpdateNodePropertyPayloadSchema = z.object({
   graph_id: z.string(),
   node_name: z.string(),
@@ -132,4 +128,18 @@ export const UpdateNodePropertyPayloadSchema = z.object({
   property: stringToJSONSchema
     .pipe(z.record(z.string(), z.unknown()))
     .default("{}"),
+});
+
+export const GraphUiNodeGeometrySchema = z.object({
+  app: z.string().optional(),
+  extension: z.string(),
+  x: z.number(),
+  y: z.number(),
+});
+
+export const SetGraphUiPayloadSchema = z.object({
+  graph_id: z.string(),
+  graph_geometry: z.object({
+    nodes_geometry: z.array(GraphUiNodeGeometrySchema),
+  }),
 });
