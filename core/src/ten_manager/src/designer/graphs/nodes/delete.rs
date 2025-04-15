@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
@@ -12,7 +13,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use ten_rust::{
-    graph::{node::GraphNode, Graph},
+    base_dir_pkg_info::PkgsInfoInApp,
+    graph::{graph_info::GraphInfo, node::GraphNode, Graph},
     pkg_info::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName},
 };
 
@@ -170,69 +172,83 @@ pub async fn delete_graph_node_endpoint(
     };
 
     // Delete the extension node.
-    match graph_delete_extension_node(
+    if let Err(err) = graph_delete_extension_node(
         &mut graph_info.graph,
         request_payload.name.clone(),
         request_payload.addon.clone(),
         request_payload.app.clone(),
         request_payload.extension_group.clone(),
     ) {
-        Ok(_) => {
-            if let Ok(Some(pkg_info)) =
-                belonging_pkg_info_find_by_graph_info_mut(
-                    pkgs_cache, graph_info,
-                )
-            {
-                // Update property.json file to remove the graph node.
-                if let Some(property) = &mut pkg_info.property {
-                    // Create the GraphNode we want to remove.
-                    let node_to_remove = GraphNode {
-                        type_and_name: PkgTypeAndName {
-                            pkg_type: PkgType::Extension,
-                            name: request_payload.name.clone(),
-                        },
-                        addon: request_payload.addon.clone(),
-                        extension_group: request_payload
-                            .extension_group
-                            .clone(),
-                        app: request_payload.app.clone(),
-                        property: None,
-                    };
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to delete node: {}", err),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-                    let nodes_to_remove = vec![node_to_remove];
+    // Try to update property.json file if possible
+    update_property_json_if_needed(
+        pkgs_cache,
+        graph_info,
+        &request_payload.name,
+        &request_payload.addon,
+        request_payload.extension_group.as_deref(),
+        request_payload.app.as_deref(),
+    );
 
-                    // Write the updated property_all_fields map to
-                    // property.json.
-                    if let Err(e) = update_graph_node_all_fields(
-                        &pkg_info.url,
-                        &mut property.all_fields,
-                        graph_info.name.as_ref().unwrap(),
-                        None,
-                        Some(&nodes_to_remove),
-                        None,
-                    ) {
-                        eprintln!(
-                            "Warning: Failed to update property.json file: {}",
-                            e
-                        );
-                    }
-                }
-            }
+    // Return success response
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: DeleteGraphNodeResponsePayload { success: true },
+        meta: None,
+    };
+    Ok(HttpResponse::Ok().json(response))
+}
 
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: DeleteGraphNodeResponsePayload { success: true },
-                meta: None,
-            };
-            Ok(HttpResponse::Ok().json(response))
-        }
-        Err(err) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: format!("Failed to delete node: {}", err),
-                error: None,
-            };
-            Ok(HttpResponse::BadRequest().json(error_response))
+/// Helper function to update property.json after node deletion
+fn update_property_json_if_needed(
+    pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
+    graph_info: &mut GraphInfo,
+    node_name: &str,
+    addon: &str,
+    extension_group: Option<&str>,
+    app: Option<&str>,
+) {
+    // Try to find the belonging package info
+    if let Ok(Some(pkg_info)) =
+        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Check if property exists
+        let property = match &mut pkg_info.property {
+            Some(property) => property,
+            None => return,
+        };
+
+        // Create the GraphNode we want to remove
+        let node_to_remove = GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: node_name.to_string(),
+            },
+            addon: addon.to_string(),
+            extension_group: extension_group.map(String::from),
+            app: app.map(String::from),
+            property: None,
+        };
+
+        let nodes_to_remove = vec![node_to_remove];
+
+        // Update property.json file
+        if let Err(e) = update_graph_node_all_fields(
+            &pkg_info.url,
+            &mut property.all_fields,
+            graph_info.name.as_ref().unwrap(),
+            None,
+            Some(&nodes_to_remove),
+            None,
+        ) {
+            eprintln!("Warning: Failed to update property.json file: {}", e);
         }
     }
 }
