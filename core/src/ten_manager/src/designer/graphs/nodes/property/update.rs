@@ -135,6 +135,33 @@ fn update_property_all_fields(
     Ok(())
 }
 
+fn update_node_property_in_graph(
+    graph_info: &mut GraphInfo,
+    request_payload: &UpdateGraphNodePropertyRequestPayload,
+) -> Result<()> {
+    // Find the node in the graph.
+    let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
+        node.type_and_name.name == request_payload.node_name
+            && node.addon == request_payload.addon_name
+            && node.extension_group == request_payload.extension_group_name
+            && node.app == request_payload.app_uri
+    });
+
+    if graph_node.is_none() {
+        return Err(anyhow::anyhow!(
+            "Node '{}' with addon '{}' not found in graph '{}'",
+            request_payload.node_name,
+            request_payload.addon_name,
+            request_payload.graph_id
+        ));
+    }
+
+    // Update the node's property.
+    graph_node.unwrap().property = request_payload.property.clone();
+
+    Ok(())
+}
+
 pub async fn update_graph_node_property_endpoint(
     request_payload: web::Json<UpdateGraphNodePropertyRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -215,30 +242,14 @@ pub async fn update_graph_node_property_endpoint(
         }
     };
 
-    // Find the node in the graph.
-    let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
-        node.type_and_name.name == request_payload.node_name
-            && node.addon == request_payload.addon_name
-            && node.extension_group == request_payload.extension_group_name
-            && node.app == request_payload.app_uri
-    });
-
-    if graph_node.is_none() {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: format!(
-                "Node '{}' with addon '{}' not found in graph '{}'",
-                request_payload.node_name,
-                request_payload.addon_name,
-                request_payload.graph_id
-            ),
-            error: None,
-        };
-        return Ok(HttpResponse::NotFound().json(error_response));
-    }
-
-    // Update the node's property.
-    graph_node.unwrap().property = request_payload.property.clone();
+    update_node_property_in_graph(graph_info, &request_payload).map_err(
+        |e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to update node property in graph: {}",
+                e
+            ))
+        },
+    )?;
 
     update_property_all_fields(pkgs_cache, graph_info, &request_payload)
         .map_err(|e| {
