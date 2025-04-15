@@ -1,12 +1,12 @@
 {
   "type": "extension",
   "name": "websocket_server_nodejs",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "dependencies": [
     {
       "type": "system",
       "name": "ten_runtime_nodejs",
-      "version": "0.9.1"
+      "version": "0.9.2"
     }
   ],
   "package": {
