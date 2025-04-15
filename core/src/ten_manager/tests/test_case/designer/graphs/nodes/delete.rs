@@ -73,10 +73,10 @@ mod tests {
         // Try to delete a node from a non-existent graph.
         let request_payload = DeleteGraphNodeRequestPayload {
             graph_id: Uuid::new_v4(),
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://test-app-uri.com".to_string()),
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://test-app-uri.com".to_string()),
         };
 
         let req = test::TestRequest::post()
@@ -129,10 +129,10 @@ mod tests {
         // Try to delete a non-existent node from an existing graph.
         let request_payload = DeleteGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "non_existent_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "non_existent_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -234,10 +234,10 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: graph_id_clone,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: Some(serde_json::json!({
                 "test_property": "test_value_for_delete"
             })),
@@ -284,10 +284,10 @@ mod tests {
         // Now delete the node we just added.
         let delete_request_payload = DeleteGraphNodeRequestPayload {
             graph_id: graph_id_clone,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
         };
 
         let req = test::TestRequest::post()

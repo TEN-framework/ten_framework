@@ -5,4 +5,4 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod create;
-pub mod property;
+pub mod schema;
