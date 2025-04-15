@@ -435,4 +435,112 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
   return true;
 }
 
+bool ten_addon_load_all_extensions_from_app_base_dir(const char *app_base_dir,
+                                                     ten_error_t *err) {
+  TEN_ASSERT(app_base_dir, "Invalid argument.");
+
+  bool success = true;
+
+  ten_string_t extension_folder_path;
+  ten_string_init_from_c_str_with_size(&extension_folder_path, app_base_dir,
+                                       strlen(app_base_dir));
+  ten_string_append_formatted(&extension_folder_path,
+                              "/ten_packages/extension");
+
+  if (ten_path_to_system_flavor(&extension_folder_path) != 0) {
+    TEN_LOGE("Failed to convert path to system flavor: %s",
+             ten_string_get_raw_str(&extension_folder_path));
+    success = false;
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Failed to convert path to system flavor: %s",
+                    ten_string_get_raw_str(&extension_folder_path));
+    }
+
+    goto done;
+  }
+
+  if (ten_path_exists(ten_string_get_raw_str(&extension_folder_path))) {
+    ten_dir_fd_t *dir =
+        ten_path_open_dir(ten_string_get_raw_str(&extension_folder_path));
+    if (!dir) {
+      TEN_LOGE("Failed to open extension folder: %s",
+               ten_string_get_raw_str(&extension_folder_path));
+      success = false;
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Failed to open extension folder: %s",
+                      ten_string_get_raw_str(&extension_folder_path));
+      }
+      goto done;
+    }
+
+    ten_path_itor_t *itor = ten_path_get_first(dir);
+    while (itor) {
+      ten_string_t *short_name = ten_path_itor_get_name(itor);
+      if (!short_name) {
+        TEN_LOGE("Failed to get short name under extension folder: %s",
+                 ten_string_get_raw_str(&extension_folder_path));
+        itor = ten_path_get_next(itor);
+        continue;
+      }
+
+      if (!(ten_string_is_equal_c_str(short_name, ".") ||
+            ten_string_is_equal_c_str(short_name, ".."))) {
+        // According to the short name, we try to load the corresponding addon
+        // using native addon loader and all other addon loaders.
+
+        // Check if the addon is already loaded.
+        if (ten_addon_manager_is_addon_loaded(
+                ten_addon_manager_get_instance(), TEN_ADDON_TYPE_EXTENSION,
+                ten_string_get_raw_str(short_name))) {
+          TEN_LOGD("Addon %s:%s is already loaded, skipping.",
+                   ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
+                   ten_string_get_raw_str(short_name));
+
+          ten_string_destroy(short_name);
+          itor = ten_path_get_next(itor);
+
+          continue;
+        }
+
+        // Load the addon using the native addon loader.
+        bool rc = ten_addon_load_specific_addon_using_native_addon_loader(
+            app_base_dir, TEN_ADDON_TYPE_EXTENSION,
+            ten_string_get_raw_str(short_name), err);
+
+        // Check if the addon is loaded successfully again.
+        if (rc &&
+            ten_addon_manager_is_addon_loaded(
+                ten_addon_manager_get_instance(), TEN_ADDON_TYPE_EXTENSION,
+                ten_string_get_raw_str(short_name))) {
+          TEN_LOGD("Addon %s:%s is loaded successfully.",
+                   ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
+                   ten_string_get_raw_str(short_name));
+        } else {
+          TEN_LOGD(
+              "Failed to load addon %s:%s using native addon loader, will try "
+              "other methods.",
+              ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
+              ten_string_get_raw_str(short_name));
+
+          // TODO(xilin): Return the result of loading the addon using all
+          // addon loaders.
+          ten_addon_try_load_specific_addon_using_all_addon_loaders(
+              TEN_ADDON_TYPE_EXTENSION, ten_string_get_raw_str(short_name));
+        }
+      }
+
+      ten_string_destroy(short_name);
+      itor = ten_path_get_next(itor);
+    }
+
+    ten_path_close_dir(dir);
+  }
+
+done:
+  ten_string_deinit(&extension_folder_path);
+  return success;
+}
+
 #endif
