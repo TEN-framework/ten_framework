@@ -11,21 +11,26 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use ten_rust::pkg_info::create_uri_to_pkg_info_map;
+
+use crate::designer::graphs::nodes::{
+    update_graph_node_in_property_all_fields, GraphNodeUpdateAction,
+};
 use crate::designer::{
-    response::{ApiResponse, Status},
+    response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
+};
+use crate::graph::{
+    graphs_cache_find_by_id_mut, nodes::validate::validate_extension_property,
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct ReplaceGraphNodeRequestPayload {
     pub graph_id: Uuid,
 
-    pub old_addon: String,
-    pub new_addon: String,
-
     pub app: Option<String>,
     pub name: String,
-
+    pub addon: String,
     pub property: Option<serde_json::Value>,
 }
 
@@ -52,7 +57,96 @@ pub async fn replace_graph_node_endpoint(
         ..
     } = &mut *state_write;
 
-    // =-=-=
+    // Get the specified graph from graphs_cache.
+    let graph_info = match graphs_cache_find_by_id_mut(
+        graphs_cache,
+        &request_payload.graph_id,
+    ) {
+        Some(graph_info) => graph_info,
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "Graph not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
+    };
+
+    // Create a hash map from app URIs to PkgsInfoInApp.
+    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
+        Ok(map) => map,
+        Err(error_message) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: error_message,
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    // Find the graph node in the graph.
+    let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
+        node.type_and_name.name == request_payload.name
+            && node.app == request_payload.app
+    });
+
+    if graph_node.is_none() {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!(
+                "Node '{}' with app '{:?}' not found in graph '{}'",
+                request_payload.name,
+                request_payload.app,
+                request_payload.graph_id
+            ),
+            error: None,
+        };
+        return Ok(HttpResponse::NotFound().json(error_response));
+    }
+
+    // Check if property conforms to schema.
+    if let Err(e) = validate_extension_property(
+        &request_payload.property,
+        &request_payload.app,
+        &request_payload.addon,
+        &uri_to_pkg_info,
+        &graph_info.app_base_dir,
+        pkgs_cache,
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to validate extension property: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
+
+    // Replace the addon and property of the graph node.
+    let graph_node = graph_node.unwrap();
+    let extension_group = graph_node.extension_group.clone();
+    graph_node.addon = request_payload.addon.clone();
+    graph_node.property = request_payload.property.clone();
+
+    // Update property.json file with the updated graph node.
+    if let Err(e) = update_graph_node_in_property_all_fields(
+        pkgs_cache,
+        graph_info,
+        &request_payload.name,
+        &request_payload.addon,
+        &extension_group,
+        &request_payload.app,
+        &request_payload.property,
+        GraphNodeUpdateAction::Update,
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to update property.json file: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
     let response = ApiResponse {
         status: Status::Ok,
