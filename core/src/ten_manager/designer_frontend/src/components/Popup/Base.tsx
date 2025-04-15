@@ -207,25 +207,43 @@ export const PopupBase = (props: IPopupBaseProps) => {
   }, [isResized, popupHeight, popupWidth]);
 
   const handleResize = React.useCallback(
-    (mode: "right" | "top" | "bottom" | "bottom-right" | "left") =>
+    (
+      mode:
+        | "right"
+        | "top"
+        | "bottom"
+        | "bottom-right"
+        | "left"
+        | "top-right"
+        | "top-left"
+        | "bottom-left"
+    ) =>
       (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         preResizeCallback();
 
-        if (mode === "right" || mode === "bottom-right") {
+        if (
+          mode === "right" ||
+          mode === "bottom-right" ||
+          mode === "top-right"
+        ) {
           const newWidth = popupWidth.get() + info.delta.x;
           if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
             popupWidth.set(newWidth);
           }
         }
 
-        if (mode === "bottom" || mode === "bottom-right") {
+        if (
+          mode === "bottom" ||
+          mode === "bottom-right" ||
+          mode === "bottom-left"
+        ) {
           const newHeight = popupHeight.get() + info.delta.y;
           if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
             popupHeight.set(newHeight);
           }
         }
 
-        if (mode === "left") {
+        if (mode === "left" || mode === "top-left" || mode === "bottom-left") {
           const newWidth = popupWidth.get() - info.delta.x;
           if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
             popupWidth.set(newWidth);
@@ -237,7 +255,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
           }
         }
 
-        if (mode === "top") {
+        if (mode === "top" || mode === "top-left" || mode === "top-right") {
           const newHeight = popupHeight.get() - info.delta.y;
           if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
             popupHeight.set(newHeight);
@@ -529,6 +547,66 @@ export const PopupBase = (props: IPopupBaseProps) => {
         dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
         dragElastic={0}
         onDrag={handleResize("left")}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
+      {/* top right resize handler */}
+      <motion.div
+        className={cn(
+          "absolute top-0 right-0",
+          "size-1 cursor-nesw-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResize("top-right")}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
+      {/* top left resize handler */}
+      <motion.div
+        className={cn(
+          "absolute top-0 left-0",
+          "size-1 cursor-nwse-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResize("top-left")}
+        onMouseDown={() => {
+          setIsResizing(true);
+          onResizing?.();
+        }}
+        onDragEnd={() => {
+          setIsResizing(false);
+          onResized?.();
+        }}
+      />
+
+      {/* bottom left resize handler */}
+      <motion.div
+        className={cn(
+          "absolute bottom-0 left-0",
+          "size-1 cursor-nesw-resize bg-transparent"
+        )}
+        drag="x"
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0}
+        onDrag={handleResize("bottom-left")}
         onMouseDown={() => {
           setIsResizing(true);
           onResizing?.();
