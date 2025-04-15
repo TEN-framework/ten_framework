@@ -291,6 +291,20 @@ export const extensionConnectionColumns1: ColumnDef<TConnection>[] = [
       );
     },
   },
+  {
+    id: "actions",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.actions")}</div>}
+      </Translation>
+    ),
+    cell: ({ row }) => {
+      const connection = row.original;
+      const { _meta } = connection;
+
+      return <ActionDropdownMenu edge={_meta} />;
+    },
+  },
 ];
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -325,6 +339,20 @@ export const extensionConnectionColumns2: ColumnDef<TConnection>[] = [
           <BlocksIcon className="w-4 h-4 ms-1" />
         </div>
       );
+    },
+  },
+  {
+    id: "actions",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.actions")}</div>}
+      </Translation>
+    ),
+    cell: ({ row }) => {
+      const connection = row.original;
+      const { _meta } = connection;
+
+      return <ActionDropdownMenu edge={_meta} />;
     },
   },
 ];
