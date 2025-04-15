@@ -86,10 +86,15 @@ pub async fn get_extension_property_endpoint(
     let response = ApiResponse {
         status: Status::Ok,
         data: GetExtensionPropertyResponseData {
-            property: extension_pkg_info
-                .property
-                .as_ref()
-                .map(|property| property.all_fields.clone()),
+            property: extension_pkg_info.property.as_ref().and_then(
+                |property| {
+                    if property.all_fields.is_empty() {
+                        None
+                    } else {
+                        Some(property.all_fields.clone())
+                    }
+                },
+            ),
         },
         meta: None,
     };
