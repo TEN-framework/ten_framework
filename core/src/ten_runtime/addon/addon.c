@@ -537,22 +537,6 @@ static void ten_addon_unregister_all_except_addon_loader_addon(void) {
   ten_addon_manager_destroy(ten_addon_manager_get_instance());
 }
 
-void ten_addon_unregister_all_and_cleanup(void) {
-  // Since Python addons (e.g., Python extension addons) require access to the
-  // Python VM when performing `addon_t` deinitialization, and the Python addon
-  // loader will destroy the Python VM during its own destruction, the Python
-  // addon loader must only be unloaded after all other non-addon-loader types
-  // of addons have been fully unloaded. Only then can the addon loader itself
-  // be unloaded.
-
-  ten_addon_unregister_all_except_addon_loader_addon();
-
-  // Destroy all addon loaders' singleton to avoid memory leak.
-  ten_addon_loader_destroy_all_singleton_instances_immediately();
-
-  ten_addon_unregister_all_addon_loader();
-}
-
 static void ten_on_all_addons_unregistered_cb(ten_env_t *ten_env,
                                               void *cb_data) {
   ten_on_all_addons_unregistered_ctx_t *ctx =

@@ -34,6 +34,8 @@ ten_addon_manager_t *ten_addon_manager_get_instance(void) {
 
     instance->mutex = ten_mutex_create();
     TEN_ASSERT(instance->mutex, "Failed to create addon manager mutex.");
+
+    instance->app = NULL;
   }
 
   ten_mutex_unlock(init_mutex);
@@ -262,6 +264,38 @@ bool ten_addon_manager_is_addon_loaded(ten_addon_manager_t *self,
   ten_mutex_unlock(self->mutex);
 
   return false;
+}
+
+bool ten_addon_manager_set_belonging_app_if_not_set(ten_addon_manager_t *self,
+                                                    ten_app_t *app) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+  ten_mutex_lock(self->mutex);
+
+  bool result = self->app == NULL;
+
+  if (result) {
+    self->app = app;
+  }
+
+  ten_mutex_unlock(self->mutex);
+
+  return result;
+}
+
+bool ten_addon_manager_belongs_to_app(ten_addon_manager_t *self,
+                                      ten_app_t *app) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+  ten_mutex_lock(self->mutex);
+
+  bool result = self->app == app;
+
+  ten_mutex_unlock(self->mutex);
+
+  return result;
 }
 
 ten_addon_register_ctx_t *ten_addon_register_ctx_create(ten_app_t *app) {

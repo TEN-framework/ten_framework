@@ -32,6 +32,10 @@ class test_extension : public ten::extension_t {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result));
+    } else {
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR, *cmd);
+      cmd_result->set_property("detail", "unknown command");
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

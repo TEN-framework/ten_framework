@@ -96,8 +96,6 @@ ten_addon_type_from_string(const char *addon_type_str);
 TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
     ten_addon_store_t *store, const char *addon_name);
 
-TEN_RUNTIME_API void ten_addon_unregister_all_and_cleanup(void);
-
 TEN_RUNTIME_API void ten_addon_unregister_all_and_cleanup_after_app_close(
     ten_env_t *ten_env, ten_env_on_all_addons_unregistered_cb_t cb,
     void *cb_data);

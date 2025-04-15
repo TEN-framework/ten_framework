@@ -32,6 +32,11 @@ typedef struct ten_addon_manager_t {
   // The key is the addon name (string), and the value is a function that takes
   // a register_ctx.
   ten_list_t registry;  // ten_addon_registration_t*
+
+  // The app that the addon manager belongs to.
+  // The addon manager will be destroyed when the app is destroyed.
+  ten_app_t *app;
+
   ten_mutex_t *mutex;
 } ten_addon_manager_t;
 
@@ -54,6 +59,12 @@ TEN_RUNTIME_API bool ten_addon_manager_register_specific_addon(
 TEN_RUNTIME_API bool ten_addon_manager_is_addon_loaded(
     ten_addon_manager_t *self, TEN_ADDON_TYPE addon_type,
     const char *addon_name);
+
+TEN_RUNTIME_PRIVATE_API bool ten_addon_manager_set_belonging_app_if_not_set(
+    ten_addon_manager_t *self, ten_app_t *app);
+
+TEN_RUNTIME_PRIVATE_API bool ten_addon_manager_belongs_to_app(
+    ten_addon_manager_t *self, ten_app_t *app);
 
 TEN_RUNTIME_API ten_addon_register_ctx_t *ten_addon_register_ctx_create(
     ten_app_t *app);

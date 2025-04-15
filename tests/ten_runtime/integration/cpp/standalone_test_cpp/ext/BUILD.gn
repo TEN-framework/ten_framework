@@ -36,8 +36,8 @@ if (ten_enable_standalone_test) {
 
     sources = [
       ".ten/app/ten_packages/system/googletest/src/gtest-all.cc",
-      ".ten/app/ten_packages/system/googletest/src/gtest_main.cc",
       "tests/basic.cc",
+      "tests/gtest_main.cc",
     ]
 
     include_dirs = [

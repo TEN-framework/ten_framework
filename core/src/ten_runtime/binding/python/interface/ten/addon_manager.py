@@ -15,7 +15,6 @@ from .addon import Addon
 from libten_runtime_python import (
     _add_extension_addon_to_addon_manager,
     _register_addon_as_extension,
-    _unregister_all_addons_and_cleanup,
 )
 
 
@@ -192,7 +191,3 @@ def register_addon_as_extension(name: str, base_dir: Optional[str] = None):
         return cls
 
     return decorator
-
-
-def unregister_all_addons_and_cleanup() -> None:
-    _unregister_all_addons_and_cleanup()

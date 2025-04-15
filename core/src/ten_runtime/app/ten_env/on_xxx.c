@@ -233,6 +233,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   TEN_ASSERT(manager, "Should not happen.");
 
+  ten_addon_manager_set_belonging_app_if_not_set(manager, self);
+
   // Addon registration phase 1: adding a function, which will perform the
   // actual registration in the phase 2, into the `addon_manager`.
   //
@@ -362,18 +364,13 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
-  // NOLINTNEXTLINE(concurrency-mt-unsafe)
-  const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
-  if (disabled && !strcmp(disabled, "true")) {
-    // There’s no need to perform the _unregister_all_addons_ action when the
-    // app closes, so we can directly proceed with the actions after
-    // _unregister_all_addons_.
+  if (ten_addon_manager_belongs_to_app(ten_addon_manager_get_instance(),
+                                       self)) {
+    ten_addon_unregister_all_and_cleanup_after_app_close(
+        self->ten_env, ten_app_on_all_addons_unregistered, NULL);
+  } else {
     ten_app_on_all_addons_unregistered(self->ten_env, NULL);
-    return;
   }
-
-  ten_addon_unregister_all_and_cleanup_after_app_close(
-      self->ten_env, ten_app_on_all_addons_unregistered, NULL);
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
