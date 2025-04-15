@@ -6,7 +6,7 @@
 //
 #[cfg(test)]
 mod tests {
-    use ten_manager::designer::graphs::nodes::add::graph_add_extension_node;
+    use ten_manager::graph::nodes::add::graph_add_extension_node;
     use ten_rust::{graph::Graph, pkg_info::localhost};
 
     #[test]
@@ -26,6 +26,7 @@ mod tests {
             &None,
             &None,
         );
+        eprintln!("result: {:?}", result);
         assert!(result.is_ok());
         assert_eq!(graph.nodes.len(), 1);
         assert_eq!(graph.nodes[0].type_and_name.name, "test_extension");
@@ -81,7 +82,21 @@ mod tests {
         // Node should be added.
         assert_eq!(graph.nodes.len(), original_len + 1);
 
-        // Test case 5: Adding a node with no app URI to a graph with declared
+        // Test case 5: Adding a node with the same extension and app URI.
+        let original_len = graph.nodes.len();
+        let result = graph_add_extension_node(
+            &mut graph,
+            "test_extension4",
+            "test_addon4",
+            &Some("http://different-uri.com".to_string()),
+            &None,
+            &None,
+        );
+        // This should fail because the node already exists.
+        assert!(result.is_err());
+        assert_eq!(graph.nodes.len(), original_len);
+
+        // Test case 6: Adding a node with no app URI to a graph with declared
         // app URIs. This should fail because we would have mixed app
         // declarations (some with URI, some without).
         let original_len = graph.nodes.len();

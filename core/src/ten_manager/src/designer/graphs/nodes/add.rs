@@ -11,13 +11,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use ten_rust::{
-    graph::{graph_info::GraphInfo, node::GraphNode, Graph},
-    pkg_info::{
-        create_uri_to_pkg_info_map, pkg_type::PkgType,
-        pkg_type_and_name::PkgTypeAndName,
-    },
-};
+use ten_rust::pkg_info::create_uri_to_pkg_info_map;
 
 use crate::{
     designer::{
@@ -26,7 +20,10 @@ use crate::{
     },
     graph::{
         graphs_cache_find_by_id_mut,
-        nodes::validate::validate_extension_property,
+        nodes::{
+            add::graph_add_extension_node,
+            validate::validate_extension_property,
+        },
     },
 };
 
@@ -47,65 +44,6 @@ pub struct AddGraphNodeRequestPayload {
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphNodeResponsePayload {
     pub success: bool,
-}
-
-pub fn graph_add_extension_node(
-    graph: &mut Graph,
-    pkg_name: &str,
-    addon: &str,
-    app: &Option<String>,
-    extension_group: &Option<String>,
-    property: &Option<serde_json::Value>,
-) -> Result<()> {
-    // Store the original state in case validation fails.
-    let original_graph = graph.clone();
-
-    // Create new GraphNode.
-    let node = GraphNode {
-        type_and_name: PkgTypeAndName {
-            pkg_type: PkgType::Extension,
-            name: pkg_name.to_string(),
-        },
-        addon: addon.to_string(),
-        extension_group: extension_group.clone(),
-        app: app.clone(),
-        property: property.clone(),
-    };
-
-    // Add the node to the graph.
-    graph.nodes.push(node);
-
-    // Validate the graph.
-    match graph.validate_and_complete() {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            // Restore the original graph if validation fails.
-            *graph = original_graph;
-            Err(e)
-        }
-    }
-}
-
-/// Adds a new extension node to a graph.
-fn add_extension_node_to_graph(
-    graph_info: &mut GraphInfo,
-    node_name: &str,
-    addon_name: &str,
-    app_uri: &Option<String>,
-    property: &Option<serde_json::Value>,
-) -> Result<(), String> {
-    // Add the extension node.
-    match graph_add_extension_node(
-        &mut graph_info.graph,
-        node_name,
-        addon_name,
-        app_uri,
-        &None,
-        property,
-    ) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
 }
 
 pub async fn add_graph_node_endpoint(
@@ -171,11 +109,12 @@ pub async fn add_graph_node_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    if let Err(e) = add_extension_node_to_graph(
-        graph_info,
+    if let Err(e) = graph_add_extension_node(
+        &mut graph_info.graph,
         &request_payload.name,
         &request_payload.addon,
         &request_payload.app,
+        &request_payload.extension_group,
         &request_payload.property,
     ) {
         let error_response = ErrorResponse {
