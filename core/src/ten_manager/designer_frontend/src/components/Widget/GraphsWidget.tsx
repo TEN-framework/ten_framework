@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ZodProvider } from "@autoform/zod";
+import { EditIcon } from "lucide-react";
 
 import {
   AddNodePayloadSchema,
@@ -39,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { Combobox } from "@/components/ui/Combobox";
 import {
@@ -60,7 +60,7 @@ import {
   generateNodesAndEdges,
   syncGraphNodeGeometry,
 } from "@/flow/graph";
-import { useAppStore, useFlowStore } from "@/store";
+import { useAppStore, useDialogStore, useFlowStore } from "@/store";
 import type { TCustomNode } from "@/types/flow";
 import { AutoForm } from "@/components/ui/autoform";
 // eslint-disable-next-line max-len
@@ -95,6 +95,114 @@ export const resetNodesAndEdgesByGraph = async (graph: IGraph) => {
   return { nodes: nodesWithGeometry, edges: layoutedEdges };
 };
 
+const GraphAddNodePropertyField = (props: {
+  addon: string;
+  onChange?: (value: Record<string, unknown> | undefined) => void;
+}) => {
+  const { addon, onChange } = props;
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [errMsg, setErrMsg] = React.useState<string | null>(null);
+  const [propertySchemaEntries, setPropertySchemaEntries] = React.useState<
+    [string, z.ZodType][]
+  >([]);
+
+  const { t } = useTranslation();
+  const { currentWorkspace } = useAppStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+
+  const isSchemaEmptyMemo = React.useMemo(() => {
+    return !isLoading && propertySchemaEntries.length === 0;
+  }, [isLoading, propertySchemaEntries.length]);
+
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        setIsLoading(true);
+
+        const addonSchema = await retrieveExtensionSchema({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: addon,
+        });
+        const propertySchema = addonSchema.property;
+        if (!propertySchema) {
+          // toast.error(t("popup.graph.noPropertySchema"));
+          return;
+        }
+        const propertySchemaEntries =
+          convertExtensionPropertySchema2ZodSchema(propertySchema);
+        setPropertySchemaEntries(propertySchemaEntries);
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+          setErrMsg(error.message);
+        } else {
+          setErrMsg(t("popup.default.errorUnknown"));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    const dialogId = `new-node-property`;
+    appendDialog({
+      id: dialogId,
+      title: t("popup.graph.property"),
+      content: (
+        <>
+          <AutoForm
+            onSubmit={async (data) => {
+              onChange?.(data);
+              removeDialog(dialogId);
+            }}
+            schema={
+              new ZodProvider(
+                z.object(Object.fromEntries(propertySchemaEntries))
+              )
+            }
+          >
+            <div className="flex flex-row gap-2 w-full justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  removeDialog(dialogId);
+                }}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button type="submit">{t("action.confirm")}</Button>
+            </div>
+          </AutoForm>
+        </>
+      ),
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full h-fit">
+      <Button
+        variant="outline"
+        disabled={isSchemaEmptyMemo || isLoading}
+        onClick={handleClick}
+      >
+        {isLoading && <SpinnerLoading className="size-4" />}
+        {!isLoading && <EditIcon className="size-4" />}
+        {isSchemaEmptyMemo && <>{t("popup.graph.noPropertySchema")}</>}
+        {t("action.edit")}
+      </Button>
+      {errMsg && <div className="text-red-500">{errMsg}</div>}
+    </div>
+  );
+};
+
 export const GraphAddNodeWidget = (props: {
   base_dir: string;
   graph_id?: string;
@@ -121,7 +229,7 @@ export const GraphAddNodeWidget = (props: {
       addon: undefined,
       extension_group: undefined,
       app: undefined,
-      property: "{}" as unknown as Record<string, unknown>,
+      property: undefined,
     },
   });
 
@@ -265,25 +373,27 @@ export const GraphAddNodeWidget = (props: {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="property"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.property")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("popup.graph.property")}
-                  value={field.value as unknown as string}
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {form.watch("addon") && (
+          <FormField
+            control={form.control}
+            name="property"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("popup.graph.property")}</FormLabel>
+                <FormControl>
+                  <GraphAddNodePropertyField
+                    key={form.watch("addon")}
+                    addon={form.watch("addon")}
+                    onChange={(value: Record<string, unknown> | undefined) => {
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {remoteCheckErrorMessage && (
           <div className="text-red-500">{remoteCheckErrorMessage}</div>

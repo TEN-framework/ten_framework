@@ -85,9 +85,7 @@ export const AddNodePayloadSchema = z.object({
   addon: z.string(),
   extension_group: z.string().optional(),
   app: z.string().optional(),
-  property: stringToJSONSchema
-    .pipe(z.record(z.string(), z.unknown()))
-    .default("{}"),
+  property: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const DeleteNodePayloadSchema = z.object({
