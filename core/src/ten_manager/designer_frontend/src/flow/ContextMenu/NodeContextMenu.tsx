@@ -231,7 +231,6 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
           },
           popup: {
             width: 340,
-            height: 0.8,
           },
         });
         onClose();
@@ -286,9 +285,9 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             try {
               await postDeleteNode({
                 graph_id: graphId,
-                node_name: node.data.name,
-                addon_name: node.data.addon,
-                extension_group_name: node.data.extension_group,
+                name: node.data.name,
+                addon: node.data.addon,
+                extension_group: node.data.extension_group,
               });
               toast.success(t("popup.node.deleteNodeSuccess"), {
                 description: `${node.data.name}`,

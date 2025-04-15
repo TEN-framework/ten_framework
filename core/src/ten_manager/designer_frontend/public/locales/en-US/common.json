@@ -197,7 +197,7 @@
       "noPropertySchema": "No property schema found"
     },
     "doc": {
-      "title": "Documentation"
+      "title": "{{name}}"
     }
   },
   "dock": {

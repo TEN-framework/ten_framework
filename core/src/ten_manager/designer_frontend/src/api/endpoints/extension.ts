@@ -9,6 +9,7 @@ import z from "zod";
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { TenCloudStorePackageSchema } from "@/types/extension";
 import { genResSchema } from "@/api/endpoints/utils";
+import { ExtensionSchema } from "@/types/extension";
 
 export const ENDPOINT_EXTENSION = {
   registryPackages: {
@@ -26,9 +27,9 @@ export const ENDPOINT_EXTENSION = {
       }),
     },
   },
-  propertySchema: {
+  schema: {
     [ENDPOINT_METHOD.POST]: {
-      url: `${API_DESIGNER_V1}/extensions/property/schema`,
+      url: `${API_DESIGNER_V1}/extensions/schema`,
       method: ENDPOINT_METHOD.POST,
       requestPayload: z.object({
         app_base_dir: z.string(),
@@ -36,7 +37,7 @@ export const ENDPOINT_EXTENSION = {
       }),
       responseSchema: genResSchema(
         z.object({
-          property_schema: z.record(z.string(), z.any()),
+          schema: ExtensionSchema,
         })
       ),
     },

@@ -80,7 +80,6 @@ export const AppFolderPopupContent = (props: { widget: IWidget }) => {
         toast.error(t("popup.default.errorFolderPathEmpty"));
         throw new Error("errorFolderPathEmpty");
       }
-      console.log("[file-menu] folderPath set to", folderPath);
       await handleSetBaseDir(folderPath.trim());
       removeWidget(widget.widget_id);
     } catch (error: unknown) {
