@@ -429,6 +429,14 @@ export const GraphAddConnectionWidget = (props: {
     postAddConnectionActions,
   } = props;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isMsgNameLoading, setIsMsgNameLoading] = React.useState(false);
+  const [msgNameError, setMsgNameError] = React.useState<unknown | null>(null);
+  const [msgNameList, setMsgNameList] = React.useState<
+    {
+      value: string;
+      label: string;
+    }[]
+  >([]);
 
   const { t } = useTranslation();
   const { nodes, setNodesAndEdges } = useFlowStore();
@@ -480,8 +488,48 @@ export const GraphAddConnectionWidget = (props: {
         description: graphError.message,
       });
     }
+    if (msgNameError) {
+      toast.error(t("popup.graph.addonError"), {
+        description:
+          msgNameError instanceof Error
+            ? msgNameError.message
+            : "Unknown error",
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphError]);
+  }, [graphError, msgNameError]);
+
+  React.useEffect(() => {
+    const fetchNodeSchema = async () => {
+      try {
+        form.setValue("msg_name", undefined as unknown as string);
+        setIsMsgNameLoading(true);
+        const nodeSchema = await retrieveExtensionSchema({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: form.watch("src_extension"),
+        });
+        const msgNameList =
+          nodeSchema?.[`${form.watch("msg_type")}_out`]?.map((i) => i.name) ??
+          [];
+        setMsgNameList(
+          msgNameList.map((i) => ({
+            value: i,
+            label: i,
+          }))
+        );
+      } catch (error: unknown) {
+        console.error(error);
+        setMsgNameError(error);
+      } finally {
+        setIsMsgNameLoading(false);
+      }
+    };
+
+    fetchNodeSchema();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.watch("src_extension"), form.watch("msg_type")]);
+
+  console.log("isMsgNameLoading ===", isMsgNameLoading);
 
   return (
     <Form {...form}>
@@ -499,6 +547,7 @@ export const GraphAddConnectionWidget = (props: {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={!!src_extension}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
                     <SelectValue placeholder={t("popup.graph.graphName")} />
@@ -583,19 +632,45 @@ export const GraphAddConnectionWidget = (props: {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="msg_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.messageName")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("popup.graph.messageName")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {form.watch("msg_type") && form.watch("src_extension") && (
+          <FormField
+            control={form.control}
+            name="msg_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("popup.graph.messageName")}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    key={
+                      `${form.watch("msg_type")}` +
+                      "-" +
+                      `${form.watch("src_extension")}`
+                    }
+                    disabled={isMsgNameLoading}
+                    isLoading={isMsgNameLoading}
+                    options={msgNameList}
+                    placeholder={t("popup.graph.messageName")}
+                    selected={field.value}
+                    onChange={(i) => {
+                      field.onChange(i.value);
+                    }}
+                    onCreate={(i) => {
+                      setMsgNameList((prev) => [
+                        ...prev,
+                        {
+                          value: i,
+                          label: i,
+                        },
+                      ]);
+                      field.onChange(i);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="dest_extension"

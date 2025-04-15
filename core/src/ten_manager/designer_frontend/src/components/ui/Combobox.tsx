@@ -7,10 +7,11 @@
 /* eslint-disable max-len */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { LoaderCircleIcon } from "lucide-react";
 
 import { Check, ChevronsUpDown, CirclePlus } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
+import { Button, buttonVariants } from "@/components/ui/Button";
 import {
   Command,
   CommandEmpty,
@@ -39,6 +40,8 @@ interface ComboboxProps {
   disalbed?: boolean;
   onChange: (option: ComboboxOptions) => void;
   onCreate?: (label: ComboboxOptions["label"]) => void;
+  disabled?: boolean;
+  isLoading?: boolean;
 }
 
 function CommandAddItem({
@@ -80,6 +83,7 @@ export function Combobox({
   disalbed,
   onChange,
   onCreate,
+  isLoading,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -109,6 +113,19 @@ export function Combobox({
     }
   }
 
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full font-normal"
+        )}
+      >
+        <LoaderCircleIcon className="size-4 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -116,7 +133,7 @@ export function Combobox({
           type="button"
           variant="outline"
           role="combobox"
-          disabled={disalbed ?? false}
+          disabled={disalbed || isLoading}
           aria-expanded={open}
           className={cn("w-full font-normal", className)}
         >
