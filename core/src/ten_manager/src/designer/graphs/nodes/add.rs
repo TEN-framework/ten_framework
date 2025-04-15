@@ -51,11 +51,11 @@ pub struct AddGraphNodeResponsePayload {
 
 pub fn graph_add_extension_node(
     graph: &mut Graph,
-    pkg_name: String,
-    addon: String,
-    app: Option<String>,
-    extension_group: Option<String>,
-    property: Option<serde_json::Value>,
+    pkg_name: &str,
+    addon: &str,
+    app: &Option<String>,
+    extension_group: &Option<String>,
+    property: &Option<serde_json::Value>,
 ) -> Result<()> {
     // Store the original state in case validation fails.
     let original_graph = graph.clone();
@@ -64,12 +64,12 @@ pub fn graph_add_extension_node(
     let node = GraphNode {
         type_and_name: PkgTypeAndName {
             pkg_type: PkgType::Extension,
-            name: pkg_name,
+            name: pkg_name.to_string(),
         },
-        addon,
-        extension_group,
-        app,
-        property,
+        addon: addon.to_string(),
+        extension_group: extension_group.clone(),
+        app: app.clone(),
+        property: property.clone(),
     };
 
     // Add the node to the graph.
@@ -92,15 +92,16 @@ fn add_extension_node_to_graph(
     node_name: &str,
     addon_name: &str,
     app_uri: &Option<String>,
+    property: &Option<serde_json::Value>,
 ) -> Result<(), String> {
     // Add the extension node.
     match graph_add_extension_node(
         &mut graph_info.graph,
-        node_name.to_string(),
-        addon_name.to_string(),
-        app_uri.clone(),
-        None,
-        None,
+        node_name,
+        addon_name,
+        app_uri,
+        &None,
+        property,
     ) {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
@@ -175,6 +176,7 @@ pub async fn add_graph_node_endpoint(
         &request_payload.name,
         &request_payload.addon,
         &request_payload.app,
+        &request_payload.property,
     ) {
         let error_response = ErrorResponse {
             status: Status::Fail,
