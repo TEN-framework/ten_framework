@@ -16,10 +16,10 @@ mod tests {
         config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
-            extensions::property::schema::{
-                get_extension_property_schema_endpoint,
-                GetExtensionPropertySchemaRequestPayload,
-                GetExtensionPropertySchemaResponseData,
+            extensions::schema::{
+                get_extension_schema_endpoint,
+                GetExtensionSchemaRequestPayload,
+                GetExtensionSchemaResponseData,
             },
             response::{ApiResponse, Status},
             DesignerState,
@@ -71,16 +71,16 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/test_get_extension_property_schema",
-                    web::post().to(get_extension_property_schema_endpoint),
+                    "/test_get_extension_schema",
+                    web::post().to(get_extension_schema_endpoint),
                 ),
         )
         .await;
 
         // Create request payload for an existing extension
         let req = test::TestRequest::post()
-            .uri("/test_get_extension_property_schema")
-            .set_json(&GetExtensionPropertySchemaRequestPayload {
+            .uri("/test_get_extension_schema")
+            .set_json(&GetExtensionSchemaRequestPayload {
                 app_base_dir: TEST_DIR.to_string(),
                 addon_name: "extension_addon_1".to_string(),
             })
@@ -95,23 +95,24 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let api_response: ApiResponse<GetExtensionPropertySchemaResponseData> =
+        let api_response: ApiResponse<GetExtensionSchemaResponseData> =
             serde_json::from_str(body_str).unwrap();
 
         assert_eq!(api_response.status, Status::Ok);
         // If the extension has property schema, it will be included in the
         // response.
-        assert!(api_response.data.property_schema.is_some());
+        assert!(api_response.data.schema.is_some());
 
         let expected_property_schema = serde_json::json!({
+          "property": {
             "test_property": {
                 "type": "int8"
             }
+          }
         });
 
         assert_eq!(
-            serde_json::to_value(api_response.data.property_schema.unwrap())
-                .unwrap(),
+            serde_json::to_value(api_response.data.schema.unwrap()).unwrap(),
             expected_property_schema
         );
     }
@@ -159,7 +160,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/test_get_extension_property_schema_not_found",
-                    web::post().to(get_extension_property_schema_endpoint),
+                    web::post().to(get_extension_schema_endpoint),
                 ),
         )
         .await;
@@ -167,7 +168,7 @@ mod tests {
         // Create request payload for a non-existent extension.
         let req = test::TestRequest::post()
             .uri("/test_get_extension_property_schema_not_found")
-            .set_json(&GetExtensionPropertySchemaRequestPayload {
+            .set_json(&GetExtensionSchemaRequestPayload {
                 app_base_dir: TEST_DIR.to_string(),
                 addon_name: "non_existent_extension".to_string(),
             })
@@ -199,7 +200,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/test_get_extension_property_schema_app_not_found",
-                    web::post().to(get_extension_property_schema_endpoint),
+                    web::post().to(get_extension_schema_endpoint),
                 ),
         )
         .await;
@@ -207,7 +208,7 @@ mod tests {
         // Create request payload for a non-existent app.
         let req = test::TestRequest::post()
             .uri("/test_get_extension_property_schema_app_not_found")
-            .set_json(&GetExtensionPropertySchemaRequestPayload {
+            .set_json(&GetExtensionSchemaRequestPayload {
                 app_base_dir: "non_existent_app".to_string(),
                 addon_name: "test_extension".to_string(),
             })

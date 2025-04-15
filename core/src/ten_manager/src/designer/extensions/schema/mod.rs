@@ -4,16 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::manifest::api::ManifestApiPropertyAttributes;
+use ten_rust::pkg_info::manifest::api::ManifestApi;
 
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
@@ -21,18 +18,18 @@ use crate::designer::{
 };
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct GetExtensionPropertySchemaRequestPayload {
+pub struct GetExtensionSchemaRequestPayload {
     pub app_base_dir: String,
     pub addon_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct GetExtensionPropertySchemaResponseData {
-    pub property_schema: Option<HashMap<String, ManifestApiPropertyAttributes>>,
+pub struct GetExtensionSchemaResponseData {
+    pub schema: Option<ManifestApi>,
 }
 
-pub async fn get_extension_property_schema_endpoint(
-    request_payload: web::Json<GetExtensionPropertySchemaRequestPayload>,
+pub async fn get_extension_schema_endpoint(
+    request_payload: web::Json<GetExtensionSchemaRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().map_err(|e| {
@@ -58,12 +55,8 @@ pub async fn get_extension_property_schema_endpoint(
             if let Some(extension_pkg_info) = extension_pkg_info {
                 let response = ApiResponse {
                     status: Status::Ok,
-                    data: GetExtensionPropertySchemaResponseData {
-                        property_schema: extension_pkg_info
-                            .manifest
-                            .api
-                            .as_ref()
-                            .and_then(|api| api.property.clone()),
+                    data: GetExtensionSchemaResponseData {
+                        schema: extension_pkg_info.manifest.api.clone(),
                     },
                     meta: None,
                 };

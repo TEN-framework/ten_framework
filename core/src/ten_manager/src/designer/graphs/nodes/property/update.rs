@@ -35,10 +35,11 @@ use crate::{
 pub struct UpdateGraphNodePropertyRequestPayload {
     pub graph_id: Uuid,
 
-    pub node_name: String,
-    pub addon_name: String,
-    pub extension_group_name: Option<String>,
-    pub app_uri: Option<String>,
+    pub name: String,
+    pub addon: String,
+    pub extension_group: Option<String>,
+    pub app: Option<String>,
+
     pub property: Option<serde_json::Value>,
 }
 
@@ -49,11 +50,11 @@ pub struct UpdateGraphNodePropertyResponsePayload {
 
 impl GraphNodeValidatable for UpdateGraphNodePropertyRequestPayload {
     fn get_addon_name(&self) -> &str {
-        &self.addon_name
+        &self.addon
     }
 
     fn get_app_uri(&self) -> &Option<String> {
-        &self.app_uri
+        &self.app
     }
 
     fn get_property(&self) -> &Option<serde_json::Value> {
@@ -76,17 +77,17 @@ fn update_node_property_in_graph(
 ) -> Result<()> {
     // Find the node in the graph.
     let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
-        node.type_and_name.name == request_payload.node_name
-            && node.addon == request_payload.addon_name
-            && node.extension_group == request_payload.extension_group_name
-            && node.app == request_payload.app_uri
+        node.type_and_name.name == request_payload.name
+            && node.addon == request_payload.addon
+            && node.extension_group == request_payload.extension_group
+            && node.app == request_payload.app
     });
 
     if graph_node.is_none() {
         return Err(anyhow::anyhow!(
             "Node '{}' with addon '{}' not found in graph '{}'",
-            request_payload.node_name,
-            request_payload.addon_name,
+            request_payload.name,
+            request_payload.addon,
             request_payload.graph_id
         ));
     }
@@ -145,8 +146,8 @@ pub async fn update_graph_node_property_endpoint(
     };
 
     match get_pkg_info_for_extension_addon(
-        &request_payload.app_uri,
-        &request_payload.addon_name,
+        &request_payload.app,
+        &request_payload.addon,
         &uri_to_pkg_info,
         graph_info.app_base_dir.as_ref(),
         pkgs_cache,
@@ -189,10 +190,10 @@ pub async fn update_graph_node_property_endpoint(
     update_graph_node_in_property_all_fields(
         pkgs_cache,
         graph_info,
-        &request_payload.node_name,
-        &request_payload.addon_name,
-        &request_payload.extension_group_name,
-        &request_payload.app_uri,
+        &request_payload.name,
+        &request_payload.addon,
+        &request_payload.extension_group,
+        &request_payload.app,
         &request_payload.property,
         GraphNodeUpdateAction::Update,
     )

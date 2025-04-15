@@ -73,10 +73,10 @@ mod tests {
         // Try to add a node to a non-existent graph.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: Uuid::new_v4(),
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://test-app-uri.com".to_string()),
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://test-app-uri.com".to_string()),
             property: None,
         };
 
@@ -128,10 +128,10 @@ mod tests {
         // Try to add a node with localhost app URI (which is not allowed).
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some(localhost().to_string()),
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some(localhost().to_string()),
             property: None,
         };
 
@@ -197,10 +197,10 @@ mod tests {
         // Add a node to the default graph with the same app URI as other nodes
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: None,
         };
 
@@ -267,10 +267,10 @@ mod tests {
         // Add a node to the default graph with the same app URI as other nodes.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "test_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: None,
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: None,
             property: None,
         };
 
@@ -364,10 +364,10 @@ mod tests {
         // Add a node to the test-graph.
         let request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "new_node".to_string(),
-            addon_name: "new_addon".to_string(),
-            extension_group_name: None,
-            app_uri: None,
+            name: "new_node".to_string(),
+            addon: "new_addon".to_string(),
+            extension_group: None,
+            app: None,
             property: None,
         };
 
@@ -475,10 +475,10 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: Some(serde_json::json!({
                 "test_property": "test_value_for_delete"
             })),
@@ -591,10 +591,10 @@ mod tests {
         // Add a node to the default graph.
         let add_request_payload = AddGraphNodeRequestPayload {
             graph_id: *graph_id,
-            node_name: "test_delete_node".to_string(),
-            addon_name: "test_addon".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: Some(serde_json::json!({
                 "test_property": 13
             })),
