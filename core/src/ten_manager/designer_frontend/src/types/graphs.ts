@@ -129,3 +129,17 @@ export const UpdateNodePropertyPayloadSchema = z.object({
     .pipe(z.record(z.string(), z.unknown()))
     .default("{}"),
 });
+
+export const GraphUiNodeGeometrySchema = z.object({
+  app: z.string().optional(),
+  extension: z.string(),
+  x: z.number(),
+  y: z.number(),
+});
+
+export const SetGraphUiPayloadSchema = z.object({
+  graph_id: z.string(),
+  graph_geometry: z.object({
+    nodes_geometry: z.array(GraphUiNodeGeometrySchema),
+  }),
+});

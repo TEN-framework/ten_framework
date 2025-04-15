@@ -6,7 +6,6 @@
 //
 import React, { useState, useCallback, useRef } from "react";
 import {
-  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
   EdgeChange,
@@ -18,7 +17,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar";
 import StatusBar from "@/components/StatusBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
-import { generateNodesAndEdges } from "@/flow/graph";
+import { generateNodesAndEdges, syncGraphNodeGeometry } from "@/flow/graph";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -48,7 +47,7 @@ const App: React.FC = () => {
   } = usePreferences();
 
   const { widgets } = useWidgetStore();
-  const { setPreferences } = useAppStore();
+  const { setPreferences, currentWorkspace } = useAppStore();
 
   const flowCanvasRef = useRef<FlowCanvasRef | null>(null);
 
@@ -70,6 +69,14 @@ const App: React.FC = () => {
   const handleNodesChange = useCallback(
     (changes: NodeChange<TCustomNode>[]) => {
       const newNodes = applyNodeChanges(changes, nodes);
+      const positionChanges = changes.filter(
+        (change) => change.type === "position" && change.dragging === false
+      );
+      if (positionChanges?.length > 0 && currentWorkspace?.graph?.uuid) {
+        syncGraphNodeGeometry(currentWorkspace!.graph!.uuid, newNodes, {
+          forceLocal: true,
+        });
+      }
       setNodes(newNodes);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,10 +157,11 @@ const App: React.FC = () => {
             edges={edges}
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
-            onConnect={(connection) => {
-              const newEdges = addEdge(connection, edges);
-              setEdges(newEdges);
-            }}
+            // onConnect={(connection) => {
+            //   const newEdges = addEdge(connection, edges);
+            //   setEdges(newEdges);
+            // }}
+            onConnect={() => {}}
             className="w-full h-[calc(100dvh-60px)] mt-10"
           />
         </ResizablePanel>

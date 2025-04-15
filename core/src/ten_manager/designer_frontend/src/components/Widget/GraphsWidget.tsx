@@ -58,6 +58,7 @@ import {
   updateNodesWithConnections,
   updateNodesWithAddonInfo,
   generateNodesAndEdges,
+  syncGraphNodeGeometry,
 } from "@/flow/graph";
 import { useAppStore, useFlowStore } from "@/store";
 import type { TCustomNode } from "@/types/flow";
@@ -86,7 +87,12 @@ export const resetNodesAndEdgesByGraph = async (graph: IGraph) => {
     rawEdges
   );
 
-  return { nodes: layoutedNodes, edges: layoutedEdges };
+  const nodesWithGeometry = await syncGraphNodeGeometry(
+    graph.uuid,
+    layoutedNodes
+  );
+
+  return { nodes: nodesWithGeometry, edges: layoutedEdges };
 };
 
 export const GraphAddNodeWidget = (props: {

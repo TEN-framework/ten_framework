@@ -17,6 +17,8 @@ import {
   type IGraph,
   UpdateNodePropertyPayloadSchema,
   DeleteConnectionPayloadSchema,
+  GraphUiNodeGeometrySchema,
+  SetGraphUiPayloadSchema,
 } from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
@@ -173,6 +175,36 @@ export const ENDPOINT_GRAPHS = {
             uuid: z.string(),
           })
         )
+      ),
+    },
+  },
+};
+
+export const ENDPOINT_GRAPH_UI = {
+  set: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/internal-config/graph-ui/set`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: SetGraphUiPayloadSchema,
+      responseSchema: genResSchema(z.any()), // TODO: add response schema
+    },
+  },
+  get: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/internal-config/graph-ui/get`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        graph_id: z.string(),
+      }),
+      responseSchema: genResSchema(
+        z.union([
+          z.object({
+            graph_geometry: z.object({
+              nodes_geometry: z.array(GraphUiNodeGeometrySchema),
+            }),
+          }),
+          z.any(),
+        ])
       ),
     },
   },

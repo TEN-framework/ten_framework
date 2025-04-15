@@ -19,6 +19,10 @@ import {
   type IBackendConnection,
   EConnectionType,
 } from "@/types/graphs";
+import {
+  postGetGraphNodeGeometry,
+  postSetGraphNodeGeometry,
+} from "@/api/services/graphs";
 
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 48;
@@ -272,4 +276,93 @@ export const generateNodesAndEdges = (
   });
 
   return { nodes: layoutedNodes, edges: edgesWithNewHandles };
+};
+
+export const syncGraphNodeGeometry = async (
+  graphId: string,
+  nodes: TCustomNode[],
+  options: {
+    forceLocal?: boolean; // override all nodes geometry
+  } = {}
+): Promise<TCustomNode[]> => {
+  const isForceLocal = options.forceLocal ?? false;
+
+  const localNodesGeometry = nodes.map((node) => ({
+    extension: node.data.name,
+    x: parseInt(String(node.position.x), 10),
+    y: parseInt(String(node.position.y), 10),
+  }));
+
+  // If forceLocal is true, set geometry to backend and return
+  if (isForceLocal) {
+    try {
+      await postSetGraphNodeGeometry({
+        graph_id: graphId,
+        graph_geometry: {
+          nodes_geometry: localNodesGeometry,
+        },
+      });
+    } catch (error) {
+      console.error("Error syncing graph node geometry", error);
+    }
+    return nodes;
+  }
+
+  // If force is false, merge local geometry with remote geometry
+  try {
+    // Retrieve geometry from backend
+    const remoteNodesGeometry = await postGetGraphNodeGeometry(graphId);
+
+    // const mergedNodesGeometry = localNodesGeometry.reduce((prev, node) => {
+    //   const remoteNode = prev.find((g) => g.extension === node.extension);
+    //   if (remoteNode) {
+    //     remoteNode.x = parseInt(String(node.x), 10);
+    //     remoteNode.y = parseInt(String(node.y), 10);
+    //     return prev;
+    //   }
+    //   return [...prev, node];
+    // }, remoteNodesGeometry);
+
+    const mergedNodesGeometry = localNodesGeometry.map((node) => {
+      const remoteNode = remoteNodesGeometry.find(
+        (g) => g.extension === node.extension
+      );
+      if (remoteNode) {
+        return {
+          ...node,
+          x: parseInt(String(remoteNode.x), 10),
+          y: parseInt(String(remoteNode.y), 10),
+        };
+      }
+      return node;
+    });
+
+    await postSetGraphNodeGeometry({
+      graph_id: graphId,
+      graph_geometry: {
+        nodes_geometry: mergedNodesGeometry,
+      },
+    });
+
+    // Update nodes with geometry
+    const nodesWithGeometry = nodes.map((node) => {
+      const geometry = mergedNodesGeometry.find(
+        (g) => g.extension === node.data.name
+      );
+      if (geometry) {
+        return {
+          ...node,
+          position: {
+            x: parseInt(String(geometry.x), 10),
+            y: parseInt(String(geometry.y), 10),
+          },
+        };
+      }
+    });
+
+    return nodesWithGeometry as TCustomNode[];
+  } catch (error) {
+    console.error("Error syncing graph node geometry", error);
+    return nodes;
+  }
 };
