@@ -8,6 +8,6 @@ mod addons;
 mod create;
 mod get;
 mod load;
-mod property;
 mod reload;
+mod schema;
 mod unload;
