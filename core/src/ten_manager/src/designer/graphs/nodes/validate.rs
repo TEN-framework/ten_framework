@@ -13,7 +13,7 @@ pub trait GraphNodeValidatable {
     fn get_property(&self) -> &Option<serde_json::Value>;
 }
 
-fn validate_node(
+fn validate_extension_property(
     property: &Option<serde_json::Value>,
     extension_pkg_info: &PkgInfo,
 ) -> Result<(), String> {
@@ -37,5 +37,5 @@ pub fn validate_node_request<T: GraphNodeValidatable>(
     request: &T,
     extension_pkg_info: &PkgInfo,
 ) -> Result<(), String> {
-    validate_node(request.get_property(), extension_pkg_info)
+    validate_extension_property(request.get_property(), extension_pkg_info)
 }

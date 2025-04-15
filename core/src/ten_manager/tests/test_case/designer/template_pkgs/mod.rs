@@ -12,7 +12,7 @@ use std::{
 use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     constants::{DEFAULT_APP_NODEJS, DEFAULT_EXTENSION_CPP},
     designer::{
         response::{ApiResponse, Status},
@@ -30,6 +30,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 async fn test_get_template_app_typescript() {
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -70,6 +71,7 @@ async fn test_get_template_app_typescript() {
 async fn test_get_template_extension_cpp() {
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -110,6 +112,7 @@ async fn test_get_template_extension_cpp() {
 async fn test_get_template_unsupported() {
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

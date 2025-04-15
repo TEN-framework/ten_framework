@@ -14,7 +14,7 @@ mod tests {
     use actix_web::{test, web, App};
     use serde_json::json;
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::nodes::property::update::{
@@ -28,6 +28,9 @@ mod tests {
         graph::graphs_cache_find_by_name,
         output::TmanOutputCli,
     };
+    use ten_rust::pkg_info::constants::{
+        MANIFEST_JSON_FILENAME, PROPERTY_JSON_FILENAME,
+    };
     use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -39,23 +42,26 @@ mod tests {
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // Read test data from embedded JSON files.
-        let input_property_json_str =
-            include_str!("../../test_data_embed/app_property.json");
-        let input_manifest_json_str =
+        let app_manifest_json_str =
             include_str!("../../test_data_embed/app_manifest.json");
+        let app_property_json_str =
+            include_str!("../../test_data_embed/app_property.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, input_property_json_str).unwrap();
+        let app_property_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&app_property_json_file_path, app_property_json_str)
+            .unwrap();
 
-        let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
-        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+        let app_manifest_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&app_manifest_json_file_path, app_manifest_json_str)
+            .unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -65,8 +71,8 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 temp_dir_path.clone(),
-                input_manifest_json_str.to_string(),
-                input_property_json_str.to_string(),
+                app_manifest_json_str.to_string(),
+                app_property_json_str.to_string(),
             ),
             (
                 format!(
@@ -128,7 +134,7 @@ mod tests {
         println!("Response: {:?}", resp);
 
         // Should succeed with a 200 OK.
-        // assert_eq!(resp.status(), 200);
+        assert_eq!(resp.status(), 200);
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
@@ -140,7 +146,7 @@ mod tests {
         assert!(response.data.success);
 
         let updated_property_json_str =
-            std::fs::read_to_string(&property_path).unwrap();
+            std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
             "test_data_embed/expected_app_property_after_update_property.json"
@@ -151,6 +157,11 @@ mod tests {
             serde_json::from_str(&updated_property_json_str).unwrap();
         let expected_property: serde_json::Value =
             serde_json::from_str(expected_property_json_str).unwrap();
+
+        println!(
+            "Updated property: {}",
+            serde_json::to_string_pretty(&updated_property).unwrap()
+        );
 
         // Compare the updated property with the expected property.
         assert_eq!(
@@ -163,6 +174,7 @@ mod tests {
     async fn test_update_graph_node_property_invalid_graph() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -225,6 +237,7 @@ mod tests {
     async fn test_update_graph_node_property_node_not_found() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -296,23 +309,26 @@ mod tests {
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // Read test data from embedded JSON files.
-        let input_property_json_str =
-            include_str!("../../test_data_embed/app_property.json");
-        let input_manifest_json_str =
+        let app_manifest_json_str =
             include_str!("../../test_data_embed/app_manifest.json");
+        let app_property_json_str =
+            include_str!("../../test_data_embed/app_property.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, input_property_json_str).unwrap();
+        let app_property_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&app_property_json_file_path, app_property_json_str)
+            .unwrap();
 
-        let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
-        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+        let app_manifest_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&app_manifest_json_file_path, app_manifest_json_str)
+            .unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -322,8 +338,8 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 temp_dir_path.clone(),
-                input_manifest_json_str.to_string(),
-                input_property_json_str.to_string(),
+                app_manifest_json_str.to_string(),
+                app_property_json_str.to_string(),
             ),
             (
                 format!(
@@ -393,7 +409,7 @@ mod tests {
         assert!(response.data.success);
 
         let updated_property_json_str =
-            std::fs::read_to_string(&property_path).unwrap();
+            std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
             "test_data_embed/expected_app_property_after_update_property.json"
@@ -419,23 +435,26 @@ mod tests {
         let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // Read test data from embedded JSON files.
-        let input_property_json_str =
-            include_str!("../../test_data_embed/app_property.json");
-        let input_manifest_json_str =
+        let app_manifest_json_str =
             include_str!("../../test_data_embed/app_manifest.json");
+        let app_property_json_str =
+            include_str!("../../test_data_embed/app_property.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
-        std::fs::write(&property_path, input_property_json_str).unwrap();
+        let app_property_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&app_property_json_file_path, app_property_json_str)
+            .unwrap();
 
-        let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
-        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+        let app_manifest_json_file_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&app_manifest_json_file_path, app_manifest_json_str)
+            .unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -445,8 +464,8 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 temp_dir_path.clone(),
-                input_manifest_json_str.to_string(),
-                input_property_json_str.to_string(),
+                app_manifest_json_str.to_string(),
+                app_property_json_str.to_string(),
             ),
             (
                 format!(
@@ -515,13 +534,13 @@ mod tests {
         assert!(response.message.contains("validation failed"));
 
         let updated_property_json_str =
-            std::fs::read_to_string(&property_path).unwrap();
+            std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
             serde_json::from_str(&updated_property_json_str).unwrap();
         let expected_property: serde_json::Value =
-            serde_json::from_str(input_property_json_str).unwrap();
+            serde_json::from_str(app_property_json_str).unwrap();
 
         // Compare the updated property with the expected property.
         assert_eq!(
@@ -543,17 +562,18 @@ mod tests {
             include_str!("../../test_data_embed/app_manifest.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -667,17 +687,18 @@ mod tests {
             include_str!("../../test_data_embed/app_manifest.json");
 
         // Write input files to temp directory.
-        let property_path = std::path::Path::new(&temp_dir_path)
-            .join(ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME);
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
         std::fs::write(&property_path, input_property_json_str).unwrap();
 
         let manifest_path =
-            std::path::Path::new(&temp_dir_path).join("manifest.json");
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

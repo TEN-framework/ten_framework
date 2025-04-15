@@ -11,7 +11,11 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use ten_rust::json_schema::ten_validate_manifest_json_string;
 
-use crate::{config::TmanConfig, fs::read_file_to_string, output::TmanOutput};
+use crate::{
+    config::{internal::TmanInternalConfig, TmanConfig},
+    fs::read_file_to_string,
+    output::TmanOutput,
+};
 
 #[derive(Debug)]
 pub struct CheckManifestJsonCommand {
@@ -44,6 +48,7 @@ pub fn parse_sub_cmd(
 
 pub async fn execute_cmd(
     _tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: CheckManifestJsonCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

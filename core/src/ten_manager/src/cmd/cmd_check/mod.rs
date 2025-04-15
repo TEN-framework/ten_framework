@@ -12,7 +12,10 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
-use crate::{config::TmanConfig, output::TmanOutput};
+use crate::{
+    config::{internal::TmanInternalConfig, TmanConfig},
+    output::TmanOutput,
+};
 
 #[derive(Debug)]
 pub enum CheckCommandData {
@@ -62,6 +65,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CheckCommandData> {
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    tman_internal_config: Arc<TmanInternalConfig>,
     command_data: CheckCommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -69,6 +73,7 @@ pub async fn execute_cmd(
         CheckCommandData::CheckManifestJson(cmd) => {
             crate::cmd::cmd_check::cmd_check_manifest_json::execute_cmd(
                 tman_config.clone(),
+                tman_internal_config.clone(),
                 cmd,
                 out,
             )
@@ -77,6 +82,7 @@ pub async fn execute_cmd(
         CheckCommandData::CheckPropertyJson(cmd) => {
             crate::cmd::cmd_check::cmd_check_property_json::execute_cmd(
                 tman_config.clone(),
+                tman_internal_config.clone(),
                 cmd,
                 out,
             )

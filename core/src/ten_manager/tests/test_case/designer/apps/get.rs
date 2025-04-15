@@ -10,6 +10,7 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{test, web, App};
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
     use ten_manager::config::TmanConfig;
@@ -25,6 +26,7 @@ mod tests {
     async fn test_get_apps_some() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -71,6 +73,7 @@ mod tests {
     async fn test_get_apps_none() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

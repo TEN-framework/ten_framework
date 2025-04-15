@@ -11,6 +11,7 @@ mod tests {
 
     use actix_web::{test, web, App};
 
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
     use ten_manager::designer::apps::addons::{
@@ -27,6 +28,7 @@ mod tests {
     async fn test_get_addons() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

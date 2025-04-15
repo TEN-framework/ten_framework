@@ -17,7 +17,7 @@ use actix_web::{
 };
 
 use ten_manager::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     designer::{builtin_function::builtin_function_endpoint, DesignerState},
     output::TmanOutputCli,
 };
@@ -26,6 +26,7 @@ use ten_manager::{
 async fn test_cmd_builtin_function_websocket_connection() {
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

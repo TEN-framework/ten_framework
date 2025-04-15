@@ -41,11 +41,13 @@ impl WsBuiltinFunction {
 
         // Clone the tman_config to avoid borrowing self in the async task.
         let tman_config = self.tman_config.clone();
+        let tman_internal_config = self.tman_internal_config.clone();
 
         // Call `execute_cmd()` in an async task.
         tokio::spawn(async move {
             let result = crate::cmd::cmd_install::execute_cmd(
                 tman_config,
+                tman_internal_config,
                 install_command,
                 output_ws,
             )

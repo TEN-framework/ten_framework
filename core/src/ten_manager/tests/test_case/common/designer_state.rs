@@ -10,7 +10,7 @@ use std::{
 };
 
 use ten_manager::{
-    config::{read_config, TmanConfig},
+    config::{internal::TmanInternalConfig, read_config, TmanConfig},
     designer::DesignerState,
     output::TmanOutputCli,
 };
@@ -36,6 +36,7 @@ pub fn create_designer_state() -> Arc<RwLock<DesignerState>> {
     // Setup designer state
     let designer_state = DesignerState {
         tman_config: Arc::new(tman_config),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

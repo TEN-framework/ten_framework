@@ -12,7 +12,10 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
-use crate::{config::TmanConfig, output::TmanOutput};
+use crate::{
+    config::{internal::TmanInternalConfig, TmanConfig},
+    output::TmanOutput,
+};
 
 #[derive(Debug)]
 pub enum ModifyCommandData {
@@ -45,6 +48,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyCommandData> {
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    tman_internal_config: Arc<TmanInternalConfig>,
     command_data: ModifyCommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -52,6 +56,7 @@ pub async fn execute_cmd(
         ModifyCommandData::ModifyGraph(cmd) => {
             crate::cmd::cmd_modify::cmd_modify_graph::execute_cmd(
                 tman_config.clone(),
+                tman_internal_config.clone(),
                 cmd,
                 out,
             )

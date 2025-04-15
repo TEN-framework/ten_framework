@@ -18,7 +18,7 @@ use console::Emoji;
 // use webbrowser;
 
 use crate::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     constants::DESIGNER_BACKEND_DEFAULT_PORT,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
@@ -87,6 +87,7 @@ pub fn parse_sub_cmd(
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    tman_internal_config: Arc<TmanInternalConfig>,
     command_data: DesignerCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -117,6 +118,7 @@ pub async fn execute_cmd(
 
     let state = Arc::new(RwLock::new(DesignerState {
         tman_config: tman_config.clone(),
+        tman_internal_config: tman_internal_config.clone(),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),

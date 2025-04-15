@@ -4,6 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod internal;
+
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
@@ -12,6 +14,8 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use crate::constants::CONFIG_JSON;
+use crate::constants::PACKAGE_CACHE;
 use crate::designer::preferences::default_designer;
 use crate::designer::preferences::Designer;
 
@@ -98,7 +102,7 @@ fn get_default_home_dir() -> PathBuf {
 /// directory as `config.json`.
 fn get_default_config_path() -> PathBuf {
     let mut config_path = get_default_home_dir();
-    config_path.push("config.json");
+    config_path.push(CONFIG_JSON);
     config_path
 }
 
@@ -106,7 +110,7 @@ fn get_default_config_path() -> PathBuf {
 /// directory as `package_cache/`.
 pub fn get_default_package_cache_folder() -> PathBuf {
     let mut cache_path = get_default_home_dir();
-    cache_path.push("package_cache");
+    cache_path.push(PACKAGE_CACHE);
     cache_path
 }
 

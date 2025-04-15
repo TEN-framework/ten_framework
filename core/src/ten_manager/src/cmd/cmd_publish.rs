@@ -14,6 +14,7 @@ use indicatif::HumanDuration;
 
 use ten_rust::pkg_info::get_pkg_info_from_path;
 
+use crate::config::internal::TmanInternalConfig;
 use crate::config::TmanConfig;
 use crate::constants::DOT_TEN_DIR;
 use crate::constants::PACKAGE_DIR_IN_DOT_TEN_DIR;
@@ -42,6 +43,7 @@ pub fn parse_sub_cmd(
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: PublishCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

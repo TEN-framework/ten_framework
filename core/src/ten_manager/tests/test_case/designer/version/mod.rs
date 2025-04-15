@@ -12,6 +12,7 @@ mod tests {
     use actix_web::{http::StatusCode, test, web, App};
     use serde::{Deserialize, Serialize};
 
+    use ten_manager::config::internal::TmanInternalConfig;
     use ten_manager::{
         config::TmanConfig,
         designer::{
@@ -31,6 +32,7 @@ mod tests {
         // Initialize the DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

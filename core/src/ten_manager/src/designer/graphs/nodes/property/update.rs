@@ -4,13 +4,19 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use serde::{Deserialize, Serialize};
-use std::sync::{Arc, RwLock};
-use uuid::Uuid;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
 use ten_rust::{
-    graph::node::GraphNode,
+    base_dir_pkg_info::PkgsInfoInApp,
+    graph::{graph_info::GraphInfo, node::GraphNode},
     pkg_info::{
         create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
         pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
@@ -84,6 +90,48 @@ fn update_node_property(
         None,
         Some(&nodes_to_modify),
     )?;
+    Ok(())
+}
+
+fn update_property_all_fields(
+    pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
+    graph_info: &mut GraphInfo,
+    request_payload: &UpdateGraphNodePropertyRequestPayload,
+) -> Result<()> {
+    if let Ok(Some(pkg_info)) =
+        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Create the graph node with updated property.
+        let node_to_update = GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: request_payload.node_name.clone(),
+            },
+            addon: request_payload.addon_name.clone(),
+            extension_group: request_payload.extension_group_name.clone(),
+            app: request_payload.app_uri.clone(),
+            property: request_payload.property.clone(),
+        };
+
+        // Update property.json file with the updated graph node
+        // property.
+        if let Some(property) = &mut pkg_info.property {
+            // Write the updated property_all_fields map to
+            // property.json.
+            if let Err(e) = update_node_property(
+                &pkg_info.url,
+                property,
+                graph_info.name.as_ref().unwrap(),
+                &node_to_update,
+            ) {
+                eprintln!(
+                    "Warning: Failed to update property.json file: {}",
+                    e
+                );
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -167,15 +215,15 @@ pub async fn update_graph_node_property_endpoint(
         }
     };
 
-    // Find the node in the graph
-    let node_found = graph_info.graph.nodes.iter().any(|node| {
+    // Find the node in the graph.
+    let graph_node = graph_info.graph.nodes.iter().any(|node| {
         node.type_and_name.name == request_payload.node_name
             && node.addon == request_payload.addon_name
             && node.extension_group == request_payload.extension_group_name
             && node.app == request_payload.app_uri
     });
 
-    if !node_found {
+    if !graph_node {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: format!(
@@ -189,39 +237,13 @@ pub async fn update_graph_node_property_endpoint(
         return Ok(HttpResponse::NotFound().json(error_response));
     }
 
-    if let Ok(Some(pkg_info)) =
-        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
-    {
-        // Create the graph node with updated property.
-        let node_to_update = GraphNode {
-            type_and_name: PkgTypeAndName {
-                pkg_type: PkgType::Extension,
-                name: request_payload.node_name.clone(),
-            },
-            addon: request_payload.addon_name.clone(),
-            extension_group: request_payload.extension_group_name.clone(),
-            app: request_payload.app_uri.clone(),
-            property: request_payload.property.clone(),
-        };
-
-        // Update property.json file with the updated graph node
-        // property.
-        if let Some(property) = &mut pkg_info.property {
-            // Write the updated property_all_fields map to
-            // property.json.
-            if let Err(e) = update_node_property(
-                &pkg_info.url,
-                property,
-                graph_info.name.as_ref().unwrap(),
-                &node_to_update,
-            ) {
-                eprintln!(
-                    "Warning: Failed to update property.json file: {}",
-                    e
-                );
-            }
-        }
-    }
+    update_property_all_fields(pkgs_cache, graph_info, &request_payload)
+        .map_err(|e| {
+            actix_web::error::ErrorInternalServerError(format!(
+                "Failed to update property all fields: {}",
+                e
+            ))
+        })?;
 
     let response = ApiResponse {
         status: Status::Ok,

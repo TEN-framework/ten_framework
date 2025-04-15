@@ -20,7 +20,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
     registry::{get_package, get_package_list},
@@ -122,6 +122,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: FetchCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

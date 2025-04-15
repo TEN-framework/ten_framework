@@ -12,7 +12,7 @@ use std::{
 use actix_web::{http::StatusCode, test, web};
 
 use ten_manager::{
-    config::TmanConfig,
+    config::{internal::TmanInternalConfig, TmanConfig},
     designer::{
         help_text::{
             get_help_text_endpoint, GetHelpTextRequestPayload,
@@ -36,6 +36,7 @@ async fn test_get_help_text_success() {
     // Get mock state.
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -83,6 +84,7 @@ async fn test_get_help_text_chinese() {
     // Get mock state.
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -132,6 +134,7 @@ async fn test_get_help_text_language_fallback() {
     // Get mock state.
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
@@ -179,6 +182,7 @@ async fn test_get_help_text_not_found() {
     // Get mock state.
     let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
+        tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
         graphs_cache: HashMap::new(),
