@@ -34,7 +34,7 @@ fn test_graph_check_extension_not_installed_1() {
     let mut pkgs_cache: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkgs_cache.insert(app_dir.to_string(), pkgs_info_in_app);
 
-    let result = graph.check(Some(&app_dir.to_string()), &pkgs_cache);
+    let result = graph.check(&Some(app_dir.to_string()), &pkgs_cache);
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
@@ -58,7 +58,7 @@ fn test_graph_check_extension_not_installed_2() {
     let mut pkgs_cache: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkgs_cache.insert(app_dir.to_string(), pkgs_info_in_app);
 
-    let result = graph.check(Some(&app_dir.to_string()), &pkgs_cache);
+    let result = graph.check(&Some(app_dir.to_string()), &pkgs_cache);
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
@@ -82,7 +82,7 @@ fn test_graph_check_predefined_graph_success() {
     let mut pkgs_cache: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkgs_cache.insert(app_dir.to_string(), pkgs_info_in_app);
 
-    let result = graph.check(Some(&app_dir.to_string()), &pkgs_cache);
+    let result = graph.check(&Some(app_dir.to_string()), &pkgs_cache);
     eprintln!("result: {:?}", result);
     assert!(result.is_ok());
 }
@@ -106,7 +106,7 @@ fn test_graph_check_all_msgs_schema_incompatible() {
     let mut pkgs_cache: HashMap<String, PkgsInfoInApp> = HashMap::new();
     pkgs_cache.insert(app_dir.to_string(), pkgs_info_in_app);
 
-    let result = graph.check(Some(&app_dir.to_string()), &pkgs_cache);
+    let result = graph.check(&Some(app_dir.to_string()), &pkgs_cache);
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
@@ -132,7 +132,7 @@ fn test_graph_check_single_app() {
     // The schema of 'ext_c' is not found, but it's OK because we only check
     // for the app 'http://localhost:8001'.
     let result =
-        graph.check_for_single_app(Some(&app_dir.to_string()), &pkgs_cache);
+        graph.check_for_single_app(&Some(app_dir.to_string()), &pkgs_cache);
     eprintln!("result: {:?}", result);
     assert!(result.is_ok());
 }
@@ -156,7 +156,7 @@ fn test_graph_check_builtin_extension() {
     pkgs_cache.insert(app_dir.to_string(), pkgs_info_in_app);
 
     let result =
-        graph.check_for_single_app(Some(&app_dir.to_string()), &pkgs_cache);
+        graph.check_for_single_app(&Some(app_dir.to_string()), &pkgs_cache);
     eprintln!("result: {:?}", result);
     assert!(result.is_ok());
 }

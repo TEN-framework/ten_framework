@@ -12,23 +12,21 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use ten_rust::{
-    graph::graph_info::GraphInfo,
-    pkg_info::{
-        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon, PkgInfo,
-    },
+    graph::graph_info::GraphInfo, pkg_info::create_uri_to_pkg_info_map,
 };
 
 use crate::{
     designer::{
         graphs::nodes::{
-            update_graph_node_in_property_all_fields,
-            validate::{validate_node_request, GraphNodeValidatable},
-            GraphNodeUpdateAction,
+            update_graph_node_in_property_all_fields, GraphNodeUpdateAction,
         },
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::graphs_cache_find_by_id_mut,
+    graph::{
+        graphs_cache_find_by_id_mut,
+        nodes::validate::validate_extension_property,
+    },
 };
 
 #[derive(Serialize, Deserialize)]
@@ -46,29 +44,6 @@ pub struct UpdateGraphNodePropertyRequestPayload {
 #[derive(Serialize, Deserialize)]
 pub struct UpdateGraphNodePropertyResponsePayload {
     pub success: bool,
-}
-
-impl GraphNodeValidatable for UpdateGraphNodePropertyRequestPayload {
-    fn get_addon_name(&self) -> &str {
-        &self.addon
-    }
-
-    fn get_app_uri(&self) -> &Option<String> {
-        &self.app
-    }
-
-    fn get_property(&self) -> &Option<serde_json::Value> {
-        &self.property
-    }
-}
-
-/// Validates the UpdateGraphNodePropertyRequestPayload based on the addon
-/// extension schema.
-fn validate_update_graph_node_property_request(
-    request_payload: &UpdateGraphNodePropertyRequestPayload,
-    extension_pkg_info: &PkgInfo,
-) -> Result<(), String> {
-    validate_node_request(request_payload, extension_pkg_info)
 }
 
 fn update_node_property_in_graph(
@@ -145,49 +120,33 @@ pub async fn update_graph_node_property_endpoint(
         }
     };
 
-    match get_pkg_info_for_extension_addon(
+    if let Err(e) = validate_extension_property(
+        &request_payload.property,
         &request_payload.app,
         &request_payload.addon,
         &uri_to_pkg_info,
-        graph_info.app_base_dir.as_ref(),
+        &graph_info.app_base_dir,
         pkgs_cache,
     ) {
-        Some(pkg_info) => {
-            // Validate the request payload before proceeding.
-            if let Err(validation_error) =
-                validate_update_graph_node_property_request(
-                    &request_payload,
-                    pkg_info,
-                )
-            {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: format!("Validation failed: {}", validation_error),
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        }
-        None => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "Extension not found".to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::NotFound().json(error_response));
-        }
-    };
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to validate extension property: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-    update_node_property_in_graph(graph_info, &request_payload).map_err(
-        |e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to update node property in graph: {}",
-                e
-            ))
-        },
-    )?;
+    if let Err(e) = update_node_property_in_graph(graph_info, &request_payload)
+    {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to update node property in graph: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-    update_graph_node_in_property_all_fields(
+    if let Err(e) = update_graph_node_in_property_all_fields(
         pkgs_cache,
         graph_info,
         &request_payload.name,
@@ -196,13 +155,14 @@ pub async fn update_graph_node_property_endpoint(
         &request_payload.app,
         &request_payload.property,
         GraphNodeUpdateAction::Update,
-    )
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to update property.json file: {}",
-            e
-        ))
-    })?;
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to update property.json file: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
     let response = ApiResponse {
         status: Status::Ok,

@@ -231,7 +231,7 @@ impl Graph {
 
     pub fn check(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         // Create a hash map from app URIs to PkgsInfoInApp.
@@ -265,7 +265,7 @@ impl Graph {
 
     pub fn check_for_single_app(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
         assert!(pkgs_cache.len() == 1);

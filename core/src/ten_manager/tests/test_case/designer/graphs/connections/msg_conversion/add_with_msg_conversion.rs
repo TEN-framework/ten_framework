@@ -890,6 +890,9 @@ mod tests {
         let body_str = std::str::from_utf8(&body).unwrap();
         eprintln!("body_str: {}", body_str);
 
-        assert_eq!(body_str, "Failed to check message conversion schema: { .original_source: type is incompatible, source is [string], but target is [uint32] }");
+        assert_eq!(
+            body_str,
+            r#"{"status":"fail","message":"Failed to add connection: { .original_source: type is incompatible, source is [string], but target is [uint32] }"}"#
+        );
     }
 }

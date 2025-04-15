@@ -28,7 +28,7 @@ impl Graph {
     #[allow(clippy::too_many_arguments)]
     fn check_msg_flow_compatible(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         msg_type: &MsgType,
@@ -91,7 +91,7 @@ impl Graph {
     /// Check the compatibility of a single connection with all its flow types.
     fn check_connection_compatibility(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         connection: &GraphConnection,
@@ -247,7 +247,7 @@ impl Graph {
     /// * `Err` with detailed compatibility error messages otherwise
     pub fn check_connections_compatibility(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         ignore_missing_apps: bool,

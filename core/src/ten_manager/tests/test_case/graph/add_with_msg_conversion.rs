@@ -140,6 +140,7 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -147,6 +148,7 @@ mod msg_conversion_tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             Some(msg_conversion.clone()),
         );
 
@@ -286,6 +288,7 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -293,6 +296,7 @@ mod msg_conversion_tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             Some(msg_conversion),
         );
 
@@ -417,6 +421,7 @@ mod msg_conversion_tests {
         // Test adding a connection with msg_conversion.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -424,6 +429,7 @@ mod msg_conversion_tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             Some(msg_conversion),
         );
 
@@ -537,6 +543,7 @@ mod msg_conversion_tests {
         // Test adding a connection with invalid msg_conversion.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -544,6 +551,7 @@ mod msg_conversion_tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             Some(msg_conversion),
         );
 

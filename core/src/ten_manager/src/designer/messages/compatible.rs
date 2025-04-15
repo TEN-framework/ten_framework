@@ -144,8 +144,8 @@ pub async fn get_compatible_messages_endpoint(
 
     let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
-        Some(graph_info) => graph_info.app_base_dir.as_ref(),
-        None => None,
+        Some(graph_info) => &graph_info.app_base_dir,
+        None => &None,
     };
 
     if let Some(pkgs_info_in_app) = uri_to_pkg_info.get(&request_payload.app) {
