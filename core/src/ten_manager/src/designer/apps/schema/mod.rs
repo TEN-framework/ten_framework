@@ -4,16 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-
-use ten_rust::pkg_info::manifest::api::ManifestApiPropertyAttributes;
+use ten_rust::pkg_info::manifest::api::ManifestApi;
 
 use crate::designer::{
     response::{ApiResponse, ErrorResponse, Status},
@@ -21,17 +17,17 @@ use crate::designer::{
 };
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct GetAppPropertySchemaRequestPayload {
+pub struct GetAppSchemaRequestPayload {
     pub app_base_dir: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct GetAppPropertySchemaResponseData {
-    pub property_schema: Option<HashMap<String, ManifestApiPropertyAttributes>>,
+pub struct GetAppSchemaResponseData {
+    pub schema: Option<ManifestApi>,
 }
 
-pub async fn get_app_property_schema_endpoint(
-    request_payload: web::Json<GetAppPropertySchemaRequestPayload>,
+pub async fn get_app_schema_endpoint(
+    request_payload: web::Json<GetAppSchemaRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().map_err(|e| {
@@ -49,12 +45,8 @@ pub async fn get_app_property_schema_endpoint(
         if let Some(app_pkg_info) = &pkgs_info_in_app.app_pkg_info {
             let response = ApiResponse {
                 status: Status::Ok,
-                data: GetAppPropertySchemaResponseData {
-                    property_schema: app_pkg_info
-                        .manifest
-                        .api
-                        .as_ref()
-                        .and_then(|api| api.property.clone()),
+                data: GetAppSchemaResponseData {
+                    schema: app_pkg_info.manifest.api.clone(),
                 },
                 meta: None,
             };
