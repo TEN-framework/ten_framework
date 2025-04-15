@@ -485,7 +485,6 @@ export const AppTemplateWidget = (props: {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     try {
       setIsCreating(true);
       const res = await postCreateApp(

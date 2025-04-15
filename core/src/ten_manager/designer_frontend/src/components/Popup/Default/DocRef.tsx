@@ -41,13 +41,12 @@ const DocRefRemoteContent = (props: {
   const { data, error, isLoading } = useDocLink(queryKey, locale);
 
   const docPathMemo = React.useMemo(() => {
-    const locale = data?.shortLocale;
     const text = data?.text;
-    if (!locale || !text) {
+    if (!text) {
       return undefined;
     }
-    return `${locale}/${text}`;
-  }, [data?.shortLocale, data?.text]);
+    return `${text}`;
+  }, [data?.text]);
 
   React.useEffect(() => {
     if (error) {

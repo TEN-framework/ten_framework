@@ -80,7 +80,6 @@ const EditorWidget = React.forwardRef<IEditorWidgetRef, EditorWidgetProps>(
         await putFileContent(data.url, { content });
         isEditingRef.current = false;
         updateEditorStatus(id, false);
-        console.log(t("toast.saveFileSuccess"));
         toast.success(t("toast.saveFileSuccess"));
         // We can add UI prompts, such as displaying a success notification.
       } catch (error: unknown) {

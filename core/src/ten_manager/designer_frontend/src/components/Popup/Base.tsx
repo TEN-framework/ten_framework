@@ -37,6 +37,8 @@ const POPUP_MIN_WIDTH = 100;
 
 export interface IPopupBaseProps {
   id: string;
+  containerId: string;
+  groupId: string;
   title?: string | React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -57,6 +59,7 @@ export interface IPopupBaseProps {
   onResized?: () => void;
   onClose?: () => Promise<void> | void;
   onCollapseToggle?: (isCollapsed: boolean) => void;
+  onSelectWidget?: (widget_id: string) => void;
 }
 
 export const PopupTabsBar = (props: {
@@ -162,6 +165,7 @@ export const PopupTabsBarContent = (props: {
 export const PopupBase = (props: IPopupBaseProps) => {
   const {
     id,
+    groupId,
     children,
     className,
     title = null,
@@ -176,6 +180,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
     onCollapseToggle,
     onResizing,
     onResized,
+    onSelectWidget,
   } = props;
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -207,25 +212,43 @@ export const PopupBase = (props: IPopupBaseProps) => {
   }, [isResized, popupHeight, popupWidth]);
 
   const handleResize = React.useCallback(
-    (mode: "right" | "top" | "bottom" | "bottom-right" | "left") =>
+    (
+      mode:
+        | "right"
+        | "top"
+        | "bottom"
+        | "bottom-right"
+        | "left"
+        | "top-right"
+        | "top-left"
+        | "bottom-left"
+    ) =>
       (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         preResizeCallback();
 
-        if (mode === "right" || mode === "bottom-right") {
+        if (
+          mode === "right" ||
+          mode === "bottom-right" ||
+          mode === "top-right"
+        ) {
           const newWidth = popupWidth.get() + info.delta.x;
           if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
             popupWidth.set(newWidth);
           }
         }
 
-        if (mode === "bottom" || mode === "bottom-right") {
+        if (
+          mode === "bottom" ||
+          mode === "bottom-right" ||
+          mode === "bottom-left"
+        ) {
           const newHeight = popupHeight.get() + info.delta.y;
           if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
             popupHeight.set(newHeight);
           }
         }
 
-        if (mode === "left") {
+        if (mode === "left" || mode === "top-left" || mode === "bottom-left") {
           const newWidth = popupWidth.get() - info.delta.x;
           if (newWidth >= POPUP_MIN_WIDTH && newWidth <= maxWidth) {
             popupWidth.set(newWidth);
@@ -237,7 +260,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
           }
         }
 
-        if (mode === "top") {
+        if (mode === "top" || mode === "top-left" || mode === "top-right") {
           const newHeight = popupHeight.get() - info.delta.y;
           if (newHeight >= POPUP_MIN_HEIGHT && newHeight <= maxHeight) {
             popupHeight.set(newHeight);
@@ -260,20 +283,23 @@ export const PopupBase = (props: IPopupBaseProps) => {
     }
   }, [onClose, id, removeWidget]);
 
-  const handleBringToFront = React.useCallback((widget_id?: string) => {
-    const highestZIndex = Math.max(
-      ...Array.from(document.querySelectorAll(".popup")).map(
-        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
-      )
-    );
-    if (widget_id) {
-      // onWidgetIdUpdate?.(widget_id);
-    }
-    if (popupRef.current) {
-      if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
-      popupRef.current.style.zIndex = (highestZIndex + 1).toString();
-    }
-  }, []);
+  const handleBringToFront = React.useCallback(
+    (widget_id?: string) => {
+      const highestZIndex = Math.max(
+        ...Array.from(document.querySelectorAll(".popup")).map(
+          (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
+        )
+      );
+      if (widget_id) {
+        onSelectWidget?.(widget_id);
+      }
+      if (popupRef.current) {
+        if (highestZIndex === parseInt(popupRef.current.style.zIndex)) return;
+        popupRef.current.style.zIndex = (highestZIndex + 1).toString();
+      }
+    },
+    [onSelectWidget]
+  );
 
   React.useEffect(() => {
     if (popupRef.current) {
@@ -305,7 +331,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
     const { id: bringToFrontEventId } = eventPubSub.subscribe(
       EEventName.BringToFront,
       (event) => {
-        if (event.id === id) {
+        if (event.group_id === groupId) {
           handleBringToFront(event.widget_id);
         }
       }
@@ -438,106 +464,168 @@ export const PopupBase = (props: IPopupBaseProps) => {
         {children}
       </motion.div>
 
-      {/* bottom resize handler */}
-      <motion.div
-        className={cn(
-          "absolute bottom-0 left-0 right-1",
-          "h-0.5 cursor-ns-resize bg-transparent"
-        )}
-        drag="y"
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0}
-        dragMomentum={false}
-        onDrag={handleResize("bottom")}
-        onMouseDown={() => {
-          setIsResizing(true);
-          onResizing?.();
-        }}
-        onDragEnd={() => {
-          setIsResizing(false);
-          onResized?.();
-        }}
-      />
+      <>
+        {/* bottom resize handler */}
+        <motion.div
+          className={cn(
+            "absolute bottom-0 left-0 right-1",
+            "h-0.5 cursor-ns-resize bg-transparent"
+          )}
+          drag="y"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          dragMomentum={false}
+          onDrag={handleResize("bottom")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
 
-      {/* right resize handler */}
-      <motion.div
-        className={cn(
-          "absolute right-0 top-0 bottom-1",
-          "w-0.5 cursor-ew-resize bg-transparent"
-        )}
-        drag="x"
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0}
-        onDrag={handleResize("right")}
-        onMouseDown={() => {
-          setIsResizing(true);
-          onResizing?.();
-        }}
-        onDragEnd={() => {
-          setIsResizing(false);
-          onResized?.();
-        }}
-      />
+        {/* right resize handler */}
+        <motion.div
+          className={cn(
+            "absolute right-0 top-0 bottom-1",
+            "w-0.5 cursor-ew-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("right")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
 
-      {/* right bottom resize handler */}
-      <motion.div
-        className={cn(
-          "absolute right-0 bottom-0",
-          "size-1 cursor-se-resize bg-transparent"
-        )}
-        drag="x"
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0}
-        onDrag={handleResize("bottom-right")}
-        onMouseDown={() => {
-          setIsResizing(true);
-          onResizing?.();
-        }}
-        onDragEnd={() => {
-          setIsResizing(false);
-          onResized?.();
-        }}
-      />
+        {/* right bottom resize handler */}
+        <motion.div
+          className={cn(
+            "absolute right-0 bottom-0",
+            "size-1 cursor-se-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("bottom-right")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
 
-      {/* top resize handler */}
-      <motion.div
-        className={cn(
-          "absolute top-0 left-0 right-0",
-          "h-0.5 cursor-ns-resize bg-transparent"
-        )}
-        drag="y"
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0}
-        onDrag={handleResize("top")}
-        onMouseDown={() => {
-          setIsResizing(true);
-          onResizing?.();
-        }}
-        onDragEnd={() => {
-          setIsResizing(false);
-          onResized?.();
-        }}
-      />
+        {/* top resize handler */}
+        <motion.div
+          className={cn(
+            "absolute top-0 left-0 right-0",
+            "h-0.5 cursor-ns-resize bg-transparent"
+          )}
+          drag="y"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("top")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
 
-      {/* left resize handler */}
-      <motion.div
-        className={cn(
-          "absolute left-0 top-0 bottom-0",
-          "w-0.5 cursor-ew-resize bg-transparent"
-        )}
-        drag="x"
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0}
-        onDrag={handleResize("left")}
-        onMouseDown={() => {
-          setIsResizing(true);
-          onResizing?.();
-        }}
-        onDragEnd={() => {
-          setIsResizing(false);
-          onResized?.();
-        }}
-      />
+        {/* left resize handler */}
+        <motion.div
+          className={cn(
+            "absolute left-0 top-0 bottom-0",
+            "w-0.5 cursor-ew-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("left")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
+
+        {/* top right resize handler */}
+        <motion.div
+          className={cn(
+            "absolute top-0 right-0",
+            "size-1 cursor-nesw-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("top-right")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
+
+        {/* top left resize handler */}
+        <motion.div
+          className={cn(
+            "absolute top-0 left-0",
+            "size-1 cursor-nwse-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("top-left")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
+
+        {/* bottom left resize handler */}
+        <motion.div
+          className={cn(
+            "absolute bottom-0 left-0",
+            "size-1 cursor-nesw-resize bg-transparent"
+          )}
+          drag="x"
+          dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          dragElastic={0}
+          onDrag={handleResize("bottom-left")}
+          onMouseDown={() => {
+            setIsResizing(true);
+            onResizing?.();
+          }}
+          onDragEnd={() => {
+            setIsResizing(false);
+            onResized?.();
+          }}
+        />
+      </>
     </motion.div>
   );
 };

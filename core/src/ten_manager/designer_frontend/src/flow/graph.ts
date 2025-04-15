@@ -175,7 +175,6 @@ export const updateNodesWithAddonInfo = async (
       console.warn(`Addon '${addonName}' not found`);
       continue;
     }
-    console.log(`URL for addon '${addonName}': ${addonInfo.url}`);
     addonInfoMap.set(addonName, addonInfo);
   }
   return nodes.map((node) => {
