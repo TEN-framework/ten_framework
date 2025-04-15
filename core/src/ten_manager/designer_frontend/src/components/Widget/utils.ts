@@ -5,8 +5,19 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { z } from "zod";
+import { buildZodFieldConfig } from "@autoform/react";
+import { FieldTypes } from "@/components/ui/autoform/AutoForm";
 
 export type TExtPropertySchema = Record<string, Record<"type", string>>;
+
+// const fieldConfig = buildZodFieldConfig<
+//   // You should provide the "FieldTypes" type from the UI library you use
+//   FieldTypes,
+//   {
+//     isImportant?: boolean; // You can add custom props here
+//   }
+// >();
+const fieldConfig = buildZodFieldConfig<FieldTypes>();
 
 export const convertExtensionPropertySchema2ZodSchema = (
   input: TExtPropertySchema
@@ -19,11 +30,31 @@ export const convertExtensionPropertySchema2ZodSchema = (
       switch (type) {
         case "int64":
         case "int32":
-          zodType = z.number().optional();
+          zodType = z.coerce
+            .number()
+            .superRefine(
+              fieldConfig({
+                inputProps: {
+                  type: "number",
+                  step: 1,
+                },
+              })
+            )
+            .optional();
           break;
         case "float64":
         case "float32":
-          zodType = z.number().optional();
+          zodType = z.coerce
+            .number()
+            .superRefine(
+              fieldConfig({
+                inputProps: {
+                  type: "number",
+                  step: 0.1,
+                },
+              })
+            )
+            .optional();
           break;
         case "bool":
           zodType = z.boolean().optional();

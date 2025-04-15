@@ -35,10 +35,7 @@ export const bringToFrontPayloadSchema = z.object({
   widget_id: z.string().optional(),
 });
 
-export const eventMappings: Record<
-  EEventName,
-  { id: EEventName; payload: z.ZodSchema }
-> = {
+export const eventMappings = {
   [EEventName.CustomNodeActionPopup]: {
     id: EEventName.CustomNodeActionPopup,
     payload: customNodeActionPopupPayloadSchema,
@@ -47,7 +44,7 @@ export const eventMappings: Record<
     id: EEventName.BringToFront,
     payload: bringToFrontPayloadSchema,
   },
-} as const;
+};
 
 /**
  * Event PubSub system for managing custom events

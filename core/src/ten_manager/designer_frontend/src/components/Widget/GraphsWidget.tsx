@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ZodProvider } from "@autoform/zod";
+import { EditIcon } from "lucide-react";
 
 import {
   AddNodePayloadSchema,
@@ -39,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { Combobox } from "@/components/ui/Combobox";
 import {
@@ -50,7 +50,7 @@ import {
   postAddConnection,
   postUpdateNodeProperty,
 } from "@/api/services/graphs";
-import { retrieveExtensionPropertySchema } from "@/api/services/extension";
+import { retrieveExtensionSchema } from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
 import {
   generateRawNodes,
@@ -60,7 +60,7 @@ import {
   generateNodesAndEdges,
   syncGraphNodeGeometry,
 } from "@/flow/graph";
-import { useAppStore, useFlowStore } from "@/store";
+import { useAppStore, useDialogStore, useFlowStore } from "@/store";
 import type { TCustomNode } from "@/types/flow";
 import { AutoForm } from "@/components/ui/autoform";
 // eslint-disable-next-line max-len
@@ -95,6 +95,114 @@ export const resetNodesAndEdgesByGraph = async (graph: IGraph) => {
   return { nodes: nodesWithGeometry, edges: layoutedEdges };
 };
 
+const GraphAddNodePropertyField = (props: {
+  addon: string;
+  onChange?: (value: Record<string, unknown> | undefined) => void;
+}) => {
+  const { addon, onChange } = props;
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [errMsg, setErrMsg] = React.useState<string | null>(null);
+  const [propertySchemaEntries, setPropertySchemaEntries] = React.useState<
+    [string, z.ZodType][]
+  >([]);
+
+  const { t } = useTranslation();
+  const { currentWorkspace } = useAppStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+
+  const isSchemaEmptyMemo = React.useMemo(() => {
+    return !isLoading && propertySchemaEntries.length === 0;
+  }, [isLoading, propertySchemaEntries.length]);
+
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        setIsLoading(true);
+
+        const addonSchema = await retrieveExtensionSchema({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: addon,
+        });
+        const propertySchema = addonSchema.property;
+        if (!propertySchema) {
+          // toast.error(t("popup.graph.noPropertySchema"));
+          return;
+        }
+        const propertySchemaEntries =
+          convertExtensionPropertySchema2ZodSchema(propertySchema);
+        setPropertySchemaEntries(propertySchemaEntries);
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+          setErrMsg(error.message);
+        } else {
+          setErrMsg(t("popup.default.errorUnknown"));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    const dialogId = `new-node-property`;
+    appendDialog({
+      id: dialogId,
+      title: t("popup.graph.property"),
+      content: (
+        <>
+          <AutoForm
+            onSubmit={async (data) => {
+              onChange?.(data);
+              removeDialog(dialogId);
+            }}
+            schema={
+              new ZodProvider(
+                z.object(Object.fromEntries(propertySchemaEntries))
+              )
+            }
+          >
+            <div className="flex flex-row gap-2 w-full justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  removeDialog(dialogId);
+                }}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button type="submit">{t("action.confirm")}</Button>
+            </div>
+          </AutoForm>
+        </>
+      ),
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full h-fit">
+      <Button
+        variant="outline"
+        disabled={isSchemaEmptyMemo || isLoading}
+        onClick={handleClick}
+      >
+        {isLoading && <SpinnerLoading className="size-4" />}
+        {!isLoading && <EditIcon className="size-4" />}
+        {isSchemaEmptyMemo && <>{t("popup.graph.noPropertySchema")}</>}
+        {t("action.edit")}
+      </Button>
+      {errMsg && <div className="text-red-500">{errMsg}</div>}
+    </div>
+  );
+};
+
 export const GraphAddNodeWidget = (props: {
   base_dir: string;
   graph_id?: string;
@@ -117,16 +225,15 @@ export const GraphAddNodeWidget = (props: {
     resolver: zodResolver(AddNodePayloadSchema),
     defaultValues: {
       graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-      node_name: undefined,
-      addon_name: undefined,
-      extension_group_name: undefined,
-      app_uri: undefined,
-      property: "{}" as unknown as Record<string, unknown>,
+      name: undefined,
+      addon: undefined,
+      extension_group: undefined,
+      app: undefined,
+      property: undefined,
     },
   });
 
   const onSubmit = async (data: z.infer<typeof AddNodePayloadSchema>) => {
-    console.log("GraphAddNode", data);
     setIsSubmitting(true);
     try {
       await postAddNode(data);
@@ -138,7 +245,7 @@ export const GraphAddNodeWidget = (props: {
         postAddNodeActions?.();
       }
       toast.success(t("popup.graph.addNodeSuccess"), {
-        description: `Node ${data.node_name} added successfully`,
+        description: `Node ${data.name} added successfully`,
       });
     } catch (error) {
       console.error(error);
@@ -229,7 +336,7 @@ export const GraphAddNodeWidget = (props: {
 
         <FormField
           control={form.control}
-          name="node_name"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("popup.graph.nodeName")}</FormLabel>
@@ -243,7 +350,7 @@ export const GraphAddNodeWidget = (props: {
 
         <FormField
           control={form.control}
-          name="addon_name"
+          name="addon"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("popup.graph.addonName")}</FormLabel>
@@ -266,25 +373,27 @@ export const GraphAddNodeWidget = (props: {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="property"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.property")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("popup.graph.property")}
-                  value={field.value as unknown as string}
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {form.watch("addon") && (
+          <FormField
+            control={form.control}
+            name="property"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("popup.graph.property")}</FormLabel>
+                <FormControl>
+                  <GraphAddNodePropertyField
+                    key={form.watch("addon")}
+                    addon={form.watch("addon")}
+                    onChange={(value: Record<string, unknown> | undefined) => {
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {remoteCheckErrorMessage && (
           <div className="text-red-500">{remoteCheckErrorMessage}</div>
@@ -320,6 +429,14 @@ export const GraphAddConnectionWidget = (props: {
     postAddConnectionActions,
   } = props;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isMsgNameLoading, setIsMsgNameLoading] = React.useState(false);
+  const [msgNameError, setMsgNameError] = React.useState<unknown | null>(null);
+  const [msgNameList, setMsgNameList] = React.useState<
+    {
+      value: string;
+      label: string;
+    }[]
+  >([]);
 
   const { t } = useTranslation();
   const { nodes, setNodesAndEdges } = useFlowStore();
@@ -346,7 +463,6 @@ export const GraphAddConnectionWidget = (props: {
       if (payload.src_extension === payload.dest_extension) {
         throw new Error(t("popup.graph.sameNodeError"));
       }
-      console.log("GraphAddConnection", payload);
       await postAddConnection(payload);
       if (
         currentWorkspace?.graph?.uuid === data.graph_id &&
@@ -372,8 +488,49 @@ export const GraphAddConnectionWidget = (props: {
         description: graphError.message,
       });
     }
+    if (msgNameError) {
+      toast.error(t("popup.graph.addonError"), {
+        description:
+          msgNameError instanceof Error
+            ? msgNameError.message
+            : "Unknown error",
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphError]);
+  }, [graphError, msgNameError]);
+
+  React.useEffect(() => {
+    const fetchNodeSchema = async () => {
+      if (!form.watch("src_extension")) return;
+      try {
+        form.setValue("msg_name", undefined as unknown as string);
+        setIsMsgNameLoading(true);
+        const nodeSchema = await retrieveExtensionSchema({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: form.watch("src_extension"),
+        });
+        const msgNameList =
+          nodeSchema?.[`${form.watch("msg_type")}_out`]?.map((i) => i.name) ??
+          [];
+        setMsgNameList(
+          msgNameList.map((i) => ({
+            value: i,
+            label: i,
+          }))
+        );
+      } catch (error: unknown) {
+        console.error(error);
+        setMsgNameError(error);
+      } finally {
+        setIsMsgNameLoading(false);
+      }
+    };
+
+    fetchNodeSchema();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.watch("src_extension"), form.watch("msg_type")]);
+
+  console.log("isMsgNameLoading ===", isMsgNameLoading);
 
   return (
     <Form {...form}>
@@ -391,6 +548,7 @@ export const GraphAddConnectionWidget = (props: {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={!!src_extension}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
                     <SelectValue placeholder={t("popup.graph.graphName")} />
@@ -475,19 +633,45 @@ export const GraphAddConnectionWidget = (props: {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="msg_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("popup.graph.messageName")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("popup.graph.messageName")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {form.watch("msg_type") && form.watch("src_extension") && (
+          <FormField
+            control={form.control}
+            name="msg_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("popup.graph.messageName")}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    key={
+                      `${form.watch("msg_type")}` +
+                      "-" +
+                      `${form.watch("src_extension")}`
+                    }
+                    disabled={isMsgNameLoading}
+                    isLoading={isMsgNameLoading}
+                    options={msgNameList}
+                    placeholder={t("popup.graph.messageName")}
+                    selected={field.value}
+                    onChange={(i) => {
+                      field.onChange(i.value);
+                    }}
+                    onCreate={(i) => {
+                      setMsgNameList((prev) => [
+                        ...prev,
+                        {
+                          value: i,
+                          label: i,
+                        },
+                      ]);
+                      field.onChange(i);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="dest_extension"
@@ -554,12 +738,12 @@ export const GraphUpdateNodePropertyWidget = (props: {
     const fetchSchema = async () => {
       try {
         setIsSchemaLoading(true);
-        const schema = await retrieveExtensionPropertySchema({
+        const schema = await retrieveExtensionSchema({
           appBaseDir: currentWorkspace?.app?.base_dir ?? "",
           addonName: node.data.addon,
         });
         const propertySchemaEntries = convertExtensionPropertySchema2ZodSchema(
-          schema.property_schema
+          schema.property ?? {}
         );
         setPropertySchemaEntries(propertySchemaEntries);
       } catch (error) {
@@ -573,8 +757,6 @@ export const GraphUpdateNodePropertyWidget = (props: {
     fetchSchema();
   }, [currentWorkspace?.app?.base_dir, node.data.addon]);
 
-  console.log(node?.data.property);
-
   return (
     <>
       {isSchemaLoading && !propertySchemaEntries && (
@@ -587,15 +769,14 @@ export const GraphUpdateNodePropertyWidget = (props: {
             new ZodProvider(z.object(Object.fromEntries(propertySchemaEntries)))
           }
           onSubmit={async (data) => {
-            console.log(data);
             setIsSubmitting(true);
             try {
               const nodeData = UpdateNodePropertyPayloadSchema.parse({
                 graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-                node_name: node.data.name,
-                addon_name: node.data.addon,
-                extension_group_name: node.data.extension_group,
-                app_uri: app_uri ?? undefined,
+                name: node.data.name,
+                addon: node.data.addon,
+                extension_group: node.data.extension_group,
+                app: app_uri ?? undefined,
                 property: JSON.stringify(data, null, 2),
               });
               await postUpdateNodeProperty(nodeData);

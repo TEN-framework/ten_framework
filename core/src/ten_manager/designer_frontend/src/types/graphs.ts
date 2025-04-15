@@ -81,21 +81,19 @@ export enum EGraphActions {
 
 export const AddNodePayloadSchema = z.object({
   graph_id: z.string(),
-  node_name: z.string(),
-  addon_name: z.string(),
-  extension_group_name: z.string().optional(),
-  app_uri: z.string().optional(),
-  property: stringToJSONSchema
-    .pipe(z.record(z.string(), z.unknown()))
-    .default("{}"),
+  name: z.string(),
+  addon: z.string(),
+  extension_group: z.string().optional(),
+  app: z.string().optional(),
+  property: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const DeleteNodePayloadSchema = z.object({
   graph_id: z.string(),
-  node_name: z.string(),
-  addon_name: z.string(),
-  extension_group_name: z.string().optional(),
-  app_uri: z.string().optional(),
+  name: z.string(),
+  addon: z.string(),
+  extension_group: z.string().optional(),
+  app: z.string().optional(),
 });
 
 export const AddConnectionPayloadSchema = z.object({
@@ -121,10 +119,10 @@ export const DeleteConnectionPayloadSchema = z.object({
 
 export const UpdateNodePropertyPayloadSchema = z.object({
   graph_id: z.string(),
-  node_name: z.string(),
-  addon_name: z.string(),
-  extension_group_name: z.string().optional(),
-  app_uri: z.string().optional(),
+  name: z.string(),
+  addon: z.string(),
+  extension_group: z.string().optional(),
+  app: z.string().optional(),
   property: stringToJSONSchema
     .pipe(z.record(z.string(), z.unknown()))
     .default("{}"),

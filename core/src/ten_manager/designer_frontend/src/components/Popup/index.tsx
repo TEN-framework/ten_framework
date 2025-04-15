@@ -176,6 +176,8 @@ const PopupWithTabs = (props: {
   return (
     <PopupBase
       id={`${containerId}-${groupId}`}
+      containerId={containerId}
+      groupId={groupId}
       onClose={handleClose}
       customActions={globalCustomActions}
       title={globalTitle}
@@ -199,6 +201,7 @@ const PopupWithTabs = (props: {
       maxWidth={size?.windowWidth}
       maxHeight={size?.windowHeight}
       initialPosition={size?.initialPosition}
+      onSelectWidget={handleSelectWidget}
     >
       <PopupTabs
         widgets={widgets}
