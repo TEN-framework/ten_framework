@@ -72,8 +72,8 @@ pub async fn execute_cmd(
     match command_data {
         CheckCommandData::CheckManifestJson(cmd) => {
             crate::cmd::cmd_check::cmd_check_manifest_json::execute_cmd(
-                tman_config.clone(),
-                tman_internal_config.clone(),
+                tman_config,
+                tman_internal_config,
                 cmd,
                 out,
             )
@@ -81,8 +81,8 @@ pub async fn execute_cmd(
         }
         CheckCommandData::CheckPropertyJson(cmd) => {
             crate::cmd::cmd_check::cmd_check_property_json::execute_cmd(
-                tman_config.clone(),
-                tman_internal_config.clone(),
+                tman_config,
+                tman_internal_config,
                 cmd,
                 out,
             )

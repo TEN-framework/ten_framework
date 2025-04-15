@@ -27,7 +27,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::graphs_cache_find_by_id_mut,
+    graph::{graphs_cache_find_by_id_mut, update_graph_node_all_fields},
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
@@ -103,45 +103,6 @@ fn add_extension_node_to_graph(
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
-}
-
-/// Creates a new GraphNode for an extension.
-fn create_extension_node(
-    node_name: &str,
-    addon_name: &str,
-    extension_group_name: &Option<String>,
-    app_uri: &Option<String>,
-    property: &Option<serde_json::Value>,
-) -> GraphNode {
-    GraphNode {
-        type_and_name: PkgTypeAndName {
-            pkg_type: PkgType::Extension,
-            name: node_name.to_string(),
-        },
-        addon: addon_name.to_string(),
-        extension_group: extension_group_name.clone(),
-        app: app_uri.clone(),
-        property: property.clone(),
-    }
-}
-
-/// Updates the property.json file with the new graph node.
-fn update_node_property_file(
-    base_dir: &str,
-    property: &mut ten_rust::pkg_info::property::Property,
-    graph_name: &str,
-    node: &GraphNode,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let nodes_to_add = vec![node.clone()];
-    crate::graph::update_graph_node_all_fields(
-        base_dir,
-        &mut property.all_fields,
-        graph_name,
-        Some(&nodes_to_add),
-        None,
-        None,
-    )?;
-    Ok(())
 }
 
 impl GraphNodeValidatable for AddGraphNodeRequestPayload {
@@ -243,29 +204,38 @@ pub async fn add_graph_node_endpoint(
         &request_payload.app_uri,
     ) {
         Ok(_) => {
-            // Create the graph node.
-            let new_node = create_extension_node(
-                &request_payload.node_name,
-                &request_payload.addon_name,
-                &request_payload.extension_group_name,
-                &request_payload.app_uri,
-                &request_payload.property,
-            );
-
             if let Ok(Some(pkg_info)) =
                 belonging_pkg_info_find_by_graph_info_mut(
                     pkgs_cache, graph_info,
                 )
             {
+                // Create the graph node.
+                let new_node = GraphNode {
+                    type_and_name: PkgTypeAndName {
+                        pkg_type: PkgType::Extension,
+                        name: request_payload.node_name.to_string(),
+                    },
+                    addon: request_payload.addon_name.to_string(),
+                    extension_group: request_payload
+                        .extension_group_name
+                        .clone(),
+                    app: request_payload.app_uri.clone(),
+                    property: request_payload.property.clone(),
+                };
+
                 // Update property.json file with the new graph node.
                 if let Some(property) = &mut pkg_info.property {
                     // Write the updated property_all_fields map to
                     // property.json.
-                    if let Err(e) = update_node_property_file(
+                    let nodes_to_add = vec![new_node.clone()];
+
+                    if let Err(e) = update_graph_node_all_fields(
                         &pkg_info.url,
-                        property,
+                        &mut property.all_fields,
                         graph_info.name.as_ref().unwrap(),
-                        &new_node,
+                        Some(&nodes_to_add),
+                        None,
+                        None,
                     ) {
                         eprintln!(
                             "Warning: Failed to update property.json file: {}",
