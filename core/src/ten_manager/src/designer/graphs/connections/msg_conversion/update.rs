@@ -29,12 +29,13 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
+    graph::{
+        connections::validate::{
+            validate_connection_schema, MsgConversionValidateInfo,
+        },
+        graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
+    },
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
-};
-
-use super::validate::{
-    validate_msg_conversion_schema, MsgConversionValidateInfo,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -232,8 +233,9 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
-    validate_msg_conversion_schema(
-        graph_info,
+    validate_connection_schema(
+        &mut graph_info.graph,
+        &graph_info.app_base_dir,
         &MsgConversionValidateInfo {
             src_app: &request_payload.src_app,
             src_extension: &request_payload.src_extension,
@@ -248,7 +250,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
     )
     .map_err(|e| {
         actix_web::error::ErrorInternalServerError(format!(
-            "Failed to check message conversion schema: {}",
+            "Failed to validate connection schema: {}",
             e
         ))
     })?;

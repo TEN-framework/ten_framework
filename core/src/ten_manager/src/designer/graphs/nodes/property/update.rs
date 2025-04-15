@@ -149,7 +149,7 @@ pub async fn update_graph_node_property_endpoint(
         &request_payload.app,
         &request_payload.addon,
         &uri_to_pkg_info,
-        graph_info.app_base_dir.as_ref(),
+        &graph_info.app_base_dir,
         pkgs_cache,
     ) {
         Some(pkg_info) => {

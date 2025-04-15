@@ -104,6 +104,7 @@ mod tests {
         // Test adding a connection.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -111,6 +112,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
 
@@ -191,6 +193,7 @@ mod tests {
         // Test adding a connection with nonexistent source.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("app1".to_string()),
             "ext1".to_string(), // This node doesn't exist.
             MsgType::Cmd,
@@ -198,6 +201,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
 
@@ -260,6 +264,7 @@ mod tests {
         // Test adding a connection with nonexistent destination.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("app1".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -267,6 +272,7 @@ mod tests {
             Some("app1".to_string()),
             "ext2".to_string(), // This node doesn't exist.
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
 
@@ -345,6 +351,7 @@ mod tests {
         // Add first connection.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -352,6 +359,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -360,6 +368,7 @@ mod tests {
         // destination.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -367,6 +376,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -455,6 +465,7 @@ mod tests {
         // Add different message types.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -462,12 +473,14 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
 
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
@@ -475,12 +488,14 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
 
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::AudioFrame,
@@ -488,12 +503,14 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
 
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::VideoFrame,
@@ -501,6 +518,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -585,6 +603,7 @@ mod tests {
         // Add a connection.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -592,6 +611,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -599,6 +619,7 @@ mod tests {
         // Try to add the same connection again.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -606,6 +627,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
 
@@ -699,6 +721,7 @@ mod tests {
         // Test connecting ext1 to ext2 with compatible schema - should succeed.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -706,6 +729,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -713,6 +737,7 @@ mod tests {
         // Test connecting ext1 to ext3 with compatible schema - should succeed.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
@@ -720,6 +745,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_ok());
@@ -727,6 +753,7 @@ mod tests {
         // Test connecting ext1 to ext3 with incompatible schema - should fail.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
@@ -734,6 +761,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_err());
@@ -746,6 +774,7 @@ mod tests {
         // should fail.
         let result = graph_add_connection(
             &mut graph,
+            &Some(TEST_DIR.to_string()),
             Some("http://localhost:8000".to_string()),
             "ext1".to_string(),
             MsgType::Data,
@@ -753,6 +782,7 @@ mod tests {
             Some("http://localhost:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
+            &pkgs_cache,
             None,
         );
         assert!(result.is_err());

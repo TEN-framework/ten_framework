@@ -127,8 +127,8 @@ pub async fn get_graph_nodes_endpoint(
 
     let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
-        Some(graph_info) => graph_info.app_base_dir.as_ref(),
-        None => None,
+        Some(graph_info) => &graph_info.app_base_dir,
+        None => &None,
     };
 
     let extension_graph_nodes =
