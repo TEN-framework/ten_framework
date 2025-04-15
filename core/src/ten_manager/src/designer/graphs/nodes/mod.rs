@@ -15,14 +15,20 @@ use std::collections::HashMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 use ten_rust::graph::graph_info::GraphInfo;
 use ten_rust::graph::node::GraphNode;
 use ten_rust::pkg_info::manifest::api::ManifestApiMsg;
 use ten_rust::pkg_info::manifest::api::{
     ManifestApiCmdResult, ManifestApiPropertyAttributes,
 };
+use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::value_type::ValueType;
 use uuid::Uuid;
+
+use crate::graph::update_graph_node_all_fields;
+use crate::pkg_info::belonging_pkg_info_find_by_graph_info_mut;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DesignerApi {
@@ -158,4 +164,82 @@ pub fn get_extension_nodes_in_graph<'a>(
             graph_id
         ))
     }
+}
+
+pub enum GraphNodeUpdateAction {
+    Add,
+    Delete,
+    Update,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn update_graph_node_in_property_all_fields(
+    pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
+    graph_info: &mut GraphInfo,
+    node_name: &str,
+    addon_name: &str,
+    extension_group_name: &Option<String>,
+    app_uri: &Option<String>,
+    property: &Option<serde_json::Value>,
+    action: GraphNodeUpdateAction,
+) -> Result<()> {
+    if let Ok(Some(pkg_info)) =
+        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Create the graph node.
+        let new_node = GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: node_name.to_string(),
+            },
+            addon: addon_name.to_string(),
+            extension_group: extension_group_name.clone(),
+            app: app_uri.clone(),
+            property: property.clone(),
+        };
+
+        // Update property.json file with the graph node.
+        if let Some(property) = &mut pkg_info.property {
+            // Write the updated property_all_fields map to property.json.
+            let nodes_to_updating = vec![new_node.clone()];
+
+            // Determine which parameter to use based on action.
+            let nodes_to_add = match &action {
+                GraphNodeUpdateAction::Add => {
+                    Some(nodes_to_updating.as_slice())
+                }
+                _ => None,
+            };
+
+            let nodes_to_remove = match &action {
+                GraphNodeUpdateAction::Delete => {
+                    Some(nodes_to_updating.as_slice())
+                }
+                _ => None,
+            };
+
+            let nodes_to_modify_property = match &action {
+                GraphNodeUpdateAction::Update => {
+                    Some(nodes_to_updating.as_slice())
+                }
+                _ => None,
+            };
+
+            if let Err(e) = update_graph_node_all_fields(
+                &pkg_info.url,
+                &mut property.all_fields,
+                graph_info.name.as_ref().unwrap(),
+                nodes_to_add,
+                nodes_to_remove,
+                nodes_to_modify_property,
+            ) {
+                eprintln!(
+                    "Warning: Failed to update property.json file: {}",
+                    e
+                );
+            }
+        }
+    }
+
+    Ok(())
 }
