@@ -285,7 +285,6 @@ export const PopupBase = (props: IPopupBaseProps) => {
 
   const handleBringToFront = React.useCallback(
     (widget_id?: string) => {
-      console.log("handleBringToFront", groupId, widget_id);
       const highestZIndex = Math.max(
         ...Array.from(document.querySelectorAll(".popup")).map(
           (el) => parseInt(window.getComputedStyle(el).zIndex) || 0

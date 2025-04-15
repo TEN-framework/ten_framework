@@ -115,7 +115,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
     ) => {
       const id = `${source}-${target ?? ""}`;
       const filters = metadata?.filters;
-      console.log("filters", filters);
       appendWidgetIfNotExists({
         container_id: CONTAINER_DEFAULT_ID,
         group_id: GROUP_CUSTOM_CONNECTION_ID,

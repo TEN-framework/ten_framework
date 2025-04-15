@@ -126,7 +126,6 @@ export const GraphAddNodeWidget = (props: {
   });
 
   const onSubmit = async (data: z.infer<typeof AddNodePayloadSchema>) => {
-    console.log("GraphAddNode", data);
     setIsSubmitting(true);
     try {
       await postAddNode(data);
@@ -346,7 +345,6 @@ export const GraphAddConnectionWidget = (props: {
       if (payload.src_extension === payload.dest_extension) {
         throw new Error(t("popup.graph.sameNodeError"));
       }
-      console.log("GraphAddConnection", payload);
       await postAddConnection(payload);
       if (
         currentWorkspace?.graph?.uuid === data.graph_id &&
@@ -573,8 +571,6 @@ export const GraphUpdateNodePropertyWidget = (props: {
     fetchSchema();
   }, [currentWorkspace?.app?.base_dir, node.data.addon]);
 
-  console.log(node?.data.property);
-
   return (
     <>
       {isSchemaLoading && !propertySchemaEntries && (
@@ -587,7 +583,6 @@ export const GraphUpdateNodePropertyWidget = (props: {
             new ZodProvider(z.object(Object.fromEntries(propertySchemaEntries)))
           }
           onSubmit={async (data) => {
-            console.log(data);
             setIsSubmitting(true);
             try {
               const nodeData = UpdateNodePropertyPayloadSchema.parse({
