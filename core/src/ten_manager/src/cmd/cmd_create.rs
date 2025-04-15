@@ -19,7 +19,9 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::TmanConfig, create::create_pkg_in_path, output::TmanOutput,
+    config::{internal::TmanInternalConfig, TmanConfig},
+    create::create_pkg_in_path,
+    output::TmanOutput,
     version_utils::parse_pkg_name_version_req,
 };
 
@@ -153,6 +155,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: CreateCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

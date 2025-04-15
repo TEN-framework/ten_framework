@@ -14,7 +14,7 @@ mod tests {
     use actix_web::{test, web, App};
     use serde_json::json;
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::nodes::{
@@ -38,6 +38,7 @@ mod tests {
     async fn test_get_extensions_success() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -395,6 +396,7 @@ mod tests {
     async fn test_get_extensions_no_graph() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

@@ -13,7 +13,7 @@ mod tests {
 
     use actix_web::{test, web, App};
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::get::{
@@ -32,6 +32,7 @@ mod tests {
     async fn test_get_graphs_success() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -153,6 +154,7 @@ mod tests {
     async fn test_get_graphs_no_app_package() {
         let designer_state = Arc::new(RwLock::new(DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

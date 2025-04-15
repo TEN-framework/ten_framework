@@ -14,7 +14,11 @@ use anyhow::{anyhow, Result};
 use clap::{Arg, ArgMatches, Command};
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 
-use crate::{config::TmanConfig, constants::SCRIPTS, output::TmanOutput};
+use crate::{
+    config::{internal::TmanInternalConfig, TmanConfig},
+    constants::SCRIPTS,
+    output::TmanOutput,
+};
 
 #[derive(Debug)]
 pub struct RunCommand {
@@ -60,6 +64,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
 
 pub async fn execute_cmd(
     tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     cmd: RunCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

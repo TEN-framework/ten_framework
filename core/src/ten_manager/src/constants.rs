@@ -75,3 +75,7 @@ pub const DEFAULT_EXTENSION_PYTHON: &str = "default_extension_python";
 pub const DEFAULT_EXTENSION_NODEJS: &str = "default_extension_nodejs";
 
 pub const TEN_NAME_RULE_PATH: &str = "_ten.name";
+
+pub const PACKAGE_CACHE: &str = "package_cache";
+pub const CONFIG_JSON: &str = "config.json";
+pub const INTERNAL_CONFIG_JSON: &str = "internal_config.json";

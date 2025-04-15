@@ -13,8 +13,10 @@ use serde_json::Value;
 use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
 use crate::{
-    cmd::cmd_modify::jq_util::jq_run, config::TmanConfig,
-    fs::read_file_to_string, output::TmanOutput,
+    cmd::cmd_modify::jq_util::jq_run,
+    config::{internal::TmanInternalConfig, TmanConfig},
+    fs::read_file_to_string,
+    output::TmanOutput,
 };
 
 #[derive(Debug)]
@@ -85,6 +87,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
 
 pub async fn execute_cmd(
     _tman_config: Arc<TmanConfig>,
+    _tman_internal_config: Arc<TmanInternalConfig>,
     command_data: ModifyGraphCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

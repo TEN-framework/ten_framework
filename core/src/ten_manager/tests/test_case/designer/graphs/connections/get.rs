@@ -13,7 +13,7 @@ mod tests {
 
     use actix_web::{test, web, App};
     use ten_manager::{
-        config::TmanConfig,
+        config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::connections::{
@@ -36,6 +36,7 @@ mod tests {
     async fn test_get_connections_success() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),
@@ -163,6 +164,7 @@ mod tests {
     async fn test_get_connections_have_all_data_type() {
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
             graphs_cache: HashMap::new(),

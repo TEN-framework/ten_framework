@@ -18,6 +18,7 @@ use anyhow::Result;
 use msg::InboundMsg;
 use msg::OutboundMsg;
 
+use crate::config::internal::TmanInternalConfig;
 use crate::config::TmanConfig;
 use crate::designer::DesignerState;
 
@@ -54,16 +55,19 @@ type BuiltinFunctionParser =
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
     tman_config: Arc<TmanConfig>,
+    tman_internal_config: Arc<TmanInternalConfig>,
 }
 
 impl WsBuiltinFunction {
     fn new(
         builtin_function_parser: BuiltinFunctionParser,
         tman_config: Arc<TmanConfig>,
+        tman_internal_config: Arc<TmanInternalConfig>,
     ) -> Self {
         Self {
             builtin_function_parser,
             tman_config,
+            tman_internal_config,
         }
     }
 }
@@ -205,6 +209,7 @@ pub async fn builtin_function_endpoint(
     })?;
 
     let tman_config = state_read.tman_config.clone();
+    let tman_internal_config = state_read.tman_internal_config.clone();
 
     let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
@@ -230,7 +235,11 @@ pub async fn builtin_function_endpoint(
     });
 
     ws::start(
-        WsBuiltinFunction::new(default_parser, tman_config.clone()),
+        WsBuiltinFunction::new(
+            default_parser,
+            tman_config.clone(),
+            tman_internal_config.clone(),
+        ),
         &req,
         stream,
     )

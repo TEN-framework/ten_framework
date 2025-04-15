@@ -27,4 +27,8 @@ group("nodejs") {
       "go_app_websocket_server_nodejs",
     ]
   }
+
+  if (ten_enable_go_binding && ten_enable_python_binding) {
+    deps += [ "go_app_preload_all_addons_nodejs" ]
+  }
 }

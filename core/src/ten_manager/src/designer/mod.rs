@@ -16,6 +16,7 @@ pub mod file_content;
 pub mod frontend;
 pub mod graphs;
 pub mod help_text;
+pub mod internal_config;
 pub mod locale;
 pub mod manifest;
 pub mod messages;
@@ -39,11 +40,12 @@ use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
 };
 
-use crate::config::TmanConfig;
+use crate::config::{internal::TmanInternalConfig, TmanConfig};
 use crate::output::TmanOutput;
 
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
+    pub tman_internal_config: Arc<TmanInternalConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
     pub graphs_cache: HashMap<Uuid, GraphInfo>,
@@ -174,6 +176,15 @@ pub fn configure_routes(
                 web::patch().to(
                     preferences::update_field::update_preferences_field_endpoint,
                 ),
+            )
+            // Internal config endpoints.
+            .route(
+                "/internal-config/graph-ui/set",
+                web::post().to(internal_config::graph_ui::set::set_graph_ui_endpoint),
+            )
+            .route(
+                "/internal-config/graph-ui/get",
+                web::post().to(internal_config::graph_ui::get::get_graph_ui_endpoint),
             )
             // File system endpoints.
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))

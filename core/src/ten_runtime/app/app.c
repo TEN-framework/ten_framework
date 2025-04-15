@@ -145,6 +145,8 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   TEN_ADDON_STORE_INIT(self->protocol_store);
   TEN_ADDON_STORE_INIT(self->addon_loader_store);
 
+  self->preload_all_addons = false;
+
   self->user_data = NULL;
 
   return self;
