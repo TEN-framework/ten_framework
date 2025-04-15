@@ -32,10 +32,6 @@ use crate::graph::{
     graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
 };
 
-use super::msg_conversion::validate::{
-    validate_msg_conversion_schema, MsgConversionValidateInfo,
-};
-
 #[derive(Serialize, Deserialize)]
 pub struct AddGraphConnectionRequestPayload {
     pub graph_id: Uuid,
@@ -168,30 +164,9 @@ pub async fn add_graph_connection_endpoint(
         }
     };
 
-    validate_msg_conversion_schema(
-        graph_info,
-        &MsgConversionValidateInfo {
-            src_app: &request_payload.src_app,
-            src_extension: &request_payload.src_extension,
-            msg_type: &request_payload.msg_type,
-            msg_name: &request_payload.msg_name,
-            dest_app: &request_payload.dest_app,
-            dest_extension: &request_payload.dest_extension,
-            msg_conversion: &request_payload.msg_conversion,
-        },
-        &uri_to_pkg_info,
-        pkgs_cache,
-    )
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to check message conversion schema: {}",
-            e
-        ))
-    })?;
-
-    // Add the connection using the converted PkgsInfoInApp map.
-    match graph_add_connection(
+    if let Err(e) = graph_add_connection(
         &mut graph_info.graph,
+        &graph_info.app_base_dir,
         request_payload.src_app.clone(),
         request_payload.src_extension.clone(),
         request_payload.msg_type.clone(),
@@ -199,48 +174,44 @@ pub async fn add_graph_connection_endpoint(
         request_payload.dest_app.clone(),
         request_payload.dest_extension.clone(),
         &uri_to_pkg_info,
+        pkgs_cache,
         request_payload.msg_conversion.clone(),
     ) {
-        Ok(_) => {
-            if let Ok(Some(pkg_info)) =
-                belonging_pkg_info_find_by_graph_info_mut(
-                    pkgs_cache, graph_info,
-                )
-            {
-                // Update property.json file with the updated graph.
-                if let Some(property) = &mut pkg_info.property {
-                    // Create a new connection object.
-                    let connection = create_graph_connection(&request_payload);
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to add connection: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-                    // Update the property.json file.
-                    if let Err(e) = update_property_file(
-                        &pkg_info.url,
-                        property,
-                        graph_info.name.as_ref().unwrap(),
-                        &connection,
-                    ) {
-                        eprintln!(
-                            "Warning: Failed to update property.json file: {}",
-                            e
-                        );
-                    }
-                }
+    if let Ok(Some(pkg_info)) =
+        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+    {
+        // Update property.json file with the updated graph.
+        if let Some(property) = &mut pkg_info.property {
+            // Create a new connection object.
+            let connection = create_graph_connection(&request_payload);
+
+            // Update the property.json file.
+            if let Err(e) = update_property_file(
+                &pkg_info.url,
+                property,
+                graph_info.name.as_ref().unwrap(),
+                &connection,
+            ) {
+                eprintln!(
+                    "Warning: Failed to update property.json file: {}",
+                    e
+                );
             }
-
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: AddGraphConnectionResponsePayload { success: true },
-                meta: None,
-            };
-            Ok(HttpResponse::Ok().json(response))
-        }
-        Err(err) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: format!("Failed to add connection: {}", err),
-                error: None,
-            };
-            Ok(HttpResponse::BadRequest().json(error_response))
         }
     }
+
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: AddGraphConnectionResponsePayload { success: true },
+        meta: None,
+    };
+    Ok(HttpResponse::Ok().json(response))
 }

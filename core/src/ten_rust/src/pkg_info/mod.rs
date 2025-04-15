@@ -446,7 +446,7 @@ pub fn get_pkg_info_for_extension_addon<'a>(
     app: &Option<String>,
     extension_addon: &String,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    graph_app_base_dir: Option<&String>,
+    graph_app_base_dir: &Option<String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
 ) -> Option<&'a PkgInfo> {
     let result =

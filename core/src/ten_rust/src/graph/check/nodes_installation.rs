@@ -19,7 +19,7 @@ impl Graph {
     /// packages.
     pub fn check_nodes_installation(
         &self,
-        graph_app_base_dir: Option<&String>,
+        graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
         uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         ignore_missing_apps: bool,

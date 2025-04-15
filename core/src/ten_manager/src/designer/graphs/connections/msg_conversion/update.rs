@@ -29,12 +29,13 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::{graphs_cache_find_by_id_mut, update_graph_connections_all_fields},
+    graph::{
+        connections::validate::{
+            validate_connection_schema, MsgConversionValidateInfo,
+        },
+        graphs_cache_find_by_id_mut, update_graph_connections_all_fields,
+    },
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
-};
-
-use super::validate::{
-    validate_msg_conversion_schema, MsgConversionValidateInfo,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -232,8 +233,10 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
-    validate_msg_conversion_schema(
-        graph_info,
+    // Validate connection schema first.
+    if let Err(e) = validate_connection_schema(
+        &mut graph_info.graph,
+        &graph_info.app_base_dir,
         &MsgConversionValidateInfo {
             src_app: &request_payload.src_app,
             src_extension: &request_payload.src_extension,
@@ -245,28 +248,34 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         },
         &uri_to_pkg_info,
         pkgs_cache,
-    )
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to check message conversion schema: {}",
-            e
-        ))
-    })?;
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to validate connection schema: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-    update_graph_info(graph_info, &request_payload).map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to update graph info: {}",
-            e
-        ))
-    })?;
+    if let Err(e) = update_graph_info(graph_info, &request_payload) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to update graph info: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
-    update_property_all_fields(graph_info, &request_payload, pkgs_cache)
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to update property all fields: {}",
-                e
-            ))
-        })?;
+    if let Err(e) =
+        update_property_all_fields(graph_info, &request_payload, pkgs_cache)
+    {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to update property.json file: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
     let response = ApiResponse {
         status: Status::Ok,

@@ -290,8 +290,8 @@ mod tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
 
-        // Should fail with a 404 Not Found
-        assert_eq!(resp.status(), 404);
+        // Should fail with a 400 Bad Request.
+        assert_eq!(resp.status(), 400);
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();

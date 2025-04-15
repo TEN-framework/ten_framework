@@ -261,7 +261,7 @@ fn navigate_property_path<'a>(
 #[allow(clippy::too_many_arguments)]
 pub fn msg_conversion_get_final_target_schema(
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    graph_app_base_dir: Option<&String>,
+    graph_app_base_dir: &Option<String>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     src_app: &Option<String>,
     src_extension_addon: &String,

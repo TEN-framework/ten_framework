@@ -162,7 +162,7 @@ mod tests {
 
         let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Fail);
-        assert!(response.message.contains("Failed to add node"));
+        assert!(response.message.contains("Failed to add extension node"));
     }
 
     #[actix_web::test]

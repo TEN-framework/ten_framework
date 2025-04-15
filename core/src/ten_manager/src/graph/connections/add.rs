@@ -9,184 +9,16 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::PkgsInfoInAppWithBaseDir,
+    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
     graph::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         msg_conversion::MsgAndResultConversion,
         Graph,
     },
-    pkg_info::{message::MsgType, pkg_type::PkgType, PkgInfo},
-    schema::store::are_msg_schemas_compatible,
+    pkg_info::message::MsgType,
 };
 
-type PkgInfoTuple<'a> = (Option<&'a PkgInfo>, Option<&'a PkgInfo>);
-
-/// Finds package info for source and destination apps and extensions.
-fn find_pkg_infos<'a>(
-    installed_pkgs_of_all_apps: &'a HashMap<
-        Option<String>,
-        PkgsInfoInAppWithBaseDir,
-    >,
-    src_app: &Option<String>,
-    src_extension: &str,
-    dest_app: &Option<String>,
-    dest_extension: &str,
-) -> Result<PkgInfoTuple<'a>> {
-    // Helper function to find extension package info.
-    let find_extension_pkg = |app_uri: &Option<String>,
-                              extension_name: &str,
-                              is_source: bool|
-     -> Result<Option<&'a PkgInfo>> {
-        let entity_type = if is_source { "Source" } else { "Destination" };
-
-        if let Some(base_dir_pkg_info) = installed_pkgs_of_all_apps.get(app_uri)
-        {
-            // Check if app exists.
-            if base_dir_pkg_info.pkgs_info_in_app.app_pkg_info.is_none() {
-                return Err(anyhow::anyhow!(
-                    "{} app '{:?}' found in map but app_pkg_info is None",
-                    entity_type,
-                    app_uri
-                ));
-            }
-
-            // Find extension in extension_pkg_info.
-            if let Some(extensions) =
-                &base_dir_pkg_info.pkgs_info_in_app.extension_pkgs_info
-            {
-                let found_pkg = extensions.iter().find(|pkg| {
-                    pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-                        && pkg.manifest.type_and_name.name == extension_name
-                });
-
-                if found_pkg.is_none() {
-                    return Err(anyhow::anyhow!(
-                              "{} extension '{}' not found in the installed packages for app '{:?}'",
-                              entity_type, extension_name, app_uri
-                          ));
-                }
-
-                return Ok(found_pkg);
-            }
-        } else {
-            return Err(anyhow::anyhow!(
-                "{} app '{:?}' not found in the installed packages",
-                entity_type,
-                app_uri
-            ));
-        }
-
-        // If we reach here, no package was found.
-        Err(anyhow::anyhow!(
-              "{} extension '{}' not found in the installed packages for app '{:?}'",
-              entity_type, extension_name, app_uri
-          ))
-    };
-
-    // Find both source and destination package info.
-    let src_extension_pkg_info =
-        find_extension_pkg(src_app, src_extension, true)?;
-    let dest_extension_pkg_info =
-        find_extension_pkg(dest_app, dest_extension, false)?;
-
-    Ok((src_extension_pkg_info, dest_extension_pkg_info))
-}
-
-/// Checks schema compatibility between source and destination based on
-/// message type.
-fn check_schema_compatibility(
-    msg_type: &MsgType,
-    msg_name: &str,
-    src_extension_pkg: &Option<&PkgInfo>,
-    dest_extension_pkg: &Option<&PkgInfo>,
-) -> Result<()> {
-    let src_extension_pkg = src_extension_pkg.unwrap();
-    let dest_extension_pkg = dest_extension_pkg.unwrap();
-
-    match msg_type {
-        MsgType::Cmd => {
-            let src_schema = src_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.cmd_out.get(msg_name));
-
-            let dest_schema = dest_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.cmd_in.get(msg_name));
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                      "Command schema incompatibility between source and destination: {}",
-                      err
-                  ));
-            }
-        }
-        MsgType::Data => {
-            let src_schema = src_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.data_out.get(msg_name));
-
-            let dest_schema = dest_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.data_in.get(msg_name));
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                      "Data schema incompatibility between source and destination: {}",
-                      err
-                  ));
-            }
-        }
-        MsgType::AudioFrame => {
-            let src_schema = src_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.audio_frame_out.get(msg_name));
-
-            let dest_schema = dest_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.audio_frame_in.get(msg_name));
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                      "Audio frame schema incompatibility between source and destination: {}",
-                      err
-                  ));
-            }
-        }
-        MsgType::VideoFrame => {
-            let src_schema = src_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.video_frame_out.get(msg_name));
-
-            let dest_schema = dest_extension_pkg
-                .schema_store
-                .as_ref()
-                .and_then(|store| store.video_frame_in.get(msg_name));
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                      "Video frame schema incompatibility between source and destination: {}",
-                      err
-                  ));
-            }
-        }
-    }
-    Ok(())
-}
+use super::validate::{validate_connection_schema, MsgConversionValidateInfo};
 
 /// Helper function to add a message flow to a specific flow collection.
 fn add_to_flow(
@@ -323,16 +155,15 @@ fn check_nodes_exist(
 #[allow(clippy::too_many_arguments)]
 pub fn graph_add_connection(
     graph: &mut Graph,
+    graph_app_base_dir: &Option<String>,
     src_app: Option<String>,
     src_extension: String,
     msg_type: MsgType,
     msg_name: String,
     dest_app: Option<String>,
     dest_extension: String,
-    installed_pkgs_of_all_apps: &HashMap<
-        Option<String>,
-        PkgsInfoInAppWithBaseDir,
-    >,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     msg_conversion: Option<MsgAndResultConversion>,
 ) -> Result<()> {
     // Store the original state in case validation fails.
@@ -358,21 +189,21 @@ pub fn graph_add_connection(
         &dest_extension,
     )?;
 
-    // Find source and destination package info.
-    let (src_extension_pkg_info, dest_extension_pkg_info) = find_pkg_infos(
-        installed_pkgs_of_all_apps,
-        &src_app,
-        &src_extension,
-        &dest_app,
-        &dest_extension,
-    )?;
-
-    // Check schema compatibility.
-    check_schema_compatibility(
-        &msg_type,
-        &msg_name,
-        &src_extension_pkg_info,
-        &dest_extension_pkg_info,
+    // Validate connection schema.
+    validate_connection_schema(
+        graph,
+        graph_app_base_dir,
+        &MsgConversionValidateInfo {
+            src_app: &src_app,
+            src_extension: &src_extension,
+            msg_type: &msg_type,
+            msg_name: &msg_name,
+            dest_app: &dest_app,
+            dest_extension: &dest_extension,
+            msg_conversion: &msg_conversion,
+        },
+        uri_to_pkg_info,
+        pkgs_cache,
     )?;
 
     // Create destination object.

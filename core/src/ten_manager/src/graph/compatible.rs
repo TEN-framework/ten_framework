@@ -29,7 +29,7 @@ pub struct CompatibleExtensionAndMsg<'a> {
 pub fn get_compatible_msg_extension<'a>(
     extension_graph_nodes: &'a [GraphNode],
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    app_base_dir: Option<&String>,
+    app_base_dir: &Option<String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     desired_msg_dir: &MsgDirection,
     pivot: Option<&TenMsgSchema>,
