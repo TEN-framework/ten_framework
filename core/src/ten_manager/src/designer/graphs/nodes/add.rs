@@ -36,10 +36,11 @@ use super::{update_graph_node_in_property_all_fields, GraphNodeUpdateAction};
 pub struct AddGraphNodeRequestPayload {
     pub graph_id: Uuid,
 
-    pub node_name: String,
-    pub addon_name: String,
-    pub extension_group_name: Option<String>,
-    pub app_uri: Option<String>,
+    pub name: String,
+    pub addon: String,
+    pub extension_group: Option<String>,
+    pub app: Option<String>,
+
     pub property: Option<serde_json::Value>,
 }
 
@@ -108,11 +109,11 @@ fn add_extension_node_to_graph(
 
 impl GraphNodeValidatable for AddGraphNodeRequestPayload {
     fn get_addon_name(&self) -> &str {
-        &self.addon_name
+        &self.addon
     }
 
     fn get_app_uri(&self) -> &Option<String> {
-        &self.app_uri
+        &self.app
     }
 
     fn get_property(&self) -> &Option<serde_json::Value> {
@@ -177,8 +178,8 @@ pub async fn add_graph_node_endpoint(
     };
 
     if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
-        &request_payload.app_uri,
-        &request_payload.addon_name,
+        &request_payload.app,
+        &request_payload.addon,
         &uri_to_pkg_info,
         graph_info.app_base_dir.as_ref(),
         pkgs_cache,
@@ -200,18 +201,18 @@ pub async fn add_graph_node_endpoint(
     // Add the node to the graph.
     match add_extension_node_to_graph(
         graph_info,
-        &request_payload.node_name,
-        &request_payload.addon_name,
-        &request_payload.app_uri,
+        &request_payload.name,
+        &request_payload.addon,
+        &request_payload.app,
     ) {
         Ok(_) => {
             update_graph_node_in_property_all_fields(
                 pkgs_cache,
                 graph_info,
-                &request_payload.node_name,
-                &request_payload.addon_name,
-                &request_payload.extension_group_name,
-                &request_payload.app_uri,
+                &request_payload.name,
+                &request_payload.addon,
+                &request_payload.extension_group,
+                &request_payload.app,
                 &request_payload.property,
                 GraphNodeUpdateAction::Add,
             )

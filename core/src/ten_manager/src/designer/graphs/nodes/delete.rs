@@ -29,10 +29,10 @@ use crate::{
 pub struct DeleteGraphNodeRequestPayload {
     pub graph_id: Uuid,
 
-    pub node_name: String,
-    pub addon_name: String,
-    pub extension_group_name: Option<String>,
-    pub app_uri: Option<String>,
+    pub name: String,
+    pub addon: String,
+    pub extension_group: Option<String>,
+    pub app: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -172,10 +172,10 @@ pub async fn delete_graph_node_endpoint(
     // Delete the extension node.
     match graph_delete_extension_node(
         &mut graph_info.graph,
-        request_payload.node_name.clone(),
-        request_payload.addon_name.clone(),
-        request_payload.app_uri.clone(),
-        request_payload.extension_group_name.clone(),
+        request_payload.name.clone(),
+        request_payload.addon.clone(),
+        request_payload.app.clone(),
+        request_payload.extension_group.clone(),
     ) {
         Ok(_) => {
             if let Ok(Some(pkg_info)) =
@@ -189,13 +189,13 @@ pub async fn delete_graph_node_endpoint(
                     let node_to_remove = GraphNode {
                         type_and_name: PkgTypeAndName {
                             pkg_type: PkgType::Extension,
-                            name: request_payload.node_name.clone(),
+                            name: request_payload.name.clone(),
                         },
-                        addon: request_payload.addon_name.clone(),
+                        addon: request_payload.addon.clone(),
                         extension_group: request_payload
-                            .extension_group_name
+                            .extension_group
                             .clone(),
-                        app: request_payload.app_uri.clone(),
+                        app: request_payload.app.clone(),
                         property: None,
                     };
 

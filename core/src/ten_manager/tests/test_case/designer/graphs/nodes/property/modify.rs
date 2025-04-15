@@ -104,10 +104,10 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": "updated_value"
             })),
@@ -206,10 +206,10 @@ mod tests {
         // Try to update a node in a non-existent graph.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: Uuid::new_v4(),
-            node_name: "node1".to_string(),
-            addon_name: "addon1".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "node1".to_string(),
+            addon: "addon1".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": "updated_value"
             })),
@@ -265,10 +265,10 @@ mod tests {
         // Try to update a non-existent node
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "non_existent_node".to_string(),
-            addon_name: "addon1".to_string(),
-            extension_group_name: None,
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "non_existent_node".to_string(),
+            addon: "addon1".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": "updated_value"
             })),
@@ -369,10 +369,10 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": "updated_value"
             })),
@@ -495,10 +495,10 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": 32
             })),
@@ -614,10 +614,10 @@ mod tests {
         // Update property of an existing node.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": {
                     "a": 1,
@@ -739,10 +739,10 @@ mod tests {
         // Update property of an existing node with invalid data.
         let request_payload = UpdateGraphNodePropertyRequestPayload {
             graph_id: *graph_id,
-            node_name: "extension_1".to_string(),
-            addon_name: "extension_addon_1".to_string(),
-            extension_group_name: Some("extension_group_1".to_string()),
-            app_uri: Some("http://example.com:8000".to_string()),
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
             property: Some(json!({
                 "key": {
                     "a": "wrong",
