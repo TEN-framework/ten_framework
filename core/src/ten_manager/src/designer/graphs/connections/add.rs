@@ -164,7 +164,7 @@ pub async fn add_graph_connection_endpoint(
         }
     };
 
-    graph_add_connection(
+    if let Err(e) = graph_add_connection(
         &mut graph_info.graph,
         &graph_info.app_base_dir,
         request_payload.src_app.clone(),
@@ -176,13 +176,14 @@ pub async fn add_graph_connection_endpoint(
         &uri_to_pkg_info,
         pkgs_cache,
         request_payload.msg_conversion.clone(),
-    )
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to add connection: {}",
-            e
-        ))
-    })?;
+    ) {
+        let error_response = ErrorResponse {
+            status: Status::Fail,
+            message: format!("Failed to add connection: {}", e),
+            error: None,
+        };
+        return Ok(HttpResponse::BadRequest().json(error_response));
+    }
 
     if let Ok(Some(pkg_info)) =
         belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)

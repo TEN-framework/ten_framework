@@ -1234,7 +1234,10 @@ mod tests {
         let body_str = std::str::from_utf8(&body).unwrap();
         println!("Response body: {}", body_str);
 
-        assert_eq!(body_str, "Failed to validate connection schema: { .aaa: type is incompatible, source is [uint64], but target is [string] }");
+        assert_eq!(
+            body_str,
+            r#"{"status":"fail","message":"Failed to validate connection schema: { .aaa: type is incompatible, source is [uint64], but target is [string] }"}"#
+        );
     }
 
     #[actix_web::test]

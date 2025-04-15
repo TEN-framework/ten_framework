@@ -892,7 +892,7 @@ mod tests {
 
         assert_eq!(
             body_str,
-            r#"Failed to add connection: { .original_source: type is incompatible, source is [string], but target is [uint32] }"#
+            r#"{"status":"fail","message":"Failed to add connection: { .original_source: type is incompatible, source is [string], but target is [uint32] }"}"#
         );
     }
 }
