@@ -31,7 +31,7 @@ use crate::{
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
-    graph::graphs_cache_find_by_id_mut,
+    graph::{graphs_cache_find_by_id_mut, update_graph_node_all_fields},
     pkg_info::belonging_pkg_info_find_by_graph_info_mut,
 };
 
@@ -74,25 +74,6 @@ fn validate_update_graph_node_property_request(
     validate_node_request(request_payload, extension_pkg_info)
 }
 
-/// Updates the property.json file with the updated graph node property.
-fn update_node_property(
-    base_dir: &str,
-    property: &mut ten_rust::pkg_info::property::Property,
-    graph_name: &str,
-    node: &GraphNode,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let nodes_to_modify = vec![node.clone()];
-    crate::graph::update_graph_node_all_fields(
-        base_dir,
-        &mut property.all_fields,
-        graph_name,
-        None,
-        None,
-        Some(&nodes_to_modify),
-    )?;
-    Ok(())
-}
-
 fn update_property_all_fields(
     pkgs_cache: &mut HashMap<String, PkgsInfoInApp>,
     graph_info: &mut GraphInfo,
@@ -116,13 +97,16 @@ fn update_property_all_fields(
         // Update property.json file with the updated graph node
         // property.
         if let Some(property) = &mut pkg_info.property {
-            // Write the updated property_all_fields map to
-            // property.json.
-            if let Err(e) = update_node_property(
+            // Write the updated property_all_fields map to property.json.
+            let nodes_to_modify = vec![node_to_update.clone()];
+
+            if let Err(e) = update_graph_node_all_fields(
                 &pkg_info.url,
-                property,
+                &mut property.all_fields,
                 graph_info.name.as_ref().unwrap(),
-                &node_to_update,
+                None,
+                None,
+                Some(&nodes_to_modify),
             ) {
                 eprintln!(
                     "Warning: Failed to update property.json file: {}",
