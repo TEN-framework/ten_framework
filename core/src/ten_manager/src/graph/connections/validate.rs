@@ -181,10 +181,10 @@ fn check_schema_compatibility(
 ) -> Result<()> {
     let (src_extension_pkg_info, dest_extension_pkg_info) = find_pkg_infos(
         uri_to_pkg_info,
-        &msg_conversion_validate_info.src_app,
-        &msg_conversion_validate_info.src_extension,
-        &msg_conversion_validate_info.dest_app,
-        &msg_conversion_validate_info.dest_extension,
+        msg_conversion_validate_info.src_app,
+        msg_conversion_validate_info.src_extension,
+        msg_conversion_validate_info.dest_app,
+        msg_conversion_validate_info.dest_extension,
     )?;
 
     if src_extension_pkg_info.is_none() || dest_extension_pkg_info.is_none() {

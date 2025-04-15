@@ -189,6 +189,7 @@ pub fn graph_add_connection(
         &dest_extension,
     )?;
 
+    // Validate connection schema.
     validate_connection_schema(
         graph,
         graph_app_base_dir,

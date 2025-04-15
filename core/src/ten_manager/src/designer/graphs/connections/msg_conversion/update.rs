@@ -233,6 +233,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
+    // Validate connection schema first.
     validate_connection_schema(
         &mut graph_info.graph,
         &graph_info.app_base_dir,
