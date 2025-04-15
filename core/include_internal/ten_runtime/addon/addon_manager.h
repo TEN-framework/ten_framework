@@ -41,6 +41,10 @@ TEN_RUNTIME_API bool ten_addon_manager_register_specific_addon(
     ten_addon_manager_t *self, TEN_ADDON_TYPE addon_type,
     const char *addon_name, void *register_ctx);
 
+TEN_RUNTIME_API bool ten_addon_manager_is_addon_loaded(
+    ten_addon_manager_t *self, TEN_ADDON_TYPE addon_type,
+    const char *addon_name);
+
 TEN_RUNTIME_PRIVATE_API ten_addon_register_ctx_t *ten_addon_register_ctx_create(
     void);
 

@@ -194,6 +194,29 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
   return success;
 }
 
+bool ten_addon_manager_is_addon_loaded(ten_addon_manager_t *self,
+                                       TEN_ADDON_TYPE addon_type,
+                                       const char *addon_name) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(addon_name, "Invalid argument.");
+
+  ten_mutex_lock(self->mutex);
+
+  ten_list_foreach (&self->registry, iter) {
+    ten_addon_registration_t *reg =
+        (ten_addon_registration_t *)ten_ptr_listnode_get(iter.node);
+    if (reg && reg->addon_type == addon_type &&
+        ten_string_is_equal_c_str(&reg->addon_name, addon_name)) {
+      ten_mutex_unlock(self->mutex);
+      return true;
+    }
+  }
+
+  ten_mutex_unlock(self->mutex);
+
+  return false;
+}
+
 ten_addon_register_ctx_t *ten_addon_register_ctx_create(void) {
   ten_addon_register_ctx_t *self = TEN_MALLOC(sizeof(ten_addon_register_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");

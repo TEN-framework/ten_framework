@@ -138,6 +138,8 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->metric_extension_thread_msg_queue_stay_time_us = NULL;
 #endif
 
+  self->preload_all_addons = false;
+
   self->user_data = NULL;
 
   return self;
