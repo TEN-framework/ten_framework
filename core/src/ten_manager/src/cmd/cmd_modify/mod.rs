@@ -55,8 +55,8 @@ pub async fn execute_cmd(
     match command_data {
         ModifyCommandData::ModifyGraph(cmd) => {
             crate::cmd::cmd_modify::cmd_modify_graph::execute_cmd(
-                tman_config.clone(),
-                tman_internal_config.clone(),
+                tman_config,
+                tman_internal_config,
                 cmd,
                 out,
             )

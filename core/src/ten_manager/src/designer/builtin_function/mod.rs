@@ -237,8 +237,8 @@ pub async fn builtin_function_endpoint(
     ws::start(
         WsBuiltinFunction::new(
             default_parser,
-            tman_config.clone(),
-            tman_internal_config.clone(),
+            tman_config,
+            tman_internal_config,
         ),
         &req,
         stream,
