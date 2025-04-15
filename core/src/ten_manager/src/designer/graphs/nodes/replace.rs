@@ -13,41 +13,34 @@ use uuid::Uuid;
 
 use ten_rust::pkg_info::create_uri_to_pkg_info_map;
 
-use crate::{
-    designer::{
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
-    graph::{
-        graphs_cache_find_by_id_mut,
-        nodes::{
-            add::graph_add_extension_node,
-            validate::validate_extension_property,
-        },
-    },
+use crate::designer::graphs::nodes::{
+    update_graph_node_in_property_all_fields, GraphNodeUpdateAction,
+};
+use crate::designer::{
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
+};
+use crate::graph::{
+    graphs_cache_find_by_id_mut, nodes::validate::validate_extension_property,
 };
 
-use super::{update_graph_node_in_property_all_fields, GraphNodeUpdateAction};
-
 #[derive(Serialize, Deserialize)]
-pub struct AddGraphNodeRequestPayload {
+pub struct ReplaceGraphNodeRequestPayload {
     pub graph_id: Uuid,
 
+    pub app: Option<String>,
     pub name: String,
     pub addon: String,
-    pub extension_group: Option<String>,
-    pub app: Option<String>,
-
     pub property: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct AddGraphNodeResponsePayload {
+pub struct ReplaceGraphNodeResponsePayload {
     pub success: bool,
 }
 
-pub async fn add_graph_node_endpoint(
-    request_payload: web::Json<AddGraphNodeRequestPayload>,
+pub async fn replace_graph_node_endpoint(
+    request_payload: web::Json<ReplaceGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Get a write lock on the state since we need to modify the graph.
@@ -93,6 +86,7 @@ pub async fn add_graph_node_endpoint(
         }
     };
 
+    // Check if property conforms to schema.
     if let Err(e) = validate_extension_property(
         &request_payload.property,
         &request_payload.app,
@@ -109,31 +103,42 @@ pub async fn add_graph_node_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    if let Err(e) = graph_add_extension_node(
-        &mut graph_info.graph,
-        &request_payload.name,
-        &request_payload.addon,
-        &request_payload.app,
-        &request_payload.extension_group,
-        &request_payload.property,
-    ) {
+    // Find the graph node in the graph.
+    let graph_node = graph_info.graph.nodes.iter_mut().find(|node| {
+        node.type_and_name.name == request_payload.name
+            && node.app == request_payload.app
+    });
+
+    if graph_node.is_none() {
         let error_response = ErrorResponse {
             status: Status::Fail,
-            message: format!("Failed to add extension node: {}", e),
+            message: format!(
+                "Node '{}' with app '{:?}' not found in graph '{}'",
+                request_payload.name,
+                request_payload.app,
+                request_payload.graph_id
+            ),
             error: None,
         };
-        return Ok(HttpResponse::BadRequest().json(error_response));
+        return Ok(HttpResponse::NotFound().json(error_response));
     }
 
+    // Replace the addon and property of the graph node.
+    let graph_node = graph_node.unwrap();
+    let extension_group = graph_node.extension_group.clone();
+    graph_node.addon = request_payload.addon.clone();
+    graph_node.property = request_payload.property.clone();
+
+    // Update property.json file with the updated graph node.
     if let Err(e) = update_graph_node_in_property_all_fields(
         pkgs_cache,
         graph_info,
         &request_payload.name,
         &request_payload.addon,
-        &request_payload.extension_group,
+        &extension_group,
         &request_payload.app,
         &request_payload.property,
-        GraphNodeUpdateAction::Add,
+        GraphNodeUpdateAction::Update,
     ) {
         let error_response = ErrorResponse {
             status: Status::Fail,
@@ -145,7 +150,7 @@ pub async fn add_graph_node_endpoint(
 
     let response = ApiResponse {
         status: Status::Ok,
-        data: AddGraphNodeResponsePayload { success: true },
+        data: ReplaceGraphNodeResponsePayload { success: true },
         meta: None,
     };
     Ok(HttpResponse::Ok().json(response))
