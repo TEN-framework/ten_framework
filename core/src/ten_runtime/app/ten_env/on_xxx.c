@@ -233,6 +233,22 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   TEN_ASSERT(manager, "Should not happen.");
 
+  // There are currently two scenarios:
+  // 1. Single app within a process:
+  //    Since addon registration (phase 2) is only needed after the app is
+  //    configured, we set the addon_manager to belong to this app here.
+  //    Subsequently, all addon register/on_init/on_deinit operations will
+  //    execute on the current app thread. The addon manager instance will be
+  //    destroyed during this app's close phase to prevent memory leaks.
+  // 2. Multiple apps within a process:
+  //    In smoke/standalone tests, multiple apps may exist simultaneously in a
+  //    process. We ensure the addon manager instance belongs to the app with
+  //    the longest lifecycle. Therefore, the first initialized app should have
+  //    the longest lifecycle and will only be destroyed after all other apps
+  //    are destroyed. During this period, all addon register/on_init/on_deinit
+  //    operations will execute on this longest-lifecycle app's thread. This app
+  //    is also responsible for destroying the addon manager instance to prevent
+  //    memory leaks.
   ten_addon_manager_set_belonging_app_if_not_set(manager, self);
 
   // Addon registration phase 1: adding a function, which will perform the

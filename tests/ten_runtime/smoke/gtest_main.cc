@@ -19,13 +19,14 @@ class fake_app_t : public ten::app_t {
 
   void on_configure(ten::ten_env_t &ten_env) override {
     ten_env.on_configure_done();
-
-    if (configured_cb_) {
-      configured_cb_();
-    }
   }
 
-  void on_deinit(ten::ten_env_t &ten_env) override { ten_env.on_deinit_done(); }
+  void on_init(ten::ten_env_t &ten_env) override {
+    TEN_ASSERT(configured_cb_, "Configured callback is not set.");
+    configured_cb_();
+
+    ten_env.on_init_done();
+  }
 
  private:
   std::function<void()> configured_cb_;

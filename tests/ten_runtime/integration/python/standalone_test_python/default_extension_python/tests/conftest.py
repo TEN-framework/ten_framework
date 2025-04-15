@@ -17,14 +17,10 @@ class FakeApp(App):
         self.event: threading.Event | None = None
 
     def on_init(self, ten_env: TenEnv) -> None:
-        ten_env.log_debug("on_init")
-        ten_env.on_init_done()
-        if self.event:
-            self.event.set()
+        assert self.event
+        self.event.set()
 
-    def on_deinit(self, ten_env: TenEnv) -> None:
-        ten_env.log_debug("on_deinit")
-        ten_env.on_deinit_done()
+        ten_env.on_init_done()
 
 
 class FakeAppCtx:
@@ -53,8 +49,6 @@ def global_setup_and_teardown():
     event.wait()
 
     assert fake_app_ctx.fake_app is not None
-
-    print("event.wait() done")
 
     # Yield control to the test; after the test execution is complete, continue
     # with the teardown process.
