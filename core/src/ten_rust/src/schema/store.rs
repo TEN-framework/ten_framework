@@ -281,10 +281,10 @@ pub fn create_msg_schema_from_manifest(
 fn are_ten_schemas_compatible(
     source: Option<&TenSchema>,
     target: Option<&TenSchema>,
-    none_source_is_compatible: bool,
-    none_target_is_compatible: bool,
+    none_source_is_not_error: bool,
+    none_target_is_not_error: bool,
 ) -> Result<()> {
-    if none_target_is_compatible {
+    if none_target_is_not_error {
         if target.is_none() {
             return Ok(());
         }
@@ -292,7 +292,7 @@ fn are_ten_schemas_compatible(
         return Err(anyhow::anyhow!("target schema is undefined."));
     }
 
-    if none_source_is_compatible {
+    if none_source_is_not_error {
         if source.is_none() {
             return Ok(());
         }
@@ -308,10 +308,10 @@ fn are_ten_schemas_compatible(
 pub fn are_msg_schemas_compatible(
     source: Option<&TenMsgSchema>,
     target: Option<&TenMsgSchema>,
-    none_source_is_compatible: bool,
-    none_target_is_compatible: bool,
+    none_source_is_not_error: bool,
+    none_target_is_not_error: bool,
 ) -> Result<()> {
-    if none_target_is_compatible {
+    if none_target_is_not_error {
         if target.is_none() {
             return Ok(());
         }
@@ -329,13 +329,15 @@ pub fn are_msg_schemas_compatible(
     are_ten_schemas_compatible(
         source.msg.as_ref(),
         target.msg.as_ref(),
-        none_source_is_compatible,
-        none_target_is_compatible,
+        none_source_is_not_error,
+        none_target_is_not_error,
     )?;
 
+    // Note: Here target is the reverse of source, because result is the reverse
+    // of source.
     are_ten_schemas_compatible(
-        source.result.as_ref(),
         target.result.as_ref(),
+        source.result.as_ref(),
         true,
         true,
     )?;
