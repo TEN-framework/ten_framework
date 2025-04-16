@@ -269,7 +269,9 @@ bool ten_addon_manager_is_addon_loaded(ten_addon_manager_t *self,
 bool ten_addon_manager_set_belonging_app_if_not_set(ten_addon_manager_t *self,
                                                     ten_app_t *app) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
@@ -287,7 +289,9 @@ bool ten_addon_manager_set_belonging_app_if_not_set(ten_addon_manager_t *self,
 bool ten_addon_manager_belongs_to_app(ten_addon_manager_t *self,
                                       ten_app_t *app) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
