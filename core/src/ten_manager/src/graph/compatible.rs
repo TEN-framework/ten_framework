@@ -95,10 +95,12 @@ pub fn get_compatible_msg_extension<'a>(
                         pivot,
                         target_msg_schema,
                         false,
+                        false,
                     ),
                     MsgDirection::Out => are_msg_schemas_compatible(
                         target_msg_schema,
                         pivot,
+                        false,
                         false,
                     ),
                 };
