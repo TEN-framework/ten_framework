@@ -9,11 +9,14 @@
       "loadAppSuccess": "App loaded successfully",
       "loadAppFailed": "Failed to load app",
       "reloadApp": "Reload App",
+      "reloadAppDescription": "Reload app(s) will close the current workspace. All unsaved changes will be lost.",
+      "reloadAppConfirmation": "Are you sure you want to reload the app {{name}}?",
       "reloadAppSuccess": "App reloaded successfully",
       "reloadAppFailed": "Failed to reload app",
       "reloadAllApps": "Reload All Apps",
       "reloadAllAppsSuccess": "All apps reloaded successfully",
       "reloadAllAppsFailed": "Failed to reload all apps",
+      "reloadAllAppsConfirmation": "Are you sure you want to reload all apps?",
       "unloadApp": "Unload App",
       "unloadAppSuccess": "App unloaded successfully",
       "unloadAppFailed": "Failed to unload app",
@@ -104,7 +107,8 @@
     "create": "Create",
     "deleteConnectionConfirmation": "Are you sure you want to delete the connection?",
     "deleteConnectionSuccess": "Connection deleted successfully",
-    "deleteConnectionFailed": "Failed to delete connection"
+    "deleteConnectionFailed": "Failed to delete connection",
+    "replaceNode": "Replace Node with ..."
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -194,7 +198,11 @@
       "graphName": "Graph Name",
       "updateNodePropertySuccess": "Node property updated successfully",
       "updateNodePropertyFailed": "Failed to update node property",
-      "noPropertySchema": "No property schema found"
+      "noPropertySchema": "No property schema found",
+      "titleReplaceNode": "Replace Node[{{name}}] with ...",
+      "replaceNode": "Replace Node",
+      "replaceNodeSuccess": "Node replaced successfully",
+      "replaceNodeFailed": "Failed to replace node"
     },
     "doc": {
       "title": "{{name}}"

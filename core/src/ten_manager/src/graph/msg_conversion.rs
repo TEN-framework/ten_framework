@@ -267,6 +267,8 @@ pub fn msg_conversion_get_final_target_schema(
     src_extension_addon: &String,
     msg_type: &MsgType,
     src_msg_name: &str,
+    dest_msg_name: &str,
+    ten_name_rule_index: Option<usize>,
     msg_conversion: &MsgAndResultConversion,
 ) -> Result<ManifestApiMsg> {
     // Get the source message schema.
@@ -295,30 +297,9 @@ pub fn msg_conversion_get_final_target_schema(
         None
     };
 
-    // Default to using `src_msg_name` as the `dest_msg_name`, but check if
-    // there's a special rule for `_ten.name` to determine the `dest_msg_name`.
-    let mut dest_msg_name = src_msg_name.to_string();
-    let mut ten_name_rule_index = None;
-
-    // Find the special `_ten.name` rule if it exists.
-    for (index, rule) in msg_conversion.msg.rules.rules.iter().enumerate() {
-        if rule.path == TEN_NAME_RULE_PATH
-            && rule.conversion_mode == MsgConversionMode::FixedValue
-        {
-            if let Some(value) = &rule.value {
-                if value.is_string() {
-                    dest_msg_name =
-                        value.as_str().unwrap_or(src_msg_name).to_string();
-                    ten_name_rule_index = Some(index);
-                    break;
-                }
-            }
-        }
-    }
-
     // Create a new message schema to store the converted properties.
     let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
-        name: dest_msg_name.clone(),
+        name: dest_msg_name.to_string(),
         property: Some(HashMap::new()),
         required: None,
         result: None,
@@ -331,7 +312,7 @@ pub fn msg_conversion_get_final_target_schema(
                 converted_schema = src_msg_schema.clone();
 
                 // Update the name to the destination message name.
-                converted_schema.name = dest_msg_name;
+                converted_schema.name = dest_msg_name.to_string();
             } else {
                 // Not having a source msg schema is a normal situation, so even
                 // if `keep_original` is true, we don't need to return an error.
@@ -473,4 +454,30 @@ pub fn msg_conversion_get_final_target_schema(
     }
 
     Ok(converted_schema)
+}
+
+pub fn msg_conversion_get_dest_msg_name(
+    src_msg_name: &str,
+    msg_conversion: &MsgAndResultConversion,
+) -> Result<(String, Option<usize>)> {
+    let mut dest_msg_name = src_msg_name.to_string();
+    let mut ten_name_rule_index = None;
+
+    // Find the special `_ten.name` rule if it exists.
+    for (index, rule) in msg_conversion.msg.rules.rules.iter().enumerate() {
+        if rule.path == TEN_NAME_RULE_PATH
+            && rule.conversion_mode == MsgConversionMode::FixedValue
+        {
+            if let Some(value) = &rule.value {
+                if value.is_string() {
+                    dest_msg_name =
+                        value.as_str().unwrap_or(src_msg_name).to_string();
+                    ten_name_rule_index = Some(index);
+                    break;
+                }
+            }
+        }
+    }
+
+    Ok((dest_msg_name, ten_name_rule_index))
 }

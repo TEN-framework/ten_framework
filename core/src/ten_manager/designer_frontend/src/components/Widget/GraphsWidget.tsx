@@ -49,8 +49,12 @@ import {
   retrieveGraphConnections,
   postAddConnection,
   postUpdateNodeProperty,
+  postReplaceNode,
 } from "@/api/services/graphs";
-import { retrieveExtensionSchema } from "@/api/services/extension";
+import {
+  retrieveExtensionSchema,
+  retrieveExtensionDefaultProperty,
+} from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
 import {
   generateRawNodes,
@@ -106,6 +110,9 @@ const GraphAddNodePropertyField = (props: {
   const [propertySchemaEntries, setPropertySchemaEntries] = React.useState<
     [string, z.ZodType][]
   >([]);
+  const [defaultProperty, setDefaultProperty] = React.useState<
+    Record<string, unknown> | undefined | null
+  >(null);
 
   const { t } = useTranslation();
   const { currentWorkspace } = useAppStore();
@@ -128,6 +135,14 @@ const GraphAddNodePropertyField = (props: {
         if (!propertySchema) {
           // toast.error(t("popup.graph.noPropertySchema"));
           return;
+        }
+        const defaultProperty = await retrieveExtensionDefaultProperty({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: addon,
+        });
+        if (defaultProperty) {
+          setDefaultProperty(defaultProperty);
+          onChange?.(defaultProperty);
         }
         const propertySchemaEntries =
           convertExtensionPropertySchema2ZodSchema(propertySchema);
@@ -162,6 +177,7 @@ const GraphAddNodePropertyField = (props: {
               onChange?.(data);
               removeDialog(dialogId);
             }}
+            defaultValues={defaultProperty || undefined}
             schema={
               new ZodProvider(
                 z.object(Object.fromEntries(propertySchemaEntries))
@@ -207,8 +223,16 @@ export const GraphAddNodeWidget = (props: {
   base_dir: string;
   graph_id?: string;
   postAddNodeActions?: () => void | Promise<void>;
+  node?: TCustomNode;
+  isReplaceNode?: boolean;
 }) => {
-  const { base_dir, graph_id, postAddNodeActions } = props;
+  const {
+    base_dir,
+    graph_id,
+    postAddNodeActions,
+    node,
+    isReplaceNode = false,
+  } = props;
   const [customAddon, setCustomAddon] = React.useState<string | undefined>(
     undefined
   );
@@ -225,7 +249,7 @@ export const GraphAddNodeWidget = (props: {
     resolver: zodResolver(AddNodePayloadSchema),
     defaultValues: {
       graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-      name: undefined,
+      name: node?.data?.name || undefined,
       addon: undefined,
       extension_group: undefined,
       app: undefined,
@@ -236,17 +260,29 @@ export const GraphAddNodeWidget = (props: {
   const onSubmit = async (data: z.infer<typeof AddNodePayloadSchema>) => {
     setIsSubmitting(true);
     try {
-      await postAddNode(data);
-      if (currentWorkspace?.graph?.uuid === data.graph_id) {
+      if (isReplaceNode) {
+        await postReplaceNode(data);
+      } else {
+        await postAddNode(data);
+      }
+      if (
+        currentWorkspace?.graph?.uuid &&
+        (currentWorkspace?.graph?.uuid === data.graph_id || isReplaceNode)
+      ) {
         const { nodes, edges } = await resetNodesAndEdgesByGraph(
           currentWorkspace.graph
         );
         setNodesAndEdges(nodes, edges);
         postAddNodeActions?.();
       }
-      toast.success(t("popup.graph.addNodeSuccess"), {
-        description: `Node ${data.name} added successfully`,
-      });
+      toast.success(
+        isReplaceNode
+          ? t("popup.graph.replaceNodeSuccess")
+          : t("popup.graph.addNodeSuccess"),
+        {
+          description: `${data.name}`,
+        }
+      );
     } catch (error) {
       console.error(error);
       setRemoteCheckErrorMessage(
@@ -307,6 +343,7 @@ export const GraphAddNodeWidget = (props: {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isReplaceNode}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
                     <SelectValue placeholder={t("popup.graph.graphId")} />
@@ -341,7 +378,11 @@ export const GraphAddNodeWidget = (props: {
             <FormItem>
               <FormLabel>{t("popup.graph.nodeName")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("popup.graph.nodeName")} {...field} />
+                <Input
+                  placeholder={t("popup.graph.nodeName")}
+                  {...field}
+                  disabled={field?.disabled || isReplaceNode}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -396,7 +437,14 @@ export const GraphAddNodeWidget = (props: {
         )}
 
         {remoteCheckErrorMessage && (
-          <div className="text-red-500">{remoteCheckErrorMessage}</div>
+          <div className="text-red-500 flex flex-col gap-2">
+            <p>
+              {isReplaceNode
+                ? t("popup.graph.replaceNodeFailed")
+                : t("popup.graph.addNodeFailed")}
+            </p>
+            <p>{remoteCheckErrorMessage}</p>
+          </div>
         )}
 
         <Button
@@ -405,6 +453,8 @@ export const GraphAddNodeWidget = (props: {
         >
           {isSubmitting ? (
             <SpinnerLoading className="size-4" />
+          ) : isReplaceNode ? (
+            t("popup.graph.replaceNode")
           ) : (
             t("popup.graph.addNode")
           )}
@@ -501,13 +551,16 @@ export const GraphAddConnectionWidget = (props: {
 
   React.useEffect(() => {
     const fetchNodeSchema = async () => {
-      if (!form.watch("src_extension")) return;
+      const targetNode = nodes.find(
+        (i) => i.data.name === form.watch("src_extension")
+      );
+      if (!targetNode) return;
       try {
         form.setValue("msg_name", undefined as unknown as string);
         setIsMsgNameLoading(true);
         const nodeSchema = await retrieveExtensionSchema({
           appBaseDir: currentWorkspace?.app?.base_dir ?? "",
-          addonName: form.watch("src_extension"),
+          addonName: targetNode.data.addon,
         });
         const msgNameList =
           nodeSchema?.[`${form.watch("msg_type")}_out`]?.map((i) => i.name) ??
@@ -528,7 +581,7 @@ export const GraphAddConnectionWidget = (props: {
 
     fetchNodeSchema();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.watch("src_extension"), form.watch("msg_type")]);
+  }, [form.watch("src_extension"), form.watch("msg_type"), nodes]);
 
   console.log("isMsgNameLoading ===", isMsgNameLoading);
 

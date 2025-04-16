@@ -23,7 +23,9 @@ use ten_rust::{
     },
 };
 
-use crate::graph::msg_conversion::msg_conversion_get_final_target_schema;
+use crate::graph::msg_conversion::{
+    msg_conversion_get_dest_msg_name, msg_conversion_get_final_target_schema,
+};
 
 type PkgInfoTuple<'a> = (Option<&'a PkgInfo>, Option<&'a PkgInfo>);
 
@@ -52,6 +54,17 @@ fn validate_msg_conversion_schema(
         msg_conversion_validate_info.src_extension,
     )?;
 
+    // Default to using `src_msg_name` as the `dest_msg_name`, but check if
+    // there's a special rule for `_ten.name` to determine the `dest_msg_name`.
+    let (dest_msg_name, ten_name_rule_index) =
+        msg_conversion_get_dest_msg_name(
+            msg_conversion_validate_info.msg_name,
+            msg_conversion_validate_info
+                .msg_conversion
+                .as_ref()
+                .unwrap(),
+        )?;
+
     let converted_schema = msg_conversion_get_final_target_schema(
         uri_to_pkg_info,
         graph_app_base_dir,
@@ -60,6 +73,8 @@ fn validate_msg_conversion_schema(
         src_extension_addon,
         msg_conversion_validate_info.msg_type,
         msg_conversion_validate_info.msg_name,
+        &dest_msg_name,
+        ten_name_rule_index,
         msg_conversion_validate_info
             .msg_conversion
             .as_ref()

@@ -168,7 +168,13 @@ export interface ILogViewerLogItemProps {
   message: string;
 }
 
-const string2LogItem = (str: string): ILogViewerLogItemProps => {
+const string2LogItem = (str?: string): ILogViewerLogItemProps => {
+  if (!str) {
+    return {
+      id: string2uuid(new Date().getTime().toString()),
+      message: "",
+    };
+  }
   const regex = /^(\w+)@([^:]+):(\d+)\s+\[([^\]]+)\]\s+(.+)$/;
   const match = str.match(regex);
   const randomId = string2uuid(str + new Date().getTime());
