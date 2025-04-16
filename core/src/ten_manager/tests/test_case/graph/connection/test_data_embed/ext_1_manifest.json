@@ -27,10 +27,7 @@
             "mapped_detail": {
               "type": "bool"
             }
-          },
-          "required": [
-            "detail"
-          ]
+          }
         }
       },
       {

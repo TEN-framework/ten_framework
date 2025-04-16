@@ -433,7 +433,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_1"
+                    "/ten_packages/extension/extension_addon_1"
                 ),
                 ext1_manifest,
                 empty_property.clone(),
@@ -442,7 +442,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_2"
+                    "/ten_packages/extension/extension_addon_2"
                 ),
                 ext2_manifest,
                 empty_property.clone(),

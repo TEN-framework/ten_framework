@@ -503,6 +503,7 @@ mod tests {
             &pkgs_cache,
             Some(msg_conversion),
         );
+        eprintln!("result: {:?}", result);
 
         assert!(result.is_ok());
 

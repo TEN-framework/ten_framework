@@ -129,11 +129,48 @@ fn validate_msg_conversion_schema(
                 are_ten_schemas_compatible(
                     converted_ten_msg_schema.as_ref(),
                     dest_ten_msg_schema.msg.as_ref(),
-                    false,
-                    false,
+                    true,
+                    true,
                 )?;
             }
         }
+    }
+
+    if let Some(converted_result_schema) = converted_result_schema {
+        if let Ok(converted_ten_result_schema) =
+            create_c_schema_from_properties_and_required(
+                &converted_result_schema.property,
+                &converted_result_schema.required,
+            )
+        {
+            if let Some(src_extension_pkg_info) =
+                get_pkg_info_for_extension_addon(
+                    msg_conversion_validate_info.src_app,
+                    src_extension_addon,
+                    uri_to_pkg_info,
+                    graph_app_base_dir,
+                    pkgs_cache,
+                )
+            {
+                if let Some(src_ten_msg_schema) =
+                    find_msg_schema_from_all_pkgs_info(
+                        src_extension_pkg_info,
+                        msg_conversion_validate_info.msg_type,
+                        msg_conversion_validate_info.msg_name,
+                        MsgDirection::Out,
+                    )
+                {
+                    are_ten_schemas_compatible(
+                        converted_ten_result_schema.as_ref(),
+                        src_ten_msg_schema.result.as_ref(),
+                        true,
+                        true,
+                    )?;
+                }
+            }
+        }
+    } else {
+        // =-=-=
     }
 
     Ok(())

@@ -19,10 +19,7 @@
             "string_detail": {
               "type": "string"
             }
-          },
-          "required": [
-            "detail"
-          ]
+          }
         }
       }
     ],
