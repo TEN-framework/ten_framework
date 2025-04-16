@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "extension_1",
+  "name": "extension_addon_1",
   "version": "0.1.0",
   "api": {
     "cmd_out": [

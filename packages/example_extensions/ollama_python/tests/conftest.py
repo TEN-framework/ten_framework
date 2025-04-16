@@ -16,6 +16,15 @@ class FakeApp(App):
         super().__init__()
         self.event: threading.Event | None = None
 
+    # In the case of a fake app, we use `on_init` to allow the blocked testing
+    # fixture to continue execution, rather than using `on_configure`. The
+    # reason is that in the TEN runtime C core, the relationship between the
+    # addon manager and the (fake) app is bound after `on_configure_done` is
+    # called. So we only need to let the testing fixture continue execution
+    # after this action in the TEN runtime C core, and at the upper layer
+    # timing, the earliest point is within the `on_init()` function of the upper
+    # TEN app. Therefore, we release the testing fixture lock within the user
+    # layer's `on_init()` of the TEN app.
     def on_init(self, ten_env: TenEnv) -> None:
         assert self.event
         self.event.set()

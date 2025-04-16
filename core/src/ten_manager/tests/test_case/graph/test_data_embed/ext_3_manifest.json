@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "ext3",
+  "name": "addon3",
   "version": "1.0.0",
   "api": {
     "cmd_in": [

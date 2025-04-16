@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "ext2",
+  "name": "addon2",
   "version": "1.0.0",
   "api": {
     "cmd_in": [
