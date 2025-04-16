@@ -22,6 +22,15 @@ class fake_app_t : public ten::app_t {
     ten_env.on_configure_done();
   }
 
+  // In the case of a fake app, we use `on_init` to allow the blocked testing
+  // fixture to continue execution, rather than using `on_configure`. The reason
+  // is that in the TEN runtime C core, the relationship between the addon
+  // manager and the (fake) app is bound after `on_configure_done` is called. So
+  // we only need to let the testing fixture continue execution after this
+  // action in the TEN runtime C core, and at the upper layer timing, the
+  // earliest point is within the `on_init()` function of the upper TEN app.
+  // Therefore, we release the testing fixture lock within the user layer's
+  // `on_init()` of the TEN app.
   void on_init(ten::ten_env_t &ten_env) override {
     TEN_ASSERT(configured_cb_, "Configured callback is not set.");
     configured_cb_();
