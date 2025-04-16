@@ -76,6 +76,18 @@ export const ENDPOINT_GRAPHS = {
       responseSchema: genResSchema(z.any()), // TODO: add response schema
     },
   },
+  replaceNode: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes/replace`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: AddNodePayloadSchema,
+      responseSchema: genResSchema(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
   connections: {
     [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/graphs/connections`,

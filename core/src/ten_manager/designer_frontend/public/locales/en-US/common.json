@@ -107,7 +107,8 @@
     "create": "Create",
     "deleteConnectionConfirmation": "Are you sure you want to delete the connection?",
     "deleteConnectionSuccess": "Connection deleted successfully",
-    "deleteConnectionFailed": "Failed to delete connection"
+    "deleteConnectionFailed": "Failed to delete connection",
+    "replaceNode": "Replace Node with ..."
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -197,7 +198,11 @@
       "graphName": "Graph Name",
       "updateNodePropertySuccess": "Node property updated successfully",
       "updateNodePropertyFailed": "Failed to update node property",
-      "noPropertySchema": "No property schema found"
+      "noPropertySchema": "No property schema found",
+      "titleReplaceNode": "Replace Node[{{name}}] with ...",
+      "replaceNode": "Replace Node",
+      "replaceNodeSuccess": "Node replaced successfully",
+      "replaceNodeFailed": "Failed to replace node"
     },
     "doc": {
       "title": "{{name}}"

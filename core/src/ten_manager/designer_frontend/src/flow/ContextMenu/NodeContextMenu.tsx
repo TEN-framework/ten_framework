@@ -13,6 +13,7 @@ import {
   LogsIcon,
   SaveIcon,
   GitPullRequestCreateIcon,
+  ReplaceIcon,
   // PinIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -259,6 +260,36 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
     },
     {
       _type: EContextMenuItemType.SEPARATOR,
+    },
+    {
+      _type: EContextMenuItemType.BUTTON,
+      label: t("action.replaceNode"),
+      icon: <ReplaceIcon />,
+      disabled: !baseDir || !graphId,
+      onClick: () => {
+        const type = EGraphActions.REPLACE_NODE;
+        appendWidgetIfNotExists({
+          container_id: CONTAINER_DEFAULT_ID,
+          group_id: GROUP_GRAPH_ID,
+          widget_id:
+            GRAPH_ACTIONS_WIDGET_ID + `-${type}-` + `${baseDir}-${graphId}`,
+
+          category: EWidgetCategory.Graph,
+          display_type: EWidgetDisplayType.Popup,
+
+          title: <GraphPopupTitle type={type} node={node} />,
+          metadata: {
+            type,
+            base_dir: baseDir!,
+            graph_id: graphId!,
+            node: node,
+          },
+          popup: {
+            width: 340,
+          },
+        });
+        onClose();
+      },
     },
     {
       _type: EContextMenuItemType.BUTTON,

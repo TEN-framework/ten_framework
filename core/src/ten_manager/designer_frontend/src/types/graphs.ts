@@ -75,6 +75,7 @@ export type TConnectionMap = Record<string, Set<TConnectionItem>>;
 
 export enum EGraphActions {
   ADD_NODE = "add_node",
+  REPLACE_NODE = "replace_node",
   ADD_CONNECTION = "add_connection",
   UPDATE_NODE_PROPERTY = "update_node_property",
 }

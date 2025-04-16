@@ -49,6 +49,7 @@ import {
   retrieveGraphConnections,
   postAddConnection,
   postUpdateNodeProperty,
+  postReplaceNode,
 } from "@/api/services/graphs";
 import {
   retrieveExtensionSchema,
@@ -222,8 +223,16 @@ export const GraphAddNodeWidget = (props: {
   base_dir: string;
   graph_id?: string;
   postAddNodeActions?: () => void | Promise<void>;
+  node?: TCustomNode;
+  isReplaceNode?: boolean;
 }) => {
-  const { base_dir, graph_id, postAddNodeActions } = props;
+  const {
+    base_dir,
+    graph_id,
+    postAddNodeActions,
+    node,
+    isReplaceNode = false,
+  } = props;
   const [customAddon, setCustomAddon] = React.useState<string | undefined>(
     undefined
   );
@@ -240,7 +249,7 @@ export const GraphAddNodeWidget = (props: {
     resolver: zodResolver(AddNodePayloadSchema),
     defaultValues: {
       graph_id: graph_id ?? currentWorkspace?.graph?.uuid ?? "",
-      name: undefined,
+      name: node?.data?.name || undefined,
       addon: undefined,
       extension_group: undefined,
       app: undefined,
@@ -251,17 +260,29 @@ export const GraphAddNodeWidget = (props: {
   const onSubmit = async (data: z.infer<typeof AddNodePayloadSchema>) => {
     setIsSubmitting(true);
     try {
-      await postAddNode(data);
-      if (currentWorkspace?.graph?.uuid === data.graph_id) {
+      if (isReplaceNode) {
+        await postReplaceNode(data);
+      } else {
+        await postAddNode(data);
+      }
+      if (
+        currentWorkspace?.graph?.uuid &&
+        (currentWorkspace?.graph?.uuid === data.graph_id || isReplaceNode)
+      ) {
         const { nodes, edges } = await resetNodesAndEdgesByGraph(
           currentWorkspace.graph
         );
         setNodesAndEdges(nodes, edges);
         postAddNodeActions?.();
       }
-      toast.success(t("popup.graph.addNodeSuccess"), {
-        description: `Node ${data.name} added successfully`,
-      });
+      toast.success(
+        isReplaceNode
+          ? t("popup.graph.replaceNodeSuccess")
+          : t("popup.graph.addNodeSuccess"),
+        {
+          description: `${data.name}`,
+        }
+      );
     } catch (error) {
       console.error(error);
       setRemoteCheckErrorMessage(
@@ -322,6 +343,7 @@ export const GraphAddNodeWidget = (props: {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isReplaceNode}
                 >
                   <SelectTrigger className="w-full" disabled={isGraphsLoading}>
                     <SelectValue placeholder={t("popup.graph.graphId")} />
@@ -356,7 +378,11 @@ export const GraphAddNodeWidget = (props: {
             <FormItem>
               <FormLabel>{t("popup.graph.nodeName")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("popup.graph.nodeName")} {...field} />
+                <Input
+                  placeholder={t("popup.graph.nodeName")}
+                  {...field}
+                  disabled={field?.disabled || isReplaceNode}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -411,7 +437,14 @@ export const GraphAddNodeWidget = (props: {
         )}
 
         {remoteCheckErrorMessage && (
-          <div className="text-red-500">{remoteCheckErrorMessage}</div>
+          <div className="text-red-500 flex flex-col gap-2">
+            <p>
+              {isReplaceNode
+                ? t("popup.graph.replaceNodeFailed")
+                : t("popup.graph.addNodeFailed")}
+            </p>
+            <p>{remoteCheckErrorMessage}</p>
+          </div>
         )}
 
         <Button
@@ -420,6 +453,8 @@ export const GraphAddNodeWidget = (props: {
         >
           {isSubmitting ? (
             <SpinnerLoading className="size-4" />
+          ) : isReplaceNode ? (
+            t("popup.graph.replaceNode")
           ) : (
             t("popup.graph.addNode")
           )}
