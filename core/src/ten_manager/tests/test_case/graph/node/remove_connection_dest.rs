@@ -6,7 +6,7 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::fs::{self, OpenOptions};
+    use std::fs::{self};
     use std::path::Path;
 
     use anyhow::Result;
@@ -14,6 +14,7 @@ mod tests {
     use tempfile::TempDir;
 
     use ten_manager::graph::update_graph_node_all_fields;
+    use ten_manager::json::write_property_json_file;
     use ten_rust::graph::node::GraphNode;
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
     use ten_rust::pkg_info::pkg_type::PkgType;
@@ -104,12 +105,8 @@ mod tests {
 
         // Write the initial property to the temp directory.
         let property_path = Path::new(&temp_path).join(PROPERTY_JSON_FILENAME);
-        let property_file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&property_path)?;
-        serde_json::to_writer_pretty(property_file, &all_fields)?;
+
+        write_property_json_file(&temp_path, &all_fields)?;
 
         // Create a node to remove (node2).
         let remove_node = GraphNode {

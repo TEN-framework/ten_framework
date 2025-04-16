@@ -33,6 +33,7 @@ mod fs;
 pub mod graph;
 pub mod http;
 mod install;
+pub mod json;
 mod manifest_lock;
 pub mod output;
 mod package_file;

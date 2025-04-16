@@ -141,9 +141,6 @@ pub async fn delete_graph_node_endpoint(
     request_payload: web::Json<DeleteGraphNodeRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 111");
-
     // Get a write lock on the state since we need to modify the graph.
     let mut state_write = state.write().map_err(|e| {
         actix_web::error::ErrorInternalServerError(format!(
@@ -152,17 +149,11 @@ pub async fn delete_graph_node_endpoint(
         ))
     })?;
 
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 222");
-
     let DesignerState {
         pkgs_cache,
         graphs_cache,
         ..
     } = &mut *state_write;
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 333");
 
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
@@ -180,9 +171,6 @@ pub async fn delete_graph_node_endpoint(
         }
     };
 
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 444");
-
     // Delete the extension node.
     if let Err(err) = graph_delete_extension_node(
         &mut graph_info.graph,
@@ -199,9 +187,6 @@ pub async fn delete_graph_node_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 555");
-
     // Try to update property.json file if possible
     update_property_json_if_needed(
         pkgs_cache,
@@ -211,9 +196,6 @@ pub async fn delete_graph_node_endpoint(
         request_payload.extension_group.as_deref(),
         request_payload.app.as_deref(),
     );
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 666");
 
     // Return success response
     let response = ApiResponse {
@@ -233,16 +215,10 @@ fn update_property_json_if_needed(
     extension_group: Option<&str>,
     app: Option<&str>,
 ) {
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 1000");
-
     // Try to find the belonging package info
     if let Ok(Some(pkg_info)) =
         belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
     {
-        // =-=-=
-        eprintln!("delete_graph_node_endpoint 1001");
-
         // Check if property exists
         let property = match &mut pkg_info.property {
             Some(property) => property,
@@ -274,8 +250,5 @@ fn update_property_json_if_needed(
         ) {
             eprintln!("Warning: Failed to update property.json file: {}", e);
         }
-
-        // =-=-=
-        eprintln!("delete_graph_node_endpoint 2000");
     }
 }

@@ -9,7 +9,6 @@ mod common;
 mod designer;
 mod graph;
 mod mock;
-mod pkg_info;
 mod registry;
 mod schema;
 mod version_utils;

@@ -7,15 +7,12 @@
 pub mod add;
 pub mod validate;
 
-use std::{fs::OpenOptions, path::Path};
-
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde_json::Value;
 
-use ten_rust::{
-    graph::connection::{GraphConnection, GraphMessageFlow},
-    pkg_info::constants::PROPERTY_JSON_FILENAME,
-};
+use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
+
+use crate::json::write_property_json_file;
 
 /// Update the connections of a graph in the property.json file.
 ///
@@ -35,13 +32,13 @@ pub fn update_graph_connections_all_fields(
     // Get ten object if it exists.
     let ten_obj = match property_all_fields.get_mut("_ten") {
         Some(Value::Object(obj)) => obj,
-        _ => return write_property_file(pkg_url, property_all_fields),
+        _ => return write_property_json_file(pkg_url, property_all_fields),
     };
 
     // Get predefined_graphs array if it exists.
     let predefined_graphs = match ten_obj.get_mut("predefined_graphs") {
         Some(Value::Array(graphs)) => graphs,
-        _ => return write_property_file(pkg_url, property_all_fields),
+        _ => return write_property_json_file(pkg_url, property_all_fields),
     };
 
     // Find and update the target graph.
@@ -55,7 +52,7 @@ pub fn update_graph_connections_all_fields(
 
     // Note: if no graph was found, we still need to write back the property
     // file.
-    write_property_file(pkg_url, property_all_fields)
+    write_property_json_file(pkg_url, property_all_fields)
 }
 
 /// Find the target graph and update its connections.
@@ -332,25 +329,6 @@ fn create_connections_if_needed(
             );
         }
     }
-}
-
-/// Write the property file back to disk.
-fn write_property_file(
-    pkg_url: &str,
-    property_all_fields: &serde_json::Map<String, Value>,
-) -> Result<()> {
-    let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
-    let property_file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(property_path)
-        .context("Failed to open property.json file")?;
-
-    // Serialize the property_all_fields map directly to preserve field order.
-    serde_json::to_writer_pretty(property_file, &property_all_fields)
-        .context("Failed to write to property.json file")?;
-
-    Ok(())
 }
 
 /// Helper function to update message conversion for a specific message type in
