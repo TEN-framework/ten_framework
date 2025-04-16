@@ -6,7 +6,7 @@
 //
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import {
   FolderMinusIcon,
@@ -72,7 +72,12 @@ import {
   postCreateApp,
 } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
+import {
+  useWidgetStore,
+  useFlowStore,
+  useAppStore,
+  useDialogStore,
+} from "@/store";
 import {
   EDefaultWidgetType,
   EWidgetDisplayType,
@@ -115,6 +120,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
   } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
   const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
+  const { appendDialog, removeDialog } = useDialogStore();
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
@@ -163,6 +169,40 @@ export const AppsManagerWidget = (props: { className?: string }) => {
   };
 
   const handleReloadApp = async (baseDir?: string) => {
+    appendDialog({
+      id: "reload-app",
+      title: baseDir
+        ? t("header.menuApp.reloadApp")
+        : t("header.menuApp.reloadAllApps"),
+      content: (
+        <div className={cn("flex flex-col gap-2", "text-sm")}>
+          <p className="">
+            {baseDir
+              ? t("header.menuApp.reloadAppConfirmation", {
+                  name: baseDir,
+                })
+              : t("header.menuApp.reloadAllAppsConfirmation")}
+          </p>
+          <p>{t("header.menuApp.reloadAppDescription")}</p>
+        </div>
+      ),
+      onCancel: async () => {
+        removeDialog("reload-app");
+      },
+      onConfirm: async () => {
+        await reloadApps(baseDir);
+        removeDialog("reload-app");
+      },
+      postConfirm: async () => {
+        setNodesAndEdges([], []);
+        updateCurrentWorkspace({
+          graph: null,
+        });
+      },
+    });
+  };
+
+  const reloadApps = async (baseDir?: string) => {
     try {
       setIsReloading(true);
       await postReloadApps(baseDir);
@@ -294,7 +334,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                 </TableCell>
                 <AppRowActions
                   baseDir={app.base_dir}
-                  isLoading={isLoading}
+                  isLoading={isLoadingMemo}
                   handleUnloadApp={handleUnloadApp}
                   handleReloadApp={handleReloadApp}
                   handleAppInstallAll={handleAppInstallAll}
