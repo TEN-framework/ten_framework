@@ -48,26 +48,26 @@ fn create_and_compare_c_schema(
     msg_conversion_validate_info: &MsgConversionValidateInfo,
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-    compared_properties: &Option<
+    compared_schema_properties: &Option<
         HashMap<String, ManifestApiPropertyAttributes>,
     >,
-    compared_required: &Option<Vec<String>>,
+    compared_schema_required: &Option<Vec<String>>,
     target_app: &Option<String>,
     target_extension_addon: &String,
     target_msg_name: &str,
     msg_direction: MsgDirection,
 ) -> Result<()> {
     if let Ok(compared_c_schema) = create_c_schema_from_properties_and_required(
-        compared_properties,
-        compared_required,
+        compared_schema_properties,
+        compared_schema_required,
     ) {
         if let Some(target_extension_pkg_info) =
             get_pkg_info_for_extension_addon(
-                target_app,
-                target_extension_addon,
+                pkgs_cache,
                 uri_to_pkg_info,
                 graph_app_base_dir,
-                pkgs_cache,
+                target_app,
+                target_extension_addon,
             )
         {
             if let Some(target_ten_msg_schema) =

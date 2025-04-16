@@ -46,11 +46,11 @@ impl Graph {
             )?;
 
             let extension_pkg_info = match get_pkg_info_for_extension_addon(
-                &dest.app,
-                dest_addon,
+                pkgs_cache,
                 uri_to_pkg_info,
                 graph_app_base_dir,
-                pkgs_cache,
+                &dest.app,
+                dest_addon,
             ) {
                 Some(pkg_info) => pkg_info,
                 None if ignore_missing_apps => continue,
@@ -105,12 +105,12 @@ impl Graph {
             .get_addon_name_of_extension(src_app_uri, &connection.extension)?;
 
         let extension_pkg_info = match get_pkg_info_for_extension_addon(
-          &src_app_uri.as_ref().map(|s| s.to_string()),
-          src_addon,
+          pkgs_cache,
           uri_to_pkg_info,
           graph_app_base_dir,
-          pkgs_cache,
-      ) {
+          &src_app_uri.as_ref().map(|s| s.to_string()),
+          src_addon,
+        ) {
           Some(pkg_info) => pkg_info,
           None if ignore_missing_apps => return Ok(()),
           None => {

@@ -443,11 +443,11 @@ pub fn create_uri_to_pkg_info_map<'a>(
 }
 
 pub fn get_pkg_info_for_extension_addon<'a>(
-    app: &Option<String>,
-    extension_addon: &String,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph_app_base_dir: &Option<String>,
-    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+    app: &Option<String>,
+    extension_addon_name: &String,
 ) -> Option<&'a PkgInfo> {
     let result =
         uri_to_pkg_info
@@ -461,7 +461,7 @@ pub fn get_pkg_info_for_extension_addon<'a>(
                         pkg_info.manifest.type_and_name.pkg_type
                             == PkgType::Extension
                             && pkg_info.manifest.type_and_name.name
-                                == *extension_addon
+                                == *extension_addon_name
                     })
             });
 
@@ -475,7 +475,7 @@ pub fn get_pkg_info_for_extension_addon<'a>(
                     pkg_info.manifest.type_and_name.pkg_type
                         == PkgType::Extension
                         && pkg_info.manifest.type_and_name.name
-                            == *extension_addon
+                            == *extension_addon_name
                 })
             })
     } else {

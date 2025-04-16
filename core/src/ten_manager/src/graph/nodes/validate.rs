@@ -39,11 +39,11 @@ pub fn validate_extension_property(
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
 ) -> Result<(), String> {
     if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
-        app,
-        addon,
+        pkgs_cache,
         uri_to_pkg_info,
         graph_app_base_dir,
-        pkgs_cache,
+        app,
+        addon,
     ) {
         // Validate the request payload before proceeding.
         validate_extension_property_internal(property, extension_pkg_info)?
