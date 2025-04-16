@@ -61,7 +61,7 @@ typedef struct ten_addon_loader_t {
   ten_env_t *ten_env;
 } ten_addon_loader_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_check_integrity(
+TEN_RUNTIME_API bool ten_addon_loader_check_integrity(
     ten_addon_loader_t *self, bool check_thread);
 
 TEN_RUNTIME_API ten_env_t *ten_addon_loader_get_ten_env(
