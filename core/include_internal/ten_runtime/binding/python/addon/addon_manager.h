@@ -22,6 +22,3 @@ ten_py_addon_manager_register_addon_as_extension(PyObject *self,
 
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_addon_manager_add_extension_addon(
     PyObject *self, PyObject *args);
-
-TEN_RUNTIME_PRIVATE_API PyObject *ten_py_unregister_all_addons_and_cleanup(
-    PyObject *self, PyObject *args);

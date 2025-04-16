@@ -233,6 +233,28 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   TEN_ASSERT(manager, "Should not happen.");
 
+  // There are currently two scenarios:
+  //
+  // 1. Single app within a process (normal case):
+  //    Since addon registration (phase 2) is only needed after the app is
+  //    configured, and we also want to use the TEN app's `property.json` to
+  //    guide or change the TEN addon loading mechanism, we set the
+  //    addon_manager to belong to this app here. Subsequently, all addon
+  //    `register`/`on_init`/`on_deinit` operations will execute on the current
+  //    app thread. The addon manager instance will be destroyed during _this_
+  //    app's close phase to prevent memory leaks.
+  //
+  // 2. Multiple apps within a process (smoke/standalone tests):
+  //    In smoke/standalone tests, multiple apps may exist simultaneously in a
+  //    process. We ensure the addon manager instance belongs to the app with
+  //    the longest lifecycle. Therefore, the first initialized app should have
+  //    the longest lifecycle and will only be destroyed after all other apps
+  //    are destroyed. During this period, all addon
+  //    `register`/`on_init`/`on_deinit` operations will execute on this
+  //    longest-lifecycle app's thread. This app is also responsible for
+  //    destroying the addon manager instance to prevent memory leaks.
+  ten_addon_manager_set_belonging_app_if_not_set(manager, self);
+
   // Addon registration phase 1: adding a function, which will perform the
   // actual registration in the phase 2, into the `addon_manager`.
   //
@@ -362,18 +384,13 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
-  // NOLINTNEXTLINE(concurrency-mt-unsafe)
-  const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
-  if (disabled && !strcmp(disabled, "true")) {
-    // There’s no need to perform the _unregister_all_addons_ action when the
-    // app closes, so we can directly proceed with the actions after
-    // _unregister_all_addons_.
+  if (ten_addon_manager_belongs_to_app(ten_addon_manager_get_instance(),
+                                       self)) {
+    ten_addon_unregister_all_and_cleanup_after_app_close(
+        self->ten_env, ten_app_on_all_addons_unregistered, NULL);
+  } else {
     ten_app_on_all_addons_unregistered(self->ten_env, NULL);
-    return;
   }
-
-  ten_addon_unregister_all_and_cleanup_after_app_close(
-      self->ten_env, ten_app_on_all_addons_unregistered, NULL);
 }
 
 void ten_app_on_deinit(ten_app_t *self) {

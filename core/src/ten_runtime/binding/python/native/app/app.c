@@ -223,8 +223,11 @@ static PyObject *ten_py_app_run(PyObject *self, PyObject *args) {
 static PyObject *ten_py_app_close(PyObject *self, PyObject *args) {
   ten_py_app_t *py_app = (ten_py_app_t *)self;
 
-  TEN_ASSERT(self && ten_py_app_check_integrity(py_app, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: this function is designed to be called from any thread (not
+  // just the app thread).
+  TEN_ASSERT(ten_py_app_check_integrity(py_app, false), "Invalid argument.");
 
   if (PyTuple_Size(args)) {
     return ten_py_raise_py_type_error_exception("Expect 0 argument.");
@@ -269,9 +272,11 @@ static PyObject *ten_py_app_wait(PyObject *self, PyObject *args) {
 
 static void ten_py_app_destroy(PyObject *self) {
   ten_py_app_t *py_app = (ten_py_app_t *)self;
-
-  TEN_ASSERT(py_app && ten_py_app_check_integrity(py_app, true),
-             "Invalid argument.");
+  TEN_ASSERT(py_app, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: this function is designed to be called from any thread (not
+  // just the app thread).
+  TEN_ASSERT(ten_py_app_check_integrity(py_app, false), "Invalid argument.");
 
   ten_app_close(py_app->c_app, NULL);
 

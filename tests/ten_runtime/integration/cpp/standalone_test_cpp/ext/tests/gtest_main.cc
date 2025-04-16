@@ -11,7 +11,6 @@
 #include "ten_utils/lib/thread.h"
 
 namespace {
-
 class fake_app_t : public ten::app_t {
  public:
   void set_configured_callback(std::function<void()> cb) {

@@ -43,9 +43,6 @@ static PyModuleDef *ten_py_runtime_module(void) {
       {"_add_extension_addon_to_addon_manager",
        ten_py_addon_manager_add_extension_addon, METH_VARARGS,
        "Add an addon to the addon manager"},
-      {"_unregister_all_addons_and_cleanup",
-       ten_py_unregister_all_addons_and_cleanup, METH_VARARGS,
-       "Unregister all addons and cleanup"},
       {NULL, NULL, 0, NULL}};
 
   static struct PyModuleDef module_def = {
