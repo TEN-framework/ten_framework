@@ -50,7 +50,10 @@ import {
   postAddConnection,
   postUpdateNodeProperty,
 } from "@/api/services/graphs";
-import { retrieveExtensionSchema } from "@/api/services/extension";
+import {
+  retrieveExtensionSchema,
+  retrieveExtensionDefaultProperty,
+} from "@/api/services/extension";
 import { useAddons } from "@/api/services/addons";
 import {
   generateRawNodes,
@@ -106,6 +109,9 @@ const GraphAddNodePropertyField = (props: {
   const [propertySchemaEntries, setPropertySchemaEntries] = React.useState<
     [string, z.ZodType][]
   >([]);
+  const [defaultProperty, setDefaultProperty] = React.useState<
+    Record<string, unknown> | undefined | null
+  >(null);
 
   const { t } = useTranslation();
   const { currentWorkspace } = useAppStore();
@@ -128,6 +134,14 @@ const GraphAddNodePropertyField = (props: {
         if (!propertySchema) {
           // toast.error(t("popup.graph.noPropertySchema"));
           return;
+        }
+        const defaultProperty = await retrieveExtensionDefaultProperty({
+          appBaseDir: currentWorkspace?.app?.base_dir ?? "",
+          addonName: addon,
+        });
+        if (defaultProperty) {
+          setDefaultProperty(defaultProperty);
+          onChange?.(defaultProperty);
         }
         const propertySchemaEntries =
           convertExtensionPropertySchema2ZodSchema(propertySchema);
@@ -162,6 +176,7 @@ const GraphAddNodePropertyField = (props: {
               onChange?.(data);
               removeDialog(dialogId);
             }}
+            defaultValues={defaultProperty || undefined}
             schema={
               new ZodProvider(
                 z.object(Object.fromEntries(propertySchemaEntries))

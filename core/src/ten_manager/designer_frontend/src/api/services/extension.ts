@@ -70,3 +70,19 @@ export const retrieveExtensionSchema = async (options: {
   const res = await req;
   return template.responseSchema.parse(res).data.schema;
 };
+
+export const retrieveExtensionDefaultProperty = async (options: {
+  appBaseDir: string;
+  addonName: string;
+}) => {
+  const template = ENDPOINT_EXTENSION.getProperty[ENDPOINT_METHOD.POST];
+  const payload = template.requestPayload.parse({
+    app_base_dir: options.appBaseDir,
+    addon_name: options.addonName,
+  });
+  const req = makeAPIRequest(template, {
+    body: payload,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data.property;
+};

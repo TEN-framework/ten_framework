@@ -42,4 +42,19 @@ export const ENDPOINT_EXTENSION = {
       ),
     },
   },
+  getProperty: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/extensions/property/get`,
+      method: ENDPOINT_METHOD.POST,
+      requestPayload: z.object({
+        app_base_dir: z.string(),
+        addon_name: z.string(),
+      }),
+      responseSchema: genResSchema(
+        z.object({
+          property: z.record(z.string(), z.any()).nullable().optional(),
+        })
+      ),
+    },
+  },
 };
