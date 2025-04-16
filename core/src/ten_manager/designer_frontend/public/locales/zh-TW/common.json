@@ -9,11 +9,14 @@
       "loadAppSuccess": "應用程式載入成功",
       "loadAppFailed": "應用程式載入失敗",
       "reloadApp": "重新載入應用程式",
+      "reloadAppDescription": "重新載入應用程式將關閉目前工作區。所有未儲存的變更將會遺失。",
+      "reloadAppConfirmation": "確定要重新載入應用程式 {{name}} 嗎？",
       "reloadAppSuccess": "應用程式重新載入成功",
       "reloadAppFailed": "應用程式重新載入失敗",
       "reloadAllApps": "重新載入所有應用程式",
       "reloadAllAppsSuccess": "所有應用程式重新載入成功",
       "reloadAllAppsFailed": "所有應用程式重新載入失敗",
+      "reloadAllAppsConfirmation": "確定要重新載入所有應用程式嗎？",
       "unloadApp": "卸載應用程式",
       "unloadAppSuccess": "應用程式卸載成功",
       "unloadAppFailed": "應用程式卸載失敗",
@@ -104,7 +107,8 @@
     "create": "建立",
     "deleteConnectionConfirmation": "確定要刪除此連線嗎？",
     "deleteConnectionSuccess": "連線刪除成功",
-    "deleteConnectionFailed": "連線刪除失敗"
+    "deleteConnectionFailed": "連線刪除失敗",
+    "replaceNode": "替換節點..."
   },
   "toast": {
     "saveFileSuccess": "檔案儲存成功",
@@ -169,8 +173,6 @@
       "title": "節點",
       "titleAddNode": "新增節點",
       "graphId": "圖譜 ID",
-      "graphAppBaseDir": "基礎目錄",
-      "graphName": "圖譜名稱",
       "nodeName": "節點名稱",
       "addonName": "附加元件名稱",
       "searchAddon": "搜尋附加元件",
@@ -193,12 +195,17 @@
       "addConnection": "新增連線",
       "titleUpdateNodePropertyByName": "更新節點 [{{name}}] 屬性",
       "updateNodeProperty": "更新屬性",
+      "graphName": "圖譜名稱",
       "updateNodePropertySuccess": "節點屬性更新成功",
       "updateNodePropertyFailed": "節點屬性更新失敗",
-      "noPropertySchema": "未找到屬性結構描述"
+      "noPropertySchema": "未找到屬性結構描述",
+      "titleReplaceNode": "替換節點[{{name}}]...",
+      "replaceNode": "替換節點",
+      "replaceNodeSuccess": "節點替換成功",
+      "replaceNodeFailed": "節點替換失敗"
     },
     "doc": {
-      "title": "文件"
+      "title": "{{name}}"
     }
   },
   "dock": {
@@ -249,15 +256,15 @@
     "selectOsArch": "選擇作業系統/架構",
     "os-arch-default": "預設",
     "version": "版本",
-    "hash": "HASH",
+    "hash": "雜湊值",
     "versionHistory": "版本歷史",
     "selectVersion": "選擇版本",
     "versionLatest": "最新",
-    "localAddonTip": "(本機)"
+    "localAddonTip": "(本地)"
   },
   "statusBar": {
     "appsLoadedWithCount": "已載入 {{count}} 個應用程式",
-    "appsError": "取得應用程式失敗",
+    "appsError": "獲取應用程式失敗",
     "workspace": {
       "title": "目前工作區",
       "baseDir": "基礎目錄",
@@ -278,7 +285,7 @@
     "save": "儲存",
     "cancel": "取消",
     "saved": "已儲存",
-    "savedSuccess": "偏好設定 {{key}} 儲存成功"
+    "savedSuccess": "設定 {{key}} 儲存成功"
   },
   "components": {
     "combobox": {

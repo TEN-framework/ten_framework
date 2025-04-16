@@ -9,11 +9,14 @@
       "loadAppSuccess": "アプリの読み込みに成功しました",
       "loadAppFailed": "アプリの読み込みに失敗しました",
       "reloadApp": "アプリを再読み込み",
+      "reloadAppDescription": "アプリの再読み込みにより、現在のワークスペースが閉じられます。保存されていない変更はすべて失われます。",
+      "reloadAppConfirmation": "アプリ {{name}} を再読み込みしてもよろしいですか？",
       "reloadAppSuccess": "アプリの再読み込みに成功しました",
       "reloadAppFailed": "アプリの再読み込みに失敗しました",
       "reloadAllApps": "すべてのアプリを再読み込み",
       "reloadAllAppsSuccess": "すべてのアプリの再読み込みに成功しました",
       "reloadAllAppsFailed": "すべてのアプリの再読み込みに失敗しました",
+      "reloadAllAppsConfirmation": "すべてのアプリを再読み込みしてもよろしいですか？",
       "unloadApp": "アプリをアンロード",
       "unloadAppSuccess": "アプリのアンロードに成功しました",
       "unloadAppFailed": "アプリのアンロードに失敗しました",
@@ -104,7 +107,8 @@
     "create": "作成",
     "deleteConnectionConfirmation": "接続を削除してもよろしいですか？",
     "deleteConnectionSuccess": "接続の削除に成功しました",
-    "deleteConnectionFailed": "接続の削除に失敗しました"
+    "deleteConnectionFailed": "接続の削除に失敗しました",
+    "replaceNode": "ノードを置き換え..."
   },
   "toast": {
     "saveFileSuccess": "ファイルの保存に成功しました",
@@ -168,8 +172,7 @@
     "graph": {
       "title": "ノード",
       "titleAddNode": "ノードを追加",
-      "graphAppBaseDir": "ベースディレクトリ",
-      "graphName": "グラフ名",
+      "graphId": "グラフID",
       "nodeName": "ノード名",
       "addonName": "アドオン名",
       "searchAddon": "アドオンを検索",
@@ -192,12 +195,17 @@
       "addConnection": "接続を追加",
       "titleUpdateNodePropertyByName": "[{{name}}] プロパティを更新",
       "updateNodeProperty": "プロパティを更新",
+      "graphName": "グラフ名",
       "updateNodePropertySuccess": "ノードプロパティの更新に成功しました",
       "updateNodePropertyFailed": "ノードプロパティの更新に失敗しました",
-      "noPropertySchema": "プロパティスキーマが見つかりません"
+      "noPropertySchema": "プロパティスキーマが見つかりません",
+      "titleReplaceNode": "ノード[{{name}}]を置き換え...",
+      "replaceNode": "ノードを置き換え",
+      "replaceNodeSuccess": "ノードの置き換えに成功しました",
+      "replaceNodeFailed": "ノードの置き換えに失敗しました"
     },
     "doc": {
-      "title": "ドキュメント"
+      "title": "{{name}}"
     }
   },
   "dock": {
@@ -252,7 +260,7 @@
     "versionHistory": "バージョン履歴",
     "selectVersion": "バージョンを選択",
     "versionLatest": "最新",
-    "localAddonTip": "（ローカル）"
+    "localAddonTip": "(ローカル)"
   },
   "statusBar": {
     "appsLoadedWithCount": "{{count}}個のアプリが読み込まれています",
@@ -277,14 +285,14 @@
     "save": "保存",
     "cancel": "キャンセル",
     "saved": "保存済み",
-    "savedSuccess": "設定 {{key}} が正常に保存されました"
+    "savedSuccess": "設定 {{key}} の保存に成功しました"
   },
   "components": {
     "combobox": {
-      "create": "{{query}} を作成",
+      "create": "{{query}}を作成",
       "placeholder": "検索または新規作成",
       "noItems": "項目がありません",
-      "enterValueToCreate": "新規作成する値を入力してください"
+      "enterValueToCreate": "新しい項目を作成するには値を入力してください"
     }
   }
 }

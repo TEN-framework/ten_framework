@@ -9,11 +9,14 @@
       "loadAppSuccess": "应用加载成功",
       "loadAppFailed": "应用加载失败",
       "reloadApp": "重新加载应用",
+      "reloadAppDescription": "重新加载应用将关闭当前工作区。所有未保存的更改将会丢失。",
+      "reloadAppConfirmation": "确定要重新加载应用 {{name}} 吗？",
       "reloadAppSuccess": "应用重新加载成功",
       "reloadAppFailed": "应用重新加载失败",
       "reloadAllApps": "重新加载所有应用",
       "reloadAllAppsSuccess": "所有应用重新加载成功",
       "reloadAllAppsFailed": "重新加载所有应用失败",
+      "reloadAllAppsConfirmation": "确定要重新加载所有应用吗？",
       "unloadApp": "卸载应用",
       "unloadAppSuccess": "应用卸载成功",
       "unloadAppFailed": "应用卸载失败",
@@ -104,7 +107,8 @@
     "create": "创建",
     "deleteConnectionConfirmation": "确定要删除此连接吗？",
     "deleteConnectionSuccess": "连接删除成功",
-    "deleteConnectionFailed": "连接删除失败"
+    "deleteConnectionFailed": "连接删除失败",
+    "replaceNode": "替换节点..."
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -169,7 +173,6 @@
       "title": "节点",
       "titleAddNode": "添加节点",
       "graphId": "图谱 ID",
-      "graphName": "图谱名称",
       "nodeName": "节点名称",
       "addonName": "插件名称",
       "searchAddon": "搜索插件",
@@ -192,12 +195,17 @@
       "addConnection": "添加连接",
       "titleUpdateNodePropertyByName": "更新节点 [{{name}}] 属性",
       "updateNodeProperty": "更新属性",
+      "graphName": "图谱名称",
       "updateNodePropertySuccess": "节点属性更新成功",
       "updateNodePropertyFailed": "节点属性更新失败",
-      "noPropertySchema": "未找到属性模式"
+      "noPropertySchema": "未找到属性模式",
+      "titleReplaceNode": "替换节点[{{name}}]...",
+      "replaceNode": "替换节点",
+      "replaceNodeSuccess": "节点替换成功",
+      "replaceNodeFailed": "节点替换失败"
     },
     "doc": {
-      "title": "文档"
+      "title": "{{name}}"
     }
   },
   "dock": {
@@ -248,7 +256,7 @@
     "selectOsArch": "选择操作系统/架构",
     "os-arch-default": "默认",
     "version": "版本",
-    "hash": "哈希",
+    "hash": "哈希值",
     "versionHistory": "版本历史",
     "selectVersion": "选择版本",
     "versionLatest": "最新",
@@ -265,26 +273,26 @@
   },
   "preferences": {
     "general": {
-      "title": "通用",
+      "title": "常规",
       "language": "语言",
       "theme": "主题"
     },
     "log": {
       "title": "日志",
       "maxLines": "最大行数",
-      "maxLinesDescription": "日志查看器显示的最大行数。"
+      "maxLinesDescription": "日志查看器中显示的最大行数。"
     },
     "save": "保存",
     "cancel": "取消",
     "saved": "已保存",
-    "savedSuccess": "偏好设置 {{key}} 保存成功"
+    "savedSuccess": "设置 {{key}} 保存成功"
   },
   "components": {
     "combobox": {
       "create": "创建 {{query}}",
-      "placeholder": "搜索或创建新项",
+      "placeholder": "搜索或创建新项目",
       "noItems": "无项目",
-      "enterValueToCreate": "输入值以创建新项"
+      "enterValueToCreate": "输入值以创建新项目"
     }
   }
 }
