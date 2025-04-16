@@ -66,7 +66,7 @@ impl Graph {
                 extension_pkg_info,
                 msg_type,
                 msg_name,
-                MsgDirection::In,
+                &MsgDirection::In,
             );
 
             if let Err(e) = are_msg_schemas_compatible(
@@ -129,7 +129,7 @@ impl Graph {
                     extension_pkg_info,
                     &MsgType::Cmd,
                     flow.name.as_str(),
-                    MsgDirection::Out,
+                    &MsgDirection::Out,
                 );
 
                 // Check command flow compatibility.
@@ -156,7 +156,7 @@ impl Graph {
                     extension_pkg_info,
                     &MsgType::Data,
                     flow.name.as_str(),
-                    MsgDirection::Out,
+                    &MsgDirection::Out,
                 );
 
                 // Check message flow compatibility.
@@ -183,7 +183,7 @@ impl Graph {
                     extension_pkg_info,
                     &MsgType::VideoFrame,
                     flow.name.as_str(),
-                    MsgDirection::Out,
+                    &MsgDirection::Out,
                 );
 
                 // Check message flow compatibility.
@@ -210,7 +210,7 @@ impl Graph {
                     extension_pkg_info,
                     &MsgType::AudioFrame,
                     flow.name.as_str(),
-                    MsgDirection::Out,
+                    &MsgDirection::Out,
                 );
 
                 // Check message flow compatibility.

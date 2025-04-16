@@ -13,6 +13,7 @@ use ten_rust::{
     graph::{msg_conversion::MsgAndResultConversion, Graph},
     pkg_info::{
         get_pkg_info_for_extension_addon,
+        manifest::api::ManifestApiPropertyAttributes,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,
@@ -39,6 +40,61 @@ pub struct MsgConversionValidateInfo<'a> {
     pub dest_extension: &'a String,
 
     pub msg_conversion: &'a Option<MsgAndResultConversion>,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_and_compare_c_schema(
+    graph_app_base_dir: &Option<String>,
+    msg_conversion_validate_info: &MsgConversionValidateInfo,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+    compared_properties: &Option<
+        HashMap<String, ManifestApiPropertyAttributes>,
+    >,
+    compared_required: &Option<Vec<String>>,
+    target_app: &Option<String>,
+    target_extension_addon: &String,
+    target_msg_name: &str,
+    msg_direction: MsgDirection,
+) -> Result<()> {
+    if let Ok(compared_c_schema) = create_c_schema_from_properties_and_required(
+        compared_properties,
+        compared_required,
+    ) {
+        if let Some(target_extension_pkg_info) =
+            get_pkg_info_for_extension_addon(
+                target_app,
+                target_extension_addon,
+                uri_to_pkg_info,
+                graph_app_base_dir,
+                pkgs_cache,
+            )
+        {
+            if let Some(target_ten_msg_schema) =
+                find_msg_schema_from_all_pkgs_info(
+                    target_extension_pkg_info,
+                    msg_conversion_validate_info.msg_type,
+                    target_msg_name,
+                    &msg_direction,
+                )
+            {
+                let c_schema = if msg_direction == MsgDirection::In {
+                    target_ten_msg_schema.msg.as_ref()
+                } else {
+                    target_ten_msg_schema.result.as_ref()
+                };
+
+                are_ten_schemas_compatible(
+                    compared_c_schema.as_ref(),
+                    c_schema,
+                    true,
+                    true,
+                )?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn validate_msg_conversion_schema(
@@ -100,75 +156,32 @@ fn validate_msg_conversion_schema(
         serde_json::to_string_pretty(&converted_result_schema).unwrap()
     );
 
-    if let Ok(converted_ten_msg_schema) =
-        create_c_schema_from_properties_and_required(
-            &converted_schema.property,
-            &converted_schema.required,
-        )
-    {
-        let dest_extension_addon = graph.get_addon_name_of_extension(
-            msg_conversion_validate_info.dest_app,
-            msg_conversion_validate_info.dest_extension,
-        )?;
+    create_and_compare_c_schema(
+        graph_app_base_dir,
+        msg_conversion_validate_info,
+        uri_to_pkg_info,
+        pkgs_cache,
+        &converted_schema.property,
+        &converted_schema.required,
+        msg_conversion_validate_info.dest_app,
+        dest_extension_addon,
+        &converted_schema.name,
+        MsgDirection::In,
+    )?;
 
-        if let Some(dest_extension_pkg_info) = get_pkg_info_for_extension_addon(
-            msg_conversion_validate_info.dest_app,
-            dest_extension_addon,
-            uri_to_pkg_info,
+    if let Some(converted_result_schema) = converted_result_schema {
+        create_and_compare_c_schema(
             graph_app_base_dir,
+            msg_conversion_validate_info,
+            uri_to_pkg_info,
             pkgs_cache,
-        ) {
-            if let Some(dest_ten_msg_schema) =
-                find_msg_schema_from_all_pkgs_info(
-                    dest_extension_pkg_info,
-                    msg_conversion_validate_info.msg_type,
-                    &converted_schema.name,
-                    MsgDirection::In,
-                )
-            {
-                are_ten_schemas_compatible(
-                    converted_ten_msg_schema.as_ref(),
-                    dest_ten_msg_schema.msg.as_ref(),
-                    true,
-                    true,
-                )?;
-            }
-        }
-    }
-
-    if let Some(converted_ten_result_schema) = converted_result_schema {
-        if let Ok(converted_ten_result_schema) =
-            create_c_schema_from_properties_and_required(
-                &converted_ten_result_schema.property,
-                &converted_ten_result_schema.required,
-            )
-        {
-            if let Some(src_extension_pkg_info) =
-                get_pkg_info_for_extension_addon(
-                    msg_conversion_validate_info.src_app,
-                    src_extension_addon,
-                    uri_to_pkg_info,
-                    graph_app_base_dir,
-                    pkgs_cache,
-                )
-            {
-                if let Some(src_ten_msg_schema) =
-                    find_msg_schema_from_all_pkgs_info(
-                        src_extension_pkg_info,
-                        msg_conversion_validate_info.msg_type,
-                        msg_conversion_validate_info.msg_name,
-                        MsgDirection::Out,
-                    )
-                {
-                    are_ten_schemas_compatible(
-                        converted_ten_result_schema.as_ref(),
-                        src_ten_msg_schema.result.as_ref(),
-                        true,
-                        true,
-                    )?;
-                }
-            }
-        }
+            &converted_result_schema.property,
+            &converted_result_schema.required,
+            msg_conversion_validate_info.src_app,
+            src_extension_addon,
+            msg_conversion_validate_info.msg_name,
+            MsgDirection::Out,
+        )?;
     } else {
         // No result conversion, so directly check if the original source result
         // schema and destination result schema are compatible.

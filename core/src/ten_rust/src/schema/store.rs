@@ -360,7 +360,7 @@ pub fn find_msg_schema_from_all_pkgs_info<'a>(
     extension_pkg_info: &'a PkgInfo,
     msg_type: &MsgType,
     msg_name: &str,
-    direction: MsgDirection,
+    direction: &MsgDirection,
 ) -> Option<&'a TenMsgSchema> {
     // Access the schema_store. If it's None, propagate None.
     let schema_store = extension_pkg_info.schema_store.as_ref()?;
