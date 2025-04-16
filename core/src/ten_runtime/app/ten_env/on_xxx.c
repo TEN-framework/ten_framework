@@ -123,17 +123,14 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
   ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
 }
 
-static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
-                                                 void *cb_data) {
+static void ten_app_continue_run_after_builtin_addons_completed(
+    ten_env_t *ten_env) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
-  ten_app_t *self = (ten_app_t *)cb_data;
+  ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-
-  int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -178,6 +175,21 @@ error:
   ten_app_close(self, NULL);
 done:
   ten_error_deinit(&err);
+}
+
+static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
+                                                 void *cb_data) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+
+  ten_app_t *self = (ten_app_t *)cb_data;
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+
+  int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
+
+  ten_app_continue_run_after_builtin_addons_completed(ten_env);
 }
 
 void ten_app_on_configure_done(ten_env_t *ten_env) {
@@ -253,7 +265,15 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   //    `register`/`on_init`/`on_deinit` operations will execute on this
   //    longest-lifecycle app's thread. This app is also responsible for
   //    destroying the addon manager instance to prevent memory leaks.
-  ten_addon_manager_set_belonging_app_if_not_set(manager, self);
+  bool addon_manager_belongs_to_current_app =
+      ten_addon_manager_set_belonging_app_if_not_set(manager, self);
+  if (!addon_manager_belongs_to_current_app) {
+    // If the addon manager instance already belongs to another app, we don't
+    // need to load the builtin addons and protocols again because they have
+    // already been loaded.
+    ten_app_continue_run_after_builtin_addons_completed(ten_env);
+    return;
+  }
 
   // Addon registration phase 1: adding a function, which will perform the
   // actual registration in the phase 2, into the `addon_manager`.
@@ -277,6 +297,10 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
 
   // Addon registration phase 2: actually registering the addon into the addon
   // store.
+  //
+  // As the current app is the addon manager's app, we can directly call the
+  // register functions here because we are already on the addon manager's app
+  // thread.
   //
   // Addon_loader addons and protocol addons do not implement the `on_init()`
   // function, so after the following method is called, all addon loaders and
