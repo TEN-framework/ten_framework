@@ -99,8 +99,16 @@ pub fn update_graph_node_all_fields(
         break;
     }
 
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 1500");
+
     // Write the updated property back to the file.
-    write_property_to_file(pkg_url, property_all_fields)
+    write_property_to_file(pkg_url, property_all_fields)?;
+
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 1600");
+
+    Ok(())
 }
 
 /// Write the property back to file.
@@ -108,16 +116,29 @@ fn write_property_to_file(
     pkg_url: &str,
     property_all_fields: &serde_json::Map<String, Value>,
 ) -> Result<()> {
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 3000");
+
     let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
+
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 3001");
+
     let property_file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .open(property_path)
         .context("Failed to open property.json file")?;
 
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 3002");
+
     // Serialize the property_all_fields map directly to preserve field order.
     serde_json::to_writer_pretty(property_file, &property_all_fields)
         .context("Failed to write to property.json file")?;
+
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 3003");
 
     Ok(())
 }

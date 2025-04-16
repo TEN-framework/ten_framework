@@ -233,10 +233,16 @@ fn update_property_json_if_needed(
     extension_group: Option<&str>,
     app: Option<&str>,
 ) {
+    // =-=-=
+    eprintln!("delete_graph_node_endpoint 1000");
+
     // Try to find the belonging package info
     if let Ok(Some(pkg_info)) =
         belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
     {
+        // =-=-=
+        eprintln!("delete_graph_node_endpoint 1001");
+
         // Check if property exists
         let property = match &mut pkg_info.property {
             Some(property) => property,
@@ -268,5 +274,8 @@ fn update_property_json_if_needed(
         ) {
             eprintln!("Warning: Failed to update property.json file: {}", e);
         }
+
+        // =-=-=
+        eprintln!("delete_graph_node_endpoint 2000");
     }
 }
