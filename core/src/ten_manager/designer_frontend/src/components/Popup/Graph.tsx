@@ -29,6 +29,10 @@ export const GraphPopupTitle = (props: {
     switch (type) {
       case EGraphActions.ADD_NODE:
         return t("popup.graph.titleAddNode");
+      case EGraphActions.REPLACE_NODE:
+        return t("popup.graph.titleReplaceNode", {
+          name: node?.data.name,
+        });
       case EGraphActions.ADD_CONNECTION:
         return t("popup.graph.titleAddConnection");
       case EGraphActions.UPDATE_NODE_PROPERTY:
@@ -59,6 +63,15 @@ export const GraphPopupContent = (props: { widget: IGraphWidget }) => {
           postAddNodeActions={() => {
             removeWidget(widget.widget_id);
           }}
+        />
+      )}
+      {type === EGraphActions.REPLACE_NODE && (
+        <GraphAddNodeWidget
+          {...widget.metadata}
+          postAddNodeActions={() => {
+            removeWidget(widget.widget_id);
+          }}
+          isReplaceNode
         />
       )}
       {type === EGraphActions.ADD_CONNECTION && (

@@ -146,6 +146,17 @@ export const postUpdateNodeProperty = async (
   return template.responseSchema.parse(res).data;
 };
 
+export const postReplaceNode = async (
+  data: z.infer<typeof AddNodePayloadSchema>
+) => {
+  const template = ENDPOINT_GRAPHS.replaceNode[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: data,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
 export const postSetGraphNodeGeometry = async (
   data: z.infer<typeof SetGraphUiPayloadSchema>
 ) => {

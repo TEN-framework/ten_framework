@@ -9,8 +9,10 @@ import {
   FolderCogIcon,
   FolderOpenIcon,
   InfoIcon,
+  FolderSyncIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import {
   NavigationMenuContent,
@@ -21,7 +23,12 @@ import {
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store";
+import {
+  useAppStore,
+  useDialogStore,
+  useFlowStore,
+  useWidgetStore,
+} from "@/store";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
@@ -42,6 +49,7 @@ import {
   LoadedAppsPopupTitle,
 } from "@/components/Popup/Default/App";
 import { DocRefPopupTitle } from "@/components/Popup/Default/DocRef";
+import { useApps, postReloadApps } from "@/api/services/apps";
 
 export function AppMenu(props: {
   disableMenuClick?: boolean;
@@ -53,6 +61,11 @@ export function AppMenu(props: {
   const { t } = useTranslation();
 
   const { appendWidgetIfNotExists } = useWidgetStore();
+  const { setNodesAndEdges } = useFlowStore();
+  const { updateCurrentWorkspace } = useAppStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+
+  const { mutate } = useApps();
 
   const openAppFolderPopup = () => {
     appendWidgetIfNotExists({
@@ -128,6 +141,70 @@ export function AppMenu(props: {
     });
   };
 
+  const reloadApps = async (baseDir?: string) => {
+    try {
+      await postReloadApps(baseDir);
+      if (baseDir) {
+        toast.success(t("header.menuApp.reloadAppSuccess"));
+      } else {
+        toast.success(t("header.menuApp.reloadAllAppsSuccess"));
+      }
+    } catch (error) {
+      console.error(error);
+      if (baseDir) {
+        toast.error(
+          t("header.menuApp.reloadAppFailed", {
+            description:
+              error instanceof Error ? error.message : t("popup.apps.error"),
+          })
+        );
+      } else {
+        toast.error(
+          t("header.menuApp.reloadAllAppsFailed", {
+            description:
+              error instanceof Error ? error.message : t("popup.apps.error"),
+          })
+        );
+      }
+    } finally {
+      mutate();
+    }
+  };
+
+  const handleReloadApp = async (baseDir?: string) => {
+    appendDialog({
+      id: "reload-app",
+      title: baseDir
+        ? t("header.menuApp.reloadApp")
+        : t("header.menuApp.reloadAllApps"),
+      content: (
+        <div className={cn("flex flex-col gap-2", "text-sm")}>
+          <p className="">
+            {baseDir
+              ? t("header.menuApp.reloadAppConfirmation", {
+                  name: baseDir,
+                })
+              : t("header.menuApp.reloadAllAppsConfirmation")}
+          </p>
+          <p>{t("header.menuApp.reloadAppDescription")}</p>
+        </div>
+      ),
+      onCancel: async () => {
+        removeDialog("reload-app");
+      },
+      onConfirm: async () => {
+        await reloadApps(baseDir);
+        removeDialog("reload-app");
+      },
+      postConfirm: async () => {
+        setNodesAndEdges([], []);
+        updateCurrentWorkspace({
+          graph: null,
+        });
+      },
+    });
+  };
+
   return (
     <>
       <NavigationMenuItem>
@@ -167,6 +244,18 @@ export function AppMenu(props: {
             >
               <FolderOpenIcon className="w-4 h-4 me-2" />
               {t("header.menuApp.loadApp")}
+            </Button>
+          </NavigationMenuLink>
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={() => {
+                handleReloadApp();
+              }}
+            >
+              <FolderSyncIcon className="w-4 h-4 me-2" />
+              {t("header.menuApp.reloadAllApps")}
             </Button>
           </NavigationMenuLink>
           <NavigationMenuLink asChild>

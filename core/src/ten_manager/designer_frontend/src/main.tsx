@@ -17,6 +17,6 @@ import "@/fonts.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
-    <Toaster richColors />
+    <Toaster richColors duration={6000} />
   </StrictMode>
 );
