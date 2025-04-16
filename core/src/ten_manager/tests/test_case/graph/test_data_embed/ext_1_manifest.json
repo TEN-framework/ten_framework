@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "ext1",
+  "name": "addon1",
   "version": "1.0.0",
   "api": {
     "property": {
