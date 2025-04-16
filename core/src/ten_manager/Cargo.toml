@@ -26,7 +26,6 @@ futures-util = { version = "0.3" }
 globset = { version = "0.4" }
 handlebars = { version = "6.2" }
 ignore = { version = "0.4" }
-indexmap = { version = "2.9.0", features = ["rayon", "serde"] }
 indicatif = { version = "0.17" }
 infer = "0.16.0"
 inquire = { version = "0.7.5" }

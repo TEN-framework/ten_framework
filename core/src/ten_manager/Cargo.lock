@@ -1746,8 +1746,6 @@ checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
 dependencies = [
  "equivalent",
  "hashbrown",
- "rayon",
- "serde",
 ]
 
 [[package]]
@@ -2659,26 +2657,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rayon"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
-dependencies = [
- "either",
- "rayon-core",
-]
-
-[[package]]
-name = "rayon-core"
-version = "1.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
-dependencies = [
- "crossbeam-deque",
- "crossbeam-utils",
-]
-
-[[package]]
 name = "redox_syscall"
 version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3300,7 +3278,6 @@ dependencies = [
  "globset",
  "handlebars",
  "ignore",
- "indexmap",
  "indicatif",
  "infer",
  "inquire",
@@ -3347,7 +3324,6 @@ dependencies = [
  "bindgen",
  "ctr",
  "futures",
- "indexmap",
  "json5",
  "jsonschema",
  "libc",

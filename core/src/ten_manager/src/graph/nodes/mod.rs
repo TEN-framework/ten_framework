@@ -8,6 +8,7 @@ pub mod add;
 pub mod validate;
 
 use std::fs::OpenOptions;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::str::FromStr;
 
@@ -133,9 +134,13 @@ fn write_property_to_file(
     // =-=-=
     eprintln!("delete_graph_node_endpoint 3002");
 
+    let mut buf_writer = BufWriter::with_capacity(1024 * 1024, property_file);
+
     // Serialize the property_all_fields map directly to preserve field order.
-    serde_json::to_writer_pretty(property_file, &property_all_fields)
+    serde_json::to_writer_pretty(&mut buf_writer, &property_all_fields)
         .context("Failed to write to property.json file")?;
+
+    buf_writer.flush()?;
 
     // =-=-=
     eprintln!("delete_graph_node_endpoint 3003");
