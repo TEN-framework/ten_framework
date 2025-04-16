@@ -63,19 +63,13 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest = r#"{
-            "type": "extension",
-            "name": "extension_1",
-            "version": "0.1.0"
-        }"#
-        .to_string();
+        let ext1_manifest =
+            include_str!("test_data_embed/extension_1_simple_manifest.json")
+                .to_string();
 
-        let ext2_manifest = r#"{
-            "type": "extension",
-            "name": "extension_2",
-            "version": "0.1.0"
-        }"#
-        .to_string();
+        let ext2_manifest =
+            include_str!("test_data_embed/extension_2_simple_manifest.json")
+                .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -90,7 +84,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_1"
+                    "/ten_packages/extension/extension_addon_1"
                 ),
                 ext1_manifest,
                 empty_property.clone(),
@@ -99,7 +93,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_2"
+                    "/ten_packages/extension/extension_addon_2"
                 ),
                 ext2_manifest,
                 empty_property.clone(),
@@ -263,7 +257,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_1"
+                    "/ten_packages/extension/extension_addon_1"
                 ),
                 ext1_manifest,
                 empty_property.clone(),
@@ -272,7 +266,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_2"
+                    "/ten_packages/extension/extension_addon_2"
                 ),
                 ext2_manifest,
                 empty_property.clone(),
@@ -433,7 +427,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_1"
+                    "/ten_packages/extension/extension_addon_1"
                 ),
                 ext1_manifest,
                 empty_property.clone(),
@@ -442,7 +436,7 @@ mod tests {
                 format!(
                     "{}{}",
                     test_dir.clone(),
-                    "/ten_packages/extension/extension_2"
+                    "/ten_packages/extension/extension_addon_2"
                 ),
                 ext2_manifest,
                 empty_property.clone(),

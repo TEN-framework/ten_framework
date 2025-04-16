@@ -10,11 +10,15 @@ use anyhow::Result;
 
 use ten_rust::{
     base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
-    graph::msg_conversion::{MsgAndResultConversion, MsgConversionMode},
+    graph::msg_conversion::{
+        MsgAndResultConversion, MsgConversionMode, MsgConversionRule,
+    },
     pkg_info::{
         get_pkg_info_for_extension_addon,
-        manifest::api::{ManifestApiMsg, ManifestApiPropertyAttributes},
-        message::MsgType,
+        manifest::api::{
+            ManifestApiCmdResult, ManifestApiMsg, ManifestApiPropertyAttributes,
+        },
+        message::{MsgDirection, MsgType},
         value_type::ValueType,
     },
 };
@@ -179,14 +183,12 @@ fn navigate_property_path_mut<'a>(
 // Helper function to find a property at the specified path in a read-only
 // property map.
 fn navigate_property_path<'a>(
-    properties: &'a Option<HashMap<String, ManifestApiPropertyAttributes>>,
+    properties: Option<&'a HashMap<String, ManifestApiPropertyAttributes>>,
     path: &str,
 ) -> Option<&'a ManifestApiPropertyAttributes> {
-    if properties.is_none() {
-        return None;
-    }
+    properties?;
 
-    let properties = properties.as_ref().unwrap();
+    let properties = properties.unwrap();
 
     // Split the path by dots for object properties and handle array indices
     let path_parts: Vec<&str> = path.split('.').collect();
@@ -258,82 +260,20 @@ fn navigate_property_path<'a>(
     None
 }
 
-#[allow(clippy::too_many_arguments)]
-pub fn msg_conversion_get_final_target_schema(
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    graph_app_base_dir: &Option<String>,
-    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-    src_app: &Option<String>,
-    src_extension_addon: &String,
-    msg_type: &MsgType,
-    src_msg_name: &str,
-    dest_msg_name: &str,
+fn convert_rules_to_schema_properties(
+    conversion_rules: &[MsgConversionRule],
     ten_name_rule_index: Option<usize>,
-    msg_conversion: &MsgAndResultConversion,
-) -> Result<ManifestApiMsg> {
-    // Get the source message schema.
-    let src_msg_schema = if let Some(src_extension_pkg_info) =
-        get_pkg_info_for_extension_addon(
-            src_app,
-            src_extension_addon,
-            uri_to_pkg_info,
-            graph_app_base_dir,
-            pkgs_cache,
-        ) {
-        src_extension_pkg_info
-            .manifest
-            .api
-            .as_ref()
-            .and_then(|api| match msg_type {
-                MsgType::Cmd => api.cmd_out.as_ref(),
-                MsgType::Data => api.data_out.as_ref(),
-                MsgType::AudioFrame => api.audio_frame_out.as_ref(),
-                MsgType::VideoFrame => api.video_frame_out.as_ref(),
-            })
-            .and_then(|msg_out| {
-                msg_out.iter().find(|msg| msg.name == *src_msg_name)
-            })
-    } else {
-        None
-    };
-
-    // Create a new message schema to store the converted properties.
-    let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
-        name: dest_msg_name.to_string(),
-        property: Some(HashMap::new()),
-        required: None,
-        result: None,
-    };
-
-    // If keep_original flag is true, start with the source message schema.
-    if let Some(keep_original) = msg_conversion.msg.rules.keep_original {
-        if keep_original {
-            if let Some(src_msg_schema) = src_msg_schema {
-                converted_schema = src_msg_schema.clone();
-
-                // Update the name to the destination message name.
-                converted_schema.name = dest_msg_name.to_string();
-            } else {
-                // Not having a source msg schema is a normal situation, so even
-                // if `keep_original` is true, we don't need to return an error.
-            }
-        }
-    }
-
-    // Ensure property map exists.
-    if converted_schema.property.is_none() {
-        converted_schema.property = Some(HashMap::new());
-    }
-
+    src_schema_properties: Option<
+        &HashMap<String, ManifestApiPropertyAttributes>,
+    >,
+    dest_schema_properties: &mut HashMap<String, ManifestApiPropertyAttributes>,
+) -> Result<()> {
     // Process each conversion rule.
-    for (index, rule) in msg_conversion.msg.rules.rules.iter().enumerate() {
+    for (index, rule) in conversion_rules.iter().enumerate() {
         // Skip the _ten.name rule if we found it earlier.
         if Some(index) == ten_name_rule_index {
             continue;
         }
-
-        // Get the property map we'll be modifying.
-        let properties = converted_schema.property.as_mut().unwrap();
 
         // Process the rule based on conversion mode.
         match rule.conversion_mode {
@@ -350,7 +290,10 @@ pub fn msg_conversion_get_final_target_schema(
                     {
                         // For complex paths, navigate to the location and get
                         // property.
-                        match navigate_property_path_mut(properties, path) {
+                        match navigate_property_path_mut(
+                            dest_schema_properties,
+                            path,
+                        ) {
                             Ok(prop) => prop,
                             Err(e) => {
                                 return Err(anyhow::anyhow!(
@@ -363,11 +306,11 @@ pub fn msg_conversion_get_final_target_schema(
                     } else {
                         // For top-level properties, simply get or create the
                         // entry.
-                        if properties.contains_key(path) {
-                            properties.remove(path);
+                        if dest_schema_properties.contains_key(path) {
+                            dest_schema_properties.remove(path);
                         }
 
-                        properties.entry(path.clone()).or_insert(ManifestApiPropertyAttributes {
+                        dest_schema_properties.entry(path.clone()).or_insert(ManifestApiPropertyAttributes {
                             prop_type: ValueType::Object, // Will be replaced based on value.
                             items: None,
                             properties: None,
@@ -405,47 +348,41 @@ pub fn msg_conversion_get_final_target_schema(
                 // For FromOriginal mode, we need to copy a property from the
                 // source schema.
                 if let Some(original_path) = &rule.original_path {
-                    if let Some(src_msg_schema) = src_msg_schema.as_ref() {
-                        // Find the source property.
-                        if let Some(src_prop) = navigate_property_path(
-                            &src_msg_schema.property,
-                            original_path,
-                        ) {
-                            // Create/replace the property at the destination
-                            // path.
-                            let dest_path = &rule.path;
+                    if let Some(src_prop) = navigate_property_path(
+                        src_schema_properties,
+                        original_path,
+                    ) {
+                        // Create/replace the property at the destination
+                        // path.
+                        let dest_path = &rule.path;
 
-                            // For complex paths, we need to navigate and set
-                            // the property.
-                            if dest_path.contains(".")
-                                || dest_path.contains("[")
-                            {
-                                match navigate_property_path_mut(
-                                    properties, dest_path,
-                                ) {
-                                    Ok(dest_prop) => {
-                                        // Copy the source property attributes
-                                        // to the destination.
-                                        *dest_prop = src_prop.clone();
-                                    }
-                                    Err(e) => {
-                                        return Err(anyhow::anyhow!(
+                        // For complex paths, we need to navigate and set
+                        // the property.
+                        if dest_path.contains(".") || dest_path.contains("[") {
+                            match navigate_property_path_mut(
+                                dest_schema_properties,
+                                dest_path,
+                            ) {
+                                Ok(dest_prop) => {
+                                    // Copy the source property attributes
+                                    // to the destination.
+                                    *dest_prop = src_prop.clone();
+                                }
+                                Err(e) => {
+                                    return Err(anyhow::anyhow!(
                                             "Failed to navigate to destination path {}: {}",
                                             dest_path, e
                                         ));
-                                    }
                                 }
-                            } else {
-                                // For top-level properties, simply set or
-                                // replace the entry.
-                                if properties.contains_key(dest_path) {
-                                    properties.remove(dest_path);
-                                }
-                                properties.insert(
-                                    dest_path.clone(),
-                                    src_prop.clone(),
-                                );
                             }
+                        } else {
+                            // For top-level properties, simply set or
+                            // replace the entry.
+                            if dest_schema_properties.contains_key(dest_path) {
+                                dest_schema_properties.remove(dest_path);
+                            }
+                            dest_schema_properties
+                                .insert(dest_path.clone(), src_prop.clone());
                         }
                     }
                 }
@@ -453,7 +390,192 @@ pub fn msg_conversion_get_final_target_schema(
         }
     }
 
-    Ok(converted_schema)
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn get_msg_schema<'a>(
+    graph_app_base_dir: &Option<String>,
+    app: &Option<String>,
+    extension_addon: &String,
+    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+    msg_direction: &MsgDirection,
+    msg_type: &MsgType,
+    msg_name: &str,
+) -> Result<Option<&'a ManifestApiMsg>> {
+    let msg_schema = if let Some(extension_pkg_info) =
+        get_pkg_info_for_extension_addon(
+            app,
+            extension_addon,
+            uri_to_pkg_info,
+            graph_app_base_dir,
+            pkgs_cache,
+        ) {
+        extension_pkg_info
+            .manifest
+            .api
+            .as_ref()
+            .and_then(|api| match msg_direction {
+                MsgDirection::Out => match msg_type {
+                    MsgType::Cmd => api.cmd_out.as_ref(),
+                    MsgType::Data => api.data_out.as_ref(),
+                    MsgType::AudioFrame => api.audio_frame_out.as_ref(),
+                    MsgType::VideoFrame => api.video_frame_out.as_ref(),
+                },
+                MsgDirection::In => match msg_type {
+                    MsgType::Cmd => api.cmd_in.as_ref(),
+                    MsgType::Data => api.data_in.as_ref(),
+                    MsgType::AudioFrame => api.audio_frame_in.as_ref(),
+                    MsgType::VideoFrame => api.video_frame_in.as_ref(),
+                },
+            })
+            .and_then(|msg_out| {
+                msg_out.iter().find(|msg| msg.name == *msg_name)
+            })
+    } else {
+        None
+    };
+
+    Ok(msg_schema)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn msg_conversion_get_final_target_schema(
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    graph_app_base_dir: &Option<String>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+    src_app: &Option<String>,
+    src_extension_addon: &String,
+    dest_app: &Option<String>,
+    dest_extension_addon: &String,
+    msg_type: &MsgType,
+    src_msg_name: &str,
+    dest_msg_name: &str,
+    ten_name_rule_index: Option<usize>,
+    msg_conversion: &MsgAndResultConversion,
+) -> Result<(ManifestApiMsg, Option<ManifestApiCmdResult>)> {
+    // Get the source message schema.
+    let src_msg_schema = get_msg_schema(
+        graph_app_base_dir,
+        src_app,
+        src_extension_addon,
+        uri_to_pkg_info,
+        pkgs_cache,
+        &MsgDirection::Out,
+        msg_type,
+        src_msg_name,
+    )?;
+
+    eprintln!(
+        "src_msg_schema: {}",
+        serde_json::to_string_pretty(&src_msg_schema).unwrap()
+    );
+
+    // Create a new message schema to store the converted properties.
+    let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
+        name: dest_msg_name.to_string(),
+        property: Some(HashMap::new()),
+        required: None,
+        result: None,
+    };
+
+    // If keep_original flag is true, start with the source message schema.
+    if let Some(keep_original) = msg_conversion.msg.rules.keep_original {
+        if keep_original {
+            if let Some(src_msg_schema) = src_msg_schema {
+                converted_schema = src_msg_schema.clone();
+
+                // Update the name to the destination message name.
+                converted_schema.name = dest_msg_name.to_string();
+            } else {
+                // Not having a source msg schema is a normal situation, so even
+                // if `keep_original` is true, we don't need to return an error.
+            }
+        }
+    }
+
+    // Ensure property map exists.
+    if converted_schema.property.is_none() {
+        converted_schema.property = Some(HashMap::new());
+    }
+
+    // Process each conversion rule.
+    convert_rules_to_schema_properties(
+        &msg_conversion.msg.rules.rules,
+        ten_name_rule_index,
+        src_msg_schema
+            .as_ref()
+            .and_then(|schema| schema.property.as_ref()),
+        converted_schema.property.as_mut().unwrap(),
+    )?;
+
+    let mut converted_result_schema: Option<ManifestApiCmdResult> = None;
+
+    if let Some(result_conversion) = &msg_conversion.result {
+        // Create a new message schema to store the converted properties.
+        converted_result_schema = Some(ManifestApiCmdResult {
+            property: Some(HashMap::new()),
+            required: None,
+        });
+
+        // If keep_original flag is true, start with the source message schema.
+        if let Some(keep_original) = result_conversion.rules.keep_original {
+            if keep_original {
+                // If source message schema exists and has a result schema, use
+                // it
+                let src_result_schema = src_msg_schema
+                    .as_ref()
+                    .and_then(|schema| schema.result.as_ref());
+
+                if let Some(result_schema) = src_result_schema {
+                    converted_result_schema = Some(result_schema.clone());
+                }
+
+                // Not having a source msg schema is a normal situation, so even
+                // if `keep_original` is true, we don't need to return an error.
+            }
+        }
+
+        // Ensure property map exists.
+        if converted_result_schema.as_ref().unwrap().property.is_none() {
+            converted_result_schema.as_mut().unwrap().property =
+                Some(HashMap::new());
+        }
+
+        let dest_msg_schema = get_msg_schema(
+            graph_app_base_dir,
+            dest_app,
+            dest_extension_addon,
+            uri_to_pkg_info,
+            pkgs_cache,
+            &MsgDirection::In,
+            msg_type,
+            dest_msg_name,
+        )?;
+
+        eprintln!(
+            "dest_msg_schema: {}",
+            serde_json::to_string_pretty(&dest_msg_schema).unwrap(),
+        );
+
+        convert_rules_to_schema_properties(
+            &result_conversion.rules.rules,
+            None,
+            dest_msg_schema
+                .as_ref()
+                .and_then(|schema| schema.result.as_ref())
+                .and_then(|result| result.property.as_ref()),
+            converted_result_schema
+                .as_mut()
+                .unwrap()
+                .property
+                .as_mut()
+                .unwrap(),
+        )?;
+    }
+
+    Ok((converted_schema, converted_result_schema))
 }
 
 pub fn msg_conversion_get_dest_msg_name(
