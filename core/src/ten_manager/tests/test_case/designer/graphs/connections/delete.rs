@@ -309,4 +309,108 @@ mod tests {
             "Updated property does not match expected property"
         );
     }
+
+    #[actix_web::test]
+    async fn test_delete_big_graph_connection_success() {
+        // Create a test directory with property.json file.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
+
+        // Read test data from embedded JSON files.
+        let input_property_json_str =
+            include_str!("../test_data_embed/big_app_property.json");
+        let input_manifest_json_str =
+            include_str!("../test_data_embed/big_app_manifest.json");
+
+        // Write input files to temp directory.
+        let property_path =
+            std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
+        std::fs::write(&property_path, input_property_json_str).unwrap();
+
+        let manifest_path =
+            std::path::Path::new(&temp_dir_path).join(MANIFEST_JSON_FILENAME);
+        std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
+
+        // Initialize test state.
+        let mut designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+            graphs_cache: HashMap::new(),
+        };
+
+        // Inject the test app into the mock.
+        let all_pkgs_json = vec![(
+            temp_dir_path.clone(),
+            std::fs::read_to_string(&manifest_path).unwrap(),
+            std::fs::read_to_string(&property_path).unwrap(),
+        )];
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut designer_state.pkgs_cache,
+            &mut designer_state.graphs_cache,
+            all_pkgs_json,
+        );
+        assert!(inject_ret.is_ok());
+
+        let (graph_id, _) = graphs_cache_find_by_name(
+            &designer_state.graphs_cache,
+            "voice_assistant",
+        )
+        .unwrap();
+
+        let graph_id_clone = *graph_id;
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/graphs/connections/delete",
+                    web::post().to(delete_graph_connection_endpoint),
+                ),
+        )
+        .await;
+
+        // Delete a connection from the default_with_app_uri graph.
+        let request_payload = DeleteGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: None,
+            src_extension: "agora_rtc".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "on_user_joined".to_string(),
+            dest_app: None,
+            dest_extension: "llm".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections/delete")
+            .set_json(request_payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        println!("Response: {:?}", resp);
+
+        // Should succeed with a 200 OK.
+        assert_eq!(resp.status(), 200);
+
+        let body = test::read_body(resp).await;
+        let body_str = std::str::from_utf8(&body).unwrap();
+        println!("Response body: {}", body_str);
+
+        // Read the updated property.json file.
+        let updated_property_content =
+            std::fs::read_to_string(&property_path).unwrap();
+
+        // Parse the contents as JSON for proper comparison.
+        let updated_property: serde_json::Value =
+            serde_json::from_str(&updated_property_content).unwrap();
+
+        println!(
+            "Updated property: {}",
+            serde_json::to_string_pretty(&updated_property).unwrap()
+        );
+    }
 }
