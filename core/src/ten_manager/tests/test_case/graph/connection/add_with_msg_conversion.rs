@@ -972,4 +972,110 @@ mod tests {
 
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_add_connection_with_msg_conversion_without_result_conversion_failure(
+    ) {
+        let all_pkgs_json_str = vec![
+            (
+                TEST_DIR.to_string(),
+                include_str!("test_data_embed/app_manifest.json").to_string(),
+                include_str!("test_data_embed/app_property.json").to_string(),
+            ),
+            (
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
+                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon2"),
+                include_str!("test_data_embed/ext_2_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
+                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
+                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+        ];
+
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "addon1",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "addon2",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext3",
+                    "addon3",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext4",
+                    "addon4",
+                    Some("http://localhost:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        let msg_conversion = MsgAndResultConversion {
+            msg: MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "param1".to_string(),
+                        conversion_mode: MsgConversionMode::FromOriginal,
+                        original_path: Some("param1".to_string()),
+                        value: None,
+                    }],
+                    keep_original: None,
+                },
+            },
+            result: None,
+        };
+
+        // Test adding a connection with invalid msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://localhost:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd2".to_string(),
+            Some("http://localhost:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion),
+        );
+
+        println!("result: {:?}", result);
+
+        assert!(result.is_err());
+    }
 }

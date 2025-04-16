@@ -20,7 +20,7 @@ use ten_rust::{
     schema::store::{
         are_msg_schemas_compatible, are_ten_schemas_compatible,
         create_c_schema_from_properties_and_required,
-        find_msg_schema_from_all_pkgs_info,
+        find_msg_schema_from_all_pkgs_info, TenMsgSchema,
     },
 };
 
@@ -170,7 +170,30 @@ fn validate_msg_conversion_schema(
             }
         }
     } else {
-        // =-=-=
+        // No result conversion, so directly check if the original source result
+        // schema and destination result schema are compatible.
+        let (src_schema, dest_schema, error_message) = get_src_and_dest_schema(
+            graph,
+            msg_conversion_validate_info,
+            uri_to_pkg_info,
+        )?;
+
+        if src_schema.is_none() || dest_schema.is_none() {
+            return Ok(());
+        }
+
+        let src_schema = src_schema.unwrap();
+        let dest_schema = dest_schema.unwrap();
+
+        if let Err(err) = are_ten_schemas_compatible(
+            src_schema.result.as_ref(),
+            dest_schema.result.as_ref(),
+            true,
+            true,
+        ) {
+            assert!(error_message.is_some());
+            return Err(anyhow::anyhow!("{}: {}", error_message.unwrap(), err));
+        }
     }
 
     Ok(())
@@ -243,13 +266,15 @@ fn find_pkg_infos<'a>(
     Ok((src_extension_pkg_info, dest_extension_pkg_info))
 }
 
-/// Checks schema compatibility between source and destination based on
-/// message type.
-fn check_schema_compatibility(
+fn get_src_and_dest_schema<'a>(
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-) -> Result<()> {
+    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+) -> Result<(
+    Option<&'a TenMsgSchema>,
+    Option<&'a TenMsgSchema>,
+    Option<String>,
+)> {
     let src_extension_addon = graph.get_addon_name_of_extension(
         msg_conversion_validate_info.src_app,
         msg_conversion_validate_info.src_extension,
@@ -269,7 +294,7 @@ fn check_schema_compatibility(
     )?;
 
     if src_extension_pkg_info.is_none() || dest_extension_pkg_info.is_none() {
-        return Ok(());
+        return Ok((None, None, None));
     }
 
     let src_extension_pkg_info = src_extension_pkg_info.unwrap();
@@ -350,11 +375,32 @@ fn check_schema_compatibility(
             }
         };
 
+    Ok((src_schema, dest_schema, Some(error_message.to_string())))
+}
+
+/// Checks schema compatibility between source and destination based on
+/// message type.
+fn check_schema_compatibility(
+    graph: &mut Graph,
+    msg_conversion_validate_info: &MsgConversionValidateInfo,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+) -> Result<()> {
+    let (src_schema, dest_schema, error_message) = get_src_and_dest_schema(
+        graph,
+        msg_conversion_validate_info,
+        uri_to_pkg_info,
+    )?;
+
+    if src_schema.is_none() || dest_schema.is_none() {
+        return Ok(());
+    }
+
     // Check schema compatibility.
     if let Err(err) =
         are_msg_schemas_compatible(src_schema, dest_schema, true, true)
     {
-        return Err(anyhow::anyhow!("{}: {}", error_message, err));
+        assert!(error_message.is_some());
+        return Err(anyhow::anyhow!("{}: {}", error_message.unwrap(), err));
     }
 
     Ok(())

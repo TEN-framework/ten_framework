@@ -21,6 +21,21 @@
             }
           }
         }
+      },
+      {
+        "name": "cmd2",
+        "property": {
+          "param1": {
+            "type": "int8"
+          }
+        },
+        "result": {
+          "property": {
+            "detail": {
+              "type": "string"
+            }
+          }
+        }
       }
     ],
     "data_in": [

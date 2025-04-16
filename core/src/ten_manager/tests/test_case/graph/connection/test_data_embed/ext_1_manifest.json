@@ -45,10 +45,7 @@
             "detail": {
               "type": "bool"
             }
-          },
-          "required": [
-            "detail"
-          ]
+          }
         }
       },
       {

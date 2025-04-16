@@ -326,7 +326,11 @@ pub fn are_msg_schemas_compatible(
         return Err(anyhow::anyhow!("target schema is undefined."));
     }
 
-    if source.is_none() {
+    if none_source_is_not_error {
+        if source.is_none() {
+            return Ok(());
+        }
+    } else if source.is_none() {
         return Err(anyhow::anyhow!("source schema is undefined."));
     }
 
