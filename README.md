@@ -91,3 +91,6 @@ Before we get started, be sure to star our repository and get instant notificati
 2. The components within the `packages` directory are released under the Apache License, Version 2.0. For details, please refer to the `LICENSE` file located in each package's root directory.
 
 3. The third-party libraries used by the TEN framework are listed and described in detail. For more information, please refer to the [dependencies.md](./docs/ten_framework/dependencies.md) file located in the `docs/ten_framework` directory.
+
+
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=1295f95b-eaaa-4f5c-8861-825c0e350978" />
