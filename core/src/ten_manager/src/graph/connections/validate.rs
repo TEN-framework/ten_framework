@@ -136,11 +136,11 @@ fn validate_msg_conversion_schema(
         }
     }
 
-    if let Some(converted_result_schema) = converted_result_schema {
+    if let Some(converted_ten_result_schema) = converted_result_schema {
         if let Ok(converted_ten_result_schema) =
             create_c_schema_from_properties_and_required(
-                &converted_result_schema.property,
-                &converted_result_schema.required,
+                &converted_ten_result_schema.property,
+                &converted_ten_result_schema.required,
             )
         {
             if let Some(src_extension_pkg_info) =
