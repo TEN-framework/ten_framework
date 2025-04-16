@@ -4,33 +4,17 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
 use anyhow::Result;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use ten_rust::pkg_info::{
-    constants::MANIFEST_JSON_FILENAME, manifest::dependency::ManifestDependency,
-};
+use ten_rust::pkg_info::manifest::dependency::ManifestDependency;
 
-/// Save a serializable object to a JSON file.
-pub fn save_to_file<T: ?Sized + Serialize>(
-    obj: &T,
-    file_path: &Path,
-) -> Result<()> {
-    let file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(file_path)?;
-
-    serde_json::to_writer_pretty(file, obj)?;
-
-    Ok(())
-}
+use crate::json::write_manifest_json_file;
 
 /// Load a JSON file into a deserializable object.
 pub fn load_from_file<T: DeserializeOwned>(file_path: &Path) -> Result<T> {
@@ -116,15 +100,5 @@ pub fn update_manifest_all_fields(
         }
     }
 
-    // Write the updated manifest back to the file.
-    let manifest_path = Path::new(pkg_url).join(MANIFEST_JSON_FILENAME);
-    let manifest_file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(manifest_path)?;
-
-    // Serialize the all_fields map directly to preserve field order.
-    serde_json::to_writer_pretty(manifest_file, &manifest_all_fields)?;
-
-    Ok(())
+    write_manifest_json_file(pkg_url, manifest_all_fields)
 }

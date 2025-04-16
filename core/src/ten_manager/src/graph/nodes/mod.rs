@@ -7,16 +7,14 @@
 pub mod add;
 pub mod validate;
 
-use std::fs::OpenOptions;
-use std::io::{BufWriter, Write};
-use std::path::Path;
 use std::str::FromStr;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde_json::Value;
 
 use ten_rust::graph::node::GraphNode;
-use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
+
+use crate::json::write_property_json_file;
 
 /// Update a graph node in the property.json file, handling both adding new
 /// nodes and removing existing ones.
@@ -41,7 +39,7 @@ pub fn update_graph_node_all_fields(
         Some(Value::Object(obj)) => obj,
         _ => {
             // Write back the unchanged property and return
-            return write_property_to_file(pkg_url, property_all_fields);
+            return write_property_json_file(pkg_url, property_all_fields);
         }
     };
 
@@ -50,7 +48,7 @@ pub fn update_graph_node_all_fields(
         Some(Value::Array(graphs)) => graphs,
         _ => {
             // Write back the unchanged property and return.
-            return write_property_to_file(pkg_url, property_all_fields);
+            return write_property_json_file(pkg_url, property_all_fields);
         }
     };
 
@@ -100,50 +98,8 @@ pub fn update_graph_node_all_fields(
         break;
     }
 
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 1500");
-
     // Write the updated property back to the file.
-    write_property_to_file(pkg_url, property_all_fields)?;
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 1600");
-
-    Ok(())
-}
-
-/// Write the property back to file.
-fn write_property_to_file(
-    pkg_url: &str,
-    property_all_fields: &serde_json::Map<String, Value>,
-) -> Result<()> {
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 3000");
-
-    let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 3001");
-
-    let property_file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(property_path)
-        .context("Failed to open property.json file")?;
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 3002");
-
-    let mut buf_writer = BufWriter::with_capacity(1024 * 1024, property_file);
-
-    // Serialize the property_all_fields map directly to preserve field order.
-    serde_json::to_writer_pretty(&mut buf_writer, &property_all_fields)
-        .context("Failed to write to property.json file")?;
-
-    buf_writer.flush()?;
-
-    // =-=-=
-    eprintln!("delete_graph_node_endpoint 3003");
+    write_property_json_file(pkg_url, property_all_fields)?;
 
     Ok(())
 }
