@@ -59,12 +59,7 @@ bool ten_env_on_init_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(
       ten_env_check_integrity(
-          self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON &&
-                        // TODO(xilin): Remove this after move the creation of
-                        // the addon loader to the addon thread.
-                        self->attach_to != TEN_ENV_ATTACH_TO_ADDON_LOADER
-                    ? true
-                    : false),
+          self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON ? true : false),
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
@@ -99,12 +94,7 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(
       ten_env_check_integrity(
-          self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON &&
-                        // TODO(xilin): Remove this after move the creation of
-                        // the addon loader to the addon thread.
-                        self->attach_to != TEN_ENV_ATTACH_TO_ADDON_LOADER
-                    ? true
-                    : false),
+          self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON ? true : false),
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {

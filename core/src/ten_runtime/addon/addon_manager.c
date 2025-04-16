@@ -302,6 +302,12 @@ bool ten_addon_manager_belongs_to_app(ten_addon_manager_t *self,
   return result;
 }
 
+ten_app_t *ten_addon_manager_get_belonging_app(ten_addon_manager_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  return self->app;
+}
+
 ten_addon_register_ctx_t *ten_addon_register_ctx_create(ten_app_t *app) {
   ten_addon_register_ctx_t *self = TEN_MALLOC(sizeof(ten_addon_register_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");

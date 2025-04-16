@@ -42,7 +42,9 @@ typedef void (*ten_addon_loader_on_deinit_done_cb_t)(ten_env_t *ten_env,
 
 typedef struct ten_addon_loader_t {
   ten_binding_handle_t binding_handle;
+
   ten_signature_t signature;
+  ten_sanitizer_thread_check_t thread_check;
 
   ten_addon_host_t *addon_host;
 
@@ -59,8 +61,8 @@ typedef struct ten_addon_loader_t {
   ten_env_t *ten_env;
 } ten_addon_loader_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_check_integrity(
-    ten_addon_loader_t *self);
+TEN_RUNTIME_API bool ten_addon_loader_check_integrity(
+    ten_addon_loader_t *self, bool check_thread);
 
 TEN_RUNTIME_API ten_env_t *ten_addon_loader_get_ten_env(
     ten_addon_loader_t *self);

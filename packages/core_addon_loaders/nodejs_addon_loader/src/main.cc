@@ -15,6 +15,8 @@
 #include "node.h"
 #include "v8-script.h"
 // Header file region splitter.
+#include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
 #include "ten_utils/lib/module.h"
@@ -28,6 +30,8 @@ using v8::Locker;
 using v8::MaybeLocal;
 using v8::V8;
 using v8::Value;
+
+using notify_func_t = std::function<void(ten::ten_env_t &)>;
 
 static void foo() {}
 
@@ -49,242 +53,17 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
-  // Set up the Node.js instance for execution, and start the Node.js event
-  // loop, and run code inside of it.
-  //
-  // This function is used to run the Node.js instance and load the ESM module.
-  int RunNodeWithESM(MultiIsolatePlatform *platform,
-                     const std::vector<std::string> &args,
-                     const std::vector<std::string> &exec_args) {
-    int exit_code = 0;
-
-    std::vector<std::string> errors;
-
-    // Setup libuv event loop, v8::Isolate, and Node.js Environment.
-    std::unique_ptr<CommonEnvironmentSetup> setup =
-        CommonEnvironmentSetup::Create(platform, &errors, args, exec_args);
-    if (!setup) {
-      for (const std::string &err : errors) {
-        std::cerr << "Error: " << err << '\n';
-      }
-
-      this->node_init_result_ = 1;
-      this->cv_.notify_one();
-      return 1;
+  ~nodejs_addon_loader_t() override {
+    // Wait for the Node.js thread to terminate to prevent abnormal program
+    // exit.
+    if (this->node_thread_.joinable()) {
+      this->node_thread_.join();
     }
-
-    // Get references to these resources.
-    this->setup_ = std::move(setup);
-    this->event_loop_ = this->setup_->event_loop();
-    auto *isolate = this->setup_->isolate();
-    auto *env = this->setup_->env();
-
-    {
-      // Ensure that the current thread holds the lock of the v8::Isolate to
-      // guarantee thread safety.
-      Locker locker(isolate);
-
-      // Enter the current v8::Isolate's scope, ensuring that all V8 operations
-      // are performed within a specific v8::Isolate.
-      Isolate::Scope isolate_scope(isolate);
-
-      // Create a handle scope to manage the lifecycle of JavaScript objects and
-      // prevent memory leaks.
-      HandleScope handle_scope(isolate);
-
-      // Enter the JavaScript execution context (Context) to ensure that
-      // JavaScript code can run properly.
-      //
-      // The v8::Context needs to be entered when node::CreateEnvironment() and
-      // node::LoadEnvironment() are being called.
-      Context::Scope context_scope(this->setup_->context());
-
-      // Define the callback function.
-      v8::Local<v8::Context> context = this->setup_->context();
-      v8::Local<v8::Object> global = context->Global();
-
-      // Define the callback function which will be called when the import
-      // is completed.
-      v8::Local<v8::Function> callback_fn =
-          v8::Function::New(
-              context,
-              [](const v8::FunctionCallbackInfo<v8::Value> &args) {
-                v8::Local<v8::External> data =
-                    v8::Local<v8::External>::Cast(args.Data());
-                auto *this_ptr =
-                    static_cast<nodejs_addon_loader_t *>(data->Value());
-
-                this_ptr->node_init_result_ = 0;
-
-                // Wake up the main thread waiting in the `on_init()` function
-                // to notify it that the initialization of the Node.js runtime
-                // environment has been completed.
-                this_ptr->cv_.notify_one();
-              },
-              v8::External::New(context->GetIsolate(), this))
-              .ToLocalChecked();
-
-      // Set the callback function as a global property.
-      global
-          ->Set(context,
-                v8::String::NewFromUtf8(context->GetIsolate(),
-                                        "__ten_runtime_nodejs_module_imported",
-                                        v8::NewStringType::kNormal)
-                    .ToLocalChecked(),
-                callback_fn)
-          .Check();
-
-      // Run JavaScript code within the Isolate
-      //
-      // `setInterval(() => {}, 1000);` creates an empty `setInterval` task to
-      // ensure that the event loop does not exit, allowing the Node.js instance
-      // to keep running continuously.
-      MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
-          env,
-          "(async () => { "
-#if defined(_DEBUG)
-          "  console.log('wait 3 seconds to mock import slowly...');"
-          "  await new Promise(resolve => setTimeout(resolve, 3000));"
-#endif
-          "  const module = await "
-          "import(process.cwd() + "
-          "'/ten_packages/system/ten_runtime_nodejs/build/index.js');"
-          "  global.ten_runtime_nodejs = module;"
-          "  console.log('ten_runtime_nodejs module loaded successfully');"
-          "  global.__ten_runtime_nodejs_module_imported();"
-          "})();"
-          "setInterval(() => {}, 1000);");
-
-      if (loadenv_ret.IsEmpty()) {
-        // There has been a JS exception.
-        this->node_init_result_ = 1;
-        this->cv_.notify_one();
-        return 1;
-      }
-
-      // Start the Node.js event loop.
-      exit_code = node::SpinEventLoop(env).FromMaybe(1);
-    }
-
-    this->setup_.reset();
-
-    return exit_code;
-  }
-
-  // Run the Node.js instance and load the CJS module.
-  int RunNodeWithCJS(MultiIsolatePlatform *platform,
-                     const std::vector<std::string> &args,
-                     const std::vector<std::string> &exec_args) {
-    int exit_code = 0;
-
-    std::vector<std::string> errors;
-
-    // Setup libuv event loop, v8::Isolate, and Node.js Environment.
-    std::unique_ptr<CommonEnvironmentSetup> setup =
-        CommonEnvironmentSetup::Create(platform, &errors, args, exec_args);
-    if (!setup) {
-      for (const std::string &err : errors) {
-        std::cerr << "Error: " << err << '\n';
-      }
-
-      this->node_init_result_ = 1;
-      this->cv_.notify_one();
-      return 1;
-    }
-
-    // Get references to these resources.
-    this->setup_ = std::move(setup);
-    this->event_loop_ = this->setup_->event_loop();
-    auto *isolate = this->setup_->isolate();
-    auto *env = this->setup_->env();
-
-    {
-      // Ensure that the current thread holds the lock of the v8::Isolate to
-      // guarantee thread safety.
-      Locker locker(isolate);
-
-      // Enter the current v8::Isolate's scope, ensuring that all V8 operations
-      // are performed within a specific v8::Isolate.
-      Isolate::Scope isolate_scope(isolate);
-
-      // Create a handle scope to manage the lifecycle of JavaScript objects and
-      // prevent memory leaks.
-      HandleScope handle_scope(isolate);
-
-      // Enter the JavaScript execution context (Context) to ensure that
-      // JavaScript code can run properly.
-      //
-      // The v8::Context needs to be entered when node::CreateEnvironment() and
-      // node::LoadEnvironment() are being called.
-      Context::Scope context_scope(this->setup_->context());
-
-      // Run JavaScript code within the Isolate and load the
-      // `ten_runtime_nodejs` module.
-      //
-      // There is also a variant that takes a callback and provides it with
-      // the `require` and `process` objects, so that it can manually compile
-      // and run scripts as needed.
-      //
-      // The `require` function inside this script does *not* access the file
-      // system, and can only load built-in Node.js modules.
-      //
-      // `module.createRequire()` is being used to create one that is able to
-      // load files from the disk, and uses the standard CommonJS file loader
-      // instead of the internal-only `require` function.
-      //
-      // `setInterval(() => {}, 1000);` creates an empty `setInterval` task to
-      // ensure that the event loop does not exit, allowing the Node.js instance
-      // to keep running continuously.
-      MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
-          env,
-          "js_require = require('module').createRequire(process.cwd() + "
-          "'/');"
-          "global.ten_runtime_nodejs = "
-          "js_require('./ten_packages/system/ten_runtime_nodejs');"
-          "setInterval(() => {}, 1000);");
-
-      if (loadenv_ret.IsEmpty()) {
-        // There has been a JS exception.
-        this->node_init_result_ = 1;
-        this->cv_.notify_one();
-        return 1;
-      }
-
-      this->node_init_result_ = 0;
-
-      // Wake up the main thread waiting in the `on_init()` function to notify
-      // it that the Node.js thread has successfully started.
-      this->cv_.notify_one();
-
-      // Start the Node.js event loop.
-      exit_code = node::SpinEventLoop(env).FromMaybe(1);
-    }
-
-    this->setup_.reset();
-
-    return exit_code;
-  }
-
-  // Dynamically load the `libnode.so` shared library to ensure the Node.js
-  // runtime environment is available.
-  static void load_nodejs_lib() {
-    ten_string_t *module_path =
-        ten_path_get_module_path(reinterpret_cast<const void *>(foo));
-    TEN_ASSERT(module_path, "Failed to get module path.");
-
-    ten_string_t *nodejs_lib_path = ten_string_create_formatted(
-        "%s/libnode.so", ten_string_get_raw_str(module_path));
-
-    // The `libnode.so` must be loaded globally using `dlopen` to ensure that
-    // all Node.js components can access it. Note that the second parameter must
-    // be `0` (`as_local = false`).
-    ten_module_load(nodejs_lib_path, 0);
-
-    ten_string_destroy(nodejs_lib_path);
-    ten_string_destroy(module_path);
   }
 
   void on_init(ten::ten_env_t &ten_env) override {
+    this->ten_env_ = &ten_env;
+
     // Do some initializations.
     load_nodejs_lib();
 
@@ -367,18 +146,6 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // NOLINTNEXTLINE(concurrency-mt-unsafe)
       exit(1);
     }
-
-    // Wait for the node thread to start.
-    std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(lock, [this]() { return this->node_init_result_ >= 0; });
-
-    if (this->node_init_result_ > 0) {
-      std::cerr << "Nodejs addon loader init failed" << '\n';
-      // NOLINTNEXTLINE(concurrency-mt-unsafe)
-      exit(1);
-    }
-
-    ten_env.on_init_done();
   }
 
   // Clean up and shut down the Node.js addon loader to ensure resource
@@ -423,9 +190,6 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // Run the JS codes.
       script->Run(this_ptr->setup_->context()).ToLocalChecked();
 
-      this_ptr->gc_done_ = true;
-      this_ptr->cv_.notify_one();
-
       // Close the `uv_async_t` event to ensure that the libuv event loop no
       // longer executes it.
       uv_close(reinterpret_cast<uv_handle_t *>(handle),
@@ -433,24 +197,309 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
                  auto *async_handle = reinterpret_cast<uv_async_t *>(handle);
                  delete async_handle;
                });
+
+      // Stop the Node.js runtime environment to ensure that all resources are
+      // properly released.
+      node::Stop(this_ptr->setup_->env());
+
+      this_ptr->notify(
+          [](ten::ten_env_t &ten_env) { ten_env.on_deinit_done(); });
     });
     uv_async_send(deinit_handle);
+  }
 
-    // Wait for the gc to be done.
-    std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(lock, [this]() { return this->gc_done_; });
+  // Note: This function, used to dynamically load other addons, may be called
+  // from multiple threads. Therefore, it must be thread-safe.
+  //
+  // It uses the libuv event loop (`uv_async_t`) to execute JavaScript code
+  // within the Node.js thread, allowing for the loading and registration of
+  // TEN addons.
+  void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
+                     TEN_UNUSED TEN_ADDON_TYPE addon_type,
+                     const char *addon_name) override {
+    if (this->setup_ == nullptr || this->event_loop_ == nullptr) {
+      std::cerr << "Nodejs addon loader not initialized" << '\n';
+      return;
+    }
 
-    // Stop the Node.js runtime environment to ensure that all resources are
-    // properly released.
-    node::Stop(this->setup_->env());
+    load_addon_with_esm(addon_name);
+  }
 
-    // Wait for the Node.js thread to terminate to prevent abnormal program
-    // exit.
-    this->node_thread_.join();
+ private:
+  struct proxy_notify_ctx_t {
+    notify_func_t func;
+    ten::ten_env_t *ten_env;
+  };
 
-    std::cout << "Nodejs addon loader deinit completed" << '\n';
+  static void proxy_notify(void *from, void *args) {
+    auto *app = static_cast<ten_app_t *>(from);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
 
-    ten_env.on_deinit_done();
+    auto *proxy_notify_ctx = static_cast<proxy_notify_ctx_t *>(args);
+    TEN_ASSERT(proxy_notify_ctx, "Should not happen.");
+
+    ten::ten_env_t *ten_env = proxy_notify_ctx->ten_env;
+    TEN_ASSERT(ten_env, "Should not happen.");
+
+    proxy_notify_ctx->func(*ten_env);
+
+    delete proxy_notify_ctx;
+  }
+
+  void notify(const notify_func_t &func) {
+    auto *addon_loader_c_instance =
+        static_cast<ten_addon_loader_t *>(get_c_instance());
+    TEN_ASSERT(
+        addon_loader_c_instance && ten_addon_loader_check_integrity(
+                                       addon_loader_c_instance,
+                                       // TEN_NOLINTNEXTLINE(thread-check)
+                                       // thread-check: This function is
+                                       // intended to be called in any threads.
+                                       false),
+        "Should not happen.");
+
+    ten_addon_host_t *addon_host = addon_loader_c_instance->addon_host;
+    TEN_ASSERT(addon_host, "Should not happen.");
+
+    ten_app_t *app = addon_host->attached_app;
+    TEN_ASSERT(
+        app && ten_app_check_integrity(app,
+                                       // TEN_NOLINTNEXTLINE(thread-check)
+                                       // thread-check: This function is
+                                       // intended to be called in any threads.
+                                       false),
+        "Should not happen.");
+
+    auto *proxy_notify_ctx = new proxy_notify_ctx_t{func, this->ten_env_};
+
+    int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
+                                        proxy_notify, app, proxy_notify_ctx);
+    TEN_ASSERT(!rc, "Should not happen.");
+  }
+
+  // Set up the Node.js instance for execution, and start the Node.js event
+  // loop, and run code inside of it.
+  //
+  // This function is used to run the Node.js instance and load the ESM module.
+  int RunNodeWithESM(MultiIsolatePlatform *platform,
+                     const std::vector<std::string> &args,
+                     const std::vector<std::string> &exec_args) {
+    int exit_code = 0;
+
+    std::vector<std::string> errors;
+
+    // Setup libuv event loop, v8::Isolate, and Node.js Environment.
+    std::unique_ptr<CommonEnvironmentSetup> setup =
+        CommonEnvironmentSetup::Create(platform, &errors, args, exec_args);
+    if (!setup) {
+      for (const std::string &err : errors) {
+        std::cerr << "Error: " << err << '\n';
+      }
+
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
+      exit(1);
+    }
+
+    // Get references to these resources.
+    this->setup_ = std::move(setup);
+    this->event_loop_ = this->setup_->event_loop();
+    auto *isolate = this->setup_->isolate();
+    auto *env = this->setup_->env();
+
+    {
+      // Ensure that the current thread holds the lock of the v8::Isolate to
+      // guarantee thread safety.
+      Locker locker(isolate);
+
+      // Enter the current v8::Isolate's scope, ensuring that all V8 operations
+      // are performed within a specific v8::Isolate.
+      Isolate::Scope isolate_scope(isolate);
+
+      // Create a handle scope to manage the lifecycle of JavaScript objects and
+      // prevent memory leaks.
+      HandleScope handle_scope(isolate);
+
+      // Enter the JavaScript execution context (Context) to ensure that
+      // JavaScript code can run properly.
+      //
+      // The v8::Context needs to be entered when node::CreateEnvironment() and
+      // node::LoadEnvironment() are being called.
+      Context::Scope context_scope(this->setup_->context());
+
+      // Define the callback function.
+      v8::Local<v8::Context> context = this->setup_->context();
+      v8::Local<v8::Object> global = context->Global();
+
+      // Define the callback function which will be called when the import
+      // is completed.
+      v8::Local<v8::Function> callback_fn =
+          v8::Function::New(
+              context,
+              [](const v8::FunctionCallbackInfo<v8::Value> &args) {
+                v8::Local<v8::External> data =
+                    v8::Local<v8::External>::Cast(args.Data());
+                auto *this_ptr =
+                    static_cast<nodejs_addon_loader_t *>(data->Value());
+
+                this_ptr->notify(
+                    [](ten::ten_env_t &ten_env) { ten_env.on_init_done(); });
+              },
+              v8::External::New(context->GetIsolate(), this))
+              .ToLocalChecked();
+
+      // Set the callback function as a global property.
+      global
+          ->Set(context,
+                v8::String::NewFromUtf8(context->GetIsolate(),
+                                        "__ten_runtime_nodejs_module_imported",
+                                        v8::NewStringType::kNormal)
+                    .ToLocalChecked(),
+                callback_fn)
+          .Check();
+
+      // Run JavaScript code within the Isolate
+      //
+      // `setInterval(() => {}, 1000);` creates an empty `setInterval` task to
+      // ensure that the event loop does not exit, allowing the Node.js instance
+      // to keep running continuously.
+      MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
+          env,
+          "(async () => { "
+#if defined(_DEBUG)
+          "  console.log('wait 3 seconds to mock import slowly...');"
+          "  await new Promise(resolve => setTimeout(resolve, 3000));"
+#endif
+          "  const module = await "
+          "import(process.cwd() + "
+          "'/ten_packages/system/ten_runtime_nodejs/build/index.js');"
+          "  global.ten_runtime_nodejs = module;"
+          "  console.log('ten_runtime_nodejs module loaded successfully');"
+          "  global.__ten_runtime_nodejs_module_imported();"
+          "})();"
+          "setInterval(() => {}, 1000);");
+
+      if (loadenv_ret.IsEmpty()) {
+        std::cerr << "Nodejs addon loader throw an exception during loading "
+                     "the ten_runtime_nodejs module"
+                  << '\n';
+        // NOLINTNEXTLINE(concurrency-mt-unsafe)
+        exit(1);
+      }
+
+      // Start the Node.js event loop.
+      exit_code = node::SpinEventLoop(env).FromMaybe(1);
+    }
+
+    this->setup_.reset();
+
+    return exit_code;
+  }
+
+  // Run the Node.js instance and load the CJS module.
+  int RunNodeWithCJS(MultiIsolatePlatform *platform,
+                     const std::vector<std::string> &args,
+                     const std::vector<std::string> &exec_args) {
+    int exit_code = 0;
+
+    std::vector<std::string> errors;
+
+    // Setup libuv event loop, v8::Isolate, and Node.js Environment.
+    std::unique_ptr<CommonEnvironmentSetup> setup =
+        CommonEnvironmentSetup::Create(platform, &errors, args, exec_args);
+    if (!setup) {
+      for (const std::string &err : errors) {
+        std::cerr << "Error: " << err << '\n';
+      }
+
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
+      exit(1);
+    }
+
+    // Get references to these resources.
+    this->setup_ = std::move(setup);
+    this->event_loop_ = this->setup_->event_loop();
+    auto *isolate = this->setup_->isolate();
+    auto *env = this->setup_->env();
+
+    {
+      // Ensure that the current thread holds the lock of the v8::Isolate to
+      // guarantee thread safety.
+      Locker locker(isolate);
+
+      // Enter the current v8::Isolate's scope, ensuring that all V8 operations
+      // are performed within a specific v8::Isolate.
+      Isolate::Scope isolate_scope(isolate);
+
+      // Create a handle scope to manage the lifecycle of JavaScript objects and
+      // prevent memory leaks.
+      HandleScope handle_scope(isolate);
+
+      // Enter the JavaScript execution context (Context) to ensure that
+      // JavaScript code can run properly.
+      //
+      // The v8::Context needs to be entered when node::CreateEnvironment() and
+      // node::LoadEnvironment() are being called.
+      Context::Scope context_scope(this->setup_->context());
+
+      // Run JavaScript code within the Isolate and load the
+      // `ten_runtime_nodejs` module.
+      //
+      // There is also a variant that takes a callback and provides it with
+      // the `require` and `process` objects, so that it can manually compile
+      // and run scripts as needed.
+      //
+      // The `require` function inside this script does *not* access the file
+      // system, and can only load built-in Node.js modules.
+      //
+      // `module.createRequire()` is being used to create one that is able to
+      // load files from the disk, and uses the standard CommonJS file loader
+      // instead of the internal-only `require` function.
+      //
+      // `setInterval(() => {}, 1000);` creates an empty `setInterval` task to
+      // ensure that the event loop does not exit, allowing the Node.js instance
+      // to keep running continuously.
+      MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
+          env,
+          "js_require = require('module').createRequire(process.cwd() + "
+          "'/');"
+          "global.ten_runtime_nodejs = "
+          "js_require('./ten_packages/system/ten_runtime_nodejs');"
+          "setInterval(() => {}, 1000);");
+
+      if (loadenv_ret.IsEmpty()) {
+        // There has been a JS exception.
+        // NOLINTNEXTLINE(concurrency-mt-unsafe)
+        exit(1);
+      }
+
+      notify([](ten::ten_env_t &ten_env) { ten_env.on_init_done(); });
+
+      // Start the Node.js event loop.
+      exit_code = node::SpinEventLoop(env).FromMaybe(1);
+    }
+
+    this->setup_.reset();
+
+    return exit_code;
+  }
+
+  // Dynamically load the `libnode.so` shared library to ensure the Node.js
+  // runtime environment is available.
+  static void load_nodejs_lib() {
+    ten_string_t *module_path =
+        ten_path_get_module_path(reinterpret_cast<const void *>(foo));
+    TEN_ASSERT(module_path, "Failed to get module path.");
+
+    ten_string_t *nodejs_lib_path = ten_string_create_formatted(
+        "%s/libnode.so", ten_string_get_raw_str(module_path));
+
+    // The `libnode.so` must be loaded globally using `dlopen` to ensure that
+    // all Node.js components can access it. Note that the second parameter must
+    // be `0` (`as_local = false`).
+    ten_module_load(nodejs_lib_path, 0);
+
+    ten_string_destroy(nodejs_lib_path);
+    ten_string_destroy(module_path);
   }
 
   void load_addon_with_cjs(const char *addon_name) {
@@ -627,32 +676,14 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     delete load_addon_data;
   }
 
-  // Note: This function, used to dynamically load other addons, may be called
-  // from multiple threads. Therefore, it must be thread-safe.
-  //
-  // It uses the libuv event loop (`uv_async_t`) to execute JavaScript code
-  // within the Node.js thread, allowing for the loading and registration of
-  // TEN addons.
-  void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
-                     TEN_UNUSED TEN_ADDON_TYPE addon_type,
-                     const char *addon_name) override {
-    if (this->setup_ == nullptr || this->event_loop_ == nullptr) {
-      std::cerr << "Nodejs addon loader not initialized" << '\n';
-      return;
-    }
-
-    load_addon_with_esm(addon_name);
-  }
-
- private:
   std::unique_ptr<CommonEnvironmentSetup> setup_{nullptr};
   uv_loop_s *event_loop_{nullptr};
   std::thread node_thread_;
-  int node_init_result_{-1};  // -1: not started, 0: success, 1: failed
 
   std::mutex mutex_;
   std::condition_variable cv_;
-  bool gc_done_{false};
+
+  ten::ten_env_t *ten_env_{nullptr};
 };
 
 TEN_CPP_REGISTER_ADDON_AS_ADDON_LOADER(nodejs_addon_loader,

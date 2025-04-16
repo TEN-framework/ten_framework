@@ -664,6 +664,10 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
+  // The retry timer is closed, so we need to set it to NULL to prevent
+  // stop/close it again.
+  protocol->retry_timer = NULL;
+
   if (connect_to_context->on_server_connected) {
     TEN_LOGD(
         "Retry timer is closed, but the connection to %s is not established "
@@ -675,8 +679,6 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   } else {
     ten_protocol_integrated_connect_to_context_destroy(connect_to_context);
   }
-
-  protocol->retry_timer = NULL;
 
   // Since `retry_timer` is attached to the runloop, stopping the runloop before
   // `retry_timer` is fully closed can lead to unexpected issues (for example,

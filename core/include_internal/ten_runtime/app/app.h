@@ -160,8 +160,7 @@ TEN_RUNTIME_API ten_sanitizer_thread_check_t *ten_app_get_thread_check(
 
 TEN_RUNTIME_PRIVATE_API bool ten_app_thread_call_by_me(ten_app_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_app_get_attached_runloop(
-    ten_app_t *self);
+TEN_RUNTIME_API ten_runloop_t *ten_app_get_attached_runloop(ten_app_t *self);
 
 TEN_RUNTIME_PRIVATE_API const char *ten_app_get_uri(ten_app_t *self);
 

@@ -350,10 +350,9 @@ static void ten_engine_on_protocol_created(ten_env_t *ten_env,
         "is closing.",
         ten_engine_get_id(self, true));
 
-    // Since the engine is about to close, the command originally used to
-    // initiate and create this protocol is no longer needed.
-    ten_shared_ptr_t *cmd = (ten_shared_ptr_t *)ctx->user_data;
-    ten_shared_ptr_destroy(cmd);
+    if (ctx->cb) {
+      ctx->cb(self, NULL, ctx->user_data);
+    }
 
     ten_engine_on_protocol_created_ctx_destroy(ctx);
 

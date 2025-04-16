@@ -66,6 +66,9 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_manager_set_belonging_app_if_not_set(
 TEN_RUNTIME_PRIVATE_API bool ten_addon_manager_belongs_to_app(
     ten_addon_manager_t *self, ten_app_t *app);
 
+TEN_RUNTIME_PRIVATE_API ten_app_t *ten_addon_manager_get_belonging_app(
+    ten_addon_manager_t *self);
+
 TEN_RUNTIME_API ten_addon_register_ctx_t *ten_addon_register_ctx_create(
     ten_app_t *app);
 

@@ -400,9 +400,6 @@ TEN_RUNTIME_API void ten_protocol_deinit(ten_protocol_t *self);
 TEN_RUNTIME_PRIVATE_API void ten_protocol_attach_to_app(ten_protocol_t *self,
                                                         ten_app_t *app);
 
-TEN_RUNTIME_PRIVATE_API void ten_protocol_attach_to_app_and_thread(
-    ten_protocol_t *self, ten_app_t *app);
-
 TEN_RUNTIME_PRIVATE_API void ten_protocol_send_msg(ten_protocol_t *self,
                                                    ten_shared_ptr_t *msg);
 

@@ -142,7 +142,7 @@ ten_env_t *ten_env_create_for_engine(ten_engine_t *engine) {
 
 ten_env_t *ten_env_create_for_addon_loader(ten_addon_loader_t *addon_loader) {
   TEN_ASSERT(addon_loader, "Should not happen.");
-  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
              "Should not happen.");
 
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_ADDON_LOADER,

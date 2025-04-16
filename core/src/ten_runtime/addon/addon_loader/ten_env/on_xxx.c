@@ -16,7 +16,7 @@ void ten_addon_loader_on_init_done(ten_env_t *self) {
 
   ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(self);
   TEN_ASSERT(addon_loader, "Should not happen.");
-  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
              "Should not happen.");
 
   if (addon_loader->on_init_done_cb) {
@@ -26,16 +26,12 @@ void ten_addon_loader_on_init_done(ten_env_t *self) {
 
 bool ten_addon_loader_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(
-      ten_env_check_integrity(self,
-                              // TODO(xilin): Remove this after move the deinit
-                              // of the addon loader to the addon thread.
-                              false),
-      "Invalid use of ten_env %p.", self);
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
 
   ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(self);
   TEN_ASSERT(addon_loader, "Should not happen.");
-  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
              "Should not happen.");
 
   if (addon_loader->on_deinit_done_cb) {
