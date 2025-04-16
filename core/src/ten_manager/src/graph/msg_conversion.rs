@@ -406,11 +406,11 @@ fn get_msg_schema<'a>(
 ) -> Result<Option<&'a ManifestApiMsg>> {
     let msg_schema = if let Some(extension_pkg_info) =
         get_pkg_info_for_extension_addon(
-            app,
-            extension_addon,
+            pkgs_cache,
             uri_to_pkg_info,
             graph_app_base_dir,
-            pkgs_cache,
+            app,
+            extension_addon,
         ) {
         extension_pkg_info
             .manifest

@@ -207,11 +207,11 @@ pub async fn get_compatible_messages_endpoint(
         desired_msg_dir.toggle();
 
         if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
-            &extension_graph_node.app,
-            &extension_graph_node.addon,
+            pkgs_cache,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
-            pkgs_cache,
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
         ) {
             let compatible_list =
                 match msg_ty {

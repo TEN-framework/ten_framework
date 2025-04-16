@@ -40,11 +40,11 @@ pub fn get_compatible_msg_extension<'a>(
 
     for target_extension_graph_node in extension_graph_nodes {
         let target_extension_pkg_info = get_pkg_info_for_extension_addon(
-            &target_extension_graph_node.app,
-            &target_extension_graph_node.addon,
+            pkgs_cache,
             uri_to_pkg_info,
             app_base_dir,
-            pkgs_cache,
+            &target_extension_graph_node.app,
+            &target_extension_graph_node.addon,
         );
 
         match target_extension_pkg_info {

@@ -32,329 +32,313 @@ pub fn update_graph_connections_all_fields(
     connections_to_remove: Option<&[GraphConnection]>,
     connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
 ) -> Result<()> {
-    // Process _ten.predefined_graphs array.
-    if let Some(Value::Object(ten_obj)) = property_all_fields.get_mut("_ten") {
-        if let Some(Value::Array(predefined_graphs)) =
-            ten_obj.get_mut("predefined_graphs")
-        {
-            // Find the graph with the matching name.
-            for graph_value in predefined_graphs.iter_mut() {
-                if let Value::Object(graph_obj) = graph_value {
-                    if let Some(Value::String(name)) = graph_obj.get("name") {
-                        if name == graph_name {
-                            // Found the matching graph, now update its
-                            // connections.
-                            if let Some(Value::Array(connections_array)) =
-                                graph_obj.get_mut("connections")
-                            {
-                                // Update message conversion if requested.
-                                if let Some(modify_connections) =
-                                    connections_to_modify_msg_conversion
-                                {
-                                    if !modify_connections.is_empty() {
-                                        // For each connection in the graph.
-                                        for connection_value in
-                                            connections_array.iter_mut()
-                                        {
-                                            if let Value::Object(conn_obj) =
-                                                connection_value
-                                            {
-                                                // Get the app and extension
-                                                // from the current connection.
-                                                let conn_app = conn_obj
-                                                    .get("app")
-                                                    .and_then(|v| v.as_str());
-                                                let conn_extension = conn_obj
-                                                    .get("extension")
-                                                    .and_then(|v| v.as_str());
+    // Get ten object if it exists.
+    let ten_obj = match property_all_fields.get_mut("_ten") {
+        Some(Value::Object(obj)) => obj,
+        _ => return write_property_file(pkg_url, property_all_fields),
+    };
 
-                                                if let Some(extension_str) =
-                                                    conn_extension
-                                                {
-                                                    // Check against each
-                                                    // connection to modify.
-                                                    for modify_conn in
-                                                        modify_connections
-                                                    {
-                                                        // Only proceed if the
-                                                        // connection matches by
-                                                        // app and extension.
-                                                        let app_match = match (
-                                                            conn_app,
-                                                            &modify_conn.app,
-                                                        ) {
-                                                            (None, None) => {
-                                                                true
-                                                            }
-                                                            (
-                                                                Some(app1),
-                                                                Some(app2),
-                                                            ) => app1 == app2,
-                                                            _ => false,
-                                                        };
+    // Get predefined_graphs array if it exists.
+    let predefined_graphs = match ten_obj.get_mut("predefined_graphs") {
+        Some(Value::Array(graphs)) => graphs,
+        _ => return write_property_file(pkg_url, property_all_fields),
+    };
 
-                                                        if app_match
-                                                            && extension_str
-                                                                == modify_conn
-                                                                    .extension
-                                                        {
-                                                            // Connection
-                                                            // matched, now
-                                                            // update the
-                                                            // message conversions
-                                                            // for each message
-                                                            // type.
-                                                            update_msg_conversion_for_type(conn_obj, "cmd", modify_conn.cmd.as_ref());
-                                                            update_msg_conversion_for_type(conn_obj, "data", modify_conn.data.as_ref());
-                                                            update_msg_conversion_for_type(conn_obj, "audio_frame", modify_conn.audio_frame.as_ref());
-                                                            update_msg_conversion_for_type(conn_obj, "video_frame", modify_conn.video_frame.as_ref());
+    // Find and update the target graph.
+    find_and_update_graph(
+        predefined_graphs,
+        graph_name,
+        connections_to_add,
+        connections_to_remove,
+        connections_to_modify_msg_conversion,
+    );
 
-                                                            // No need to check
-                                                            // further modify_connections
-                                                            // for this graph
-                                                            // connection.
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+    // Note: if no graph was found, we still need to write back the property
+    // file.
+    write_property_file(pkg_url, property_all_fields)
+}
 
-                                // Remove connections if requested.
-                                if let Some(remove_connections) =
-                                    connections_to_remove
-                                {
-                                    if !remove_connections.is_empty() {
-                                        // Convert connections to remove into
-                                        // comparable form.
-                                        let connections_to_remove_serialized: Vec<String> = remove_connections
-                                            .iter()
-                                            .filter_map(|conn| {
-                                                let conn_value = serde_json::to_value(conn).ok()?;
-                                                serde_json::to_string(&conn_value).ok()
-                                            })
-                                            .collect();
+/// Find the target graph and update its connections.
+/// Returns true if the graph was found and updated.
+fn find_and_update_graph(
+    predefined_graphs: &mut [Value],
+    graph_name: &str,
+    connections_to_add: Option<&[GraphConnection]>,
+    connections_to_remove: Option<&[GraphConnection]>,
+    connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
+) -> bool {
+    for graph_value in predefined_graphs.iter_mut() {
+        let graph_obj = match graph_value {
+            Value::Object(obj) => obj,
+            _ => continue,
+        };
 
-                                        // Filter out connections to remove.
-                                        connections_array.retain(|item| {
-                                            if let Ok(item_str) = serde_json::to_string(item) {
-                                                !connections_to_remove_serialized.contains(&item_str)
-                                            } else {
-                                                // Keep items that can't be serialized.
-                                                true
-                                            }
-                                        });
-                                    }
-                                }
+        let name = match graph_obj.get("name") {
+            Some(Value::String(name)) => name,
+            _ => continue,
+        };
 
-                                // Add new connections if provided.
-                                if let Some(add_connections) =
-                                    connections_to_add
-                                {
-                                    if !add_connections.is_empty() {
-                                        // First find existing connections by
-                                        // app and extension to update them
-                                        // instead of adding new ones.
-                                        for new_connection in add_connections {
-                                            if let Ok(new_connection_value) =
-                                                serde_json::to_value(
-                                                    new_connection,
-                                                )
-                                            {
-                                                // Find existing connection with
-                                                // same app and extension.
-                                                let app_value =
-                                                    new_connection_value
-                                                        .get("app")
-                                                        .cloned();
-                                                let extension_value =
-                                                    new_connection_value
-                                                        .get("extension")
-                                                        .cloned();
+        if name != graph_name {
+            continue;
+        }
 
-                                                let existing_idx = connections_array
-                                                    .iter()
-                                                    .position(|conn| {
-                                                        let conn_app = conn.get("app");
-                                                        let conn_ext = conn.get("extension");
+        // Found the matching graph, update its connections.
+        match graph_obj.get_mut("connections") {
+            Some(Value::Array(connections_array)) => {
+                // Process existing connections.
+                update_existing_connections(
+                    connections_array,
+                    connections_to_add,
+                    connections_to_remove,
+                    connections_to_modify_msg_conversion,
+                );
 
-                                                        // Match app and extension.
-                                                        (app_value.is_none() && conn_app.is_none() ||
-                                                         app_value.as_ref() == conn_app) &&
-                                                        (extension_value.as_ref() == conn_ext)
-                                                    });
-
-                                                if let Some(idx) = existing_idx
-                                                {
-                                                    // Update existing
-                                                    // connection by merging
-                                                    // message fields.
-                                                    if let Some(
-                                                        Value::Object(conn_obj),
-                                                    ) = connections_array
-                                                        .get_mut(idx)
-                                                    {
-                                                        // Update cmd field if
-                                                        // present in new
-                                                        // connection.
-                                                        if let Some(cmd_value) =
-                                                            new_connection_value
-                                                                .get("cmd")
-                                                        {
-                                                            if cmd_value
-                                                                .is_array()
-                                                            {
-                                                                // If existing
-                                                                // connection
-                                                                // has cmd field,
-                                                                // append to it.
-                                                                if let Some(Value::Array(existing_cmd)) = conn_obj.get_mut("cmd") {
-                                                                    // Get new cmd messages to add.
-                                                                    if let Some(new_cmds) = cmd_value.as_array() {
-                                                                        // Append each new cmd.
-                                                                        for cmd in new_cmds {
-                                                                            existing_cmd.push(cmd.clone());
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    // No existing cmd field, add it.
-                                                                    conn_obj.insert("cmd".to_string(), cmd_value.clone());
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Update data field
-                                                        // if present in new
-                                                        // connection.
-                                                        if let Some(
-                                                            data_value,
-                                                        ) =
-                                                            new_connection_value
-                                                                .get("data")
-                                                        {
-                                                            if data_value
-                                                                .is_array()
-                                                            {
-                                                                // If existing
-                                                                // connection
-                                                                // has data field,
-                                                                // append to it.
-                                                                if let Some(Value::Array(existing_data)) = conn_obj.get_mut("data") {
-                                                                    // Get new data messages to add.
-                                                                    if let Some(new_data) = data_value.as_array() {
-                                                                        // Append each new data.
-                                                                        for data in new_data {
-                                                                            existing_data.push(data.clone());
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    // No existing data field, add it.
-                                                                    conn_obj.insert("data".to_string(), data_value.clone());
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Update audio_frame
-                                                        // field if present in
-                                                        // new connection.
-                                                        if let Some(audio_value) = new_connection_value.get("audio_frame") {
-                                                            if audio_value.is_array() {
-                                                                // If existing connection has audio_frame field, append to it.
-                                                                if let Some(Value::Array(existing_audio)) = conn_obj.get_mut("audio_frame") {
-                                                                    // Get new audio messages to add.
-                                                                    if let Some(new_audio) = audio_value.as_array() {
-                                                                        // Append each new audio.
-                                                                        for audio in new_audio {
-                                                                            existing_audio.push(audio.clone());
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    // No existing audio_frame field, add it.
-                                                                    conn_obj.insert("audio_frame".to_string(), audio_value.clone());
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Update video_frame
-                                                        // field if present in
-                                                        // new connection.
-                                                        if let Some(video_value) = new_connection_value.get("video_frame") {
-                                                            if video_value.is_array() {
-                                                                // If existing connection has video_frame field, append to it.
-                                                                if let Some(Value::Array(existing_video)) = conn_obj.get_mut("video_frame") {
-                                                                    // Get new video messages to add.
-                                                                    if let Some(new_video) = video_value.as_array() {
-                                                                        // Append each new video.
-                                                                        for video in new_video {
-                                                                            existing_video.push(video.clone());
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    // No existing video_frame field, add it.
-                                                                    conn_obj.insert("video_frame".to_string(), video_value.clone());
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    // No existing connection,
-                                                    // add a new one.
-                                                    connections_array.push(
-                                                        new_connection_value,
-                                                    );
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // If all connections are removed, remove the
-                                // connections array.
-                                if connections_array.is_empty() {
-                                    graph_obj.remove("connections");
-                                }
-                            } else {
-                                // No connections array in the graph yet, create
-                                // one if we have connections to add.
-                                if let Some(add_connections) =
-                                    connections_to_add
-                                {
-                                    if !add_connections.is_empty() {
-                                        let mut connections_array = Vec::new();
-
-                                        // Add all new connections to the array.
-                                        for new_connection in add_connections {
-                                            if let Ok(new_connection_value) =
-                                                serde_json::to_value(
-                                                    new_connection,
-                                                )
-                                            {
-                                                connections_array
-                                                    .push(new_connection_value);
-                                            }
-                                        }
-
-                                        graph_obj.insert(
-                                            "connections".to_string(),
-                                            Value::Array(connections_array),
-                                        );
-                                    }
-                                }
-                            }
-
-                            // We've found and updated the graph, no need to
-                            // continue.
-                            break;
-                        }
-                    }
+                // Remove the connections array if it's empty.
+                if connections_array.is_empty() {
+                    graph_obj.remove("connections");
                 }
             }
+            _ => {
+                // No connections array, create one if needed.
+                create_connections_if_needed(graph_obj, connections_to_add);
+            }
+        }
+
+        return true; // Graph found and processed.
+    }
+
+    false // Graph not found.
+}
+
+/// Update existing connections array with modifications.
+fn update_existing_connections(
+    connections_array: &mut Vec<Value>,
+    connections_to_add: Option<&[GraphConnection]>,
+    connections_to_remove: Option<&[GraphConnection]>,
+    connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
+) {
+    // First, update message conversions if needed.
+    if let Some(modify_connections) = connections_to_modify_msg_conversion {
+        if !modify_connections.is_empty() {
+            update_message_conversions(connections_array, modify_connections);
         }
     }
 
-    // Write the updated property back to the file.
+    // Then remove connections if requested.
+    if let Some(remove_connections) = connections_to_remove {
+        if !remove_connections.is_empty() {
+            remove_specified_connections(connections_array, remove_connections);
+        }
+    }
+
+    // Finally add or update connections.
+    if let Some(add_connections) = connections_to_add {
+        if !add_connections.is_empty() {
+            add_or_update_connections(connections_array, add_connections);
+        }
+    }
+}
+
+/// Update message conversions for connections in the array.
+fn update_message_conversions(
+    connections_array: &mut [Value],
+    modify_connections: &[GraphConnection],
+) {
+    for connection_value in connections_array.iter_mut() {
+        let conn_obj = match connection_value {
+            Value::Object(obj) => obj,
+            _ => continue,
+        };
+
+        // Get the app and extension from the current connection.
+        let conn_app = conn_obj.get("app").and_then(|v| v.as_str());
+        let conn_extension =
+            match conn_obj.get("extension").and_then(|v| v.as_str()) {
+                Some(ext) => ext,
+                None => continue,
+            };
+
+        // Find matching connection to modify.
+        for modify_conn in modify_connections {
+            // Check if app and extension match.
+            let app_match = match (conn_app, &modify_conn.app) {
+                (None, None) => true,
+                (Some(app1), Some(app2)) => app1 == app2,
+                _ => false,
+            };
+
+            if !app_match || conn_extension != modify_conn.extension {
+                continue;
+            }
+
+            // Connection matched, update message conversions for each type.
+            update_msg_conversion_for_type(
+                conn_obj,
+                "cmd",
+                modify_conn.cmd.as_ref(),
+            );
+            update_msg_conversion_for_type(
+                conn_obj,
+                "data",
+                modify_conn.data.as_ref(),
+            );
+            update_msg_conversion_for_type(
+                conn_obj,
+                "audio_frame",
+                modify_conn.audio_frame.as_ref(),
+            );
+            update_msg_conversion_for_type(
+                conn_obj,
+                "video_frame",
+                modify_conn.video_frame.as_ref(),
+            );
+
+            break; // No need to check further modify_connections.
+        }
+    }
+}
+
+/// Remove connections that match those in the remove list.
+fn remove_specified_connections(
+    connections_array: &mut Vec<Value>,
+    remove_connections: &[GraphConnection],
+) {
+    // Convert connections to remove into comparable form.
+    let connections_to_remove_serialized: Vec<String> = remove_connections
+        .iter()
+        .filter_map(|conn| {
+            let conn_value = serde_json::to_value(conn).ok()?;
+            serde_json::to_string(&conn_value).ok()
+        })
+        .collect();
+
+    // Filter out connections to remove.
+    connections_array.retain(|item| {
+        if let Ok(item_str) = serde_json::to_string(item) {
+            !connections_to_remove_serialized.contains(&item_str)
+        } else {
+            // Keep items that can't be serialized.
+            true
+        }
+    });
+}
+
+/// Add new connections or update existing ones.
+fn add_or_update_connections(
+    connections_array: &mut Vec<Value>,
+    add_connections: &[GraphConnection],
+) {
+    for new_connection in add_connections {
+        let new_connection_value = match serde_json::to_value(new_connection) {
+            Ok(value) => value,
+            Err(_) => continue,
+        };
+
+        // Get app and extension values.
+        let app_value = new_connection_value.get("app").cloned();
+        let extension_value = new_connection_value.get("extension").cloned();
+
+        // Find existing connection index.
+        let existing_idx = connections_array.iter().position(|conn| {
+            let conn_app = conn.get("app");
+            let conn_ext = conn.get("extension");
+
+            // Match by app and extension.
+            (app_value.is_none() && conn_app.is_none()
+                || app_value.as_ref() == conn_app)
+                && (extension_value.as_ref() == conn_ext)
+        });
+
+        if let Some(idx) = existing_idx {
+            // Update existing connection.
+            if let Some(Value::Object(conn_obj)) =
+                connections_array.get_mut(idx)
+            {
+                update_connection_fields(conn_obj, &new_connection_value);
+            }
+        } else {
+            // Add new connection.
+            connections_array.push(new_connection_value);
+        }
+    }
+}
+
+/// Update fields in an existing connection object.
+fn update_connection_fields(
+    conn_obj: &mut serde_json::Map<String, Value>,
+    new_connection_value: &Value,
+) {
+    // Update message type arrays: cmd, data, audio_frame, video_frame.
+    update_message_field(conn_obj, new_connection_value, "cmd");
+    update_message_field(conn_obj, new_connection_value, "data");
+    update_message_field(conn_obj, new_connection_value, "audio_frame");
+    update_message_field(conn_obj, new_connection_value, "video_frame");
+}
+
+/// Update a specific message field in a connection.
+fn update_message_field(
+    conn_obj: &mut serde_json::Map<String, Value>,
+    new_connection_value: &Value,
+    field_name: &str,
+) {
+    // Check if the field exists in the new connection.
+    let field_value = match new_connection_value.get(field_name) {
+        Some(value) if value.is_array() => value,
+        _ => return, // Skip if not present or not an array.
+    };
+
+    match conn_obj.get_mut(field_name) {
+        Some(Value::Array(existing_field)) => {
+            // Append to existing field array.
+            if let Some(new_messages) = field_value.as_array() {
+                for msg in new_messages {
+                    existing_field.push(msg.clone());
+                }
+            }
+        }
+        _ => {
+            // No existing field, add it.
+            conn_obj.insert(field_name.to_string(), field_value.clone());
+        }
+    }
+}
+
+/// Create a new connections array if needed.
+fn create_connections_if_needed(
+    graph_obj: &mut serde_json::Map<String, Value>,
+    connections_to_add: Option<&[GraphConnection]>,
+) {
+    // Only create if we have connections to add.
+    if let Some(add_connections) = connections_to_add {
+        if add_connections.is_empty() {
+            return;
+        }
+
+        let mut connections_array = Vec::new();
+
+        // Add all new connections to the array.
+        for new_connection in add_connections {
+            if let Ok(new_connection_value) =
+                serde_json::to_value(new_connection)
+            {
+                connections_array.push(new_connection_value);
+            }
+        }
+
+        if !connections_array.is_empty() {
+            graph_obj.insert(
+                "connections".to_string(),
+                Value::Array(connections_array),
+            );
+        }
+    }
+}
+
+/// Write the property file back to disk.
+fn write_property_file(
+    pkg_url: &str,
+    property_all_fields: &serde_json::Map<String, Value>,
+) -> Result<()> {
     let property_path = Path::new(pkg_url).join(PROPERTY_JSON_FILENAME);
     let property_file = OpenOptions::new()
         .write(true)
@@ -376,97 +360,101 @@ fn update_msg_conversion_for_type(
     msg_type: &str,
     flows: Option<&Vec<GraphMessageFlow>>,
 ) {
-    if let Some(flows) = flows {
-        if let Some(Value::Array(conn_flows)) = conn_obj.get_mut(msg_type) {
-            // Iterate through each flow in the connection.
-            for conn_flow in conn_flows.iter_mut() {
-                if let Value::Object(conn_flow_obj) = conn_flow {
-                    if let Some(Value::String(flow_name)) =
-                        conn_flow_obj.get("name")
+    // Return early if there are no flows to process.
+    let flows = match flows {
+        Some(flows) => flows,
+        None => return,
+    };
+
+    // Get the message type array if it exists.
+    let conn_flows = match conn_obj.get_mut(msg_type) {
+        Some(Value::Array(flows)) => flows,
+        _ => return,
+    };
+
+    // Process each flow in the connection.
+    for conn_flow in conn_flows.iter_mut() {
+        let conn_flow_obj = match conn_flow {
+            Value::Object(obj) => obj,
+            _ => continue,
+        };
+
+        let flow_name = match conn_flow_obj.get("name") {
+            Some(Value::String(name)) => name,
+            _ => continue,
+        };
+
+        // Find the matching flow in the modify connection.
+        let modify_flow = match flows.iter().find(|f| &f.name == flow_name) {
+            Some(flow) => flow,
+            None => continue,
+        };
+
+        // Get destinations array if it exists.
+        let conn_dests = match conn_flow_obj.get_mut("dest") {
+            Some(Value::Array(dests)) => dests,
+            _ => continue,
+        };
+
+        update_destinations(conn_dests, modify_flow);
+    }
+}
+
+/// Update message conversion in destinations.
+fn update_destinations(
+    conn_dests: &mut [Value],
+    modify_flow: &GraphMessageFlow,
+) {
+    for conn_dest in conn_dests.iter_mut() {
+        let conn_dest_obj = match conn_dest {
+            Value::Object(obj) => obj,
+            _ => continue,
+        };
+
+        // Get destination extension and app.
+        let dest_ext =
+            match conn_dest_obj.get("extension").and_then(|v| v.as_str()) {
+                Some(ext) => ext,
+                None => continue,
+            };
+        let dest_app = conn_dest_obj.get("app").and_then(|v| v.as_str());
+
+        // Find matching destination in the modify flow.
+        for modify_dest in &modify_flow.dest {
+            // Check if app and extension match.
+            let app_match = match (dest_app, &modify_dest.app) {
+                (None, None) => true,
+                (Some(app1), Some(app2)) => app1 == app2,
+                _ => false,
+            };
+
+            if !app_match || dest_ext != modify_dest.extension {
+                continue;
+            }
+
+            // Update message conversion.
+            match &modify_dest.msg_conversion {
+                Some(msg_conversion) => {
+                    // Convert msg_conversion to JSON value and insert.
+                    if let Ok(conversion_value) =
+                        serde_json::to_value(msg_conversion)
                     {
-                        // Find the corresponding flow in the modify connection.
-                        for modify_flow in flows {
-                            if &modify_flow.name == flow_name {
-                                // Found matching flow, update destinations.
-                                if let Some(Value::Array(conn_dests)) =
-                                    conn_flow_obj.get_mut("dest")
-                                {
-                                    for conn_dest in conn_dests.iter_mut() {
-                                        if let Value::Object(conn_dest_obj) =
-                                            conn_dest
-                                        {
-                                            // Get the destination extension and
-                                            // app.
-                                            let dest_ext = conn_dest_obj
-                                                .get("extension")
-                                                .and_then(|v| v.as_str());
-                                            let dest_app = conn_dest_obj
-                                                .get("app")
-                                                .and_then(|v| v.as_str());
-
-                                            if let Some(dest_ext) = dest_ext {
-                                                // Find matching destination in
-                                                // the modify flow.
-                                                for modify_dest in
-                                                    &modify_flow.dest
-                                                {
-                                                    let app_match = match (
-                                                        dest_app,
-                                                        &modify_dest.app,
-                                                    ) {
-                                                        (None, None) => true,
-                                                        (
-                                                            Some(app1),
-                                                            Some(app2),
-                                                        ) => app1 == app2,
-                                                        _ => false,
-                                                    };
-
-                                                    if app_match
-                                                        && dest_ext
-                                                            == modify_dest
-                                                                .extension
-                                                    {
-                                                        // Update msg_conversion
-                                                        // if provided in the
-                                                        // modify destination.
-                                                        if let Some(
-                                                            msg_conversion,
-                                                        ) = &modify_dest
-                                                            .msg_conversion
-                                                        {
-                                                            // Convert the
-                                                            // msg_conversion to
-                                                            // a JSON value.
-                                                            if let Ok(conversion_value) = serde_json::to_value(msg_conversion) {
-                                                                conn_dest_obj.insert("msg_conversion".to_string(), conversion_value);
-                                                            }
-                                                        } else {
-                                                            // If msg_conversion
-                                                            // is None in the
-                                                            // modify destination,
-                                                            // remove it.
-                                                            conn_dest_obj.remove("msg_conversion");
-                                                        }
-
-                                                        // Found matching
-                                                        // destination,
-                                                        // no need to check
-                                                        // more.
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                // Found matching flow, no need to check more.
-                                break;
-                            }
-                        }
+                        conn_dest_obj.insert(
+                            "msg_conversion".to_string(),
+                            conversion_value,
+                        );
                     }
                 }
+                None => {
+                    // Remove msg_conversion if it's None in the modify
+                    // destination.
+                    conn_dest_obj.remove("msg_conversion");
+                }
             }
+
+            // Found matching destination, no need to check more
+            // modify_destinations.
+            break;
         }
     }
 }

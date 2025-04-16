@@ -13,6 +13,7 @@ use ten_rust::{
     graph::{msg_conversion::MsgAndResultConversion, Graph},
     pkg_info::{
         get_pkg_info_for_extension_addon,
+        manifest::api::ManifestApiPropertyAttributes,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,
@@ -20,7 +21,7 @@ use ten_rust::{
     schema::store::{
         are_msg_schemas_compatible, are_ten_schemas_compatible,
         create_c_schema_from_properties_and_required,
-        find_msg_schema_from_all_pkgs_info, TenMsgSchema,
+        find_c_msg_schema_from_pkg_info, TenMsgSchema,
     },
 };
 
@@ -41,21 +42,74 @@ pub struct MsgConversionValidateInfo<'a> {
     pub msg_conversion: &'a Option<MsgAndResultConversion>,
 }
 
-fn validate_msg_conversion_schema(
-    graph: &mut Graph,
+#[allow(clippy::too_many_arguments)]
+fn validate_msg_conversion_c_schema_oneway(
     graph_app_base_dir: &Option<String>,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+    compared_schema_properties: &Option<
+        HashMap<String, ManifestApiPropertyAttributes>,
+    >,
+    compared_schema_required: &Option<Vec<String>>,
+    target_app: &Option<String>,
+    target_extension_addon: &String,
+    target_msg_name: &str,
+    msg_direction: MsgDirection,
+) -> Result<()> {
+    if let Ok(compared_c_schema) = create_c_schema_from_properties_and_required(
+        compared_schema_properties,
+        compared_schema_required,
+    ) {
+        if let Some(target_extension_pkg_info) =
+            get_pkg_info_for_extension_addon(
+                pkgs_cache,
+                uri_to_pkg_info,
+                graph_app_base_dir,
+                target_app,
+                target_extension_addon,
+            )
+        {
+            if let Some(target_c_msg_schema) = find_c_msg_schema_from_pkg_info(
+                target_extension_pkg_info,
+                msg_conversion_validate_info.msg_type,
+                target_msg_name,
+                &msg_direction,
+            ) {
+                let target_c_schema = if msg_direction == MsgDirection::In {
+                    target_c_msg_schema.msg.as_ref()
+                } else {
+                    target_c_msg_schema.result.as_ref()
+                };
+
+                are_ten_schemas_compatible(
+                    compared_c_schema.as_ref(),
+                    target_c_schema,
+                    true,
+                    true,
+                )?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_msg_conversion_schema(
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    graph: &mut Graph,
+    graph_app_base_dir: &Option<String>,
+    msg_conversion_validate_info: &MsgConversionValidateInfo,
 ) -> Result<()> {
     assert!(msg_conversion_validate_info.msg_conversion.is_some());
 
-    let src_extension_addon = graph.get_addon_name_of_extension(
+    let src_extension_addon_name = graph.get_addon_name_of_extension(
         msg_conversion_validate_info.src_app,
         msg_conversion_validate_info.src_extension,
     )?;
 
-    let dest_extension_addon = graph.get_addon_name_of_extension(
+    let dest_extension_addon_name = graph.get_addon_name_of_extension(
         msg_conversion_validate_info.dest_app,
         msg_conversion_validate_info.dest_extension,
     )?;
@@ -77,9 +131,9 @@ fn validate_msg_conversion_schema(
             graph_app_base_dir,
             pkgs_cache,
             msg_conversion_validate_info.src_app,
-            src_extension_addon,
+            src_extension_addon_name,
             msg_conversion_validate_info.dest_app,
-            dest_extension_addon,
+            dest_extension_addon_name,
             msg_conversion_validate_info.msg_type,
             msg_conversion_validate_info.msg_name,
             &dest_msg_name,
@@ -90,104 +144,65 @@ fn validate_msg_conversion_schema(
                 .unwrap(),
         )?;
 
-    eprintln!(
-        "msg_conversion converted_schema: {}",
-        serde_json::to_string_pretty(&converted_schema).unwrap()
-    );
-
-    eprintln!(
-        "msg_conversion converted_result_schema: {}",
-        serde_json::to_string_pretty(&converted_result_schema).unwrap()
-    );
-
-    if let Ok(converted_ten_msg_schema) =
-        create_c_schema_from_properties_and_required(
-            &converted_schema.property,
-            &converted_schema.required,
-        )
+    #[cfg(test)]
     {
-        let dest_extension_addon = graph.get_addon_name_of_extension(
-            msg_conversion_validate_info.dest_app,
-            msg_conversion_validate_info.dest_extension,
-        )?;
+        eprintln!(
+            "msg_conversion converted_schema: {}",
+            serde_json::to_string_pretty(&converted_schema).unwrap()
+        );
 
-        if let Some(dest_extension_pkg_info) = get_pkg_info_for_extension_addon(
-            msg_conversion_validate_info.dest_app,
-            dest_extension_addon,
-            uri_to_pkg_info,
-            graph_app_base_dir,
-            pkgs_cache,
-        ) {
-            if let Some(dest_ten_msg_schema) =
-                find_msg_schema_from_all_pkgs_info(
-                    dest_extension_pkg_info,
-                    msg_conversion_validate_info.msg_type,
-                    &converted_schema.name,
-                    MsgDirection::In,
-                )
-            {
-                are_ten_schemas_compatible(
-                    converted_ten_msg_schema.as_ref(),
-                    dest_ten_msg_schema.msg.as_ref(),
-                    true,
-                    true,
-                )?;
-            }
-        }
+        eprintln!(
+            "msg_conversion converted_result_schema: {}",
+            serde_json::to_string_pretty(&converted_result_schema).unwrap()
+        );
     }
 
-    if let Some(converted_ten_result_schema) = converted_result_schema {
-        if let Ok(converted_ten_result_schema) =
-            create_c_schema_from_properties_and_required(
-                &converted_ten_result_schema.property,
-                &converted_ten_result_schema.required,
-            )
-        {
-            if let Some(src_extension_pkg_info) =
-                get_pkg_info_for_extension_addon(
-                    msg_conversion_validate_info.src_app,
-                    src_extension_addon,
-                    uri_to_pkg_info,
-                    graph_app_base_dir,
-                    pkgs_cache,
-                )
-            {
-                if let Some(src_ten_msg_schema) =
-                    find_msg_schema_from_all_pkgs_info(
-                        src_extension_pkg_info,
-                        msg_conversion_validate_info.msg_type,
-                        msg_conversion_validate_info.msg_name,
-                        MsgDirection::Out,
-                    )
-                {
-                    are_ten_schemas_compatible(
-                        converted_ten_result_schema.as_ref(),
-                        src_ten_msg_schema.result.as_ref(),
-                        true,
-                        true,
-                    )?;
-                }
-            }
-        }
+    validate_msg_conversion_c_schema_oneway(
+        graph_app_base_dir,
+        msg_conversion_validate_info,
+        uri_to_pkg_info,
+        pkgs_cache,
+        &converted_schema.property,
+        &converted_schema.required,
+        msg_conversion_validate_info.dest_app,
+        dest_extension_addon_name,
+        &converted_schema.name,
+        MsgDirection::In,
+    )?;
+
+    if let Some(converted_result_schema) = converted_result_schema {
+        validate_msg_conversion_c_schema_oneway(
+            graph_app_base_dir,
+            msg_conversion_validate_info,
+            uri_to_pkg_info,
+            pkgs_cache,
+            &converted_result_schema.property,
+            &converted_result_schema.required,
+            msg_conversion_validate_info.src_app,
+            src_extension_addon_name,
+            msg_conversion_validate_info.msg_name,
+            MsgDirection::Out,
+        )?;
     } else {
         // No result conversion, so directly check if the original source result
         // schema and destination result schema are compatible.
-        let (src_schema, dest_schema, error_message) = get_src_and_dest_schema(
-            graph,
-            msg_conversion_validate_info,
-            uri_to_pkg_info,
-        )?;
+        let (src_c_msg_schema, dest_c_msg_schema, error_message) =
+            get_src_and_dest_c_msg_schema(
+                uri_to_pkg_info,
+                graph,
+                msg_conversion_validate_info,
+            )?;
 
-        if src_schema.is_none() || dest_schema.is_none() {
+        if src_c_msg_schema.is_none() || dest_c_msg_schema.is_none() {
             return Ok(());
         }
 
-        let src_schema = src_schema.unwrap();
-        let dest_schema = dest_schema.unwrap();
+        let src_c_msg_schema = src_c_msg_schema.unwrap();
+        let dest_c_msg_schema = dest_c_msg_schema.unwrap();
 
         if let Err(err) = are_ten_schemas_compatible(
-            src_schema.result.as_ref(),
-            dest_schema.result.as_ref(),
+            src_c_msg_schema.result.as_ref(),
+            dest_c_msg_schema.result.as_ref(),
             true,
             true,
         ) {
@@ -203,9 +218,9 @@ fn validate_msg_conversion_schema(
 fn find_pkg_infos<'a>(
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     src_app: &Option<String>,
-    src_extension_addon: &str,
+    src_extension_addon_name: &str,
     dest_app: &Option<String>,
-    dest_extension_addon: &str,
+    dest_extension_addon_name: &str,
 ) -> Result<PkgInfoTuple<'a>> {
     // Helper function to find extension package info.
     let find_extension_pkg = |app_uri: &Option<String>,
@@ -225,51 +240,57 @@ fn find_pkg_infos<'a>(
             }
 
             // Find extension in extension_pkg_info.
-            if let Some(extensions) =
+            if let Some(extension_pkgs_info) =
                 &base_dir_pkg_info.pkgs_info_in_app.extension_pkgs_info
             {
-                let found_pkg = extensions.iter().find(|pkg| {
-                    pkg.manifest.type_and_name.pkg_type == PkgType::Extension
-                        && pkg.manifest.type_and_name.name == extension_name
-                });
+                let found_extension_pkg_info =
+                    extension_pkgs_info.iter().find(|pkg| {
+                        assert!(
+                            pkg.manifest.type_and_name.pkg_type
+                                == PkgType::Extension
+                        );
 
-                if found_pkg.is_none() {
+                        pkg.manifest.type_and_name.name == extension_name
+                    });
+
+                if found_extension_pkg_info.is_none() {
                     return Err(anyhow::anyhow!(
                               "{} extension '{}' not found in the installed packages for app '{:?}'",
                               entity_type, extension_name, app_uri
                           ));
                 }
 
-                return Ok(found_pkg);
+                return Ok(found_extension_pkg_info);
             }
+
+            // If we reach here, no package was found.
+            Err(anyhow::anyhow!(
+                "{} extension '{}' not found in the installed packages for app '{:?}'",
+                entity_type, extension_name, app_uri
+            ))
         } else {
-            return Err(anyhow::anyhow!(
+            Err(anyhow::anyhow!(
                 "{} app '{:?}' not found in the installed packages",
                 entity_type,
                 app_uri
-            ));
+            ))
         }
-
-        // If we reach here, no package was found.
-        Err(anyhow::anyhow!(
-              "{} extension '{}' not found in the installed packages for app '{:?}'",
-              entity_type, extension_name, app_uri
-          ))
     };
 
     // Find both source and destination package info.
     let src_extension_pkg_info =
-        find_extension_pkg(src_app, src_extension_addon, true)?;
+        find_extension_pkg(src_app, src_extension_addon_name, true)?;
+
     let dest_extension_pkg_info =
-        find_extension_pkg(dest_app, dest_extension_addon, false)?;
+        find_extension_pkg(dest_app, dest_extension_addon_name, false)?;
 
     Ok((src_extension_pkg_info, dest_extension_pkg_info))
 }
 
-fn get_src_and_dest_schema<'a>(
+fn get_src_and_dest_c_msg_schema<'a>(
+    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
 ) -> Result<(
     Option<&'a TenMsgSchema>,
     Option<&'a TenMsgSchema>,
@@ -378,27 +399,30 @@ fn get_src_and_dest_schema<'a>(
     Ok((src_schema, dest_schema, Some(error_message.to_string())))
 }
 
-/// Checks schema compatibility between source and destination based on
-/// message type.
+/// Checks schema compatibility between source and destination.
 fn check_schema_compatibility(
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
 ) -> Result<()> {
-    let (src_schema, dest_schema, error_message) = get_src_and_dest_schema(
-        graph,
-        msg_conversion_validate_info,
-        uri_to_pkg_info,
-    )?;
+    let (src_c_msg_schema, dest_c_msg_schema, error_message) =
+        get_src_and_dest_c_msg_schema(
+            uri_to_pkg_info,
+            graph,
+            msg_conversion_validate_info,
+        )?;
 
-    if src_schema.is_none() || dest_schema.is_none() {
+    if src_c_msg_schema.is_none() || dest_c_msg_schema.is_none() {
         return Ok(());
     }
 
     // Check schema compatibility.
-    if let Err(err) =
-        are_msg_schemas_compatible(src_schema, dest_schema, true, true)
-    {
+    if let Err(err) = are_msg_schemas_compatible(
+        src_c_msg_schema,
+        dest_c_msg_schema,
+        true,
+        true,
+    ) {
         assert!(error_message.is_some());
         return Err(anyhow::anyhow!("{}: {}", error_message.unwrap(), err));
     }
@@ -407,26 +431,27 @@ fn check_schema_compatibility(
 }
 
 pub fn validate_connection_schema(
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
+    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph: &mut Graph,
     graph_app_base_dir: &Option<String>,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
-    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
 ) -> Result<()> {
     if msg_conversion_validate_info.msg_conversion.is_some() {
         validate_msg_conversion_schema(
+            pkgs_cache,
+            uri_to_pkg_info,
             graph,
             graph_app_base_dir,
             msg_conversion_validate_info,
-            uri_to_pkg_info,
-            pkgs_cache,
         )?;
     } else {
         check_schema_compatibility(
+            uri_to_pkg_info,
             graph,
             msg_conversion_validate_info,
-            uri_to_pkg_info,
         )?;
     }
+
     Ok(())
 }

@@ -151,11 +151,11 @@ pub async fn get_graph_nodes_endpoint(
 
     for extension_graph_node in extension_graph_nodes {
         let pkg_info = get_pkg_info_for_extension_addon(
-            &extension_graph_node.app,
-            &extension_graph_node.addon,
+            pkgs_cache,
             &uri_to_pkg_info,
             app_base_dir_of_graph,
-            pkgs_cache,
+            &extension_graph_node.app,
+            &extension_graph_node.addon,
         );
         if let Some(pkg_info) = pkg_info {
             resp_extensions.push(GraphNodesSingleResponseData {
