@@ -650,27 +650,23 @@ mod tests {
                 include_str!("test_data_embed/app_property.json").to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
                 include_str!("test_data_embed/ext_1_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_2"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon2"),
                 include_str!("test_data_embed/ext_2_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_3"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
                 include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                "{}".to_string(),
+            ),
+            (
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
+                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -703,6 +699,11 @@ mod tests {
                 create_test_node(
                     "ext3",
                     "addon3",
+                    Some("http://localhost:8000"),
+                ),
+                create_test_node(
+                    "ext4",
+                    "addon4",
                     Some("http://localhost:8000"),
                 ),
             ],
@@ -756,6 +757,27 @@ mod tests {
             None,
         );
         assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("schema incompatibility"));
+
+        // Test connecting ext1 to ext4 with incompatible schema - should fail.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://localhost:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd1".to_string(),
+            Some("http://localhost:8000".to_string()),
+            "ext4".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            None,
+        );
+        assert!(result.is_err());
+        println!("result: {:?}", result);
         assert!(result
             .unwrap_err()
             .to_string()
