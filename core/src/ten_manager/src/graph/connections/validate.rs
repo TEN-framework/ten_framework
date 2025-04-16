@@ -65,26 +65,34 @@ fn validate_msg_conversion_schema(
                 .unwrap(),
         )?;
 
-    let converted_schema = msg_conversion_get_final_target_schema(
-        uri_to_pkg_info,
-        graph_app_base_dir,
-        pkgs_cache,
-        msg_conversion_validate_info.src_app,
-        src_extension_addon,
-        msg_conversion_validate_info.msg_type,
-        msg_conversion_validate_info.msg_name,
-        &dest_msg_name,
-        ten_name_rule_index,
-        msg_conversion_validate_info
-            .msg_conversion
-            .as_ref()
-            .unwrap(),
-    )?;
+    let (converted_schema, converted_result_schema) =
+        msg_conversion_get_final_target_schema(
+            uri_to_pkg_info,
+            graph_app_base_dir,
+            pkgs_cache,
+            msg_conversion_validate_info.src_app,
+            src_extension_addon,
+            msg_conversion_validate_info.msg_type,
+            msg_conversion_validate_info.msg_name,
+            &dest_msg_name,
+            ten_name_rule_index,
+            msg_conversion_validate_info
+                .msg_conversion
+                .as_ref()
+                .unwrap(),
+        )?;
 
     eprintln!(
         "msg_conversion converted_schema: {}",
         serde_json::to_string_pretty(&converted_schema).unwrap()
     );
+
+    eprintln!(
+        "msg_conversion converted_result_schema: {}",
+        serde_json::to_string_pretty(&converted_result_schema).unwrap()
+    );
+
+    // =-=-=
 
     if let Ok(Some(src_ten_msg_schema)) =
         create_msg_schema_from_manifest(&converted_schema)
