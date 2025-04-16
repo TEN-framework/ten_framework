@@ -25,6 +25,7 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_runtime/addon/addon_manager.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -425,11 +426,12 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
-  ten_app_t *app = ten_env_get_belonging_app(ten_env);
+  ten_app_t *app =
+      ten_addon_manager_get_belonging_app(ten_addon_manager_get_instance());
   TEN_ASSERT(app, "Should not happen.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function could be called from the engine thread or the
-  // extension thread.
+  // extension thread or other app threads.
   TEN_ASSERT(ten_app_check_integrity(app, false), "Should not happen.");
 
   // Check if the current thread is the app thread. If not, we need to post a
@@ -439,8 +441,9 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     ten_app_create_addon_instance(app, addon_context);
   } else {
     // Post a task to the app thread to perform the following operations.
-    int rc = ten_runloop_post_task_tail(
-        app->loop, ten_app_create_addon_instance_task, app, addon_context);
+    int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
+                                        ten_app_create_addon_instance_task, app,
+                                        addon_context);
     TEN_ASSERT(!rc, "Should not happen.");
   }
 

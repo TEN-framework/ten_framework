@@ -300,7 +300,15 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
 
   case TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL: {
     ten_app_t *app = addon_context->flow_target.app;
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(
+        app && ten_app_check_integrity(
+                   app,
+                   // TEN_NOLINTNEXTLINE(thread-check)
+                   // thread-check: We are probably on another app thread
+                   // (ex: fake_app thread), and the target app is not closed
+                   // at this time so it is safe to access the app instance.
+                   false),
+        "Should not happen.");
 
     ten_app_thread_on_addon_create_protocol_done_ctx_t *ctx =
         ten_app_thread_on_addon_create_protocol_done_ctx_create();
