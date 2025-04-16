@@ -15,6 +15,9 @@
           "property": {
             "detail": {
               "type": "bool"
+            },
+            "string_detail": {
+              "type": "string"
             }
           },
           "required": [

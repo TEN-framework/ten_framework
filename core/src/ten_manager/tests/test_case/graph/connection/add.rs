@@ -791,7 +791,7 @@ mod tests {
             .to_string()
             .contains("schema incompatibility"));
 
-        // Test connecting ext1 to ext4 with incompatible schema - should fail.
+        // Test connecting ext1 to ext4 with compatible schema.
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
@@ -805,8 +805,24 @@ mod tests {
             &pkgs_cache,
             None,
         );
-        assert!(result.is_err());
+        assert!(result.is_ok());
+
+        // Test connecting ext1 to ext4 with incompatible schema - should fail.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://localhost:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd2".to_string(),
+            Some("http://localhost:8000".to_string()),
+            "ext4".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            None,
+        );
         println!("result: {:?}", result);
+        assert!(result.is_err());
         assert!(result
             .unwrap_err()
             .to_string()

@@ -18,7 +18,8 @@ use ten_rust::{
         PkgInfo,
     },
     schema::store::{
-        are_msg_schemas_compatible, create_msg_schema_from_manifest,
+        are_msg_schemas_compatible, are_ten_schemas_compatible,
+        create_c_schema_from_properties_and_required,
         find_msg_schema_from_all_pkgs_info,
     },
 };
@@ -54,6 +55,11 @@ fn validate_msg_conversion_schema(
         msg_conversion_validate_info.src_extension,
     )?;
 
+    let dest_extension_addon = graph.get_addon_name_of_extension(
+        msg_conversion_validate_info.dest_app,
+        msg_conversion_validate_info.dest_extension,
+    )?;
+
     // Default to using `src_msg_name` as the `dest_msg_name`, but check if
     // there's a special rule for `_ten.name` to determine the `dest_msg_name`.
     let (dest_msg_name, ten_name_rule_index) =
@@ -72,6 +78,8 @@ fn validate_msg_conversion_schema(
             pkgs_cache,
             msg_conversion_validate_info.src_app,
             src_extension_addon,
+            msg_conversion_validate_info.dest_app,
+            dest_extension_addon,
             msg_conversion_validate_info.msg_type,
             msg_conversion_validate_info.msg_name,
             &dest_msg_name,
@@ -92,10 +100,11 @@ fn validate_msg_conversion_schema(
         serde_json::to_string_pretty(&converted_result_schema).unwrap()
     );
 
-    // =-=-=
-
-    if let Ok(Some(src_ten_msg_schema)) =
-        create_msg_schema_from_manifest(&converted_schema)
+    if let Ok(converted_ten_msg_schema) =
+        create_c_schema_from_properties_and_required(
+            &converted_schema.property,
+            &converted_schema.required,
+        )
     {
         let dest_extension_addon = graph.get_addon_name_of_extension(
             msg_conversion_validate_info.dest_app,
@@ -117,9 +126,9 @@ fn validate_msg_conversion_schema(
                     MsgDirection::In,
                 )
             {
-                are_msg_schemas_compatible(
-                    Some(&src_ten_msg_schema),
-                    Some(dest_ten_msg_schema),
+                are_ten_schemas_compatible(
+                    converted_ten_msg_schema.as_ref(),
+                    dest_ten_msg_schema.msg.as_ref(),
                     false,
                     false,
                 )?;

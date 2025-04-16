@@ -18,7 +18,7 @@ use ten_rust::{
         manifest::api::{
             ManifestApiCmdResult, ManifestApiMsg, ManifestApiPropertyAttributes,
         },
-        message::MsgType,
+        message::{MsgDirection, MsgType},
         value_type::ValueType,
     },
 };
@@ -394,12 +394,61 @@ fn convert_rules_to_schema_properties(
 }
 
 #[allow(clippy::too_many_arguments)]
+fn get_msg_schema<'a>(
+    graph_app_base_dir: &Option<String>,
+    app: &Option<String>,
+    extension_addon: &String,
+    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
+    msg_direction: &MsgDirection,
+    msg_type: &MsgType,
+    msg_name: &str,
+) -> Result<Option<&'a ManifestApiMsg>> {
+    let msg_schema = if let Some(extension_pkg_info) =
+        get_pkg_info_for_extension_addon(
+            app,
+            extension_addon,
+            uri_to_pkg_info,
+            graph_app_base_dir,
+            pkgs_cache,
+        ) {
+        extension_pkg_info
+            .manifest
+            .api
+            .as_ref()
+            .and_then(|api| match msg_direction {
+                MsgDirection::Out => match msg_type {
+                    MsgType::Cmd => api.cmd_out.as_ref(),
+                    MsgType::Data => api.data_out.as_ref(),
+                    MsgType::AudioFrame => api.audio_frame_out.as_ref(),
+                    MsgType::VideoFrame => api.video_frame_out.as_ref(),
+                },
+                MsgDirection::In => match msg_type {
+                    MsgType::Cmd => api.cmd_in.as_ref(),
+                    MsgType::Data => api.data_in.as_ref(),
+                    MsgType::AudioFrame => api.audio_frame_in.as_ref(),
+                    MsgType::VideoFrame => api.video_frame_in.as_ref(),
+                },
+            })
+            .and_then(|msg_out| {
+                msg_out.iter().find(|msg| msg.name == *msg_name)
+            })
+    } else {
+        None
+    };
+
+    Ok(msg_schema)
+}
+
+#[allow(clippy::too_many_arguments)]
 pub fn msg_conversion_get_final_target_schema(
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph_app_base_dir: &Option<String>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     src_app: &Option<String>,
     src_extension_addon: &String,
+    dest_app: &Option<String>,
+    dest_extension_addon: &String,
     msg_type: &MsgType,
     src_msg_name: &str,
     dest_msg_name: &str,
@@ -407,30 +456,21 @@ pub fn msg_conversion_get_final_target_schema(
     msg_conversion: &MsgAndResultConversion,
 ) -> Result<(ManifestApiMsg, Option<ManifestApiCmdResult>)> {
     // Get the source message schema.
-    let src_msg_schema = if let Some(src_extension_pkg_info) =
-        get_pkg_info_for_extension_addon(
-            src_app,
-            src_extension_addon,
-            uri_to_pkg_info,
-            graph_app_base_dir,
-            pkgs_cache,
-        ) {
-        src_extension_pkg_info
-            .manifest
-            .api
-            .as_ref()
-            .and_then(|api| match msg_type {
-                MsgType::Cmd => api.cmd_out.as_ref(),
-                MsgType::Data => api.data_out.as_ref(),
-                MsgType::AudioFrame => api.audio_frame_out.as_ref(),
-                MsgType::VideoFrame => api.video_frame_out.as_ref(),
-            })
-            .and_then(|msg_out| {
-                msg_out.iter().find(|msg| msg.name == *src_msg_name)
-            })
-    } else {
-        None
-    };
+    let src_msg_schema = get_msg_schema(
+        graph_app_base_dir,
+        src_app,
+        src_extension_addon,
+        uri_to_pkg_info,
+        pkgs_cache,
+        &MsgDirection::Out,
+        msg_type,
+        src_msg_name,
+    )?;
+
+    eprintln!(
+        "src_msg_schema: {}",
+        serde_json::to_string_pretty(&src_msg_schema).unwrap()
+    );
 
     // Create a new message schema to store the converted properties.
     let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
@@ -503,10 +543,26 @@ pub fn msg_conversion_get_final_target_schema(
                 Some(HashMap::new());
         }
 
+        let dest_msg_schema = get_msg_schema(
+            graph_app_base_dir,
+            dest_app,
+            dest_extension_addon,
+            uri_to_pkg_info,
+            pkgs_cache,
+            &MsgDirection::In,
+            msg_type,
+            dest_msg_name,
+        )?;
+
+        eprintln!(
+            "dest_msg_schema: {}",
+            serde_json::to_string_pretty(&dest_msg_schema).unwrap(),
+        );
+
         convert_rules_to_schema_properties(
             &result_conversion.rules.rules,
             None,
-            src_msg_schema
+            dest_msg_schema
                 .as_ref()
                 .and_then(|schema| schema.result.as_ref())
                 .and_then(|result| result.property.as_ref()),

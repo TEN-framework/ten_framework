@@ -182,7 +182,7 @@ fn parse_msgs_schema_from_manifest(
 ) -> Result<()> {
     for manifest_msg in manifest_msgs {
         let msg_name = manifest_msg.name.clone();
-        let msg_schema = create_msg_schema_from_manifest(manifest_msg)?;
+        let msg_schema = create_c_schema_from_manifest_api(manifest_msg)?;
         if let Some(schema) = msg_schema {
             let present = target_map.insert(msg_name.clone(), schema);
             if present.is_some() {
@@ -217,58 +217,65 @@ fn parse_msgs_schema_from_manifest(
 //   },
 //   "required": []
 // }
-fn create_property_schema(
+pub fn create_c_schema_from_properties_and_required(
     property: &Option<HashMap<String, ManifestApiPropertyAttributes>>,
     required: &Option<Vec<String>>,
-) -> Result<TenSchema> {
-    let mut property_json_value = serde_json::json!({});
-    let property_json_object = property_json_value.as_object_mut().unwrap();
+) -> Result<Option<TenSchema>> {
+    if property.is_none() && required.is_none() {
+        Ok(None)
+    } else {
+        let mut property_json_value = serde_json::json!({});
+        let property_json_object = property_json_value.as_object_mut().unwrap();
 
-    if let Some(prop_map) = property {
-        prop_map.iter().for_each(|(key, attr)| {
-            property_json_object
-                .insert(key.clone(), serde_json::to_value(attr).unwrap());
-        });
+        if let Some(prop_map) = property {
+            prop_map.iter().for_each(|(key, attr)| {
+                property_json_object
+                    .insert(key.clone(), serde_json::to_value(attr).unwrap());
+            });
+        }
+
+        let mut property_schema_value: serde_json::Value =
+            serde_json::json!({"type": "object"});
+        let property_schema_object =
+            property_schema_value.as_object_mut().unwrap();
+        property_schema_object.insert(
+            "properties".to_string(),
+            serde_json::to_value(property_json_object)?,
+        );
+        if let Some(required) = required {
+            property_schema_object.insert(
+                "required".to_string(),
+                serde_json::to_value(required)?,
+            );
+        }
+
+        Ok(Some(create_schema_from_json(
+            serde_json::to_value(property_schema_object)
+                .as_ref()
+                .unwrap(),
+        )?))
     }
-
-    let mut property_schema_value: serde_json::Value =
-        serde_json::json!({"type": "object"});
-    let property_schema_object = property_schema_value.as_object_mut().unwrap();
-    property_schema_object.insert(
-        "properties".to_string(),
-        serde_json::to_value(property_json_object)?,
-    );
-    if let Some(required) = required {
-        property_schema_object
-            .insert("required".to_string(), serde_json::to_value(required)?);
-    }
-
-    create_schema_from_json(
-        serde_json::to_value(property_schema_object)
-            .as_ref()
-            .unwrap(),
-    )
 }
 
-pub fn create_msg_schema_from_manifest(
+pub fn create_c_schema_from_manifest_api(
     manifest_msg: &ManifestApiMsg,
 ) -> Result<Option<TenMsgSchema>> {
     let mut schema = TenMsgSchema::default();
 
     if let Some(manifest_result) = &manifest_msg.result {
-        let result_schema = create_property_schema(
+        let result_schema = create_c_schema_from_properties_and_required(
             &manifest_result.property,
             &manifest_result.required,
         )?;
-        schema.result = Some(result_schema);
+        schema.result = result_schema;
     }
 
     if let Some(manifest_property) = &manifest_msg.property {
-        let property_schema = create_property_schema(
+        let property_schema = create_c_schema_from_properties_and_required(
             &Some(manifest_property.clone()),
             &manifest_msg.required,
         )?;
-        schema.msg = Some(property_schema);
+        schema.msg = property_schema;
     }
 
     if schema.msg.is_none() && schema.result.is_none() {
@@ -278,7 +285,7 @@ pub fn create_msg_schema_from_manifest(
     }
 }
 
-fn are_ten_schemas_compatible(
+pub fn are_ten_schemas_compatible(
     source: Option<&TenSchema>,
     target: Option<&TenSchema>,
     none_source_is_not_error: bool,
