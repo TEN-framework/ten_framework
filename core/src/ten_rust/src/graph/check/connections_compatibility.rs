@@ -73,6 +73,7 @@ impl Graph {
                 src_msg_schema,
                 dest_msg_schema,
                 true,
+                true,
             ) {
                 errors.push(format!(
                     "Schema incompatible to [extension: {}], {}",

@@ -214,26 +214,17 @@ mod msg_conversion_tests {
                 include_str!("test_data_embed/app_property.json").to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
                 include_str!("test_data_embed/ext_1_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_2"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon2"),
                 include_str!("test_data_embed/ext_2_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_3"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
                 include_str!("test_data_embed/ext_3_manifest.json").to_string(),
                 "{}".to_string(),
             ),
@@ -300,6 +291,8 @@ mod msg_conversion_tests {
             Some(msg_conversion),
         );
 
+        println!("result: {:?}", result);
+
         assert!(result.is_ok());
         assert!(graph.connections.is_some());
 
@@ -336,26 +329,17 @@ mod msg_conversion_tests {
                 include_str!("test_data_embed/app_property.json").to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
                 include_str!("test_data_embed/ext_1_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_2"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon2"),
                 include_str!("test_data_embed/ext_2_manifest.json").to_string(),
                 "{}".to_string(),
             ),
             (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_3"
-                ),
+                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
                 include_str!("test_data_embed/ext_3_manifest.json").to_string(),
                 "{}".to_string(),
             ),

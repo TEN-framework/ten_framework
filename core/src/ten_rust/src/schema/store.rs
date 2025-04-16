@@ -281,6 +281,7 @@ pub fn create_msg_schema_from_manifest(
 fn are_ten_schemas_compatible(
     source: Option<&TenSchema>,
     target: Option<&TenSchema>,
+    none_source_is_compatible: bool,
     none_target_is_compatible: bool,
 ) -> Result<()> {
     if none_target_is_compatible {
@@ -291,7 +292,11 @@ fn are_ten_schemas_compatible(
         return Err(anyhow::anyhow!("target schema is undefined."));
     }
 
-    if source.is_none() {
+    if none_source_is_compatible {
+        if source.is_none() {
+            return Ok(());
+        }
+    } else if source.is_none() {
         return Err(anyhow::anyhow!("source schema is undefined."));
     }
 
@@ -303,6 +308,7 @@ fn are_ten_schemas_compatible(
 pub fn are_msg_schemas_compatible(
     source: Option<&TenMsgSchema>,
     target: Option<&TenMsgSchema>,
+    none_source_is_compatible: bool,
     none_target_is_compatible: bool,
 ) -> Result<()> {
     if none_target_is_compatible {
@@ -323,12 +329,14 @@ pub fn are_msg_schemas_compatible(
     are_ten_schemas_compatible(
         source.msg.as_ref(),
         target.msg.as_ref(),
+        none_source_is_compatible,
         none_target_is_compatible,
     )?;
 
     are_ten_schemas_compatible(
         source.result.as_ref(),
         target.result.as_ref(),
+        true,
         true,
     )?;
 

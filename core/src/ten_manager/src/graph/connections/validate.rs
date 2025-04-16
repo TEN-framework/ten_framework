@@ -98,6 +98,7 @@ fn validate_msg_conversion_schema(
                     Some(&src_ten_msg_schema),
                     Some(dest_ten_msg_schema),
                     false,
+                    false,
                 )?;
             }
         }
@@ -110,9 +111,9 @@ fn validate_msg_conversion_schema(
 fn find_pkg_infos<'a>(
     uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     src_app: &Option<String>,
-    src_extension: &str,
+    src_extension_addon: &str,
     dest_app: &Option<String>,
-    dest_extension: &str,
+    dest_extension_addon: &str,
 ) -> Result<PkgInfoTuple<'a>> {
     // Helper function to find extension package info.
     let find_extension_pkg = |app_uri: &Option<String>,
@@ -166,9 +167,9 @@ fn find_pkg_infos<'a>(
 
     // Find both source and destination package info.
     let src_extension_pkg_info =
-        find_extension_pkg(src_app, src_extension, true)?;
+        find_extension_pkg(src_app, src_extension_addon, true)?;
     let dest_extension_pkg_info =
-        find_extension_pkg(dest_app, dest_extension, false)?;
+        find_extension_pkg(dest_app, dest_extension_addon, false)?;
 
     Ok((src_extension_pkg_info, dest_extension_pkg_info))
 }
@@ -176,15 +177,26 @@ fn find_pkg_infos<'a>(
 /// Checks schema compatibility between source and destination based on
 /// message type.
 fn check_schema_compatibility(
+    graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
     uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
 ) -> Result<()> {
+    let src_extension_addon = graph.get_addon_name_of_extension(
+        msg_conversion_validate_info.src_app,
+        msg_conversion_validate_info.src_extension,
+    )?;
+
+    let dest_extension_addon = graph.get_addon_name_of_extension(
+        msg_conversion_validate_info.dest_app,
+        msg_conversion_validate_info.dest_extension,
+    )?;
+
     let (src_extension_pkg_info, dest_extension_pkg_info) = find_pkg_infos(
         uri_to_pkg_info,
         msg_conversion_validate_info.src_app,
-        msg_conversion_validate_info.src_extension,
+        src_extension_addon,
         msg_conversion_validate_info.dest_app,
-        msg_conversion_validate_info.dest_extension,
+        dest_extension_addon,
     )?;
 
     if src_extension_pkg_info.is_none() || dest_extension_pkg_info.is_none() {
@@ -194,112 +206,88 @@ fn check_schema_compatibility(
     let src_extension_pkg_info = src_extension_pkg_info.unwrap();
     let dest_extension_pkg_info = dest_extension_pkg_info.unwrap();
 
-    match &msg_conversion_validate_info.msg_type {
-        MsgType::Cmd => {
-            let src_schema = src_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store.cmd_out.get(msg_conversion_validate_info.msg_name)
-                });
-
-            let dest_schema = dest_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store.cmd_in.get(msg_conversion_validate_info.msg_name)
-                });
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                    "Command schema incompatibility between source and destination: {}",
-                    err
-                ));
+    // Get source and destination schemas based on message type.
+    let (src_schema, dest_schema, error_message) =
+        match msg_conversion_validate_info.msg_type {
+            MsgType::Cmd => {
+                let src = src_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store.cmd_out.get(msg_conversion_validate_info.msg_name)
+                    });
+                let dest = dest_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store.cmd_in.get(msg_conversion_validate_info.msg_name)
+                    });
+                (src, dest, "Command schema incompatibility between source and destination")
             }
-        }
-        MsgType::Data => {
-            let src_schema = src_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store.data_out.get(msg_conversion_validate_info.msg_name)
-                });
-
-            let dest_schema = dest_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store.data_in.get(msg_conversion_validate_info.msg_name)
-                });
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                    "Data schema incompatibility between source and destination: {}",
-                    err
-                ));
+            MsgType::Data => {
+                let src = src_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store
+                            .data_out
+                            .get(msg_conversion_validate_info.msg_name)
+                    });
+                let dest = dest_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store.data_in.get(msg_conversion_validate_info.msg_name)
+                    });
+                (src, dest, "Data schema incompatibility between source and destination")
             }
-        }
-        MsgType::AudioFrame => {
-            let src_schema = src_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store
-                        .audio_frame_out
-                        .get(msg_conversion_validate_info.msg_name)
-                });
-
-            let dest_schema = dest_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store
-                        .audio_frame_in
-                        .get(msg_conversion_validate_info.msg_name)
-                });
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                    "Audio frame schema incompatibility between source and destination: {}",
-                    err
-                ));
+            MsgType::AudioFrame => {
+                let src = src_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store
+                            .audio_frame_out
+                            .get(msg_conversion_validate_info.msg_name)
+                    });
+                let dest = dest_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store
+                            .audio_frame_in
+                            .get(msg_conversion_validate_info.msg_name)
+                    });
+                (src, dest, "Audio frame schema incompatibility between source and destination")
             }
-        }
-        MsgType::VideoFrame => {
-            let src_schema = src_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store
-                        .video_frame_out
-                        .get(msg_conversion_validate_info.msg_name)
-                });
-
-            let dest_schema = dest_extension_pkg_info
-                .schema_store
-                .as_ref()
-                .and_then(|store| {
-                    store
-                        .video_frame_in
-                        .get(msg_conversion_validate_info.msg_name)
-                });
-
-            if let Err(err) =
-                are_msg_schemas_compatible(src_schema, dest_schema, true)
-            {
-                return Err(anyhow::anyhow!(
-                    "Video frame schema incompatibility between source and destination: {}",
-                    err
-                ));
+            MsgType::VideoFrame => {
+                let src = src_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store
+                            .video_frame_out
+                            .get(msg_conversion_validate_info.msg_name)
+                    });
+                let dest = dest_extension_pkg_info
+                    .schema_store
+                    .as_ref()
+                    .and_then(|store| {
+                        store
+                            .video_frame_in
+                            .get(msg_conversion_validate_info.msg_name)
+                    });
+                (src, dest, "Video frame schema incompatibility between source and destination")
             }
-        }
+        };
+
+    // Check schema compatibility.
+    if let Err(err) =
+        are_msg_schemas_compatible(src_schema, dest_schema, true, true)
+    {
+        return Err(anyhow::anyhow!("{}: {}", error_message, err));
     }
+
     Ok(())
 }
 
@@ -320,6 +308,7 @@ pub fn validate_connection_schema(
         )?;
     } else {
         check_schema_compatibility(
+            graph,
             msg_conversion_validate_info,
             uri_to_pkg_info,
         )?;
