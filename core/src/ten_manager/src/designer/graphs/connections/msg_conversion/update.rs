@@ -235,6 +235,8 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
 
     // Validate connection schema first.
     if let Err(e) = validate_connection_schema(
+        pkgs_cache,
+        &uri_to_pkg_info,
         &mut graph_info.graph,
         &graph_info.app_base_dir,
         &MsgConversionValidateInfo {
@@ -246,8 +248,6 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
             dest_extension: &request_payload.dest_extension,
             msg_conversion: &request_payload.msg_conversion,
         },
-        &uri_to_pkg_info,
-        pkgs_cache,
     ) {
         let error_response = ErrorResponse {
             status: Status::Fail,

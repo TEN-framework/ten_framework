@@ -191,6 +191,8 @@ pub fn graph_add_connection(
 
     // Validate connection schema.
     validate_connection_schema(
+        pkgs_cache,
+        uri_to_pkg_info,
         graph,
         graph_app_base_dir,
         &MsgConversionValidateInfo {
@@ -202,8 +204,6 @@ pub fn graph_add_connection(
             dest_extension: &dest_extension,
             msg_conversion: &msg_conversion,
         },
-        uri_to_pkg_info,
-        pkgs_cache,
     )?;
 
     // Create destination object.

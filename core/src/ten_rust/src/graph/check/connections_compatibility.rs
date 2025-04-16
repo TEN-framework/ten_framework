@@ -19,7 +19,7 @@ use crate::{
         message::{MsgDirection, MsgType},
     },
     schema::store::{
-        are_msg_schemas_compatible, find_msg_schema_from_all_pkgs_info,
+        are_msg_schemas_compatible, find_c_msg_schema_from_pkg_info,
         TenMsgSchema,
     },
 };
@@ -62,7 +62,7 @@ impl Graph {
                 }
             };
 
-            let dest_msg_schema = find_msg_schema_from_all_pkgs_info(
+            let dest_msg_schema = find_c_msg_schema_from_pkg_info(
                 extension_pkg_info,
                 msg_type,
                 msg_name,
@@ -125,7 +125,7 @@ impl Graph {
         if let Some(cmd_flows) = &connection.cmd {
             for (flow_idx, flow) in cmd_flows.iter().enumerate() {
                 // Get source command schema.
-                let src_cmd_schema = find_msg_schema_from_all_pkgs_info(
+                let src_cmd_schema = find_c_msg_schema_from_pkg_info(
                     extension_pkg_info,
                     &MsgType::Cmd,
                     flow.name.as_str(),
@@ -152,7 +152,7 @@ impl Graph {
         if let Some(data_flows) = &connection.data {
             for (flow_idx, flow) in data_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_c_msg_schema_from_pkg_info(
                     extension_pkg_info,
                     &MsgType::Data,
                     flow.name.as_str(),
@@ -179,7 +179,7 @@ impl Graph {
         if let Some(video_frame_flows) = &connection.video_frame {
             for (flow_idx, flow) in video_frame_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_c_msg_schema_from_pkg_info(
                     extension_pkg_info,
                     &MsgType::VideoFrame,
                     flow.name.as_str(),
@@ -206,7 +206,7 @@ impl Graph {
         if let Some(audio_frame_flows) = &connection.audio_frame {
             for (flow_idx, flow) in audio_frame_flows.iter().enumerate() {
                 // Get source message schema.
-                let src_msg_schema = find_msg_schema_from_all_pkgs_info(
+                let src_msg_schema = find_c_msg_schema_from_pkg_info(
                     extension_pkg_info,
                     &MsgType::AudioFrame,
                     flow.name.as_str(),

@@ -356,7 +356,7 @@ pub fn are_msg_schemas_compatible(
     Ok(())
 }
 
-pub fn find_msg_schema_from_all_pkgs_info<'a>(
+pub fn find_c_msg_schema_from_pkg_info<'a>(
     extension_pkg_info: &'a PkgInfo,
     msg_type: &MsgType,
     msg_name: &str,
