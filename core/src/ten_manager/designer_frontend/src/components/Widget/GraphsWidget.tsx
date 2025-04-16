@@ -501,13 +501,16 @@ export const GraphAddConnectionWidget = (props: {
 
   React.useEffect(() => {
     const fetchNodeSchema = async () => {
-      if (!form.watch("src_extension")) return;
+      const targetNode = nodes.find(
+        (i) => i.data.name === form.watch("src_extension")
+      );
+      if (!targetNode) return;
       try {
         form.setValue("msg_name", undefined as unknown as string);
         setIsMsgNameLoading(true);
         const nodeSchema = await retrieveExtensionSchema({
           appBaseDir: currentWorkspace?.app?.base_dir ?? "",
-          addonName: form.watch("src_extension"),
+          addonName: targetNode.data.addon,
         });
         const msgNameList =
           nodeSchema?.[`${form.watch("msg_type")}_out`]?.map((i) => i.name) ??
@@ -528,7 +531,7 @@ export const GraphAddConnectionWidget = (props: {
 
     fetchNodeSchema();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.watch("src_extension"), form.watch("msg_type")]);
+  }, [form.watch("src_extension"), form.watch("msg_type"), nodes]);
 
   console.log("isMsgNameLoading ===", isMsgNameLoading);
 
