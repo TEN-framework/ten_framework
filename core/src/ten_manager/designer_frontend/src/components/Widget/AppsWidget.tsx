@@ -6,7 +6,7 @@
 //
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   FolderMinusIcon,
