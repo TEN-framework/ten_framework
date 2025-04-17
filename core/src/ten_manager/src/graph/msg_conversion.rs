@@ -526,7 +526,7 @@ pub fn msg_conversion_get_final_target_schema(
     dest_msg_name: &str,
     ten_name_rule_index: Option<usize>,
     msg_conversion: &MsgAndResultConversion,
-) -> Result<(ManifestApiMsg, Option<ManifestApiCmdResult>)> {
+) -> Result<(Option<ManifestApiMsg>, Option<ManifestApiCmdResult>)> {
     // Get the source message schema.
     let src_msg_schema = get_msg_schema(
         graph_app_base_dir,
@@ -544,48 +544,56 @@ pub fn msg_conversion_get_final_target_schema(
         serde_json::to_string_pretty(&src_msg_schema).unwrap()
     );
 
-    // Create a new message schema to store the converted properties.
-    let mut converted_schema: ManifestApiMsg = ManifestApiMsg {
-        name: dest_msg_name.to_string(),
-        property: Some(HashMap::new()),
-        required: None,
-        result: None,
-    };
+    let mut converted_schema: Option<ManifestApiMsg> = None;
 
-    // If keep_original flag is true, start with the source message schema.
-    if let Some(keep_original) = msg_conversion.msg.rules.keep_original {
-        if keep_original {
-            if let Some(src_msg_schema) = src_msg_schema {
-                converted_schema = src_msg_schema.clone();
-                converted_schema.required = src_msg_schema.required.clone();
+    if let Some(msg_conversion) = &msg_conversion.msg {
+        // Create a new message schema to store the converted properties.
+        let mut converted_schema_real: ManifestApiMsg = ManifestApiMsg {
+            name: dest_msg_name.to_string(),
+            property: Some(HashMap::new()),
+            required: None,
+            result: None,
+        };
 
-                // Update the name to the destination message name.
-                converted_schema.name = dest_msg_name.to_string();
-            } else {
-                // Not having a source msg schema is a normal situation, so even
-                // if `keep_original` is true, we don't need to return an error.
+        // If keep_original flag is true, start with the source message schema.
+        if let Some(keep_original) = msg_conversion.rules.keep_original {
+            if keep_original {
+                if let Some(src_msg_schema) = src_msg_schema {
+                    converted_schema_real = src_msg_schema.clone();
+                    converted_schema_real.required =
+                        src_msg_schema.required.clone();
+
+                    // Update the name to the destination message name.
+                    converted_schema_real.name = dest_msg_name.to_string();
+                } else {
+                    // Not having a source msg schema is a normal situation, so
+                    // even if `keep_original` is true, we
+                    // don't need to return an error.
+                }
             }
         }
-    }
 
-    // Ensure property map exists.
-    if converted_schema.property.is_none() {
-        converted_schema.property = Some(HashMap::new());
-    }
+        // Ensure property map exists.
+        if converted_schema_real.property.is_none() {
+            converted_schema_real.property = Some(HashMap::new());
+        }
 
-    // Process each conversion rule.
-    convert_rules_to_schema_properties(
-        &msg_conversion.msg.rules.rules,
-        ten_name_rule_index,
-        src_msg_schema
-            .as_ref()
-            .and_then(|schema| schema.property.as_ref()),
-        src_msg_schema
-            .as_ref()
-            .and_then(|schema| schema.required.as_ref()),
-        converted_schema.property.as_mut().unwrap(),
-        &mut converted_schema.required,
-    )?;
+        // Process each conversion rule.
+        convert_rules_to_schema_properties(
+            &msg_conversion.rules.rules,
+            ten_name_rule_index,
+            src_msg_schema
+                .as_ref()
+                .and_then(|schema| schema.property.as_ref()),
+            src_msg_schema
+                .as_ref()
+                .and_then(|schema| schema.required.as_ref()),
+            converted_schema_real.property.as_mut().unwrap(),
+            &mut converted_schema_real.required,
+        )?;
+
+        converted_schema = Some(converted_schema_real);
+    }
 
     let mut converted_result_schema: Option<ManifestApiCmdResult> = None;
 
@@ -661,19 +669,22 @@ pub fn msg_conversion_get_dest_msg_name(
     msg_conversion: &MsgAndResultConversion,
 ) -> Result<(String, Option<usize>)> {
     let mut dest_msg_name = src_msg_name.to_string();
+
     let mut ten_name_rule_index = None;
 
-    // Find the special `_ten.name` rule if it exists.
-    for (index, rule) in msg_conversion.msg.rules.rules.iter().enumerate() {
-        if rule.path == TEN_NAME_RULE_PATH
-            && rule.conversion_mode == MsgConversionMode::FixedValue
-        {
-            if let Some(value) = &rule.value {
-                if value.is_string() {
-                    dest_msg_name =
-                        value.as_str().unwrap_or(src_msg_name).to_string();
-                    ten_name_rule_index = Some(index);
-                    break;
+    if let Some(msg_conversion) = &msg_conversion.msg {
+        // Find the special `_ten.name` rule if it exists.
+        for (index, rule) in msg_conversion.rules.rules.iter().enumerate() {
+            if rule.path == TEN_NAME_RULE_PATH
+                && rule.conversion_mode == MsgConversionMode::FixedValue
+            {
+                if let Some(value) = &rule.value {
+                    if value.is_string() {
+                        dest_msg_name =
+                            value.as_str().unwrap_or(src_msg_name).to_string();
+                        ten_name_rule_index = Some(index);
+                        break;
+                    }
                 }
             }
         }

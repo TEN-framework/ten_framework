@@ -64,7 +64,7 @@ mod tests {
                     app: Some("http://example.com:8000".to_string()),
                     extension: "extension_2".to_string(),
                     msg_conversion: Some(MsgAndResultConversion {
-                        msg: MsgConversion {
+                        msg: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
                                 rules: vec![
@@ -87,7 +87,7 @@ mod tests {
                                 ],
                                 keep_original: Some(true),
                             },
-                        },
+                        }),
                         result: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
@@ -173,7 +173,7 @@ mod tests {
 
         // Create a message conversion with fixed value.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -196,7 +196,7 @@ mod tests {
                     ],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -243,12 +243,12 @@ mod tests {
 
         // Check conversion type.
         assert_eq!(
-            dest_msg_conversion.msg.conversion_type,
+            dest_msg_conversion.msg.as_ref().unwrap().conversion_type,
             MsgConversionType::PerProperty
         );
 
         // Check rules.
-        let rules = &dest_msg_conversion.msg.rules;
+        let rules = &dest_msg_conversion.msg.as_ref().unwrap().rules;
         assert_eq!(rules.keep_original, Some(true));
         assert_eq!(rules.rules.len(), 2);
 
@@ -300,7 +300,7 @@ mod tests {
 
         // Create a message conversion with fixed value.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -313,7 +313,7 @@ mod tests {
                     }],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -367,20 +367,7 @@ mod tests {
 
         // Create a message conversion with fixed value.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
-                conversion_type: MsgConversionType::PerProperty,
-                rules: MsgConversionRules {
-                    rules: vec![MsgConversionRule {
-                        path: "param1".to_string(),
-                        conversion_mode: MsgConversionMode::FixedValue,
-                        original_path: None,
-                        value: Some(serde_json::Value::Number(
-                            serde_json::Number::from(42),
-                        )),
-                    }],
-                    keep_original: Some(true),
-                },
-            },
+            msg: None,
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -448,7 +435,7 @@ mod tests {
 
         // Create a message conversion with fixed value.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -459,7 +446,7 @@ mod tests {
                     }],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -513,7 +500,7 @@ mod tests {
 
         // Create a message conversion with from_original mode.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -524,7 +511,7 @@ mod tests {
                     }],
                     keep_original: Some(false),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -560,7 +547,7 @@ mod tests {
         let dest_msg_conversion = dest.msg_conversion.as_ref().unwrap();
 
         // Check rules.
-        let rules = &dest_msg_conversion.msg.rules;
+        let rules = &dest_msg_conversion.msg.as_ref().unwrap().rules;
         assert_eq!(rules.keep_original, Some(false));
         assert_eq!(rules.rules.len(), 1);
 
@@ -604,7 +591,7 @@ mod tests {
 
         // Create a message conversion with both message and result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -615,7 +602,7 @@ mod tests {
                     }],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -660,7 +647,10 @@ mod tests {
         assert!(dest_msg_conversion.result.is_some());
 
         // Check message conversion.
-        assert_eq!(dest_msg_conversion.msg.rules.rules[0].path, "mapped_param");
+        assert_eq!(
+            dest_msg_conversion.msg.as_ref().unwrap().rules.rules[0].path,
+            "mapped_param"
+        );
 
         // Check result conversion.
         let result_conversion = dest_msg_conversion.result.as_ref().unwrap();
@@ -710,13 +700,13 @@ mod tests {
 
         // Create an invalid message conversion with empty rules.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![],
                     keep_original: None,
                 },
-            },
+            }),
             result: None,
         };
 
@@ -782,7 +772,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -793,7 +783,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -870,7 +860,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -881,7 +871,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -957,7 +947,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -968,7 +958,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -1045,7 +1035,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -1056,7 +1046,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: None,
         };
 

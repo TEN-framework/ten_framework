@@ -183,7 +183,8 @@ impl MsgConversion {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MsgAndResultConversion {
     #[serde(flatten)]
-    pub msg: MsgConversion, // =-=-=
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub msg: Option<MsgConversion>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<MsgConversion>,
@@ -203,9 +204,11 @@ impl MsgAndResultConversion {
     ///   context about which part of the conversion (message or result) failed.
     pub fn validate(&self) -> Result<()> {
         // Validate the message conversion configuration.
-        self.msg.validate().map_err(|e| {
-            anyhow::anyhow!("invalid message conversion: {}", e)
-        })?;
+        if let Some(msg) = &self.msg {
+            msg.validate().map_err(|e| {
+                anyhow::anyhow!("invalid message conversion: {}", e)
+            })?;
+        }
 
         // Validate the result conversion configuration if present.
         if let Some(result) = &self.result {

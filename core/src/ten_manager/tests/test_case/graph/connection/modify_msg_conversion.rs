@@ -55,7 +55,7 @@ mod tests {
                     app: Some("http://example.com:8000".to_string()),
                     extension: "extension_2".to_string(),
                     msg_conversion: Some(MsgAndResultConversion {
-                        msg: MsgConversion {
+                        msg: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
                                 rules: vec![
@@ -78,7 +78,7 @@ mod tests {
                                 ],
                                 keep_original: Some(false),
                             },
-                        },
+                        }),
                         result: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
