@@ -88,7 +88,7 @@
                 ]
               },
               {
-                "name": "test_cmd1",
+                "name": "cmd_1",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
@@ -97,11 +97,20 @@
                 ]
               },
               {
-                "name": "test_cmd2",
+                "name": "cmd_2",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
                     "extension": "extension_3"
+                  }
+                ]
+              },
+              {
+                "name": "cmd_3",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
                   }
                 ]
               }
@@ -122,5 +131,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

@@ -49,28 +49,24 @@
         "auto_start": true,
         "nodes": [
           {
-            "app": "http://example.com:8000",
-            "extension_group": "extension_group_1",
             "type": "extension",
-            "addon": "extension_addon_1",
-            "name": "extension_1"
-          },
+            "name": "node1",
+            "addon": "test_addon"
+          }
+        ],
+        "connections": [
           {
-            "app": "http://example.com:8000",
-            "extension_group": "extension_group_1",
-            "type": "extension",
-            "addon": "extension_addon_2",
-            "name": "extension_2",
-            "property": {
-              "a": 1
-            }
-          },
-          {
-            "app": "http://example.com:8000",
-            "extension_group": "extension_group_1",
-            "type": "extension",
-            "addon": "extension_addon_3",
-            "name": "extension_3"
+            "extension": "node1",
+            "cmd": [
+              {
+                "name": "test_cmd",
+                "dest": [
+                  {
+                    "extension": "node2"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -87,5 +83,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

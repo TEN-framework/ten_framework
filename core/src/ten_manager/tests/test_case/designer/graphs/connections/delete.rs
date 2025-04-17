@@ -298,7 +298,7 @@ mod tests {
         // Create the expected property JSON, which is the same as input but
         // with the connection removed.
         let expected_property_json_str = include_str!(
-            "test_data_embed/expected_property_delete_connection.json"
+            "../../../../test_data/expected_property_delete_connection.json"
         );
 
         // Parse the expected property JSON.

@@ -14,7 +14,8 @@ mod tests {
     fn test_property_predefined_graph_deserialize() {
         let mut graphs_cache = HashMap::new();
 
-        let property_json_str = include_str!("test_data_embed/property.json");
+        let property_json_str =
+            include_str!("../../../test_data/property.json");
         let property = parse_property_from_str(
             property_json_str,
             &mut graphs_cache,

@@ -10,6 +10,11 @@
     }
   ],
   "api": {
+    "property": {
+      "test_property": {
+        "type": "int8"
+      }
+    },
     "cmd_out": [
       {
         "name": "test_cmd",

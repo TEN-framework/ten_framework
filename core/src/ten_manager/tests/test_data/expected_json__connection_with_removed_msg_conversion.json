@@ -53,10 +53,7 @@
             "extension_group": "extension_group_1",
             "type": "extension",
             "addon": "extension_addon_1",
-            "name": "extension_1",
-            "property": {
-              "key": "updated_value"
-            }
+            "name": "extension_1"
           },
           {
             "app": "http://example.com:8000",
@@ -83,6 +80,15 @@
             "cmd": [
               {
                 "name": "hello_world",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "test_cmd_remove_conversion",
                 "dest": [
                   {
                     "app": "http://example.com:8000",

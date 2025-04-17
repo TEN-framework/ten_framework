@@ -88,11 +88,20 @@
                 ]
               },
               {
-                "name": "test_cmd_remove_conversion",
+                "name": "test_cmd1",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
                     "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "test_cmd2",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_3"
                   }
                 ]
               }
@@ -113,5 +122,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

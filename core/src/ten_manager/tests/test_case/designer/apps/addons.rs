@@ -37,16 +37,22 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 TEST_DIR.to_string(),
-                include_str!("test_data_embed/app_manifest.json").to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_manifest.json")
+                    .to_string(),
+                include_str!(
+                    "../../../test_data/app_property_without_uri.json"
+                )
+                .to_string(),
             ),
             (
                 format!(
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -54,8 +60,10 @@ mod tests {
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_2"
                 ),
-                include_str!("test_data_embed/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../test_data/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -63,8 +71,10 @@ mod tests {
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_3"
                 ),
-                include_str!("test_data_embed/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];

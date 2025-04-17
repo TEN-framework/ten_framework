@@ -86,28 +86,26 @@
                     "extension": "extension_2"
                   }
                 ]
-              },
+              }
+            ],
+            "audio_frame": [
               {
-                "name": "test_cmd",
+                "name": "audio_stream",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
-                    "extension": "extension_2",
-                    "msg_conversion": {
-                      "type": "per_property",
-                      "rules": [
-                        {
-                          "path": "target_property",
-                          "conversion_mode": "fixed_value",
-                          "value": "fixed_value_string"
-                        },
-                        {
-                          "path": "copied_property",
-                          "conversion_mode": "from_original",
-                          "original_path": "source_property"
-                        }
-                      ]
-                    }
+                    "extension": "extension_2"
+                  }
+                ]
+              }
+            ],
+            "video_frame": [
+              {
+                "name": "video_stream",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
                   }
                 ]
               }
@@ -128,5 +126,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

@@ -88,7 +88,7 @@
                 ]
               },
               {
-                "name": "test_cmd_with_result",
+                "name": "test_cmd",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
@@ -97,22 +97,16 @@
                       "type": "per_property",
                       "rules": [
                         {
-                          "path": "request_property",
+                          "path": "target_property",
                           "conversion_mode": "fixed_value",
-                          "value": 123
+                          "value": "fixed_value_string"
+                        },
+                        {
+                          "path": "copied_property",
+                          "conversion_mode": "from_original",
+                          "original_path": "source_property"
                         }
-                      ],
-                      "keep_original": true,
-                      "result": {
-                        "type": "per_property",
-                        "rules": [
-                          {
-                            "path": "response_property",
-                            "conversion_mode": "from_original",
-                            "original_path": "original_response"
-                          }
-                        ]
-                      }
+                      ]
                     }
                   }
                 ]
@@ -134,5 +128,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }
