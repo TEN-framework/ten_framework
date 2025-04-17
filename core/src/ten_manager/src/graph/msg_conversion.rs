@@ -184,8 +184,9 @@ fn navigate_property_path_mut<'a>(
 // property map.
 fn navigate_property_path<'a>(
     properties: Option<&'a HashMap<String, ManifestApiPropertyAttributes>>,
+    required: &Option<&Vec<String>>,
     path: &str,
-) -> Option<&'a ManifestApiPropertyAttributes> {
+) -> Option<(&'a ManifestApiPropertyAttributes, Option<bool>)> {
     properties?;
 
     let properties = properties.unwrap();
@@ -193,7 +194,8 @@ fn navigate_property_path<'a>(
     // Split the path by dots for object properties and handle array indices
     let path_parts: Vec<&str> = path.split('.').collect();
 
-    let mut current_props = properties;
+    let mut curr_props = properties;
+    let mut curr_required = required;
 
     for (i, part) in path_parts.iter().enumerate() {
         // Handle array index notation: part[index]
@@ -215,11 +217,11 @@ fn navigate_property_path<'a>(
         };
 
         // Check if the property exists.
-        if !current_props.contains_key(name) {
+        if !curr_props.contains_key(name) {
             return None;
         }
 
-        let prop = &current_props[name];
+        let prop = &curr_props[name];
 
         // If this is the last part, return it.
         if i == path_parts.len() - 1 {
@@ -229,10 +231,16 @@ fn navigate_property_path<'a>(
                 if prop.prop_type != ValueType::Array || prop.items.is_none() {
                     return None;
                 }
-                return Some(prop.items.as_ref().unwrap());
+                return Some((prop.items.as_ref().unwrap(), None));
             }
 
-            return Some(prop);
+            let is_required = if let Some(curr_required) = curr_required {
+                curr_required.contains(&name.to_string())
+            } else {
+                false
+            };
+
+            return Some((prop, Some(is_required)));
         }
 
         // Handle array index if present.
@@ -245,7 +253,7 @@ fn navigate_property_path<'a>(
             let items = prop.items.as_ref().unwrap();
             let properties = items.properties.as_ref()?;
 
-            current_props = properties;
+            curr_props = properties;
         } else {
             // Navigate into object properties.
             if prop.prop_type != ValueType::Object || prop.properties.is_none()
@@ -253,8 +261,10 @@ fn navigate_property_path<'a>(
                 return None;
             }
 
-            current_props = prop.properties.as_ref().unwrap();
+            curr_props = prop.properties.as_ref().unwrap();
         }
+
+        curr_required = &None;
     }
 
     None
@@ -266,8 +276,9 @@ fn convert_rules_to_schema_properties(
     src_schema_properties: Option<
         &HashMap<String, ManifestApiPropertyAttributes>,
     >,
+    src_schema_required: Option<&Vec<String>>,
     dest_schema_properties: &mut HashMap<String, ManifestApiPropertyAttributes>,
-    required: &mut Option<Vec<String>>,
+    dest_schema_required: &mut Option<Vec<String>>,
 ) -> Result<()> {
     // Process each conversion rule.
     for (index, rule) in conversion_rules.iter().enumerate() {
@@ -340,6 +351,17 @@ fn convert_rules_to_schema_properties(
                                 dest_schema_properties.remove(path);
                             }
 
+                            // This is a fixed value conversion, which means
+                            // this value will definitely exist, so it can be
+                            // added to the required list.
+                            if dest_schema_required.is_none() {
+                                *dest_schema_required = Some(Vec::new());
+                            }
+                            dest_schema_required
+                                .as_mut()
+                                .unwrap()
+                                .push(path.to_string());
+
                             dest_schema_properties
                                 .entry(path.clone())
                                 .or_insert(ManifestApiPropertyAttributes {
@@ -352,14 +374,6 @@ fn convert_rules_to_schema_properties(
                         };
 
                         property_attrs.prop_type = prop_type;
-
-                        // This is a fixed value conversion, which means this
-                        // value will definitely exist, so it can be added to
-                        // the required list.
-                        if required.is_none() {
-                            *required = Some(Vec::new());
-                        }
-                        required.as_mut().unwrap().push(path.to_string());
                     }
                     None => {
                         return Err(anyhow::anyhow!(
@@ -370,45 +384,78 @@ fn convert_rules_to_schema_properties(
                 }
             }
             MsgConversionMode::FromOriginal => {
-                // For FromOriginal mode, we need to copy a property from the
-                // source schema.
-                if let Some(original_path) = &rule.original_path {
-                    if let Some(src_prop) = navigate_property_path(
-                        src_schema_properties,
-                        original_path,
-                    ) {
-                        // Create/replace the property at the destination
-                        // path.
-                        let dest_path = &rule.path;
+                match &rule.original_path {
+                    Some(original_path) => {
+                        // For FromOriginal mode, we need to copy a property
+                        // from the source schema.
 
-                        // For complex paths, we need to navigate and set
-                        // the property.
-                        if dest_path.contains(".") || dest_path.contains("[") {
-                            match navigate_property_path_mut(
-                                dest_schema_properties,
-                                dest_path,
-                            ) {
-                                Ok(dest_prop) => {
-                                    // Copy the source property attributes
-                                    // to the destination.
-                                    *dest_prop = src_prop.clone();
+                        if let Some((src_prop, is_required)) =
+                            navigate_property_path(
+                                src_schema_properties,
+                                &src_schema_required,
+                                original_path,
+                            )
+                        {
+                            // Create/replace the property at the destination
+                            // path.
+                            let dest_path = &rule.path;
+
+                            // For complex paths, we need to navigate and set
+                            // the property.
+                            if dest_path.contains(".")
+                                || dest_path.contains("[")
+                            {
+                                match navigate_property_path_mut(
+                                    dest_schema_properties,
+                                    dest_path,
+                                ) {
+                                    Ok(dest_prop) => {
+                                        // Copy the source property
+                                        // attributes
+                                        // to the destination.
+                                        *dest_prop = src_prop.clone();
+                                    }
+                                    Err(e) => {
+                                        return Err(anyhow::anyhow!(
+                                          "Failed to navigate to destination path {}: {}",
+                                          dest_path, e
+                                      ));
+                                    }
                                 }
-                                Err(e) => {
-                                    return Err(anyhow::anyhow!(
-                                            "Failed to navigate to destination path {}: {}",
-                                            dest_path, e
-                                        ));
+                            } else {
+                                // For top-level properties, simply set or
+                                // replace the entry.
+                                if dest_schema_properties
+                                    .contains_key(dest_path)
+                                {
+                                    dest_schema_properties.remove(dest_path);
+                                }
+
+                                dest_schema_properties.insert(
+                                    dest_path.clone(),
+                                    src_prop.clone(),
+                                );
+
+                                if let Some(is_required) = is_required {
+                                    if is_required {
+                                        if dest_schema_required.is_none() {
+                                            *dest_schema_required =
+                                                Some(Vec::new());
+                                        }
+                                        dest_schema_required
+                                            .as_mut()
+                                            .unwrap()
+                                            .push(dest_path.to_string());
+                                    }
                                 }
                             }
-                        } else {
-                            // For top-level properties, simply set or
-                            // replace the entry.
-                            if dest_schema_properties.contains_key(dest_path) {
-                                dest_schema_properties.remove(dest_path);
-                            }
-                            dest_schema_properties
-                                .insert(dest_path.clone(), src_prop.clone());
                         }
+                    }
+                    None => {
+                        return Err(anyhow::anyhow!(
+                            "FromOriginal mode at index {} has no original path",
+                            index
+                        ));
                     }
                 }
             }
@@ -533,6 +580,9 @@ pub fn msg_conversion_get_final_target_schema(
         src_msg_schema
             .as_ref()
             .and_then(|schema| schema.property.as_ref()),
+        src_msg_schema
+            .as_ref()
+            .and_then(|schema| schema.required.as_ref()),
         converted_schema.property.as_mut().unwrap(),
         &mut converted_schema.required,
     )?;
@@ -592,6 +642,10 @@ pub fn msg_conversion_get_final_target_schema(
                 .as_ref()
                 .and_then(|schema| schema.result.as_ref())
                 .and_then(|result| result.property.as_ref()),
+            src_msg_schema
+                .as_ref()
+                .and_then(|schema| schema.result.as_ref())
+                .and_then(|result| result.required.as_ref()),
             converted_result_schema_real.property.as_mut().unwrap(),
             &mut converted_result_schema_real.required,
         )?;
