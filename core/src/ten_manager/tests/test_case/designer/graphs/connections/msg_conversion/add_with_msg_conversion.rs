@@ -65,13 +65,15 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest =
-            include_str!("test_data_embed/extension_1_simple_manifest.json")
-                .to_string();
+        let ext1_manifest = include_str!(
+            "../../../../../test_data/extension_1_simple_manifest.json"
+        )
+        .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_simple_manifest.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_simple_manifest.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -240,13 +242,15 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest =
-            include_str!("test_data_embed/extension_1_simple_manifest.json")
-                .to_string();
+        let ext1_manifest = include_str!(
+            "../../../../../test_data/extension_1_simple_manifest.json"
+        )
+        .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_simple_manifest.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_simple_manifest.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
