@@ -267,6 +267,7 @@ fn convert_rules_to_schema_properties(
         &HashMap<String, ManifestApiPropertyAttributes>,
     >,
     dest_schema_properties: &mut HashMap<String, ManifestApiPropertyAttributes>,
+    required: &mut Option<Vec<String>>,
 ) -> Result<()> {
     // Process each conversion rule.
     for (index, rule) in conversion_rules.iter().enumerate() {
@@ -278,68 +279,92 @@ fn convert_rules_to_schema_properties(
         // Process the rule based on conversion mode.
         match rule.conversion_mode {
             MsgConversionMode::FixedValue => {
-                // Process fixed value rule.
-                if let Some(value) = &rule.value {
-                    // Parse the path and get a mutable reference to the
-                    // property.
-                    let path = &rule.path;
+                match &rule.value {
+                    Some(value) => {
+                        // Process fixed value rule.
 
-                    // Create/replace the property at the path.
-                    let property_attrs = if path.contains(".")
-                        || path.contains("[")
-                    {
-                        // For complex paths, navigate to the location and get
-                        // property.
-                        match navigate_property_path_mut(
-                            dest_schema_properties,
-                            path,
-                        ) {
-                            Ok(prop) => prop,
-                            Err(e) => {
-                                return Err(anyhow::anyhow!(
-                                    "Failed to navigate to path {}: {}",
-                                    path,
-                                    e
-                                ));
+                        // Determine property type based on the value.
+                        let prop_type: ValueType;
+
+                        if value.is_i64() {
+                            let int_val = value.as_i64().unwrap();
+
+                            // Check if it fits within uint64.
+                            if int_val >= 0 {
+                                prop_type = ValueType::Uint64;
+                            } else {
+                                prop_type = ValueType::Int64;
                             }
-                        }
-                    } else {
-                        // For top-level properties, simply get or create the
-                        // entry.
-                        if dest_schema_properties.contains_key(path) {
-                            dest_schema_properties.remove(path);
-                        }
-
-                        dest_schema_properties.entry(path.clone()).or_insert(ManifestApiPropertyAttributes {
-                            prop_type: ValueType::Object, // Will be replaced based on value.
-                            items: None,
-                            properties: None,
-                            required: None,
-                        })
-                    };
-
-                    // Determine property type based on the value.
-                    if value.is_i64() {
-                        let int_val = value.as_i64().unwrap();
-
-                        // Check if it fits within uint64.
-                        if int_val >= 0 {
-                            property_attrs.prop_type = ValueType::Uint64;
+                        } else if value.is_u64() {
+                            prop_type = ValueType::Uint64;
+                        } else if value.is_f64() {
+                            prop_type = ValueType::Float64;
+                        } else if value.is_boolean() {
+                            prop_type = ValueType::Bool;
+                        } else if value.is_string() {
+                            prop_type = ValueType::String;
                         } else {
-                            property_attrs.prop_type = ValueType::Int64;
+                            return Err(anyhow::anyhow!(
+                                "Unsupported value type: {}",
+                                value
+                            ));
                         }
-                    } else if value.is_u64() {
-                        property_attrs.prop_type = ValueType::Uint64;
-                    } else if value.is_f64() {
-                        property_attrs.prop_type = ValueType::Float64;
-                    } else if value.is_boolean() {
-                        property_attrs.prop_type = ValueType::Bool;
-                    } else if value.is_string() {
-                        property_attrs.prop_type = ValueType::String;
-                    } else {
+
+                        // Parse the path and get a mutable reference to the
+                        // property.
+                        let path = &rule.path;
+
+                        // Create/replace the property at the path.
+                        let property_attrs = if path.contains(".")
+                            || path.contains("[")
+                        {
+                            // For complex paths, navigate to the location and
+                            // get property.
+                            match navigate_property_path_mut(
+                                dest_schema_properties,
+                                path,
+                            ) {
+                                Ok(prop) => prop,
+                                Err(e) => {
+                                    return Err(anyhow::anyhow!(
+                                        "Failed to navigate to path {}: {}",
+                                        path,
+                                        e
+                                    ));
+                                }
+                            }
+                        } else {
+                            // For top-level properties, simply get or create
+                            // the entry.
+                            if dest_schema_properties.contains_key(path) {
+                                dest_schema_properties.remove(path);
+                            }
+
+                            dest_schema_properties
+                                .entry(path.clone())
+                                .or_insert(ManifestApiPropertyAttributes {
+                                    // Will be replaced based on value.
+                                    prop_type: ValueType::Object,
+                                    items: None,
+                                    properties: None,
+                                    required: None,
+                                })
+                        };
+
+                        property_attrs.prop_type = prop_type;
+
+                        // This is a fixed value conversion, which means this
+                        // value will definitely exist, so it can be added to
+                        // the required list.
+                        if required.is_none() {
+                            *required = Some(Vec::new());
+                        }
+                        required.as_mut().unwrap().push(path.to_string());
+                    }
+                    None => {
                         return Err(anyhow::anyhow!(
-                            "Unsupported value type: {}",
-                            value
+                            "Fixed value rule at index {} has no value",
+                            index
                         ));
                     }
                 }
@@ -509,16 +534,17 @@ pub fn msg_conversion_get_final_target_schema(
             .as_ref()
             .and_then(|schema| schema.property.as_ref()),
         converted_schema.property.as_mut().unwrap(),
+        &mut converted_schema.required,
     )?;
 
     let mut converted_result_schema: Option<ManifestApiCmdResult> = None;
 
     if let Some(result_conversion) = &msg_conversion.result {
         // Create a new message schema to store the converted properties.
-        converted_result_schema = Some(ManifestApiCmdResult {
+        let mut converted_result_schema_real = ManifestApiCmdResult {
             property: Some(HashMap::new()),
             required: None,
-        });
+        };
 
         // If keep_original flag is true, start with the source message schema.
         if let Some(keep_original) = result_conversion.rules.keep_original {
@@ -530,7 +556,7 @@ pub fn msg_conversion_get_final_target_schema(
                     .and_then(|schema| schema.result.as_ref());
 
                 if let Some(result_schema) = src_result_schema {
-                    converted_result_schema = Some(result_schema.clone());
+                    converted_result_schema_real = result_schema.clone();
                 }
 
                 // Not having a source msg schema is a normal situation, so even
@@ -539,9 +565,8 @@ pub fn msg_conversion_get_final_target_schema(
         }
 
         // Ensure property map exists.
-        if converted_result_schema.as_ref().unwrap().property.is_none() {
-            converted_result_schema.as_mut().unwrap().property =
-                Some(HashMap::new());
+        if converted_result_schema_real.property.is_none() {
+            converted_result_schema_real.property = Some(HashMap::new());
         }
 
         let dest_msg_schema = get_msg_schema(
@@ -567,13 +592,11 @@ pub fn msg_conversion_get_final_target_schema(
                 .as_ref()
                 .and_then(|schema| schema.result.as_ref())
                 .and_then(|result| result.property.as_ref()),
-            converted_result_schema
-                .as_mut()
-                .unwrap()
-                .property
-                .as_mut()
-                .unwrap(),
+            converted_result_schema_real.property.as_mut().unwrap(),
+            &mut converted_result_schema_real.required,
         )?;
+
+        converted_result_schema = Some(converted_result_schema_real);
     }
 
     Ok((converted_schema, converted_result_schema))
