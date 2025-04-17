@@ -40,17 +40,22 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/test_extension"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
-                include_str!("test_data_embed/extension_manifest.json")
-                    .to_string(),
-                include_str!("test_data_embed/extension_property.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
+                include_str!(
+                    "../../../../test_data/extension_addon_1_property.json"
+                )
+                .to_string(),
             ),
         ];
 
@@ -75,7 +80,7 @@ mod tests {
         // Create the request payload.
         let request_payload = GetExtensionPropertyRequestPayload {
             app_base_dir: TEST_DIR.to_string(),
-            addon_name: "test_extension".to_string(),
+            addon_name: "extension_addon_1".to_string(),
         };
 
         // Make the request.
@@ -168,7 +173,7 @@ mod tests {
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
             include_str!("../../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../../test_data/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
@@ -225,15 +230,18 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/empty_extension"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
-                include_str!("test_data_embed/extension_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(), // Empty property.
             ),
         ];
@@ -259,7 +267,7 @@ mod tests {
         // Create the request payload.
         let request_payload = GetExtensionPropertyRequestPayload {
             app_base_dir: TEST_DIR.to_string(),
-            addon_name: "test_extension".to_string(),
+            addon_name: "extension_addon_1".to_string(),
         };
 
         // Make the request.

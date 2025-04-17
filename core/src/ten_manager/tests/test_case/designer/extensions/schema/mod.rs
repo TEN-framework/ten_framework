@@ -52,8 +52,10 @@ mod tests {
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/extension_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -108,7 +110,39 @@ mod tests {
             "test_property": {
                 "type": "int8"
             }
-          }
+          },
+          "cmd_out": [
+            {
+              "name": "test_cmd",
+              "property": {
+                "test_property": {
+                  "type": "int8"
+                }
+              }
+            },
+            {
+              "name": "has_required",
+              "property": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            },
+            {
+              "name": "has_required_mismatch",
+              "property": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            }
+          ]
         });
 
         assert_eq!(
@@ -140,8 +174,10 @@ mod tests {
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/extension_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
