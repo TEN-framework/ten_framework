@@ -149,7 +149,7 @@ mod tests {
             std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
-            "test_data_embed/expected_app_property_after_update_property.json"
+            "../../../../../test_data/expected_app_property_after_update_property.json"
         );
 
         // Parse the contents as JSON for proper comparison.
@@ -416,7 +416,7 @@ mod tests {
             std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
-            "test_data_embed/expected_app_property_after_update_property.json"
+            "../../../../../test_data/expected_app_property_after_update_property.json"
         );
 
         // Parse the contents as JSON for proper comparison.
@@ -596,7 +596,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/extension_addon_1_with_complex_property_manifest.json")
+                include_str!("../../../../../test_data/extension_addon_1_with_complex_property_manifest.json")
                 .to_string(),
                 "{}".to_string(),
             ),
@@ -663,7 +663,7 @@ mod tests {
         let updated_property_json_str =
             std::fs::read_to_string(&property_path).unwrap();
 
-        let expected_property_json_str = include_str!("test_data_embed/expected_app_property_after_update_complex_property.json"        );
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_app_property_after_update_complex_property.json"        );
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
@@ -721,7 +721,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/extension_addon_1_with_complex_property_manifest.json")
+                include_str!("../../../../../test_data/extension_addon_1_with_complex_property_manifest.json")
                 .to_string(),
                 "{}".to_string(),
             ),
