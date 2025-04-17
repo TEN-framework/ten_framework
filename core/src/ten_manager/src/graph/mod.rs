@@ -17,6 +17,7 @@ use uuid::Uuid;
 pub use connections::update_graph_connections_all_fields;
 pub use nodes::update_graph_node_all_fields;
 
+use crate::json::write_property_json_file;
 use ten_rust::graph::graph_info::GraphInfo;
 use ten_rust::graph::{connection::GraphConnection, node::GraphNode, Graph};
 
@@ -132,5 +133,53 @@ pub fn update_graph_all_fields(
     nodes: &[GraphNode],
     connections: &[GraphConnection],
 ) -> Result<()> {
-    Ok(())
+    // Get _ten object if it exists.
+    let ten_obj = match property_all_fields.get_mut("_ten") {
+        Some(serde_json::Value::Object(obj)) => obj,
+        _ => return write_property_json_file(pkg_url, property_all_fields),
+    };
+
+    // Get predefined_graphs array if it exists.
+    let predefined_graphs = match ten_obj.get_mut("predefined_graphs") {
+        Some(serde_json::Value::Array(graphs)) => graphs,
+        _ => return write_property_json_file(pkg_url, property_all_fields),
+    };
+
+    // Find and update the target graph.
+    for graph_value in predefined_graphs.iter_mut() {
+        // Skip non-object graph values.
+        let graph_obj = match graph_value {
+            serde_json::Value::Object(obj) => obj,
+            _ => continue,
+        };
+
+        // Get the graph name.
+        let name = match graph_obj.get("name") {
+            Some(serde_json::Value::String(name_str)) => name_str,
+            _ => continue,
+        };
+
+        // Skip graphs that don't match our target name.
+        if name != graph_name {
+            continue;
+        }
+
+        // Found the matching graph, update its nodes.
+        let nodes_value = serde_json::to_value(nodes)?;
+        graph_obj.insert("nodes".to_string(), nodes_value);
+
+        // Update connections or remove if empty.
+        if connections.is_empty() {
+            graph_obj.remove("connections");
+        } else {
+            let connections_value = serde_json::to_value(connections)?;
+            graph_obj.insert("connections".to_string(), connections_value);
+        }
+
+        // We've found and updated the graph, no need to continue.
+        break;
+    }
+
+    // Write the updated property back to the file.
+    write_property_json_file(pkg_url, property_all_fields)
 }
