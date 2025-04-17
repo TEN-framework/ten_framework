@@ -22,7 +22,7 @@ mod tests {
     };
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
     /// Test error case when the specified base_dir doesn't exist in pkgs_cache.
     #[actix_web::test]

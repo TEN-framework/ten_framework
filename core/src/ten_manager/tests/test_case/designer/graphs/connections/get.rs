@@ -30,7 +30,9 @@ mod tests {
         output::TmanOutputCli,
     };
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::{
+        inject_all_pkgs_for_mock, inject_all_standard_pkgs_for_mock,
+    };
 
     #[actix_web::test]
     async fn test_get_connections_success() {
@@ -42,55 +44,11 @@ mod tests {
             graphs_cache: HashMap::new(),
         };
 
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut designer_state.pkgs_cache,
             &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         // Find the UUID for the graph with name "default"
         let default_graph_uuid = designer_state

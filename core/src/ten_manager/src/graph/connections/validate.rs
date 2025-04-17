@@ -144,33 +144,38 @@ fn validate_msg_conversion_schema(
                 .unwrap(),
         )?;
 
-    #[cfg(test)]
-    {
-        eprintln!(
-            "msg_conversion converted_schema: {}",
-            serde_json::to_string_pretty(&converted_schema).unwrap()
-        );
+    if let Some(converted_schema) = converted_schema {
+        #[cfg(test)]
+        {
+            eprintln!(
+                "msg_conversion converted_schema: {}",
+                serde_json::to_string_pretty(&converted_schema).unwrap()
+            );
+        }
 
-        eprintln!(
-            "msg_conversion converted_result_schema: {}",
-            serde_json::to_string_pretty(&converted_result_schema).unwrap()
-        );
+        validate_msg_conversion_c_schema_oneway(
+            graph_app_base_dir,
+            msg_conversion_validate_info,
+            uri_to_pkg_info,
+            pkgs_cache,
+            &converted_schema.property,
+            &converted_schema.required,
+            msg_conversion_validate_info.dest_app,
+            dest_extension_addon_name,
+            &converted_schema.name,
+            MsgDirection::In,
+        )?;
     }
 
-    validate_msg_conversion_c_schema_oneway(
-        graph_app_base_dir,
-        msg_conversion_validate_info,
-        uri_to_pkg_info,
-        pkgs_cache,
-        &converted_schema.property,
-        &converted_schema.required,
-        msg_conversion_validate_info.dest_app,
-        dest_extension_addon_name,
-        &converted_schema.name,
-        MsgDirection::In,
-    )?;
-
     if let Some(converted_result_schema) = converted_result_schema {
+        #[cfg(test)]
+        {
+            eprintln!(
+                "msg_conversion converted_result_schema: {}",
+                serde_json::to_string_pretty(&converted_result_schema).unwrap()
+            );
+        }
+
         validate_msg_conversion_c_schema_oneway(
             graph_app_base_dir,
             msg_conversion_validate_info,

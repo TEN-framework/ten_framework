@@ -403,7 +403,7 @@ mod tests {
             .unwrap();
         let msg_conversion =
             cmd.dest.first().unwrap().msg_conversion.as_ref().unwrap();
-        let rules = &msg_conversion.msg.rules.rules;
+        let rules = &msg_conversion.msg.as_ref().unwrap().rules.rules;
         assert_eq!(rules.len(), 4);
         assert_eq!(rules[1].value.as_ref().unwrap().as_str().unwrap(), "hello");
         assert!(rules[2].value.as_ref().unwrap().as_bool().unwrap());

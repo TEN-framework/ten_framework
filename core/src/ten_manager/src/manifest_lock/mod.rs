@@ -14,6 +14,7 @@ use console::Emoji;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
+use ten_rust::fs::read_file_to_string;
 use ten_rust::json_schema::validate_manifest_lock_json_string;
 use ten_rust::pkg_info::constants::{
     MANIFEST_JSON_FILENAME, MANIFEST_LOCK_JSON_FILENAME,
@@ -159,8 +160,8 @@ impl ManifestLock {
 
 fn are_equal_lockfiles(lock_file_path: &Path, resolve_str: &str) -> bool {
     // Read the contents of the lock file.
-    let lock_file_str = crate::fs::read_file_to_string(lock_file_path)
-        .unwrap_or_else(|_| "".to_string());
+    let lock_file_str =
+        read_file_to_string(lock_file_path).unwrap_or_else(|_| "".to_string());
 
     // Compare the lock file contents with the new resolve string.
     lock_file_str.lines().eq(resolve_str.lines())
@@ -190,7 +191,7 @@ fn parse_manifest_lock_from_file<P: AsRef<Path>>(
     manifest_lock_file_path: P,
 ) -> Result<ManifestLock> {
     // Read the contents of the manifest-lock.json file.
-    let content = crate::fs::read_file_to_string(manifest_lock_file_path)?;
+    let content = read_file_to_string(manifest_lock_file_path)?;
 
     ManifestLock::from_str(&content)
 }

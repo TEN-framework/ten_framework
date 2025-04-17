@@ -10,12 +10,13 @@ use anyhow::{Context, Result};
 use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use serde_json::Value;
-use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
+use ten_rust::{
+    fs::read_file_to_string, pkg_info::constants::PROPERTY_JSON_FILENAME,
+};
 
 use crate::{
     cmd::cmd_modify::jq_util::jq_run,
     config::{internal::TmanInternalConfig, TmanConfig},
-    fs::read_file_to_string,
     output::TmanOutput,
 };
 

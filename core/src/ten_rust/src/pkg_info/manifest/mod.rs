@@ -17,9 +17,9 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
+use crate::fs::read_file_to_string;
 use crate::json_schema::ten_validate_manifest_json_string;
 use crate::pkg_info::pkg_type::PkgType;
-use crate::pkg_info::utils::read_file_to_string;
 use crate::{json_schema, pkg_info::constants::MANIFEST_JSON_FILENAME};
 use api::ManifestApi;
 use dependency::ManifestDependency;

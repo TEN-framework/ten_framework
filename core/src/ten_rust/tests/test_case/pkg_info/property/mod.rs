@@ -148,11 +148,11 @@ mod tests {
         let msg_conversion =
             cmd_dest.first().unwrap().msg_conversion.as_ref().unwrap();
         assert_eq!(
-            msg_conversion.msg.conversion_type,
+            msg_conversion.msg.as_ref().unwrap().conversion_type,
             MsgConversionType::PerProperty
         );
 
-        let rules = &msg_conversion.msg.rules;
+        let rules = &msg_conversion.msg.as_ref().unwrap().rules;
         assert!(rules.keep_original.is_none());
         assert_eq!(rules.rules.len(), 2);
 
