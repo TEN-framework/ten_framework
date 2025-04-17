@@ -45,14 +45,20 @@ async fn test_get_compatible_messages_success() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -158,14 +164,20 @@ async fn test_get_compatible_messages_fail() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -248,14 +260,20 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -361,14 +379,20 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -474,14 +498,20 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -587,14 +617,20 @@ async fn test_get_compatible_messages_cmd_has_required_success_4() {
                 .to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_1"
+            ),
             include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
         (
-            format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_2"),
-            include_str!("test_data_embed/extension_addon_2_manifest.json")
+            format!(
+                "{}{}",
+                TEST_DIR, "/ten_packages/extension/extension_addon_2"
+            ),
+            include_str!("../../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
