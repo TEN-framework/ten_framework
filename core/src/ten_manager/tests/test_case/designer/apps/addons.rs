@@ -39,7 +39,10 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!(
+                    "../../../test_data/app_property_without_uri.json"
+                )
+                .to_string(),
             ),
             (
                 format!(

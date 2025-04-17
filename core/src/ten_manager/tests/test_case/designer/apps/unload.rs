@@ -37,7 +37,8 @@ mod tests {
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
