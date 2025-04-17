@@ -148,7 +148,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -185,12 +186,12 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -229,11 +230,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -248,7 +249,7 @@ mod tests {
         assert_eq!(connections.len(), 1);
 
         let connection = &connections[0];
-        assert_eq!(connection.app, Some("http://localhost:8000".to_string()));
+        assert_eq!(connection.app, Some("http://example.com:8000".to_string()));
         assert_eq!(connection.extension, "ext1");
 
         let cmd_flows = connection.cmd.as_ref().unwrap();
@@ -259,7 +260,7 @@ mod tests {
         assert_eq!(flow.dest.len(), 1);
 
         let dest = &flow.dest[0];
-        assert_eq!(dest.app, Some("http://localhost:8000".to_string()));
+        assert_eq!(dest.app, Some("http://example.com:8000".to_string()));
         assert_eq!(dest.extension, "ext2");
 
         // Verify the msg_conversion was properly set
@@ -300,7 +301,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -337,12 +339,12 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -369,11 +371,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -416,7 +418,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -453,12 +456,12 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -496,11 +499,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -547,7 +550,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -584,12 +588,12 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -611,11 +615,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -635,7 +639,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -677,22 +682,22 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext3",
                     "addon3",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext4",
                     "addon4",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -729,11 +734,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -753,7 +758,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -795,22 +801,22 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext3",
                     "addon3",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext4",
                     "addon4",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -847,11 +853,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -870,7 +876,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -912,22 +919,22 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext3",
                     "addon3",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext4",
                     "addon4",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -964,11 +971,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd1".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
@@ -988,7 +995,8 @@ mod tests {
                 TEST_DIR.to_string(),
                 include_str!("../../../test_data/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/app_property.json").to_string(),
+                include_str!("../../../test_data/app_property.json")
+                    .to_string(),
             ),
             (
                 format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
@@ -1030,22 +1038,22 @@ mod tests {
                 create_test_node(
                     "ext1",
                     "addon1",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext2",
                     "addon2",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext3",
                     "addon3",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
                 create_test_node(
                     "ext4",
                     "addon4",
-                    Some("http://localhost:8000"),
+                    Some("http://example.com:8000"),
                 ),
             ],
             connections: None,
@@ -1071,11 +1079,11 @@ mod tests {
         let result = graph_add_connection(
             &mut graph,
             &Some(TEST_DIR.to_string()),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
             "cmd2".to_string(),
-            Some("http://localhost:8000".to_string()),
+            Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
