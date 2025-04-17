@@ -15,7 +15,6 @@ pub mod pkg_type_and_name;
 pub mod predefined_graphs;
 pub mod property;
 pub mod supports;
-mod utils;
 pub mod value_type;
 
 use std::{collections::HashMap, path::Path};

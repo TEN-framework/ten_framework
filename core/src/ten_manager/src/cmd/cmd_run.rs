@@ -12,7 +12,9 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use clap::{Arg, ArgMatches, Command};
-use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
+use ten_rust::{
+    fs::read_file_to_string, pkg_info::constants::MANIFEST_JSON_FILENAME,
+};
 
 use crate::{
     config::{internal::TmanInternalConfig, TmanConfig},
@@ -84,8 +86,8 @@ pub async fn execute_cmd(
     }
 
     // Parse `manifest.json`.
-    let manifest_json_str = crate::fs::read_file_to_string(&manifest_path)
-        .map_err(|e| {
+    let manifest_json_str =
+        read_file_to_string(&manifest_path).map_err(|e| {
             anyhow!("Failed to read {}: {}", MANIFEST_JSON_FILENAME, e)
         })?;
     let manifest_value: serde_json::Value =
