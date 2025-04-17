@@ -44,6 +44,14 @@
         ]
       },
       {
+        "name": "has_not_required",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      },
+      {
         "name": "has_required_mismatch",
         "property": {
           "foo": {
@@ -91,6 +99,57 @@
         }
       },
       {
+        "name": "cmd3",
+        "property": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "int8"
+          }
+        }
+      },
+      {
+        "name": "cmd4",
+        "result": {
+          "property": {
+            "a": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "cmd5",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "cmd6",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "foo"
+        ]
+      },
+      {
+        "name": "cmd7",
+        "property": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "int8"
+          }
+        }
+      },
+      {
         "name": "cmd_incompatible",
         "property": {
           "param1": {
@@ -115,6 +174,36 @@
             "type": "float32"
           }
         }
+      },
+      {
+        "name": "data2",
+        "property": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "object",
+            "properties": {
+              "c": {
+                "type": "int8"
+              },
+              "d": {
+                "type": "bool"
+              }
+            },
+            "required": [
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "data3",
+        "property": {
+          "a": {
+            "type": "string"
+          }
+        }
       }
     ],
     "video_frame_out": [
@@ -125,6 +214,9 @@
             "type": "uint64"
           }
         }
+      },
+      {
+        "name": "pcm_frame1"
       }
     ],
     "audio_frame_out": [

@@ -41,11 +41,12 @@ async fn test_get_compatible_messages_success() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -153,11 +154,12 @@ async fn test_get_compatible_messages_fail() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -242,11 +244,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -354,11 +357,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -466,11 +470,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -578,11 +583,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_4() {
         (
             TEST_DIR.to_string(),
             include_str!("../../../test_data/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
+            include_str!("../../../test_data/app_property_without_uri.json")
+                .to_string(),
         ),
         (
             format!("{}{}", TEST_DIR, "/ten_packages/extension/extension_1"),
-            include_str!("test_data_embed/extension_addon_1_manifest.json")
+            include_str!("../../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
