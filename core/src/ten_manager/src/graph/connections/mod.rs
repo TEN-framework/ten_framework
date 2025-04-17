@@ -386,16 +386,7 @@ fn remove_specified_connections(
 
                     // If flows array is empty, remove the field.
                     if conn_flows.is_empty() {
-                        // For connections with app set, cmd should be set to
-                        // empty array instead of removed.
-                        if msg_type == "cmd" && conn_obj.get("app").is_some() {
-                            conn_obj.insert(
-                                msg_type.to_string(),
-                                Value::Array(vec![]),
-                            );
-                        } else {
-                            conn_obj.remove(msg_type);
-                        }
+                        conn_obj.remove(msg_type);
                         modified = true;
                     }
                 }
