@@ -106,6 +106,17 @@
         "required": [
           "foo"
         ]
+      },
+      {
+        "name": "cmd6",
+        "property": {
+          "bar": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bar"
+        ]
       }
     ],
     "data_in": [

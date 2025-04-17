@@ -5,11 +5,11 @@
     "extension_group": "extension_group_1",
     "api": {
       "property": {
-        "test_property": {
-          "type": "int8"
-        },
         "key": {
           "type": "string"
+        },
+        "test_property": {
+          "type": "int8"
         }
       },
       "cmd_out": [
@@ -138,11 +138,11 @@
         {
           "name": "cmd7",
           "property": {
-            "a": {
-              "type": "string"
-            },
             "b": {
               "type": "int8"
+            },
+            "a": {
+              "type": "string"
             }
           }
         },
@@ -280,11 +280,11 @@
           },
           "result": {
             "property": {
-              "string_detail": {
-                "type": "string"
-              },
               "detail": {
                 "type": "bool"
+              },
+              "string_detail": {
+                "type": "string"
               }
             }
           }
@@ -307,11 +307,11 @@
         {
           "name": "cmd3",
           "property": {
-            "a": {
-              "type": "string"
-            },
             "b": {
               "type": "int8"
+            },
+            "a": {
+              "type": "string"
             }
           },
           "required": [
@@ -330,6 +330,17 @@
           },
           "required": [
             "foo"
+          ]
+        },
+        {
+          "name": "cmd6",
+          "property": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "bar"
           ]
         }
       ],
@@ -351,11 +362,11 @@
             "b": {
               "type": "object",
               "properties": {
-                "d": {
-                  "type": "bool"
-                },
                 "c": {
                   "type": "int8"
+                },
+                "d": {
+                  "type": "bool"
                 }
               },
               "required": [

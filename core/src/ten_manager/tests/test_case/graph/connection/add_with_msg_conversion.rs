@@ -28,7 +28,9 @@ mod tests {
     use ten_rust::pkg_info::message::MsgType;
 
     use crate::test_case::graph::connection::create_test_node;
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::mock::{
+        inject_all_pkgs_for_mock, inject_all_standard_pkgs_for_mock,
+    };
 
     #[test]
     fn test_add_connection_with_msg_conversion() -> Result<()> {
@@ -143,58 +145,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_fixed_value_msg_conversion() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -310,6 +268,138 @@ mod tests {
         assert_eq!(rule2.path, "param1");
         assert_eq!(rule2.conversion_mode, MsgConversionMode::FixedValue);
         assert_eq!(rule2.value.as_ref().unwrap().as_i64().unwrap(), 42);
+    }
+
+    #[test]
+    fn test_add_connection_with_fixed_value_msg_conversion_with_required_1() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FixedValue,
+                        original_path: None,
+                        value: Some(serde_json::Value::String(
+                            "some_string_value".to_string(),
+                        )),
+                    }],
+                    keep_original: Some(true),
+                },
+            },
+            result: None,
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd6".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion.clone()),
+        );
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_add_connection_with_fixed_value_msg_conversion_with_required_2() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FromOriginal,
+                        original_path: Some("foo".to_string()),
+                        value: None,
+                    }],
+                    keep_original: Some(true),
+                },
+            },
+            result: None,
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd6".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion.clone()),
+        );
+
+        assert!(result.is_ok());
     }
 
     #[test]
