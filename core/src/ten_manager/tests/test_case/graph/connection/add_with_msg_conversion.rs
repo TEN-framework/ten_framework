@@ -658,8 +658,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
-                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_4_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -777,8 +783,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
-                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_4_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -895,8 +907,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
-                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_4_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -1014,8 +1032,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
-                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_4_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
