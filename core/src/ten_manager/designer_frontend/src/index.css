@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@import "./fonts.css";
+
 @plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));
@@ -108,6 +110,28 @@
   --ten_red-light: #f5655c;
   --ten_whte10-dark: #ffffff;
   --ten_whte10-light: #ffffff;
+
+  --shadow-drop-shadow-xs-light: 0 2px 6px rgb(20 20 43 / 0.06);
+  --shadow-drop-shadow-xs-dark: 0 2px 6px rgb(40 40 40 / 0.06);
+  --shadow-drop-shadow-sm-light: 0 2px 12px rgb(227 236 243 / 0.8);
+  --shadow-drop-shadow-sm-dark: 0 2px 12px rgb(40 40 40 / 0.8);
+  --shadow-drop-shadow-md-light: 0 5px 40px -4px rgba(227 236 243 / 0.9);
+  --shadow-drop-shadow-md-dark: 0 5px 40px -4px rgba(40 40 40 / 0.9);
+  --shadow-drop-shadow-lg-light: 0 14px 40px rgb(20 20 43 / 0.14);
+  --shadow-drop-shadow-lg-dark: 0 14px 40px rgb(40 40 40 / 0.14);
+  --shadow-drop-shadow-xl-light: 0 24px 65px rgb(20 20 43 / 0.16);
+  --shadow-drop-shadow-xl-dark: 0 24px 65px rgb(40 40 40 / 0.16);
+  --shadow-drop-shadow-2xl-light: 0 32px 72px rgb(20 20 43 / 0.24);
+  --shadow-drop-shadow-2xl-dark: 0 32px 72px rgb(40 40 40 / 0.24);
+  --shadow-drop-shadow-up-light: 0 -6px 6px rgb(20 20 43 / 0.08);
+  --shadow-drop-shadow-up-dark: 0 -6px 6px rgb(40 40 40 / 0.08);
+
+  --size-s-rem: 2rem;
+  --size-default-rem: 2.25rem;
+  --size-l-rem: 2.5rem;
+  --size-xl-rem: 2.75rem;
+  --size-2xl-rem: 3rem;
+  --size-xs-rem: 1.5rem;
 }
 
 :root {
@@ -156,6 +180,21 @@
   --ten-chamfer-xs: var(--ten_chamfer_xs-rem-light);
   --ten-chamfer-xxl: var(--ten_chamfer_xxl-rem-light);
   --ten-chamfer-xxxl: var(--ten_chamfer_xxxl-rem-light);
+
+  --ten-shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-light);
+  --ten-shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-light);
+  --ten-shadow-drop-shadow-md: var(--shadow-drop-shadow-md-light);
+  --ten-shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-light);
+  --ten-shadow-drop-shadow-up: var(--shadow-drop-shadow-up-light);
+  --ten-shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-light);
+  --ten-shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-light);
+
+  --ten-size-s: var(--size-s-rem);
+  --ten-size-base: var(--size-default-rem);
+  --ten-size-l: var(--size-l-rem);
+  --ten-size-xl: var(--size-xl-rem);
+  --ten-size-2xl: var(--size-2xl-rem);
+  --ten-size-xs: var(--size-xs-rem);
 }
 
 .dark {
@@ -196,61 +235,17 @@
   --ten-yellow-6: var(--ten_color_yellow6-dark);
   --ten-blue-6: var(--ten_color_blue6-dark);
   --ten-bluish-6: var(--ten_color_bluish6-dark);
+
+  --ten-shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-dark);
+  --ten-shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-dark);
+  --ten-shadow-drop-shadow-md: var(--shadow-drop-shadow-md-dark);
+  --ten-shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-dark);
+  --ten-shadow-drop-shadow-up: var(--shadow-drop-shadow-up-dark);
+  --ten-shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-dark);
+  --ten-shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-dark);
 }
 
-:root {
---shadow-drop-shadow-xs-light: rgba(20 20 43 / 0.06);
---shadow-drop-shadow-xs-dark: rgba(40 40 40 / 0.06);
---shadow-drop-shadow-sm-light: rgba(227 236 243 / 0.8);
---shadow-drop-shadow-sm-dark: rgba(40 40 40 / 0.8);
---shadow-drop-shadow-md-light: rgba(227 236 243 / 0.9);
---shadow-drop-shadow-md-dark: rgba(40 40 40 / 0.9);
---shadow-drop-shadow-lg-light: rgba(20 20 43 / 0.14);
---shadow-drop-shadow-lg-dark: rgba(40 40 40 / 0.14);
---shadow-drop-shadow-xl-light: rgba(20 20 43 / 0.16);
---shadow-drop-shadow-xl-dark: rgba(40 40 40 / 0.16);
---shadow-drop-shadow-2xl-light: rgba(20 20 43 / 0.24);
---shadow-drop-shadow-2xl-dark: rgba(40 40 40 / 0.24);
---shadow-drop-shadow-up-light: rgba(20 20 43 / 0.08);
---shadow-drop-shadow-up-dark: rgba(40 40 40 / 0.08);
-}
-
-:root {
-  --shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-light);
-  --shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-light);
-  --shadow-drop-shadow-md: var(--shadow-drop-shadow-md-light);
-  --shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-light);
-  --shadow-drop-shadow-up: var(--shadow-drop-shadow-up-light);
-  --shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-light);
-  --shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-light);
-}
-
-.dark {
-  --shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-dark);
-  --shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-dark);
-  --shadow-drop-shadow-md: var(--shadow-drop-shadow-md-dark);
-  --shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-dark);
-  --shadow-drop-shadow-up: var(--shadow-drop-shadow-up-dark);
-  --shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-dark);
-  --shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-dark);
-}
-
-:root {
-  --size-s: 32px;
-  --size-s-rem: 2rem;
-  --size-defaultt: 36px;
-  --size-default-rem: 2.25rem;
-  --size-l: 40px;
-  --size-l-rem: 2.5rem;
-  --size-xl: 44px;
-  --size-xl-rem: 2.75rem;
-  --size-2xl: 48px;
-  --size-2xl-rem: 3rem;
-  --size-xs: 24px;
-  --size-xs-rem: 1.5rem;
-}
-
-@theme {
+@theme inline {
   --color-ten-brand-black-6: var(--ten-brand-black-6);
   --color-ten-brand-black-6-click: var(--ten-brand-black-6-click);
   --color-ten-brand-black-6-hover: var(--ten-brand-black-6-hover);
@@ -289,20 +284,13 @@
   --color-ten-blue-6: var(--ten-blue-6);
   --color-ten-bluish-6: var(--ten-bluish-6);
 
-  --shadow-2xl: var(--shadow-drop-shadow-2xl);
-  --shadow-lg: var(--shadow-drop-shadow-lg);
-  --shadow-md: var(--shadow-drop-shadow-md);
-  --shadow-sm: var(--shadow-drop-shadow-sm);
-  --shadow-up: var(--shadow-drop-shadow-up);
-  --shadow-xl: var(--shadow-drop-shadow-xl);
-  --shadow-xs: var(--shadow-drop-shadow-xs);
-
-  --spacing-sm: var(--size-s-rem);
-  --spacing-md: var(--size-default-rem);
-  --spacing-lg: var(--size-l-rem);
-  --spacing-xl: var(--size-xl-rem);
-  --spacing-xxl: var(--size-2xl-rem);
-  --spacing-xs: var(--size-xs-rem);
+  --drop-shadow-2xl: var(--ten-shadow-drop-shadow-2xl);
+  --drop-shadow-lg: var(--ten-shadow-drop-shadow-lg);
+  --drop-shadow-md: var(--ten-shadow-drop-shadow-md);
+  --drop-shadow-sm: var(--ten-shadow-drop-shadow-sm);
+  --drop-shadow-up: var(--ten-shadow-drop-shadow-up);
+  --drop-shadow-xl: var(--ten-shadow-drop-shadow-xl);
+  --drop-shadow-xs: var(--ten-shadow-drop-shadow-xs);
 
   --radius-sm: var(--ten-chamfer-s);
   --radius-md: var(--ten-chamfer-m);
@@ -345,12 +333,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 }
 
 /*

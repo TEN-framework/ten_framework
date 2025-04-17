@@ -357,11 +357,10 @@ export const PopupBase = (props: IPopupBaseProps) => {
       className={cn(
         "popup",
         "fixed text-sm overflow-hidden",
-        "backdrop-blur-xs shadow-xl ",
-        "bg-slate-50/80 dark:bg-gray-800/90",
-        "border border-slate-100/50 dark:border-gray-900/50",
-        "ring-1 ring-slate-100/50 dark:ring-gray-900/50",
-        "text-foreground rounded-lg focus:outline-hidden flex flex-col",
+        "drop-shadow-lg",
+        "bg-popover text-popover-foreground",
+        "border border-ten-line-3",
+        "rounded-lg focus:outline-hidden flex flex-col",
         "transition-opacity duration-200 ease-in-out",
         className
       )}
@@ -384,29 +383,24 @@ export const PopupBase = (props: IPopupBaseProps) => {
         className={cn(
           "px-2.5 py-1",
           "flex justify-between items-center cursor-move select-none",
-          "bg-slate-100/80 dark:bg-gray-900/80",
+          "bg-ten-fill-5",
           "rounded-t-lg",
+          "text-sm font-bold",
           {
             ["border-b border-border/50"]: !isCollapsed,
           }
         )}
       >
-        {typeof title === "string" ? (
-          <span className="font-medium text-foreground/90 font-sans">
-            {title}
-          </span>
-        ) : (
-          title
-        )}
-        <div className="flex items-center gap-1.5 ml-auto">
+        {typeof title === "string" ? <span>{title}</span> : title}
+        <div className="flex items-center gap-1.5 ml-auto text-ten-icontext-2">
           {customActions?.map((action) => (
-            <TooltipProvider>
+            <TooltipProvider key={action.id}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-1.5 cursor-pointer"
+                    size="icon"
+                    className="transition-colors cursor-pointer"
                     onClick={action.onClick}
                   >
                     <action.Icon className="opacity-70" />
@@ -421,8 +415,8 @@ export const PopupBase = (props: IPopupBaseProps) => {
 
           <Button
             variant="ghost"
-            size="sm"
-            className="h-auto p-1.5 transition-colors cursor-pointer"
+            size="icon"
+            className="transition-colors cursor-pointer"
             onClick={() => {
               setIsCollapsed(!isCollapsed);
               onCollapseToggle?.(isCollapsed);
@@ -437,8 +431,8 @@ export const PopupBase = (props: IPopupBaseProps) => {
 
           <Button
             variant="ghost"
-            size="sm"
-            className="h-auto p-1.5 transition-colors cursor-pointer"
+            size="icon"
+            className="transition-colors cursor-pointer"
             onClick={handleClose}
           >
             <X className="opacity-70" />
@@ -448,6 +442,7 @@ export const PopupBase = (props: IPopupBaseProps) => {
       <motion.div
         className={cn(
           "p-2.5 overflow-hidden flex w-full",
+          "bg-ten-fill-2",
           "h-full opacity-100",
           contentClassName
         )}
