@@ -211,7 +211,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/test_addon_manifest.json")
+                include_str!("../../../../test_data/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
@@ -299,7 +299,7 @@ mod tests {
         let updated_property_content =
             std::fs::read_to_string(&property_path).unwrap();
         let expected_property_content =
-            include_str!("test_data_embed/expected_app_property_1.json");
+            include_str!("../../../../test_data/expected_app_property_1.json");
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
@@ -366,7 +366,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/test_addon_manifest.json")
+                include_str!("../../../../test_data/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),

@@ -256,7 +256,7 @@ mod tests {
             std::fs::read_to_string(&property_path).unwrap();
 
         let expected_property_json_str =
-            include_str!("test_data_embed/expected_property_after_adding_in_test_delete_graph_node_success.json");
+            include_str!("../../../../test_data/expected_property_after_adding_in_test_delete_graph_node_success.json");
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =

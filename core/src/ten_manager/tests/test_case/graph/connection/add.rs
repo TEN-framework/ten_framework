@@ -145,8 +145,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -250,8 +256,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -330,8 +342,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -410,8 +428,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -443,7 +467,7 @@ mod tests {
                 ),
                 create_test_node(
                     "ext3",
-                    "addon3",
+                    "extension_addon_3",
                     Some("http://example.com:8000"),
                 ),
             ],
@@ -474,13 +498,14 @@ mod tests {
             Some("http://example.com:8000".to_string()),
             "ext1".to_string(),
             MsgType::Cmd,
-            "test_cmd".to_string(),
+            "test_cmd_2".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext3".to_string(),
             &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
+        println!("result: {:?}", result);
         assert!(result.is_ok());
 
         // Verify that we have one connection with one message flow that has two
@@ -490,15 +515,21 @@ mod tests {
 
         let connection = &connections[0];
         let cmd_flows = connection.cmd.as_ref().unwrap();
-        assert_eq!(cmd_flows.len(), 1);
+        assert_eq!(cmd_flows.len(), 2);
 
         let flow = &cmd_flows[0];
         assert_eq!(flow.name, "test_cmd");
-        assert_eq!(flow.dest.len(), 2);
+        assert_eq!(flow.dest.len(), 1);
 
         // Verify destinations.
         assert_eq!(flow.dest[0].extension, "ext2");
-        assert_eq!(flow.dest[1].extension, "ext3");
+
+        let flow = &cmd_flows[1];
+        assert_eq!(flow.name, "test_cmd_2");
+        assert_eq!(flow.dest.len(), 1);
+
+        // Verify destinations.
+        assert_eq!(flow.dest[0].extension, "ext3");
     }
 
     #[test]
@@ -534,8 +565,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -677,8 +714,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -795,8 +838,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon3"),
-                include_str!("test_data_embed/ext_3_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -839,7 +888,7 @@ mod tests {
                 ),
                 create_test_node(
                     "ext3",
-                    "addon3",
+                    "extension_addon_3",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(

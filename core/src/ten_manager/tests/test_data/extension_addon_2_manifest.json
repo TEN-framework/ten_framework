@@ -39,7 +39,7 @@
         ]
       },
       {
-        "name": "has_required_mismatch",
+        "name": "has_not_required",
         "property": {
           "foo": {
             "type": "string"
@@ -78,6 +78,34 @@
             }
           }
         }
+      },
+      {
+        "name": "cmd3",
+        "property": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "int8"
+          }
+        },
+        "required": [
+          "a"
+        ]
+      },
+      {
+        "name": "cmd4"
+      },
+      {
+        "name": "cmd5",
+        "property": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "foo"
+        ]
       }
     ],
     "data_in": [
@@ -86,6 +114,29 @@
         "property": {
           "text_data": {
             "type": "buf"
+          }
+        }
+      },
+      {
+        "name": "data2",
+        "property": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "object",
+            "properties": {
+              "c": {
+                "type": "int8"
+              },
+              "d": {
+                "type": "bool"
+              }
+            },
+            "required": [
+              "c",
+              "d"
+            ]
           }
         }
       }
@@ -109,6 +160,14 @@
         "property": {
           "width": {
             "type": "uint64"
+          }
+        }
+      },
+      {
+        "name": "pcm_frame1",
+        "property": {
+          "a": {
+            "type": "string"
           }
         }
       }
