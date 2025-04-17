@@ -11,7 +11,10 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::{
-    graph::{connection::GraphConnection, Graph},
+    graph::{
+        connection::GraphConnection, connection::GraphDestination,
+        connection::GraphMessageFlow, Graph,
+    },
     pkg_info::message::MsgType,
 };
 use uuid::Uuid;
@@ -199,19 +202,32 @@ pub async fn delete_graph_connection_endpoint(
                         video_frame: None,
                     };
 
+                    // Create destination for the message flow.
+                    let destination = GraphDestination {
+                        app: request_payload.dest_app.clone(),
+                        extension: request_payload.dest_extension.clone(),
+                        msg_conversion: None,
+                    };
+
+                    // Create the message flow with destination.
+                    let message_flow = GraphMessageFlow {
+                        name: request_payload.msg_name.clone(),
+                        dest: vec![destination],
+                    };
+
                     // Set the appropriate message type field.
                     match request_payload.msg_type {
                         MsgType::Cmd => {
-                            connection.cmd = Some(vec![]);
+                            connection.cmd = Some(vec![message_flow]);
                         }
                         MsgType::Data => {
-                            connection.data = Some(vec![]);
+                            connection.data = Some(vec![message_flow]);
                         }
                         MsgType::AudioFrame => {
-                            connection.audio_frame = Some(vec![]);
+                            connection.audio_frame = Some(vec![message_flow]);
                         }
                         MsgType::VideoFrame => {
-                            connection.video_frame = Some(vec![]);
+                            connection.video_frame = Some(vec![message_flow]);
                         }
                     }
 

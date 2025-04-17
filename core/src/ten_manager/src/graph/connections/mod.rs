@@ -200,24 +200,212 @@ fn remove_specified_connections(
     connections_array: &mut Vec<Value>,
     remove_connections: &[GraphConnection],
 ) {
-    // Convert connections to remove into comparable form.
-    let connections_to_remove_serialized: Vec<String> = remove_connections
-        .iter()
-        .filter_map(|conn| {
-            let conn_value = serde_json::to_value(conn).ok()?;
-            serde_json::to_string(&conn_value).ok()
-        })
-        .collect();
+    let mut i = 0;
+    while i < connections_array.len() {
+        let item = &mut connections_array[i];
 
-    // Filter out connections to remove.
-    connections_array.retain(|item| {
-        if let Ok(item_str) = serde_json::to_string(item) {
-            !connections_to_remove_serialized.contains(&item_str)
-        } else {
-            // Keep items that can't be serialized.
-            true
+        if let Value::Object(conn_obj) = item {
+            // Get connection app and extension to check for match.
+            let conn_app = conn_obj
+                .get("app")
+                .and_then(|v| v.as_str())
+                .map(String::from);
+            let conn_extension = conn_obj
+                .get("extension")
+                .and_then(|v| v.as_str())
+                .map(String::from);
+
+            let mut remove_conn_idx = None;
+
+            // Check each connection to remove for a match.
+            for (idx, remove_conn) in remove_connections.iter().enumerate() {
+                // Check if app and extension match.
+                let app_match = match (&conn_app, &remove_conn.app) {
+                    (None, None) => true,
+                    (Some(app1), Some(app2)) => app1 == app2,
+                    _ => false,
+                };
+
+                if !app_match
+                    || conn_extension.as_deref() != Some(&remove_conn.extension)
+                {
+                    continue;
+                }
+
+                remove_conn_idx = Some(idx);
+                break;
+            }
+
+            // If no matching connection found, continue to next connection.
+            if remove_conn_idx.is_none() {
+                i += 1;
+                continue;
+            }
+
+            let remove_conn = &remove_connections[remove_conn_idx.unwrap()];
+            let mut modified = false;
+
+            // Process each message type that needs to be removed.
+            let msg_types = [
+                ("cmd", &remove_conn.cmd),
+                ("data", &remove_conn.data),
+                ("audio_frame", &remove_conn.audio_frame),
+                ("video_frame", &remove_conn.video_frame),
+            ];
+
+            for (msg_type, remove_flows) in msg_types {
+                let remove_flows = match remove_flows {
+                    Some(flows) if !flows.is_empty() => flows,
+                    _ => continue,
+                };
+
+                if let Some(Value::Array(conn_flows)) =
+                    conn_obj.get_mut(msg_type)
+                {
+                    let mut j = 0;
+                    while j < conn_flows.len() {
+                        if let Value::Object(flow_obj) = &mut conn_flows[j] {
+                            let flow_name = flow_obj
+                                .get("name")
+                                .and_then(|v| v.as_str())
+                                .map(String::from);
+
+                            // Find the matching flow to remove.
+                            let mut matching_flow = None;
+                            for (flow_idx, remove_flow) in
+                                remove_flows.iter().enumerate()
+                            {
+                                if flow_name.as_deref()
+                                    == Some(&remove_flow.name)
+                                {
+                                    matching_flow = Some(flow_idx);
+                                    break;
+                                }
+                            }
+
+                            if let Some(flow_idx) = matching_flow {
+                                let remove_flow = &remove_flows[flow_idx];
+
+                                // Process destinations.
+                                if let Some(Value::Array(dest_array)) =
+                                    flow_obj.get_mut("dest")
+                                {
+                                    // Check each remove destination against
+                                    // existing destinations.
+                                    for remove_dest in &remove_flow.dest {
+                                        let mut k = 0;
+                                        while k < dest_array.len() {
+                                            if let Value::Object(dest_obj) =
+                                                &dest_array[k]
+                                            {
+                                                let dest_app = dest_obj
+                                                    .get("app")
+                                                    .and_then(|v| v.as_str());
+                                                let dest_ext = dest_obj
+                                                    .get("extension")
+                                                    .and_then(|v| v.as_str());
+
+                                                // Check if destination matches.
+                                                let app_match = match (
+                                                    dest_app,
+                                                    &remove_dest.app,
+                                                ) {
+                                                    (None, None) => true,
+                                                    (
+                                                        Some(app1),
+                                                        Some(app2),
+                                                    ) => app1 == app2,
+                                                    _ => false,
+                                                };
+
+                                                if app_match
+                                                    && dest_ext
+                                                        == Some(
+                                                            &remove_dest
+                                                                .extension,
+                                                        )
+                                                {
+                                                    // Found a match, remove
+                                                    // this destination.
+                                                    modified = true;
+
+                                                    // If this is the only
+                                                    // destination, we'll remove
+                                                    // the whole flow later.
+                                                    if dest_array.len() > 1 {
+                                                        dest_array.remove(k);
+                                                        // Don't increment k
+                                                        // since we removed the
+                                                        // current element.
+                                                        continue;
+                                                    } else {
+                                                        // Mark for removal by
+                                                        // emptying the array
+                                                        // We'll remove the flow
+                                                        // outside this loop.
+                                                        dest_array.clear();
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            k += 1;
+                                        }
+                                    }
+
+                                    // If destinations are empty, remove the
+                                    // whole flow.
+                                    if dest_array.is_empty() {
+                                        // We'll remove the flow outside
+                                        // this loop.
+                                        modified = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Remove any flows with empty destinations.
+                        let should_remove =
+                            if let Value::Object(flow_obj) = &conn_flows[j] {
+                                if let Some(Value::Array(dest_array)) =
+                                    flow_obj.get("dest")
+                                {
+                                    dest_array.is_empty()
+                                } else {
+                                    false
+                                }
+                            } else {
+                                false
+                            };
+
+                        if should_remove {
+                            conn_flows.remove(j);
+                        } else {
+                            j += 1;
+                        }
+                    }
+
+                    // If flows array is empty, remove the field.
+                    if conn_flows.is_empty() {
+                        conn_obj.remove(msg_type);
+                        modified = true;
+                    }
+                }
+            }
+
+            // If all message types are empty, remove the entire connection.
+            if modified
+                && !conn_obj.contains_key("cmd")
+                && !conn_obj.contains_key("data")
+                && !conn_obj.contains_key("audio_frame")
+                && !conn_obj.contains_key("video_frame")
+            {
+                connections_array.remove(i);
+                continue;
+            }
         }
-    });
+
+        i += 1;
+    }
 }
 
 /// Add new connections or update existing ones.
