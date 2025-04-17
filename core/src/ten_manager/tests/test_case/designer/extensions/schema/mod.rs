@@ -50,7 +50,7 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
                 include_str!(
                     "../../../../test_data/extension_addon_1_manifest.json"
@@ -105,45 +105,15 @@ mod tests {
         // If the extension has schema, it will be included in the response.
         assert!(api_response.data.schema.is_some());
 
-        let expected_schema = serde_json::json!({
-          "property": {
-            "test_property": {
-                "type": "int8"
-            }
-          },
-          "cmd_out": [
-            {
-              "name": "test_cmd",
-              "property": {
-                "test_property": {
-                  "type": "int8"
-                }
-              }
-            },
-            {
-              "name": "has_required",
-              "property": {
-                "foo": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "foo"
-              ]
-            },
-            {
-              "name": "has_required_mismatch",
-              "property": {
-                "foo": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "foo"
-              ]
-            }
-          ]
-        });
+        let expected_schema_str = include_str!(
+            "../../../../test_data/extension_addon_1_manifest.json"
+        );
+        let expected_schema_json: serde_json::Value =
+            serde_json::from_str(expected_schema_str).unwrap();
+        let expected_schema: serde_json::Value = serde_json::from_str(
+            expected_schema_json["api"].to_string().as_str(),
+        )
+        .unwrap();
 
         assert_eq!(
             serde_json::to_value(api_response.data.schema.unwrap()).unwrap(),

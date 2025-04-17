@@ -3,6 +3,48 @@
     "uri": "http://example.com:8000",
     "predefined_graphs": [
       {
+        "name": "default",
+        "auto_start": true,
+        "nodes": [
+          {
+            "type": "extension",
+            "name": "extension_1",
+            "addon": "extension_addon_1",
+            "extension_group": "extension_group_1"
+          },
+          {
+            "type": "extension",
+            "name": "extension_2",
+            "addon": "extension_addon_2",
+            "extension_group": "extension_group_1",
+            "property": {
+              "a": 1
+            }
+          },
+          {
+            "type": "extension",
+            "name": "extension_3",
+            "addon": "extension_addon_3",
+            "extension_group": "extension_group_1"
+          }
+        ],
+        "connections": [
+          {
+            "extension": "extension_1",
+            "cmd": [
+              {
+                "name": "hello_world",
+                "dest": [
+                  {
+                    "extension": "extension_2"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "name": "default_with_app_uri",
         "auto_start": true,
         "nodes": [
@@ -55,9 +97,9 @@
                       "type": "per_property",
                       "rules": [
                         {
-                          "path": "request_property",
+                          "path": "updated_property",
                           "conversion_mode": "fixed_value",
-                          "value": "request_value"
+                          "value": "updated_value"
                         },
                         {
                           "path": "new_copied_property",
@@ -65,14 +107,13 @@
                           "original_path": "original_source"
                         }
                       ],
-                      "keep_original": true,
                       "result": {
                         "type": "per_property",
                         "rules": [
                           {
-                            "path": "response_property",
+                            "path": "result_property",
                             "conversion_mode": "from_original",
-                            "original_path": "original_response"
+                            "original_path": "original_result"
                           }
                         ]
                       }
@@ -83,7 +124,20 @@
             ]
           }
         ]
+      },
+      {
+        "name": "addon_not_found",
+        "auto_start": false,
+        "nodes": [
+          {
+            "type": "extension",
+            "name": "extension_1",
+            "addon": "extension_addon_1_not_found",
+            "extension_group": "default"
+          }
+        ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

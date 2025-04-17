@@ -61,7 +61,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -70,11 +71,11 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
         let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest.json")
+            include_str!("../../../../../test_data/extension_2_manifest.json")
                 .to_string();
 
         // The empty property for addons.
@@ -256,7 +257,7 @@ mod tests {
 
         // Define expected property.json content after updating the message
         // conversion.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_updated_msg_conversion.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_updated_msg_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -297,7 +298,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property_2.json").to_string();
+            include_str!("../../../../../test_data/app_property_2.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -306,12 +308,13 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
-        let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest_3.json")
-                .to_string();
+        let ext2_manifest_json_str = include_str!(
+            "../../../../../test_data/extension_2_manifest_3.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -442,7 +445,7 @@ mod tests {
 
         // Define expected property.json content after updating the message
         // conversion.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_updated_msg_conversion_1.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_updated_msg_conversion_1.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -483,7 +486,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property_3.json").to_string();
+            include_str!("../../../../../test_data/app_property_3.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -492,12 +496,13 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
-        let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest_3.json")
-                .to_string();
+        let ext2_manifest_json_str = include_str!(
+            "../../../../../test_data/extension_2_manifest_3.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -634,7 +639,7 @@ mod tests {
 
         // Define expected property.json content after updating the message
         // conversion.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_with_updated_msg_conversion_2.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_updated_msg_conversion_2.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -675,7 +680,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -684,11 +690,11 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
         let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest.json")
+            include_str!("../../../../../test_data/extension_2_manifest.json")
                 .to_string();
 
         // The empty property for addons.
@@ -882,7 +888,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -891,11 +898,11 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
         let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest.json")
+            include_str!("../../../../../test_data/extension_2_manifest.json")
                 .to_string();
 
         // The empty property for addons.
@@ -1096,7 +1103,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property_3.json").to_string();
+            include_str!("../../../../../test_data/app_property_3.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -1105,12 +1113,13 @@ mod tests {
 
         // Create extension addon manifest strings
         let ext1_manifest_json_str =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
-        let ext2_manifest_json_str =
-            include_str!("test_data_embed/extension_2_manifest_3.json")
-                .to_string();
+        let ext2_manifest_json_str = include_str!(
+            "../../../../../test_data/extension_2_manifest_3.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -1274,13 +1283,15 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest =
-            include_str!("test_data_embed/extension_1_simple_manifest.json")
-                .to_string();
+        let ext1_manifest = include_str!(
+            "../../../../../test_data/extension_1_simple_manifest.json"
+        )
+        .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_simple_manifest.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_simple_manifest.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();

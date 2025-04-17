@@ -270,6 +270,9 @@
       "title": "現在の作業場所",
       "baseDir": "ベースディレクトリ",
       "graphName": "グラフ名"
+    },
+    "feedback": {
+      "title": "フィードバック"
     }
   },
   "preferences": {

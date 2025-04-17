@@ -65,13 +65,15 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest =
-            include_str!("test_data_embed/extension_1_simple_manifest.json")
-                .to_string();
+        let ext1_manifest = include_str!(
+            "../../../../../test_data/extension_1_simple_manifest.json"
+        )
+        .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_simple_manifest.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_simple_manifest.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -240,13 +242,15 @@ mod tests {
         std::fs::write(&property_path, &app_property_json_str).unwrap();
 
         // Create extension addon manifest strings.
-        let ext1_manifest =
-            include_str!("test_data_embed/extension_1_simple_manifest.json")
-                .to_string();
+        let ext1_manifest = include_str!(
+            "../../../../../test_data/extension_1_simple_manifest.json"
+        )
+        .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_simple_manifest.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_simple_manifest.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();
@@ -403,7 +407,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -412,11 +417,11 @@ mod tests {
 
         // Create extension addon manifest strings.
         let ext1_manifest =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
         let ext2_manifest =
-            include_str!("test_data_embed/extension_2_manifest.json")
+            include_str!("../../../../../test_data/extension_2_manifest.json")
                 .to_string();
 
         // The empty property for addons.
@@ -527,7 +532,7 @@ mod tests {
 
         eprintln!("resp: {:?}", resp);
 
-        // assert!(resp.status().is_success());
+        assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
@@ -540,7 +545,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_added_with_msg_conversion.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_added_with_msg_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -582,7 +587,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -591,11 +597,11 @@ mod tests {
 
         // Create extension addon manifest strings.
         let ext1_manifest =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
         let ext2_manifest =
-            include_str!("test_data_embed/extension_2_manifest.json")
+            include_str!("../../../../../test_data/extension_2_manifest.json")
                 .to_string();
 
         // The empty property for addons.
@@ -719,7 +725,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__connection_added_with_msg_conversion_keep_original.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_added_with_msg_conversion_keep_original.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -761,7 +767,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -770,12 +777,13 @@ mod tests {
 
         // Create extension addon manifest strings.
         let ext1_manifest =
-            include_str!("test_data_embed/extension_1_manifest.json")
+            include_str!("../../../../../test_data/extension_1_manifest.json")
                 .to_string();
 
-        let ext2_manifest =
-            include_str!("test_data_embed/extension_2_manifest_2.json")
-                .to_string();
+        let ext2_manifest = include_str!(
+            "../../../../../test_data/extension_2_manifest_2.json"
+        )
+        .to_string();
 
         // The empty property for addons.
         let empty_property = r#"{"_ten":{}}"#.to_string();

@@ -5,7 +5,12 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { FolderTreeIcon, FolderOpenIcon, ChevronRightIcon } from "lucide-react";
+import {
+  FolderTreeIcon,
+  FolderOpenIcon,
+  ChevronRightIcon,
+  MessageSquareShareIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -28,6 +33,7 @@ import {
   CONTAINER_DEFAULT_ID,
   GRAPH_SELECT_WIDGET_ID,
 } from "@/constants/widgets";
+import { TEN_FRAMEWORK_DESIGNER_FEEDBACK_ISSUE_URL } from "@/constants";
 import { useWidgetStore, useAppStore } from "@/store";
 import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
 import { LoadedAppsPopupTitle } from "../Popup/Default/App";
@@ -50,6 +56,9 @@ export default function StatusBar(props: { className?: string }) {
       <div className="flex w-full h-full gap-2">
         <StatusApps />
         <StatusWorkspace />
+      </div>
+      <div className="flex w-fit gap-2 px-2">
+        <Feedback />
       </div>
     </footer>
   );
@@ -197,5 +206,25 @@ const StatusWorkspace = () => {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+};
+
+const Feedback = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <Button asChild variant="ghost" size="status" className="truncate">
+        <a
+          target="_blank"
+          referrerPolicy="no-referrer"
+          href={TEN_FRAMEWORK_DESIGNER_FEEDBACK_ISSUE_URL}
+          className="animate-[pulse_1s_ease-in-out_5]"
+        >
+          <MessageSquareShareIcon className="size-3" />
+          <span>{t("statusBar.feedback.title")}</span>
+        </a>
+      </Button>
+    </>
   );
 };
