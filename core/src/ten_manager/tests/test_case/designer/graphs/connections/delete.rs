@@ -48,8 +48,8 @@ mod tests {
 
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
-            include_str!("../test_data_embed/app_manifest.json").to_string(),
-            include_str!("../test_data_embed/app_property.json").to_string(),
+            include_str!("../../../../test_data/app_manifest.json").to_string(),
+            include_str!("../../../../test_data/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
@@ -110,8 +110,8 @@ mod tests {
 
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
-            include_str!("../test_data_embed/app_manifest.json").to_string(),
-            include_str!("../test_data_embed/app_property.json").to_string(),
+            include_str!("../../../../test_data/app_manifest.json").to_string(),
+            include_str!("../../../../test_data/app_property.json").to_string(),
         )];
 
         let inject_ret = inject_all_pkgs_for_mock(
@@ -173,9 +173,9 @@ mod tests {
 
         // Read test data from embedded JSON files.
         let input_property_json_str =
-            include_str!("../test_data_embed/app_property.json");
+            include_str!("../../../../test_data/app_property.json");
         let input_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json");
+            include_str!("../../../../test_data/app_manifest.json");
 
         // The expected property will be the same as input but with the
         // connection removed.
