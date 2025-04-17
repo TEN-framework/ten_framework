@@ -90,7 +90,7 @@ mod tests {
     fn test_dump_property_without_localhost_app_in_graph() {
         let mut graphs_cache = HashMap::new();
 
-        let json_str = include_str!("test_data_embed/property.json");
+        let json_str = include_str!("../../../test_data/property.json");
 
         let property = parse_property_from_str(
             json_str,
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn test_dump_property_with_msg_conversion() {
         let prop_str = include_str!(
-            "test_data_embed/dump_property_with_msg_conversion.json"
+            "../../../test_data/dump_property_with_msg_conversion.json"
         );
 
         let mut graphs_cache = HashMap::new();
