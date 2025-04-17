@@ -38,7 +38,6 @@ pub mod output;
 mod package_file;
 pub mod pkg_info;
 pub mod registry;
-pub mod runner;
 pub mod schema;
 mod solver;
 pub mod version;
