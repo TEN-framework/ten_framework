@@ -172,6 +172,9 @@
         {
           "name": "data2",
           "property": {
+            "a": {
+              "type": "string"
+            },
             "b": {
               "type": "object",
               "properties": {
@@ -185,9 +188,6 @@
               "required": [
                 "c"
               ]
-            },
-            "a": {
-              "type": "string"
             }
           }
         },
@@ -261,9 +261,103 @@
           ]
         },
         {
-          "name": "has_required_mismatch",
+          "name": "has_not_required",
           "property": {
             "foo": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "cmd1",
+          "property": {
+            "param1": {
+              "type": "int8"
+            }
+          },
+          "result": {
+            "property": {
+              "string_detail": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "bool"
+              }
+            }
+          }
+        },
+        {
+          "name": "cmd2",
+          "property": {
+            "param1": {
+              "type": "int8"
+            }
+          },
+          "result": {
+            "property": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "cmd3",
+          "property": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "int8"
+            }
+          },
+          "required": [
+            "a"
+          ]
+        },
+        {
+          "name": "cmd4"
+        },
+        {
+          "name": "cmd5",
+          "property": {
+            "foo": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "foo"
+          ]
+        }
+      ],
+      "data_in": [
+        {
+          "name": "data1",
+          "property": {
+            "text_data": {
+              "type": "buf"
+            }
+          }
+        },
+        {
+          "name": "data2",
+          "property": {
+            "b": {
+              "type": "object",
+              "properties": {
+                "d": {
+                  "type": "bool"
+                },
+                "c": {
+                  "type": "int8"
+                }
+              },
+              "required": [
+                "c",
+                "d"
+              ]
+            },
+            "a": {
               "type": "string"
             }
           }
@@ -280,6 +374,34 @@
           "required": [
             "foo"
           ]
+        }
+      ],
+      "audio_frame_in": [
+        {
+          "name": "audio1",
+          "property": {
+            "format": {
+              "type": "uint8"
+            }
+          }
+        }
+      ],
+      "video_frame_in": [
+        {
+          "name": "video1",
+          "property": {
+            "width": {
+              "type": "uint64"
+            }
+          }
+        },
+        {
+          "name": "pcm_frame1",
+          "property": {
+            "a": {
+              "type": "string"
+            }
+          }
         }
       ]
     },
