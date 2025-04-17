@@ -8,11 +8,13 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   FilePenLineIcon,
+  TablePropertiesIcon,
   TerminalIcon,
   Trash2Icon,
   LogsIcon,
   SaveIcon,
-  GitPullRequestCreateIcon,
+  ArrowDownToDotIcon,
+  ArrowUpFromDotIcon,
   ReplaceIcon,
   // PinIcon,
 } from "lucide-react";
@@ -170,7 +172,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
     {
       _type: EContextMenuItemType.BUTTON,
       label: t("action.update") + " " + t("popup.node.properties"),
-      icon: <FilePenLineIcon />,
+      icon: <TablePropertiesIcon />,
       disabled: !baseDir || !graphId,
       onClick: () => {
         if (!baseDir || !graphId) return;
@@ -207,7 +209,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       label: t("header.menuGraph.addConnectionFromNode", {
         node: node.data.name,
       }),
-      icon: <GitPullRequestCreateIcon />,
+      icon: <ArrowUpFromDotIcon />,
       disabled: !baseDir || !graphId,
       onClick: () => {
         if (!baseDir || !graphId) return;
@@ -242,7 +244,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       label: t("header.menuGraph.addConnectionToNode", {
         node: node.data.name,
       }),
-      icon: <GitPullRequestCreateIcon />,
+      icon: <ArrowDownToDotIcon />,
       disabled: !baseDir || !graphId,
       onClick: () => {
         if (!baseDir || !graphId) return;

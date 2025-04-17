@@ -29,12 +29,15 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
+        default: "h-[var(--size-base)] px-4 py-2",
+        xs: "h-[var(--size-xs)] rounded-md px-2 text-xs [_svg]:size-3",
+        sm: "h-[var(--size-sm)] rounded-md px-3 text-xs",
+        lg: "h-[var(--size-lg)] rounded-md px-8",
+        xl: "h-[var(--size-xl)] rounded-md px-8",
         icon: "h-8 w-8",
         status:
           "h-5 w-fit px-2 [&_svg]:size-3 cursor-pointer rounded-none text-xs gap-1",
+        th: "h-[var(--size-sm)] text-sm [_svg]:size-3 font-normal px-3",
       },
     },
     defaultVariants: {

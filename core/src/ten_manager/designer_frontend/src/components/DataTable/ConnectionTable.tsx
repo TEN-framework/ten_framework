@@ -82,6 +82,7 @@ export const commonConnectionColumns: ColumnDef<TConnection>[] = [
       return (
         <Button
           variant="ghost"
+          size="th"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <Translation>
@@ -390,7 +391,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className={cn("rounded-md border", className)}>
+      <div className={cn("", className)}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
