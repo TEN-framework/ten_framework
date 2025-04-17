@@ -157,6 +157,8 @@ void ten_addon_manager_register_all_addons(ten_addon_manager_t *self,
 void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
                                                   void *register_ctx) {
   TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(self->app && ten_app_check_integrity(self->app, true),
+             "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
@@ -169,7 +171,7 @@ void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
     if (reg && reg->func && reg->addon_type == TEN_ADDON_TYPE_ADDON_LOADER) {
       // Check if the addon loader is already registered.
       ten_addon_host_t *addon_host = ten_addon_store_find_by_type(
-          TEN_ADDON_TYPE_ADDON_LOADER,
+          self->app, TEN_ADDON_TYPE_ADDON_LOADER,
           ten_string_get_raw_str(&reg->addon_name));
       if (!addon_host) {
         reg->func(reg->addon_type, &reg->addon_name, register_ctx,
@@ -186,6 +188,8 @@ void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
 void ten_addon_manager_register_all_protocols(ten_addon_manager_t *self,
                                               void *register_ctx) {
   TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(self->app && ten_app_check_integrity(self->app, true),
+             "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
@@ -198,7 +202,8 @@ void ten_addon_manager_register_all_protocols(ten_addon_manager_t *self,
     if (reg && reg->func && reg->addon_type == TEN_ADDON_TYPE_PROTOCOL) {
       // Check if the protocol is already registered.
       ten_addon_host_t *addon_host = ten_addon_store_find_by_type(
-          TEN_ADDON_TYPE_PROTOCOL, ten_string_get_raw_str(&reg->addon_name));
+          self->app, TEN_ADDON_TYPE_PROTOCOL,
+          ten_string_get_raw_str(&reg->addon_name));
       if (!addon_host) {
         reg->func(reg->addon_type, &reg->addon_name, register_ctx,
                   reg->user_data);

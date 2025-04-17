@@ -158,6 +158,8 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
                                         ten_addon_host_t *addon_host,
                                         const char *name, const char *base_dir,
                                         ten_addon_t *addon) {
+  TEN_ASSERT(addon_store && ten_addon_store_check_integrity(addon_store, true),
+             "Should not happen.");
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
   TEN_ASSERT(name, "Should not happen.");
@@ -325,13 +327,20 @@ static void ten_app_create_addon_instance(ten_app_t *app,
       ten_string_get_raw_str(&addon_context->instance_name);
   TEN_ASSERT(instance_name, "Should not happen.");
 
+  if (ten_c_string_is_empty(addon_name) ||
+      ten_c_string_is_empty(instance_name)) {
+    TEN_LOGI(
+        "The addon name or instance name is empty, will not create the "
+        "addon instance.");
+
+    ten_app_notify_create_addon_instance_failed(app, addon_context);
+    return;
+  }
+
   TEN_LOGD("Try to find addon for %s", addon_name);
 
-  int lock_operation_rc = ten_addon_store_lock_by_type(addon_type);
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-
   ten_addon_host_t *addon_host =
-      ten_addon_store_find_by_type(addon_type, addon_name);
+      ten_addon_store_find_by_type(app, addon_type, addon_name);
   if (!addon_host) {
     ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
     TEN_ASSERT(register_ctx, "Failed to allocate memory.");
@@ -367,14 +376,11 @@ static void ten_app_create_addon_instance(ten_app_t *app,
     }
 
     // Find again.
-    addon_host = ten_addon_store_find_by_type(addon_type, addon_name);
+    addon_host = ten_addon_store_find_by_type(app, addon_type, addon_name);
 
     ten_addon_register_ctx_destroy(register_ctx);
     ten_error_deinit(&err);
   }
-
-  lock_operation_rc = ten_addon_store_unlock_by_type(addon_type);
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   if (!addon_host) {
     TEN_LOGE(
@@ -464,15 +470,6 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
     exit(EXIT_FAILURE);
   }
 
-  ten_addon_host_t *addon_host =
-      ten_addon_store_find_by_type(addon_type, addon_name);
-  if (addon_host) {
-    // This addon already exists; do not register it again.
-    goto done;
-  }
-
-  addon_host = ten_addon_host_create(addon_type);
-
   ten_addon_register_ctx_t *register_ctx_ =
       (ten_addon_register_ctx_t *)register_ctx;
   TEN_ASSERT(register_ctx_, "Invalid argument.");
@@ -481,21 +478,30 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
   TEN_ASSERT(app, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
+  ten_addon_host_t *addon_host =
+      ten_addon_store_find_by_type(app, addon_type, addon_name);
+  if (addon_host) {
+    // This addon already exists; do not register it again.
+    goto done;
+  }
+
+  addon_host = ten_addon_host_create(addon_type);
+
   addon_host->attached_app = app;
 
   ten_addon_store_t *addon_store = NULL;
   switch (addon_type) {
   case TEN_ADDON_TYPE_EXTENSION:
-    addon_store = ten_extension_get_global_store();
+    addon_store = &app->extension_store;
     break;
   case TEN_ADDON_TYPE_EXTENSION_GROUP:
-    addon_store = ten_extension_group_get_global_store();
+    addon_store = &app->extension_group_store;
     break;
   case TEN_ADDON_TYPE_PROTOCOL:
-    addon_store = ten_protocol_get_global_store();
+    addon_store = &app->protocol_store;
     break;
   case TEN_ADDON_TYPE_ADDON_LOADER:
-    addon_store = ten_addon_loader_get_global_store();
+    addon_store = &app->addon_loader_store;
     break;
   default:
     break;
@@ -526,17 +532,25 @@ done:
  */
 ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
                                   const char *addon_name) {
-  TEN_ASSERT(store && addon_name, "Should not happen.");
+  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
+             "Should not happen.");
+  TEN_ASSERT(addon_name, "Should not happen.");
 
   TEN_LOGV("Unregistered addon '%s'", addon_name);
 
   return ten_addon_store_del(store, addon_name);
 }
 
-static void ten_addon_unregister_all_except_addon_loader_addon(void) {
-  ten_addon_unregister_all_extension();
-  ten_addon_unregister_all_extension_group();
-  ten_addon_unregister_all_protocol();
+static void ten_addon_unregister_all_except_addon_loader_addon(
+    ten_env_t *ten_env) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
+
+  ten_addon_unregister_all_extension(ten_env);
+  ten_addon_unregister_all_extension_group(ten_env);
+  ten_addon_unregister_all_protocol(ten_env);
 
   // Destroy the addon manager to avoid memory leak.
   ten_addon_manager_destroy(ten_addon_manager_get_instance());
@@ -548,7 +562,7 @@ static void ten_on_all_addons_unregistered_cb(ten_env_t *ten_env,
       (ten_on_all_addons_unregistered_ctx_t *)cb_data;
   TEN_ASSERT(ctx, "Invalid argument.");
 
-  ten_addon_unregister_all_addon_loader();
+  ten_addon_unregister_all_addon_loader(ten_env);
 
   if (ctx->cb) {
     ctx->cb(ten_env, ctx->cb_data);
@@ -576,7 +590,7 @@ TEN_RUNTIME_API void ten_addon_unregister_all_and_cleanup_after_app_close(
   ctx->cb = cb;
   ctx->cb_data = cb_data;
 
-  ten_addon_unregister_all_except_addon_loader_addon();
+  ten_addon_unregister_all_except_addon_loader_addon(ten_env);
 
   ten_addon_loader_destroy_all_singleton_instances(
       ten_env, ten_on_all_addons_unregistered_cb, ctx);

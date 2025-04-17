@@ -286,11 +286,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
 
   // Addon registration phase 1: adding a function, which will perform the
   // actual registration in the phase 2, into the `addon_manager`.
-  ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
-      ten_string_get_raw_str(&self->base_dir), &err);
-
-  int lock_operation_rc = ten_addon_store_lock_all_type();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
+  ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(self, &err);
 
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(self);
   TEN_ASSERT(register_ctx, "Failed to allocate memory.");
@@ -309,9 +305,6 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_manager_register_all_protocols(manager, register_ctx);
 
   ten_addon_register_ctx_destroy(register_ctx);
-
-  lock_operation_rc = ten_addon_store_unlock_all_type();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   // Create addon loader singleton instances.
   ten_addon_loader_addons_create_singleton_instance(

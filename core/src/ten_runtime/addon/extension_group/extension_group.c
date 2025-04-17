@@ -9,27 +9,12 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
-#include "ten_utils/lib/thread_once.h"
+#include "ten_runtime/app/app.h"
 #include "ten_utils/macro/check.h"
-
-static ten_thread_once_t g_extension_group_store_once = TEN_THREAD_ONCE_INIT;
-
-static ten_addon_store_t g_extension_group_store = {
-    NULL,
-    TEN_LIST_INIT_VAL,
-};
-
-static void init_extension_group_store(void) {
-  ten_addon_store_init(&g_extension_group_store);
-}
-
-ten_addon_store_t *ten_extension_group_get_global_store(void) {
-  ten_thread_once(&g_extension_group_store_once, init_extension_group_store);
-  return &g_extension_group_store;
-}
 
 ten_addon_host_t *ten_addon_register_extension_group(const char *name,
                                                      const char *base_dir,
@@ -37,12 +22,6 @@ ten_addon_host_t *ten_addon_register_extension_group(const char *name,
                                                      void *register_ctx) {
   return ten_addon_register(TEN_ADDON_TYPE_EXTENSION_GROUP, name, base_dir,
                             addon, register_ctx);
-}
-
-ten_addon_t *ten_addon_unregister_extension_group(const char *name) {
-  TEN_ASSERT(name, "Should not happen.");
-
-  return ten_addon_unregister(ten_extension_group_get_global_store(), name);
 }
 
 bool ten_addon_create_extension_group(
@@ -111,6 +90,18 @@ bool ten_addon_destroy_extension_group(
                                                addon_context);
 }
 
-void ten_addon_unregister_all_extension_group(void) {
-  ten_addon_store_del_all(ten_extension_group_get_global_store());
+void ten_addon_unregister_all_extension_group(ten_env_t *ten_env) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
+
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_store_t *addon_store = &app->extension_group_store;
+  TEN_ASSERT(addon_store && ten_addon_store_check_integrity(addon_store, true),
+             "Should not happen.");
+
+  ten_addon_store_del_all(addon_store);
 }

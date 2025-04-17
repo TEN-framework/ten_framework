@@ -7,6 +7,8 @@
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 
 #include "include_internal/ten_runtime/addon/common/common.h"
+#include "include_internal/ten_runtime/app/app.h"
+#include "ten_runtime/app/app.h"
 #include "ten_utils/macro/mark.h"
 
 #if defined(OS_LINUX)
@@ -159,8 +161,12 @@ done:
   ten_string_deinit(&lib_dir);
 }
 
-static void load_all_dynamic_libraries(TEN_ADDON_TYPE addon_type,
+static void load_all_dynamic_libraries(ten_app_t *app,
+                                       TEN_ADDON_TYPE addon_type,
                                        const char *path) {
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
+
   ten_string_t *cur = NULL;
   ten_string_t *short_name = NULL;
   ten_string_t *self = NULL;
@@ -186,7 +192,7 @@ static void load_all_dynamic_libraries(TEN_ADDON_TYPE addon_type,
       goto continue_loop;
     }
 
-    if (ten_addon_store_find_by_type(addon_type,
+    if (ten_addon_store_find_by_type(app, addon_type,
                                      ten_string_get_raw_str(short_name))) {
       // This addon has already been loaded, so it should not be loaded again to
       // avoid re-executing any side effects during the loading process (such as
@@ -241,7 +247,11 @@ done:
 }
 
 bool ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
-    const char *app_base_dir, TEN_UNUSED ten_error_t *err) {
+    ten_app_t *app, TEN_UNUSED ten_error_t *err) {
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
+
+  const char *app_base_dir = ten_string_get_raw_str(&app->base_dir);
   TEN_ASSERT(app_base_dir, "Invalid argument.");
 
   bool success = true;
@@ -277,7 +287,7 @@ bool ten_addon_load_all_protocols_and_addon_loaders_from_app_base_dir(
       // The modules (e.g., extensions/protocols) do not exist if only the TEN
       // app has been installed.
       if (ten_path_exists(ten_string_get_raw_str(&module_path))) {
-        load_all_dynamic_libraries(folders[i].addon_type,
+        load_all_dynamic_libraries(app, folders[i].addon_type,
                                    ten_string_get_raw_str(&module_path));
       }
     } while (0);

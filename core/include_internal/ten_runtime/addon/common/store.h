@@ -10,24 +10,35 @@
 
 #include "ten_runtime/addon/addon.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/lib/mutex.h"
+#include "ten_utils/lib/signature.h"
+#include "ten_utils/sanitizer/thread_check.h"
+
+#define TEN_ADDON_STORE_SIGNATURE 0x8A7F2C91E5D63B04U
 
 typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_t ten_addon_t;
 
 typedef struct ten_addon_store_t {
-  ten_mutex_t *lock;
+  ten_signature_t signature;
+  ten_sanitizer_thread_check_t thread_check;
+
   ten_list_t store;  // ten_addon_host_t
 } ten_addon_store_t;
 
-#define TEN_ADDON_STORE_INIT_VAL \
-  (ten_addon_store_t) { NULL, TEN_LIST_INIT_VAL }
+#define TEN_ADDON_STORE_INIT_VAL                                    \
+  (ten_addon_store_t) {                                             \
+    TEN_ADDON_STORE_SIGNATURE, TEN_SANITIZER_THREAD_CHECK_INIT_VAL, \
+        TEN_LIST_INIT_VAL                                           \
+  }
 
 #define TEN_ADDON_STORE_INIT(var)     \
   do {                                \
     (var) = TEN_ADDON_STORE_INIT_VAL; \
     ten_addon_store_init(&(var));     \
   } while (0)
+
+TEN_RUNTIME_PRIVATE_API bool ten_addon_store_check_integrity(
+    ten_addon_store_t *store, bool check_thread);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_init(ten_addon_store_t *store);
 
@@ -40,10 +51,6 @@ TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_store_del(
     ten_addon_store_t *store, const char *name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_del_all(ten_addon_store_t *store);
-
-TEN_RUNTIME_PRIVATE_API int ten_addon_store_lock(ten_addon_store_t *store);
-
-TEN_RUNTIME_PRIVATE_API int ten_addon_store_unlock(ten_addon_store_t *store);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_store_find(
     ten_addon_store_t *store, const char *name);

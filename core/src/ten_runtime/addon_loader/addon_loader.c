@@ -337,8 +337,14 @@ void ten_addon_loader_addons_create_singleton_instance(
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_addon_store_t *addon_loader_store = ten_addon_loader_get_global_store();
-  TEN_ASSERT(addon_loader_store, "Should not happen.");
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_store_t *addon_loader_store = &app->addon_loader_store;
+  TEN_ASSERT(addon_loader_store &&
+                 ten_addon_store_check_integrity(addon_loader_store, true),
+             "Should not happen.");
 
   size_t desired_count = ten_list_size(&addon_loader_store->store);
   if (!desired_count ||

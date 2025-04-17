@@ -70,7 +70,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 		addonWrapper.cPtr = bridge
 
 		runtime.SetFinalizer(addonWrapper, func(p *addon) {
-			C.ten_go_addon_unregister(p.cPtr)
+			C.ten_go_addon_finalize(p.cPtr)
 		})
 
 		return nil

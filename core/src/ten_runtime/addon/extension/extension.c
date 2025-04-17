@@ -10,34 +10,19 @@
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/extension_thread/on_xxx.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
+#include "ten_runtime/app/app.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
-
-static ten_thread_once_t g_extension_store_once = TEN_THREAD_ONCE_INIT;
-
-static ten_addon_store_t g_extension_store = {
-    NULL,
-    TEN_LIST_INIT_VAL,
-};
-
-static void init_extension_store(void) {
-  ten_addon_store_init(&g_extension_store);
-}
-
-ten_addon_store_t *ten_extension_get_global_store(void) {
-  ten_thread_once(&g_extension_store_once, init_extension_store);
-  return &g_extension_store;
-}
 
 static ten_addon_on_create_extension_instance_ctx_t *
 ten_addon_on_create_extension_instance_ctx_create(
@@ -218,12 +203,20 @@ ten_addon_host_t *ten_addon_register_extension(const char *name,
                             register_ctx);
 }
 
-ten_addon_t *ten_addon_unregister_extension(const char *name) {
-  TEN_ASSERT(name, "Should not happen.");
+void ten_addon_unregister_all_extension(ten_env_t *ten_env) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true),
+             "Invalid use of ten_env %p.", ten_env);
 
-  return ten_addon_unregister(ten_extension_get_global_store(), name);
-}
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
 
-void ten_addon_unregister_all_extension(void) {
-  ten_addon_store_del_all(ten_extension_get_global_store());
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_store_t *addon_store = &app->extension_store;
+  TEN_ASSERT(addon_store && ten_addon_store_check_integrity(addon_store, true),
+             "Should not happen.");
+
+  ten_addon_store_del_all(addon_store);
 }

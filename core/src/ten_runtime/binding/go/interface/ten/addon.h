@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-void ten_go_addon_unregister(uintptr_t bridge_addr);
+void ten_go_addon_finalize(uintptr_t bridge_addr);
 
 ten_go_error_t ten_go_addon_register_extension(const void *addon_name,
                                                int addon_name_len,

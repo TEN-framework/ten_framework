@@ -406,16 +406,15 @@ ten_string_t *ten_protocol_uri_to_transport_uri(const char *uri) {
   ten_string_t *host = ten_uri_get_host(uri);
   uint16_t port = ten_uri_get_port(uri);
 
-  ten_addon_host_t *addon_host =
-      ten_addon_protocol_find(ten_string_get_raw_str(protocol));
-  TEN_ASSERT(addon_host && addon_host->type == TEN_ADDON_TYPE_PROTOCOL,
-             "Should not happen.");
+  // TODO(xilin):
+  // If we need to retrieve the corresponding transport_type from the manifest
+  // settings of the loaded protocol, we would need to switch to the app thread
+  // where the addon_host resides, which would necessarily be an asynchronous
+  // operation. Therefore, we currently use the default transport_type: tcp. In
+  // the future, if new protocols are added that use different transport_types,
+  // this design will need to be reconsidered.
 
-  const char *transport_type = ten_value_object_peek_string(
-      &addon_host->manifest, TEN_STR_TRANSPORT_TYPE);
-  if (!transport_type) {
-    transport_type = TEN_STR_TCP;
-  }
+  const char *transport_type = TEN_STR_TCP;
 
   ten_string_t *transport_uri = ten_string_create_formatted(
       "%s://%s:%d/", transport_type, ten_string_get_raw_str(host), port);

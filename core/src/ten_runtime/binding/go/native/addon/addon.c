@@ -72,23 +72,12 @@ static void ten_go_addon_destroy(ten_go_addon_t *self) {
   TEN_FREE(self);
 }
 
-void ten_go_addon_unregister(uintptr_t bridge_addr) {
+void ten_go_addon_finalize(uintptr_t bridge_addr) {
   TEN_ASSERT(bridge_addr, "Invalid argument.");
 
   ten_go_addon_t *addon_bridge = (ten_go_addon_t *)bridge_addr;
   TEN_ASSERT(addon_bridge, "Invalid argument.");
   TEN_ASSERT(ten_go_addon_check_integrity(addon_bridge), "Invalid argument.");
-
-  switch (addon_bridge->type) {
-  case TEN_ADDON_TYPE_EXTENSION:
-    ten_addon_unregister_extension(
-        ten_string_get_raw_str(&addon_bridge->addon_name));
-    break;
-
-  default:
-    TEN_ASSERT(0, "Should not happen.");
-    break;
-  }
 
   // The C part is disappear, so decrement the reference count to reflect this
   // fact.
