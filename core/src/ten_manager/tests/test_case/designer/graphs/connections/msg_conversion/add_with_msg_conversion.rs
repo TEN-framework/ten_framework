@@ -189,7 +189,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_msg_conversion.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_msg_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -361,7 +361,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_msg_and_result_conversion.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_msg_and_result_conversion.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =

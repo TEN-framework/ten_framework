@@ -1425,7 +1425,7 @@ mod tests {
 
         // Define expected property.json content after removing the message
         // conversion.
-        let expected_property_json_str = include_str!("../test_data_embed/expected_json__connection_with_removed_msg_conversion.json");
+        let expected_property_json_str = include_str!("../../../../../test_data/expected_json__connection_with_removed_msg_conversion.json");
 
         // Read the actual property.json file generated during the test
         let property_path =

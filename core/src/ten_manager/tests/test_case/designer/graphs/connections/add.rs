@@ -167,7 +167,7 @@ mod tests {
         assert!(response.data.success);
 
         // Define expected property.json content after adding the connection.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_success.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_graph_connection_success.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -348,7 +348,7 @@ mod tests {
 
         // Define expected property.json content after adding the connection.
         let expected_property_json_str = include_str!(
-            "test_data_embed/expected_property_add_connection_2.json"
+            "../../../../test_data/expected_property_add_connection_2.json"
         );
 
         // Read the actual property.json file generated during the test.
@@ -582,7 +582,7 @@ mod tests {
         assert!(resp2.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_preserves_order.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_graph_connection_preserves_order.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -747,7 +747,7 @@ mod tests {
         assert!(resp2.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_file_comparison.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_graph_connection_file_comparison.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -887,7 +887,7 @@ mod tests {
         assert!(response.data.success);
 
         // Define expected property.json content after adding the connection.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_data_type.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_graph_connection_data_type.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -1039,7 +1039,7 @@ mod tests {
         assert!(resp.status().is_success());
 
         // Define expected property.json content after adding both connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_graph_connection_frame_types.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_graph_connection_frame_types.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
@@ -1225,7 +1225,7 @@ mod tests {
 
         // Define expected property.json content after adding all three
         // connections.
-        let expected_property_json_str = include_str!("test_data_embed/expected_json__test_add_multiple_connections_preservation_order.json");
+        let expected_property_json_str = include_str!("../../../../test_data/expected_json__test_add_multiple_connections_preservation_order.json");
 
         // Read the actual property.json file generated during the test.
         let property_path =
