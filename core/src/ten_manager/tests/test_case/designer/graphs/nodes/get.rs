@@ -12,24 +12,19 @@ mod tests {
     };
 
     use actix_web::{test, web, App};
-    use serde_json::json;
     use ten_manager::{
         config::{internal::TmanInternalConfig, TmanConfig},
         constants::TEST_DIR,
         designer::{
-            graphs::nodes::{
-                get::{
-                    get_graph_nodes_endpoint, GetGraphNodesRequestPayload,
-                    GraphNodesSingleResponseData,
-                },
-                DesignerApi, DesignerApiMsg, DesignerPropertyAttributes,
+            graphs::nodes::get::{
+                get_graph_nodes_endpoint, GetGraphNodesRequestPayload,
+                GraphNodesSingleResponseData,
             },
             response::{ApiResponse, ErrorResponse},
             DesignerState,
         },
         output::TmanOutputCli,
     };
-    use ten_rust::pkg_info::value_type::ValueType;
     use uuid::Uuid;
 
     use crate::test_case::mock::inject_all_pkgs_for_mock;
@@ -55,10 +50,10 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
                 include_str!(
-                    "../test_data_embed/extension_addon_1_manifest.json"
+                    "../../../../test_data/extension_addon_1_manifest.json"
                 )
                 .to_string(),
                 "{}".to_string(),
@@ -138,258 +133,30 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
+        eprintln!("body_str: {}", body_str);
+
         let extensions: ApiResponse<Vec<GraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        // Create the expected Version struct
-        let expected_extensions = vec![
-            GraphNodesSingleResponseData {
-                addon: "extension_addon_1".to_string(),
-                name: "extension_1".to_string(),
-                extension_group: Some("extension_group_1".to_string()),
-                app: None,
-                api: Some(DesignerApi {
-                    property: None,
-                    cmd_in: None,
-                    cmd_out: Some(vec![
-                        DesignerApiMsg {
-                            name: "test_cmd".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "test_property".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::Int8,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: None,
-                            result: None,
-                        },
-                        DesignerApiMsg {
-                            name: "has_required".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "foo".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::String,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: Some(vec!["foo".to_string()]),
-                            result: None,
-                        },
-                        DesignerApiMsg {
-                            name: "has_required_mismatch".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "foo".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::String,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: Some(vec!["foo".to_string()]),
-                            result: None,
-                        },
-                    ]),
-                    data_in: None,
-                    data_out: None,
-                    audio_frame_in: None,
-                    audio_frame_out: None,
-                    video_frame_in: None,
-                    video_frame_out: None,
-                }),
-                property: None,
-                is_installed: true,
-            },
-            GraphNodesSingleResponseData {
-                addon: "extension_addon_2".to_string(),
-                name: "extension_2".to_string(),
-                extension_group: Some("extension_group_1".to_string()),
-                app: None,
-                api: Some(DesignerApi {
-                    property: None,
-                    cmd_in: Some(vec![
-                        DesignerApiMsg {
-                            name: "test_cmd".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "test_property".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::Int32,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: None,
-                            result: None,
-                        },
-                        DesignerApiMsg {
-                            name: "another_test_cmd".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "test_property".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::Int8,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: None,
-                            result: None,
-                        },
-                        DesignerApiMsg {
-                            name: "has_required".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "foo".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::String,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: Some(vec!["foo".to_string()]),
-                            result: None,
-                        },
-                        DesignerApiMsg {
-                            name: "has_required_mismatch".to_string(),
-                            property: Some({
-                                let mut map = HashMap::new();
-                                map.insert(
-                                    "foo".to_string(),
-                                    DesignerPropertyAttributes {
-                                        prop_type: ValueType::String,
-                                        items: None,
-                                        properties: None,
-                                        required: None,
-                                    },
-                                );
-                                map
-                            }),
-                            required: None,
-                            result: None,
-                        },
-                    ]),
-                    cmd_out: None,
-                    data_in: None,
-                    data_out: Some(vec![DesignerApiMsg {
-                        name: "data_has_required".to_string(),
-                        property: Some({
-                            let mut map = HashMap::new();
-                            map.insert(
-                                "foo".to_string(),
-                                DesignerPropertyAttributes {
-                                    prop_type: ValueType::Int8,
-                                    items: None,
-                                    properties: None,
-                                    required: None,
-                                },
-                            );
-                            map
-                        }),
-                        required: Some(vec!["foo".to_string()]),
-                        result: None,
-                    }]),
-                    audio_frame_in: None,
-                    audio_frame_out: None,
-                    video_frame_in: None,
-                    video_frame_out: None,
-                }),
-                property: Some(json!({
-                    "a": 1
-                })),
-                is_installed: true,
-            },
-            GraphNodesSingleResponseData {
-                addon: "extension_addon_3".to_string(),
-                name: "extension_3".to_string(),
-                extension_group: Some("extension_group_1".to_string()),
-                app: None,
-                api: Some(DesignerApi {
-                    property: None,
-                    cmd_in: Some(vec![DesignerApiMsg {
-                        name: "test_cmd".to_string(),
-                        property: Some({
-                            let mut map = HashMap::new();
-                            map.insert(
-                                "test_property".to_string(),
-                                DesignerPropertyAttributes {
-                                    prop_type: ValueType::String,
-                                    items: None,
-                                    properties: None,
-                                    required: None,
-                                },
-                            );
-                            map
-                        }),
-                        required: None,
-                        result: None,
-                    }]),
-                    cmd_out: None,
-                    data_in: Some(vec![DesignerApiMsg {
-                        name: "data_has_required".to_string(),
-                        property: Some({
-                            let mut map = HashMap::new();
-                            map.insert(
-                                "foo".to_string(),
-                                DesignerPropertyAttributes {
-                                    prop_type: ValueType::Int8,
-                                    items: None,
-                                    properties: None,
-                                    required: None,
-                                },
-                            );
-                            map
-                        }),
-                        required: Some(vec!["foo".to_string()]),
-                        result: None,
-                    }]),
-                    data_out: None,
-                    audio_frame_in: None,
-                    audio_frame_out: None,
-                    video_frame_in: None,
-                    video_frame_out: None,
-                }),
-                property: None,
-                is_installed: true,
-            },
-        ];
-
-        assert_eq!(extensions.data, expected_extensions);
         assert!(!extensions.data.is_empty());
 
         let json: ApiResponse<Vec<GraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
+
+        let expected_response_json_str = include_str!(
+            "../../../../test_data/get_extension_info/response.json"
+        );
+
+        let expected_response_json: serde_json::Value =
+            serde_json::from_str(expected_response_json_str).unwrap();
+
+        assert_eq!(
+            expected_response_json,
+            serde_json::to_value(&json.data).unwrap(),
+            "Response does not match expected response"
+        );
     }
 
     #[actix_web::test]

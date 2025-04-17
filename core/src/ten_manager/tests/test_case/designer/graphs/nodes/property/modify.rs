@@ -78,10 +78,10 @@ mod tests {
                 format!(
                     "{}{}",
                     temp_dir_path.clone(),
-                    "/ten_packages/extension/extension_1"
+                    "/ten_packages/extension/extension_addon_1"
                 ),
                 include_str!(
-                    "../../test_data_embed/extension_addon_1_manifest.json"
+                    "../../../../../test_data/extension_addon_1_manifest.json"
                 )
                 .to_string(),
                 "{}".to_string(),
