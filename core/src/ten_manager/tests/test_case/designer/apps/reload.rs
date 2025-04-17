@@ -39,7 +39,7 @@ mod tests {
         // Inject initial package data.
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
-            include_str!("test_data_embed/app_manifest.json").to_string(),
+            include_str!("../../../test_data/app_manifest.json").to_string(),
             include_str!("test_data_embed/app_property.json").to_string(),
         )];
 

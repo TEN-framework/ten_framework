@@ -58,7 +58,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property.json").to_string();
 
@@ -293,7 +294,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property_2.json").to_string();
 
@@ -478,7 +480,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property_3.json").to_string();
 
@@ -669,7 +672,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property.json").to_string();
 
@@ -875,7 +879,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property.json").to_string();
 
@@ -1088,7 +1093,8 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../../test_data/app_manifest.json")
+                .to_string();
         let app_property_json_str =
             include_str!("test_data_embed/app_property_3.json").to_string();
 
