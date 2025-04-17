@@ -34,11 +34,11 @@ mod tests {
 
         // First, create the initial property.json with a connection.
         let initial_json =
-            include_str!("test_data_embed/initial_property.json");
+            include_str!("../../../test_data/initial_property.json");
 
         // Expected JSON after adding the connections.
         let expected_json =
-            include_str!("test_data_embed/expected_property.json");
+            include_str!("../../../test_data/expected_property.json");
 
         // Write the initial JSON to property.json.
         let property_path =

@@ -38,11 +38,11 @@ mod tests {
 
         // First, create the initial property.json with a connection.
         let initial_json =
-            include_str!("test_data_embed/initial_property.json");
+            include_str!("../../../test_data/initial_property.json");
 
         // Expected JSON after adding the connection with message conversion.
         let expected_json = include_str!(
-            "test_data_embed/expected_property_with_msg_conversion.json"
+            "../../../test_data/expected_property_with_msg_conversion.json"
         );
 
         // Write the initial JSON to property.json.
