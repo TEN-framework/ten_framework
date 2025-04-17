@@ -299,6 +299,13 @@
   --radius-xs: var(--ten-chamfer-xs);
   --radius-xxl: var(--ten-chamfer-xxl);
   --radius-xxxl: var(--ten-chamfer-xxxl);
+
+  --size-sm: var(--size-s-rem);
+  --size-base: var(--size-default-rem);
+  --size-l: var(--size-l-rem);
+  --size-xl: var(--size-xl-rem);
+  --size-2xl: var(--size-2xl-rem);
+  --size-xs: var(--size-xs-rem);
 }
 
 @theme inline {
