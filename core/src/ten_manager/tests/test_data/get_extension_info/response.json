@@ -59,11 +59,11 @@
         {
           "name": "cmd1",
           "property": {
-            "param1": {
-              "type": "int8"
-            },
             "param2": {
               "type": "string"
+            },
+            "param1": {
+              "type": "int8"
             }
           },
           "result": {
@@ -135,11 +135,11 @@
         {
           "name": "cmd7",
           "property": {
-            "b": {
-              "type": "int8"
-            },
             "a": {
               "type": "string"
+            },
+            "b": {
+              "type": "int8"
             }
           }
         },
@@ -178,11 +178,11 @@
             "b": {
               "type": "object",
               "properties": {
-                "c": {
-                  "type": "int8"
-                },
                 "d": {
                   "type": "bool"
+                },
+                "c": {
+                  "type": "int8"
                 }
               },
               "required": [
@@ -342,6 +342,9 @@
         {
           "name": "data2",
           "property": {
+            "a": {
+              "type": "string"
+            },
             "b": {
               "type": "object",
               "properties": {
@@ -356,9 +359,6 @@
                 "c",
                 "d"
               ]
-            },
-            "a": {
-              "type": "string"
             }
           }
         }
@@ -423,6 +423,40 @@
               "type": "string"
             }
           }
+        },
+        {
+          "name": "test_cmd_2",
+          "property": {
+            "test_property": {
+              "type": "int64"
+            }
+          }
+        },
+        {
+          "name": "cmd_incompatible",
+          "property": {
+            "param1": {
+              "type": "int32"
+            }
+          }
+        },
+        {
+          "name": "cmd1",
+          "property": {
+            "param1": {
+              "type": "int8"
+            }
+          },
+          "result": {
+            "property": {
+              "detail": {
+                "type": "bool"
+              }
+            },
+            "required": [
+              "detail"
+            ]
+          }
         }
       ],
       "data_in": [
@@ -436,6 +470,22 @@
           "required": [
             "foo"
           ]
+        },
+        {
+          "name": "data_incompatible",
+          "property": {
+            "value": {
+              "type": "int64"
+            }
+          }
+        },
+        {
+          "name": "data1",
+          "property": {
+            "text_data": {
+              "type": "buf"
+            }
+          }
         }
       ]
     },

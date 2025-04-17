@@ -72,10 +72,10 @@ mod tests {
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_3"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
                 ),
                 include_str!(
-                    "../test_data_embed/extension_addon_3_manifest.json"
+                    "../../../../test_data/extension_addon_3_manifest.json"
                 )
                 .to_string(),
                 "{}".to_string(),
