@@ -100,7 +100,8 @@ void ten_addon_unregister_all_extension_group(ten_env_t *ten_env) {
   TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_addon_store_t *addon_store = &app->extension_group_store;
-  TEN_ASSERT(addon_store && ten_addon_store_check_integrity(addon_store, true),
+  TEN_ASSERT(addon_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(addon_store, true),
              "Should not happen.");
 
   ten_addon_store_del_all(addon_store);

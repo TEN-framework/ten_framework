@@ -28,7 +28,6 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
-#include "ten_utils/value/value_object.h"
 
 bool ten_protocol_check_integrity(ten_protocol_t *self, bool check_thread) {
   TEN_ASSERT(self, "Should not happen.");

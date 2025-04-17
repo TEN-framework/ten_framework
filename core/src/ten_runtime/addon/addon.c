@@ -158,7 +158,8 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
                                         ten_addon_host_t *addon_host,
                                         const char *name, const char *base_dir,
                                         ten_addon_t *addon) {
-  TEN_ASSERT(addon_store && ten_addon_store_check_integrity(addon_store, true),
+  TEN_ASSERT(addon_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(addon_store, true),
              "Should not happen.");
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
@@ -536,7 +537,8 @@ done:
  */
 ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
                                   const char *addon_name) {
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
+  TEN_ASSERT(store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true),
              "Should not happen.");
   TEN_ASSERT(addon_name, "Should not happen.");
 

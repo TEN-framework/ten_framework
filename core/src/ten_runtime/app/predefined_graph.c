@@ -72,7 +72,8 @@ static ten_shared_ptr_t *
 ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_app_t *self, ten_predefined_graph_info_t *predefined_graph_info,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(predefined_graph_info, "Invalid argument.");
 
   const char *app_uri = ten_app_get_uri(self);

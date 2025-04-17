@@ -81,7 +81,8 @@ ten_addon_host_t *ten_addon_protocol_find(ten_env_t *ten_env,
   ten_addon_host_t *result = NULL;
 
   ten_addon_store_t *store = &app->protocol_store;
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
+  TEN_ASSERT(store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true),
              "Should not happen.");
 
   ten_list_foreach (&store->store, iter) {
@@ -160,7 +161,8 @@ static void proxy_on_addon_protocol_created(ten_env_t *ten_env, void *instance,
 
 static void ten_app_create_protocol_with_uri(ten_app_t *self,
                                              ten_addon_context_t *ctx) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_addon_create_protocol_ctx_t *create_protocol_ctx =
@@ -171,8 +173,8 @@ static void ten_app_create_protocol_with_uri(ten_app_t *self,
   TEN_ASSERT(uri, "Invalid argument.");
 
   ten_env_t *ten_env = ten_app_get_ten_env(self);
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_string_t *protocol_str = ten_uri_get_protocol(uri);
   TEN_ASSERT(protocol_str, "Should not happen.");

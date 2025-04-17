@@ -72,7 +72,8 @@ static void ten_app_on_engine_closed(ten_engine_t *engine,
 }
 
 static void ten_app_add_engine(ten_app_t *self, ten_engine_t *engine) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(engine, "Should not happen.");
 
   ten_list_push_ptr_back(&self->engines, engine, NULL);
@@ -194,7 +195,8 @@ ten_app_get_singleton_predefined_graph_info_by_name(ten_app_t *self,
 
 ten_engine_t *ten_app_get_engine_by_graph_id(ten_app_t *self,
                                              const char *graph_id) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(graph_id, "Invalid graph_id pointer.");
 
   if (strlen(graph_id) == 0) {
