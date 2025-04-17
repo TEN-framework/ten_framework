@@ -320,6 +320,10 @@ static void ten_app_create_addon_instance(ten_app_t *app,
   TEN_ADDON_TYPE addon_type = addon_context->addon_type;
   TEN_ASSERT(addon_type != TEN_ADDON_TYPE_INVALID, "Should not happen.");
 
+  ten_env_t *ten_env = app->ten_env;
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+
   const char *addon_name = ten_string_get_raw_str(&addon_context->addon_name);
   TEN_ASSERT(addon_name, "Should not happen.");
 
@@ -359,8 +363,8 @@ static void ten_app_create_addon_instance(ten_app_t *app,
           ten_addon_type_to_string(addon_type), addon_name,
           ten_error_message(&err));
 
-      ten_addon_try_load_specific_addon_using_all_addon_loaders(addon_type,
-                                                                addon_name);
+      ten_addon_try_load_specific_addon_using_all_addon_loaders(
+          ten_env, addon_type, addon_name);
 
       // The specific addon_name addon could be loaded by one of the addon
       // loaders. Register the addon again.

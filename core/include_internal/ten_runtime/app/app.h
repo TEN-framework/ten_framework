@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/binding/common.h"
 #include "include_internal/ten_runtime/metadata/metadata.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
@@ -133,6 +134,8 @@ typedef struct ten_app_t {
   ten_addon_store_t extension_group_store;
   ten_addon_store_t protocol_store;
   ten_addon_store_t addon_loader_store;
+
+  ten_addon_loader_singleton_store_t addon_loader_singleton_store;
 
   // Default value is false, meaning addons are loaded on-demand - if not used,
   // they won't be loaded.

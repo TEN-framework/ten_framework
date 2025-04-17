@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/addon/common/common.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/macro/mark.h"
 
@@ -396,13 +397,22 @@ bool ten_addon_try_load_specific_addon_using_native_addon_loader(
 }
 
 void ten_addon_try_load_specific_addon_using_all_addon_loaders(
-    TEN_ADDON_TYPE addon_type, const char *addon_name) {
-  ten_addon_loader_singleton_store_lock();
+    ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
-  ten_list_t *addon_loaders = ten_addon_loader_singleton_get_all();
-  TEN_ASSERT(addon_loaders, "Should not happen.");
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
-  ten_list_foreach (addon_loaders, iter) {
+  ten_addon_loader_singleton_store_t *addon_loader_singleton_store =
+      &app->addon_loader_singleton_store;
+  TEN_ASSERT(addon_loader_singleton_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(
+                 addon_loader_singleton_store, true),
+             "Should not happen.");
+
+  ten_list_foreach (&addon_loader_singleton_store->store, iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader, "Should not happen.");
 
@@ -410,13 +420,14 @@ void ten_addon_try_load_specific_addon_using_all_addon_loaders(
       ten_addon_loader_load_addon(addon_loader, addon_type, addon_name);
     }
   }
-
-  ten_addon_loader_singleton_store_unlock();
 }
 
-bool ten_addon_load_all_extensions_from_app_base_dir(const char *app_base_dir,
+bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
+                                                     const char *app_base_dir,
                                                      ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
   bool success = true;
 
@@ -506,7 +517,8 @@ bool ten_addon_load_all_extensions_from_app_base_dir(const char *app_base_dir,
           // TODO(xilin): Return the result of loading the addon using all
           // addon loaders.
           ten_addon_try_load_specific_addon_using_all_addon_loaders(
-              TEN_ADDON_TYPE_EXTENSION, ten_string_get_raw_str(short_name));
+              ten_env, TEN_ADDON_TYPE_EXTENSION,
+              ten_string_get_raw_str(short_name));
         }
       }
 

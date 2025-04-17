@@ -137,7 +137,7 @@ static void ten_app_continue_run_after_builtin_addons_completed(
 
   if (self->preload_all_addons) {
     if (!ten_addon_load_all_extensions_from_app_base_dir(
-            ten_string_get_raw_str(&self->base_dir), &err)) {
+            ten_env, ten_string_get_raw_str(&self->base_dir), &err)) {
       TEN_LOGW(
           "Failed to load extensions from app base dir during preload all "
           "addons: %s",
@@ -185,9 +185,6 @@ static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
   ten_app_t *self = (ten_app_t *)cb_data;
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-
-  int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   ten_app_continue_run_after_builtin_addons_completed(ten_env);
 }

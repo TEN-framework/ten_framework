@@ -19,41 +19,41 @@
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/macro/memory.h"
 
-static ten_addon_loader_singleton_store_t g_addon_loader_singleton_store = {
-    false,
-    NULL,
-    TEN_LIST_INIT_VAL,
-};
+bool ten_addon_loader_singleton_store_check_integrity(
+    ten_addon_loader_singleton_store_t *store, bool check_thread) {
+  TEN_ASSERT(store, "Invalid argument.");
 
-static void ten_addon_loader_singleton_store_init(
-    ten_addon_loader_singleton_store_t *store) {
-  TEN_ASSERT(store, "Can not init empty addon store.");
-
-  // The addon store should be initted only once.
-  if (ten_atomic_test_set(&store->valid, 1) == 1) {
-    return;
+  if (ten_signature_get(&store->signature) !=
+      (ten_signature_t)TEN_ADDON_LOADER_SINGLETON_STORE_SIGNATURE) {
+    return false;
   }
 
-  store->lock = ten_mutex_create();
+  if (check_thread) {
+    return ten_sanitizer_thread_check_do_check(&store->thread_check);
+  }
+
+  return true;
+}
+
+void ten_addon_loader_singleton_store_init(
+    ten_addon_loader_singleton_store_t *store) {
+  TEN_ASSERT(store, "Can not init empty addon store.");
+  ten_signature_set(&store->signature,
+                    TEN_ADDON_LOADER_SINGLETON_STORE_SIGNATURE);
+  ten_sanitizer_thread_check_init_with_current_thread(&store->thread_check);
+
   ten_list_init(&store->store);
 }
 
-static ten_addon_loader_singleton_store_t *
-ten_addon_loader_singleton_get_global_store(void) {
-  ten_addon_loader_singleton_store_init(&g_addon_loader_singleton_store);
-  return &g_addon_loader_singleton_store;
-}
+void ten_addon_loader_singleton_store_deinit(
+    ten_addon_loader_singleton_store_t *store) {
+  TEN_ASSERT(
+      store && ten_addon_loader_singleton_store_check_integrity(store, false),
+      "Invalid argument.");
 
-ten_list_t *ten_addon_loader_singleton_get_all(void) {
-  return &ten_addon_loader_singleton_get_global_store()->store;
-}
+  TEN_ASSERT(ten_list_is_empty(&store->store), "Should not happen.");
 
-int ten_addon_loader_singleton_store_lock(void) {
-  return ten_mutex_lock(ten_addon_loader_singleton_get_global_store()->lock);
-}
-
-int ten_addon_loader_singleton_store_unlock(void) {
-  return ten_mutex_unlock(ten_addon_loader_singleton_get_global_store()->lock);
+  ten_sanitizer_thread_check_deinit(&store->thread_check);
 }
 
 bool ten_addon_loader_check_integrity(ten_addon_loader_t *self,
@@ -161,9 +161,17 @@ void ten_addon_loader_load_addon(ten_addon_loader_t *self,
   }
 }
 
-static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
+static void ten_app_thread_on_addon_loader_init_done(void *app_,
+                                                     void *cb_data) {
+  ten_app_t *app = (ten_app_t *)app_;
   TEN_ASSERT(app, "Invalid argument.");
   TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
+
+  ten_addon_loader_singleton_store_t *store =
+      &app->addon_loader_singleton_store;
+  TEN_ASSERT(store, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(store, true),
+             "Should not happen.");
 
   ten_app_on_addon_loader_init_done_ctx_t *ctx =
       (ten_app_on_addon_loader_init_done_ctx_t *)cb_data;
@@ -175,12 +183,11 @@ static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
 
   size_t desired_count = on_all_created_ctx->desired_count;
 
-  ten_list_push_ptr_back(ten_addon_loader_singleton_get_all(),
-                         ctx->addon_loader, NULL);
+  ten_list_push_ptr_back(&store->store, ctx->addon_loader, NULL);
 
   TEN_FREE(ctx);
 
-  if (ten_list_size(ten_addon_loader_singleton_get_all()) == desired_count) {
+  if (ten_list_size(&store->store) == desired_count) {
     // Call the callback to notify all addon_loader instances have been created.
     on_all_created_ctx->cb(on_all_created_ctx->ten_env,
                            on_all_created_ctx->cb_data);
@@ -189,10 +196,17 @@ static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
   }
 }
 
-static void ten_app_thread_on_addon_loader_deinit_done(void *app,
+static void ten_app_thread_on_addon_loader_deinit_done(void *app_,
                                                        void *cb_data) {
+  ten_app_t *app = (ten_app_t *)app_;
   TEN_ASSERT(app, "Invalid argument.");
   TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
+
+  ten_addon_loader_singleton_store_t *store =
+      &app->addon_loader_singleton_store;
+  TEN_ASSERT(store, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(store, true),
+             "Should not happen.");
 
   ten_app_on_addon_loader_deinit_done_ctx_t *ctx =
       (ten_app_on_addon_loader_deinit_done_ctx_t *)cb_data;
@@ -213,12 +227,9 @@ static void ten_app_thread_on_addon_loader_deinit_done(void *app,
   addon_host->addon->on_destroy_instance(addon_host->addon, addon_host->ten_env,
                                          addon_loader, NULL);
 
-  ten_list_remove_ptr(ten_addon_loader_singleton_get_all(), addon_loader);
+  ten_list_remove_ptr(&store->store, addon_loader);
 
-  if (ten_list_size(ten_addon_loader_singleton_get_all()) == 0) {
-    int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
-    TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-
+  if (ten_list_size(&store->store) == 0) {
     if (on_all_destroyed_ctx->cb) {
       on_all_destroyed_ctx->cb(on_all_destroyed_ctx->ten_env,
                                on_all_destroyed_ctx->cb_data);
@@ -334,9 +345,6 @@ void ten_addon_loader_addons_create_singleton_instance(
     void *cb_data) {
   bool need_to_wait_all_addon_loaders_created = true;
 
-  int lock_operation_rc = ten_addon_loader_singleton_store_lock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-
   ten_app_t *app = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(app, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
@@ -346,9 +354,16 @@ void ten_addon_loader_addons_create_singleton_instance(
                  ten_addon_store_check_integrity(addon_loader_store, true),
              "Should not happen.");
 
+  ten_addon_loader_singleton_store_t *addon_loader_singleton_store =
+      &app->addon_loader_singleton_store;
+  TEN_ASSERT(addon_loader_singleton_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(
+                 addon_loader_singleton_store, true),
+             "Should not happen.");
+
   size_t desired_count = ten_list_size(&addon_loader_store->store);
   if (!desired_count ||
-      ten_list_size(ten_addon_loader_singleton_get_all()) == desired_count) {
+      ten_list_size(&addon_loader_singleton_store->store) == desired_count) {
     need_to_wait_all_addon_loaders_created = false;
     goto done;
   }
@@ -446,12 +461,20 @@ void ten_addon_loader_destroy_all_singleton_instances(
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,
              "Should not happen.");
 
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_loader_singleton_store_t *addon_loader_singleton_store =
+      &app->addon_loader_singleton_store;
+  TEN_ASSERT(addon_loader_singleton_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(
+                 addon_loader_singleton_store, true),
+             "Should not happen.");
+
   bool need_to_wait_all_addon_loaders_destroyed = true;
 
-  int lock_operation_rc = ten_addon_loader_singleton_store_lock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-
-  if (ten_list_size(ten_addon_loader_singleton_get_all()) == 0) {
+  if (ten_list_size(&addon_loader_singleton_store->store) == 0) {
     need_to_wait_all_addon_loaders_destroyed = false;
     goto done;
   }
@@ -461,7 +484,7 @@ void ten_addon_loader_destroy_all_singleton_instances(
           ten_env, cb, cb_data);
   TEN_ASSERT(ctx, "Should not happen.");
 
-  ten_list_foreach (ten_addon_loader_singleton_get_all(), iter) {
+  ten_list_foreach (&addon_loader_singleton_store->store, iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader, "Should not happen.");
     TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
@@ -479,35 +502,4 @@ done:
   if (!need_to_wait_all_addon_loaders_destroyed && cb) {
     cb(ten_env, cb_data);
   }
-}
-
-// Destroy all addon loader instances in the system.
-void ten_addon_loader_destroy_all_singleton_instances_immediately(void) {
-  int lock_operation_rc = ten_addon_loader_singleton_store_lock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
-
-  ten_list_foreach (ten_addon_loader_singleton_get_all(), iter) {
-    ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(addon_loader, "Should not happen.");
-    TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
-               "Should not happen.");
-
-    ten_addon_host_t *addon_host = addon_loader->addon_host;
-    TEN_ASSERT(addon_host, "Should not happen.");
-    TEN_ASSERT(ten_addon_host_check_integrity(addon_host),
-               "Should not happen.");
-
-    ten_addon_loader_deinit(addon_loader, NULL, NULL);
-
-    ten_addon_t *addon = addon_host->addon;
-    TEN_ASSERT(addon, "Should not happen.");
-    TEN_ASSERT(ten_addon_check_integrity(addon), "Should not happen.");
-
-    addon->on_destroy_instance(addon, addon_host->ten_env, addon_loader, NULL);
-  }
-
-  ten_list_clear(ten_addon_loader_singleton_get_all());
-
-  lock_operation_rc = ten_addon_loader_singleton_store_unlock();
-  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 }

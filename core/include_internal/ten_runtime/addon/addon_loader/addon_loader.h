@@ -64,6 +64,3 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_loader_destroy_all_singleton_instances(
     ten_env_t *ten_env,
     ten_addon_loader_on_all_singleton_instances_destroyed_cb_t cb,
     void *cb_data);
-
-TEN_RUNTIME_PRIVATE_API void
-ten_addon_loader_destroy_all_singleton_instances_immediately(void);
