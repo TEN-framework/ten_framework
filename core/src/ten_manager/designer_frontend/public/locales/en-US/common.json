@@ -35,6 +35,7 @@
       "addNode": "Add Node",
       "addConnection": "Add Connection",
       "addConnectionFromNode": "Add Connection from {{node}}",
+      "addConnectionToNode": "Add Connection to {{node}}",
       "about": "About Graph"
     },
     "menuHelp": {

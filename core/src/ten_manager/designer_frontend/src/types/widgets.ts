@@ -140,6 +140,7 @@ export interface IGraphWidgetData {
   app_uri?: string;
   node?: TCustomNode;
   src_extension?: string;
+  dest_extension?: string;
 }
 
 export interface IGraphWidget extends IWidgetBase<IGraphWidgetData> {
