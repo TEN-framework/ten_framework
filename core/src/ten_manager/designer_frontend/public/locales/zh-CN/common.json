@@ -35,6 +35,7 @@
       "addNode": "添加节点",
       "addConnection": "添加连接",
       "addConnectionFromNode": "从 {{node}} 添加连接",
+      "addConnectionToNode": "添加连接到 {{node}}",
       "about": "关于图谱"
     },
     "menuHelp": {
