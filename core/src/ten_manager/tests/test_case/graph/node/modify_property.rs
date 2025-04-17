@@ -28,7 +28,7 @@ mod tests {
 
         // Create an initial property.json with a graph that has three nodes.
         let property_json_str = include_str!(
-            "test_data_embed/initial_update_graph_node_property.json"
+            "../../../test_data/initial_update_graph_node_property.json"
         );
 
         let mut property_file = fs::File::create(&property_path)?;
@@ -112,7 +112,7 @@ mod tests {
             serde_json::from_str(&updated_property_json_str)?;
 
         let expected_property_json_str = include_str!(
-            "test_data_embed/expected_update_graph_node_property.json"
+            "../../../test_data/expected_update_graph_node_property.json"
         );
         let expected_property: Map<String, Value> =
             serde_json::from_str(expected_property_json_str)?;

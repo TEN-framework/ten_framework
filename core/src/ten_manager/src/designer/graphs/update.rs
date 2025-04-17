@@ -8,7 +8,10 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use ten_rust::graph::{connection::GraphConnection, node::GraphNode};
+use ten_rust::graph::connection::GraphConnection;
+use ten_rust::graph::node::GraphNode;
+use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use uuid::Uuid;
 
 use crate::designer::{
@@ -17,9 +20,33 @@ use crate::designer::{
 };
 
 #[derive(Serialize, Deserialize)]
+pub struct GraphNodeForUpdate {
+    pub name: String,
+    pub addon: String,
+    pub extension_group: Option<String>,
+    pub app: Option<String>,
+    pub property: Option<serde_json::Value>,
+}
+
+impl GraphNodeForUpdate {
+    fn to_graph_node(&self) -> GraphNode {
+        GraphNode {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Extension,
+                name: self.name.clone(),
+            },
+            addon: self.addon.clone(),
+            extension_group: self.extension_group.clone(),
+            app: self.app.clone(),
+            property: self.property.clone(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct UpdateGraphRequestPayload {
     pub graph_id: Uuid,
-    pub nodes: Vec<GraphNode>,
+    pub nodes: Vec<GraphNodeForUpdate>,
     pub connections: Vec<GraphConnection>,
 }
 
@@ -42,11 +69,18 @@ pub async fn update_graph_endpoint(
     // Get the graphs_cache from the state.
     let graphs_cache = &mut state_write.graphs_cache;
 
+    // Convert GraphNodeForUpdate to GraphNode
+    let graph_nodes: Vec<GraphNode> = request_payload
+        .nodes
+        .iter()
+        .map(|node_update| node_update.to_graph_node())
+        .collect();
+
     // Call the update_graph_endpoint function from the graph module.
     let result = crate::graph::update_graph_endpoint(
         graphs_cache,
         &request_payload.graph_id,
-        &request_payload.nodes,
+        &graph_nodes,
         &request_payload.connections,
     );
 

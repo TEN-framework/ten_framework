@@ -110,5 +110,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }
