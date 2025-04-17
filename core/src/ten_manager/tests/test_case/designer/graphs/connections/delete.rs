@@ -177,12 +177,6 @@ mod tests {
         let input_manifest_json_str =
             include_str!("../../../../test_data/app_manifest.json");
 
-        // The expected property will be the same as input but with the
-        // connection removed.
-        let expected_property_json_str = input_property_json_str.replace(
-            r#"{"app": "http://example.com:8000", "extension": "extension_1", "cmd": [{"name": "hello_world", "dest": [{"app": "http://example.com:8000", "extension": "extension_2"}]}]}"#,
-            r#"{"app": "http://example.com:8000", "extension": "extension_1", "cmd": []}"#);
-
         // Write input files to temp directory.
         let property_path =
             std::path::Path::new(&temp_dir_path).join(PROPERTY_JSON_FILENAME);
@@ -300,14 +294,21 @@ mod tests {
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
             serde_json::from_str(&updated_property_content).unwrap();
-        let expected_property: serde_json::Value =
-            serde_json::from_str(&expected_property_json_str).unwrap();
 
-        // Compare the updated property with the expected property.
-        assert_eq!(
-            updated_property, expected_property,
-            "Updated property does not match expected property"
+        // Create the expected property JSON, which is the same as input but
+        // with the connection removed.
+        let expected_property_json_str = include_str!(
+            "test_data_embed/expected_property_delete_connection.json"
         );
+
+        // Parse the expected property JSON.
+        let expected_property: serde_json::Value =
+            serde_json::from_str(expected_property_json_str).unwrap();
+
+        assert_eq!(updated_property, expected_property,
+           "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
+           serde_json::to_string_pretty(&expected_property).unwrap(),
+           serde_json::to_string_pretty(&updated_property).unwrap());
     }
 
     #[actix_web::test]
