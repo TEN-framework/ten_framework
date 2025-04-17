@@ -10,6 +10,8 @@ pub mod msg_conversion;
 pub mod nodes;
 
 use std::collections::HashMap;
+
+use anyhow::Result;
 use uuid::Uuid;
 
 pub use connections::update_graph_connections_all_fields;
@@ -121,4 +123,14 @@ pub fn update_graph_endpoint(
     } else {
         Err(format!("Graph with ID {} not found", graph_id))
     }
+}
+
+pub fn update_graph_all_fields(
+    pkg_url: &str,
+    property_all_fields: &mut serde_json::Map<String, serde_json::Value>,
+    graph_name: &str,
+    nodes: &[GraphNode],
+    connections: &[GraphConnection],
+) -> Result<()> {
+    Ok(())
 }
