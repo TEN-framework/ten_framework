@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::fs::{self, File};
-use std::io::{self};
+use std::io::{self, BufWriter};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -95,8 +95,9 @@ fn extract_and_process_zip_normal_part(
                 }
             }
 
-            let mut out_file = File::create(&out_path)?;
-            io::copy(&mut file, &mut out_file)?;
+            let out_file = File::create(&out_path)?;
+            let mut buffered_writer = BufWriter::new(out_file);
+            io::copy(&mut file, &mut buffered_writer)?;
 
             #[cfg(unix)]
             {
@@ -241,8 +242,9 @@ fn extract_and_process_tar_gz_normal_part(
                 }
             }
 
-            let mut out_file = File::create(&out_path)?;
-            io::copy(&mut entry, &mut out_file)?;
+            let out_file = File::create(&out_path)?;
+            let mut buffered_writer = BufWriter::new(out_file);
+            io::copy(&mut entry, &mut buffered_writer)?;
 
             #[cfg(unix)]
             {

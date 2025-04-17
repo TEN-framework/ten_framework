@@ -14,7 +14,7 @@ use ten_rust::pkg_info::constants::{
 
 use crate::constants::BUF_WRITER_BUF_SIZE;
 
-pub fn write_json_map_to_file(
+fn write_json_map_to_file(
     path: &str,
     json: &serde_json::Map<String, serde_json::Value>,
 ) -> Result<()> {
