@@ -230,7 +230,7 @@ function CustomNodeConnContent(props: {
         onValueChange={(value) =>
           setFlowDirection(value as "upstream" | "downstream")
         }
-        className="w-[400px]"
+        className=""
       >
         <TabsList>
           <TabsTrigger value="upstream">{t("action.upstream")}</TabsTrigger>

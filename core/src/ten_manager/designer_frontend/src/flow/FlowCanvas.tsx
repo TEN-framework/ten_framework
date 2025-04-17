@@ -9,7 +9,7 @@ import {
   useState,
   useCallback,
   forwardRef,
-  MouseEvent,
+  MouseEvent as ReactMouseEvent,
   useContext,
 } from "react";
 import {
@@ -33,8 +33,9 @@ import {
   EWidgetCategory,
   ELogViewerScriptType,
   ITerminalWidgetData,
+  EDefaultWidgetType,
 } from "@/types/widgets";
-import { EConnectionType } from "@/types/graphs";
+import { EConnectionType, EGraphActions } from "@/types/graphs";
 import { EEventName, eventPubSub } from "@/utils/events";
 import { CustomNodeConnPopupTitle } from "@/components/Popup/CustomNodeConn";
 
@@ -45,11 +46,17 @@ import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
 import {
   CONTAINER_DEFAULT_ID,
+  GRAPH_ACTIONS_WIDGET_ID,
+  GRAPH_SELECT_WIDGET_ID,
   GROUP_CUSTOM_CONNECTION_ID,
+  GROUP_GRAPH_ID,
   GROUP_LOG_VIEWER_ID,
   GROUP_TERMINAL_ID,
 } from "@/constants/widgets";
 import { LogViewerPopupTitle } from "@/components/Popup/LogViewer";
+import PaneContextMenu from "./ContextMenu/PaneContextMenu";
+import { GraphSelectPopupTitle } from "@/components/Popup/Default/GraphSelect";
+import { GraphPopupTitle } from "@/components/Popup/Graph";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -78,7 +85,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       visible: boolean;
       x: number;
       y: number;
-      type?: "node" | "edge";
+      type?: "node" | "edge" | "pane";
       edge?: TCustomEdge;
       node?: TCustomNode;
     }>({ visible: false, x: 0, y: 0 });
@@ -157,6 +164,53 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       });
     };
 
+
+    const onOpenExistingGraph = () => {
+      appendWidgetIfNotExists({
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GRAPH_SELECT_WIDGET_ID,
+        widget_id: GRAPH_SELECT_WIDGET_ID,
+
+        category: EWidgetCategory.Default,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: <GraphSelectPopupTitle />,
+        metadata: {
+          type: EDefaultWidgetType.GraphSelect,
+        },
+        popup: {
+          width: 0.5,
+          height: 0.8,
+        },
+      });
+    };
+
+    const onGraphAct = (type: EGraphActions) => {
+      if (!currentWorkspace?.graph || !currentWorkspace?.app) return;
+      appendWidgetIfNotExists({
+        container_id: CONTAINER_DEFAULT_ID,
+        group_id: GROUP_GRAPH_ID,
+        widget_id:
+          GRAPH_ACTIONS_WIDGET_ID +
+          `-${type}-` +
+          `${currentWorkspace?.app?.base_dir}-${currentWorkspace?.graph?.uuid}`,
+
+        category: EWidgetCategory.Graph,
+        display_type: EWidgetDisplayType.Popup,
+
+        title: <GraphPopupTitle type={type} />,
+        metadata: {
+          type,
+          base_dir: currentWorkspace?.app?.base_dir,
+          graph_id: currentWorkspace?.graph?.uuid,
+          app_uri: currentWorkspace?.app?.app_uri,
+        },
+        popup: {
+          width: 340,
+        },
+      });
+    };
+
     const renderContextMenu = () => {
       if (contextMenu.type === "node" && contextMenu.node) {
         return (
@@ -182,13 +236,26 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             onClose={closeContextMenu}
           />
         );
+      } else if (contextMenu.type === "pane") {
+        return (
+          <PaneContextMenu
+            visible={contextMenu.visible}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            graphId={currentWorkspace?.graph?.uuid}
+            baseDir={currentWorkspace?.app?.base_dir}
+            onOpenExistingGraph={onOpenExistingGraph}
+            onGraphAct={onGraphAct}
+            onClose={closeContextMenu}
+          />
+        );
       }
       return null;
     };
 
     // Right click nodes.
     const clickNodeContextMenu = useCallback(
-      (event: MouseEvent, node: TCustomNode) => {
+      (event: ReactMouseEvent, node: TCustomNode) => {
         event.preventDefault();
         setContextMenu({
           visible: true,
@@ -203,7 +270,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
     // Right click Edges.
     const clickEdgeContextMenu = useCallback(
-      (event: MouseEvent, edge: TCustomEdge) => {
+      (event: ReactMouseEvent, edge: TCustomEdge) => {
         event.preventDefault();
         setContextMenu({
           visible: true,
@@ -211,6 +278,20 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           y: event.clientY,
           type: "edge",
           edge: edge,
+        });
+      },
+      []
+    );
+
+    // Right click Empty space.
+    const clickPaneContextMenu = useCallback(
+      (event: MouseEvent | ReactMouseEvent) => {
+        event.preventDefault();
+        setContextMenu({
+          visible: true,
+          x: event.clientX,
+          y: event.clientY,
+          type: "pane",
         });
       },
       []
@@ -275,9 +356,10 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           style={{ width: "100%", height: "100%" }}
           onNodeContextMenu={clickNodeContextMenu}
           onEdgeContextMenu={clickEdgeContextMenu}
-          // onEdgeClick={(e, edge) => {
-          //   console.log("clicked", e, edge);
-          // }}
+          onPaneContextMenu={clickPaneContextMenu}
+        // onEdgeClick={(e, edge) => {
+        //   console.log("clicked", e, edge);
+        // }}
         >
           <Controls />
           <MiniMap zoomable pannable />
