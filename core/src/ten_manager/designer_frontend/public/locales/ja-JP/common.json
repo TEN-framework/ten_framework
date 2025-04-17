@@ -35,6 +35,7 @@
       "addNode": "ノードを追加",
       "addConnection": "接続を追加",
       "addConnectionFromNode": "{{node}}から接続を追加",
+      "addConnectionToNode": "{{node}}に接続を追加",
       "about": "グラフについて"
     },
     "menuHelp": {

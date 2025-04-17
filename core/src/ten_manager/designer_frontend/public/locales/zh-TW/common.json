@@ -35,6 +35,7 @@
       "addNode": "新增節點",
       "addConnection": "新增連線",
       "addConnectionFromNode": "從 {{node}} 新增連線",
+      "addConnectionToNode": "新增連線到 {{node}}",
       "about": "關於圖譜"
     },
     "menuHelp": {
