@@ -88,29 +88,26 @@
                 ]
               },
               {
-                "name": "cmd_1",
+                "name": "test_cmd",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ]
-              },
-              {
-                "name": "cmd_2",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_3"
-                  }
-                ]
-              },
-              {
-                "name": "cmd_3",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
+                    "extension": "extension_2",
+                    "msg_conversion": {
+                      "type": "per_property",
+                      "rules": [
+                        {
+                          "path": "target_property",
+                          "conversion_mode": "fixed_value",
+                          "value": "fixed_value_string"
+                        },
+                        {
+                          "path": "copied_property",
+                          "conversion_mode": "from_original",
+                          "original_path": "source_property"
+                        }
+                      ]
+                    }
                   }
                 ]
               }
@@ -131,5 +128,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

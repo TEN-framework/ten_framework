@@ -41,7 +41,7 @@ mod tests {
 
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
-            include_str!("test_data_embed/app_manifest.json").to_string(),
+            include_str!("../../../../test_data/app_manifest.json").to_string(),
             "{}".to_string(),
         )];
 
@@ -85,8 +85,10 @@ mod tests {
         let api_response: ApiResponse<GetAppSchemaResponseData> =
             serde_json::from_str(body_str).unwrap();
 
+        println!("api_response: {:?}", api_response);
+
         assert_eq!(api_response.status, Status::Ok);
-        // If the app has property schema, it will be included in the  response.
+        // If the app has property schema, it will be included in the response.
         assert!(api_response.data.schema.is_some());
 
         let expected_schema = serde_json::json!({
@@ -116,7 +118,7 @@ mod tests {
 
         let all_pkgs_json_str = vec![(
             TEST_DIR.to_string(),
-            include_str!("test_data_embed/app_manifest.json").to_string(),
+            include_str!("../../../../test_data/app_manifest.json").to_string(),
             "{}".to_string(),
         )];
 

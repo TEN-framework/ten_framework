@@ -72,6 +72,53 @@
             "addon": "extension_addon_3",
             "name": "extension_3"
           }
+        ],
+        "connections": [
+          {
+            "app": "http://example.com:8000",
+            "extension": "extension_1",
+            "cmd": [
+              {
+                "name": "hello_world",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "test_cmd_with_result",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2",
+                    "msg_conversion": {
+                      "type": "per_property",
+                      "rules": [
+                        {
+                          "path": "request_property",
+                          "conversion_mode": "fixed_value",
+                          "value": 123
+                        }
+                      ],
+                      "keep_original": true,
+                      "result": {
+                        "type": "per_property",
+                        "rules": [
+                          {
+                            "path": "response_property",
+                            "conversion_mode": "from_original",
+                            "original_path": "original_response"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
@@ -87,5 +134,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

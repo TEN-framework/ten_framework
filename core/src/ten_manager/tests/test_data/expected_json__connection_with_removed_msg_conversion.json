@@ -88,7 +88,7 @@
                 ]
               },
               {
-                "name": "test_cmd",
+                "name": "test_cmd_remove_conversion",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
@@ -113,5 +113,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

@@ -86,22 +86,15 @@
                     "extension": "extension_2"
                   }
                 ]
-              },
+              }
+            ],
+            "data": [
               {
-                "name": "test_cmd1",
+                "name": "test_data",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
                     "extension": "extension_2"
-                  }
-                ]
-              },
-              {
-                "name": "test_cmd2",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_3"
                   }
                 ]
               }
@@ -122,5 +115,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

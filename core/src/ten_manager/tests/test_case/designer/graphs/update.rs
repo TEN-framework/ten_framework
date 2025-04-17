@@ -17,8 +17,8 @@ mod tests {
         constants::TEST_DIR,
         designer::{
             graphs::update::{
-                update_graph_endpoint, UpdateGraphRequestPayload,
-                UpdateGraphResponseData,
+                update_graph_endpoint, GraphNodeForUpdate,
+                UpdateGraphRequestPayload, UpdateGraphResponseData,
             },
             response::{ApiResponse, ErrorResponse, Status},
             DesignerState,
@@ -92,7 +92,7 @@ mod tests {
         .await;
 
         // Create test nodes and connections.
-        let nodes = vec![GraphNode {
+        let nodes = [GraphNode {
             type_and_name: PkgTypeAndName {
                 pkg_type: PkgType::Extension,
                 name: "node1".to_string(),
@@ -129,7 +129,16 @@ mod tests {
         // Create a request payload.
         let request_payload = UpdateGraphRequestPayload {
             graph_id,
-            nodes: nodes.clone(),
+            nodes: nodes
+                .iter()
+                .map(|node| GraphNodeForUpdate {
+                    name: node.type_and_name.name.clone(),
+                    addon: node.addon.clone(),
+                    extension_group: node.extension_group.clone(),
+                    app: node.app.clone(),
+                    property: node.property.clone(),
+                })
+                .collect(),
             connections: connections.clone(),
         };
 
@@ -292,7 +301,7 @@ mod tests {
         .await;
 
         // Create test nodes but empty connections.
-        let nodes = vec![GraphNode {
+        let nodes = [GraphNode {
             type_and_name: PkgTypeAndName {
                 pkg_type: PkgType::Extension,
                 name: "new_node".to_string(),
@@ -307,7 +316,16 @@ mod tests {
         // Create a request payload.
         let request_payload = UpdateGraphRequestPayload {
             graph_id,
-            nodes: nodes.clone(),
+            nodes: nodes
+                .iter()
+                .map(|node| GraphNodeForUpdate {
+                    name: node.type_and_name.name.clone(),
+                    addon: node.addon.clone(),
+                    extension_group: node.extension_group.clone(),
+                    app: node.app.clone(),
+                    property: node.property.clone(),
+                })
+                .collect(),
             connections,
         };
 

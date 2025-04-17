@@ -86,26 +86,22 @@
                     "extension": "extension_2"
                   }
                 ]
-              }
-            ],
-            "audio_frame": [
+              },
               {
-                "name": "audio_stream",
+                "name": "test_cmd1",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
                     "extension": "extension_2"
                   }
                 ]
-              }
-            ],
-            "video_frame": [
+              },
               {
-                "name": "video_stream",
+                "name": "test_cmd2",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
-                    "extension": "extension_2"
+                    "extension": "extension_3"
                   }
                 ]
               }
@@ -126,5 +122,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }

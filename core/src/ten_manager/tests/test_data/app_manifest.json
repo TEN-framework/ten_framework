@@ -23,5 +23,12 @@
       "name": "extension_addon_3",
       "version": "0.1.0"
     }
-  ]
+  ],
+  "api": {
+    "property": {
+      "test_property": {
+        "type": "int8"
+      }
+    }
+  }
 }

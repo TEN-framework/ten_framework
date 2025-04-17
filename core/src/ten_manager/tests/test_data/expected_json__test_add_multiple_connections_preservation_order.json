@@ -88,32 +88,29 @@
                 ]
               },
               {
-                "name": "test_cmd_with_result",
+                "name": "cmd_1",
                 "dest": [
                   {
                     "app": "http://example.com:8000",
-                    "extension": "extension_2",
-                    "msg_conversion": {
-                      "type": "per_property",
-                      "rules": [
-                        {
-                          "path": "request_property",
-                          "conversion_mode": "fixed_value",
-                          "value": 123
-                        }
-                      ],
-                      "keep_original": true,
-                      "result": {
-                        "type": "per_property",
-                        "rules": [
-                          {
-                            "path": "response_property",
-                            "conversion_mode": "from_original",
-                            "original_path": "original_response"
-                          }
-                        ]
-                      }
-                    }
+                    "extension": "extension_2"
+                  }
+                ]
+              },
+              {
+                "name": "cmd_2",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_3"
+                  }
+                ]
+              },
+              {
+                "name": "cmd_3",
+                "dest": [
+                  {
+                    "app": "http://example.com:8000",
+                    "extension": "extension_2"
                   }
                 ]
               }
@@ -134,5 +131,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }
