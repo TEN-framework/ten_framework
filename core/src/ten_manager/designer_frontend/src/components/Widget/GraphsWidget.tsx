@@ -508,6 +508,10 @@ export const GraphAddConnectionWidget = (props: {
     },
   });
 
+  const srcExtension = form.watch("src_extension");
+  const destExtension = form.watch("dest_extension");
+  const msgType = form.watch("msg_type");
+
   const onSubmit = async (data: z.infer<typeof AddConnectionPayloadSchema>) => {
     setIsSubmitting(true);
     try {
@@ -553,17 +557,13 @@ export const GraphAddConnectionWidget = (props: {
 
   React.useEffect(() => {
     const fetchNodeSchema = async () => {
-      const sourceNode = nodes.find(
-        (i) => i.data.name === form.watch("src_extension")
-      );
-      const destNode = nodes.find(
-        (i) => i.data.name === form.watch("dest_extension")
-      );
+      const sourceNode = nodes.find((i) => i.data.name === srcExtension);
+      const destNode = nodes.find((i) => i.data.name === destExtension);
       if (!sourceNode && !destNode) return;
       try {
         form.setValue("msg_name", undefined as unknown as string);
         setIsMsgNameLoading(true);
-        let msgNameList:{value:string, label: string}[] = [];
+        let msgNameList: { value: string; label: string }[] = [];
 
         if (sourceNode) {
           const nodeSchema = await retrieveExtensionSchema({
@@ -571,12 +571,14 @@ export const GraphAddConnectionWidget = (props: {
             addonName: sourceNode.data.addon,
           });
           const srcMsgNameList =
-            nodeSchema?.[`${form.watch("msg_type")}_out`]?.map((i) => i.name) ??
-            [];
-          msgNameList = [...msgNameList, ...srcMsgNameList.map((i) => ({
-            value: i,
-            label: `${i} (${sourceNode.data.name})`,
-          }))];
+            nodeSchema?.[`${msgType}_out`]?.map((i) => i.name) ?? [];
+          msgNameList = [
+            ...msgNameList,
+            ...srcMsgNameList.map((i) => ({
+              value: i,
+              label: `${i} (${sourceNode.data.name})`,
+            })),
+          ];
         }
 
         if (destNode) {
@@ -585,17 +587,17 @@ export const GraphAddConnectionWidget = (props: {
             addonName: destNode.data.addon,
           });
           const destMsgNameList =
-            nodeSchema?.[`${form.watch("msg_type")}_in`]?.map((i) => i.name) ??
-            [];
-          msgNameList = [...msgNameList, ...destMsgNameList.map((i) => ({
-            value: i,
-            label: `${i} (${destNode.data.name})`,
-          }))];
+            nodeSchema?.[`${msgType}_in`]?.map((i) => i.name) ?? [];
+          msgNameList = [
+            ...msgNameList,
+            ...destMsgNameList.map((i) => ({
+              value: i,
+              label: `${i} (${destNode.data.name})`,
+            })),
+          ];
         }
 
-        setMsgNameList(
-          msgNameList
-        );
+        setMsgNameList(msgNameList);
       } catch (error: unknown) {
         console.error(error);
         setMsgNameError(error);
@@ -605,8 +607,8 @@ export const GraphAddConnectionWidget = (props: {
     };
 
     fetchNodeSchema();
-    // eslint-disable-next-line react-hooks/exhaustive-deps, max-len
-  }, [form.watch("src_extension"), form.watch("dest_extension"), form.watch("msg_type"), nodes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [srcExtension, destExtension, msgType, nodes]);
 
   console.log("isMsgNameLoading ===", isMsgNameLoading);
 
@@ -713,44 +715,40 @@ export const GraphAddConnectionWidget = (props: {
         />
         {form.watch("msg_type") &&
           (form.watch("src_extension") || form.watch("dest_extension")) && (
-          <FormField
-            control={form.control}
-            name="msg_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("popup.graph.messageName")}</FormLabel>
-                <FormControl>
-                  <Combobox
-                    key={
-                      `${form.watch("msg_type")}` +
-                      "-" +
-                      `${form.watch("src_extension")}`
-                    }
-                    disabled={isMsgNameLoading}
-                    isLoading={isMsgNameLoading}
-                    options={msgNameList}
-                    placeholder={t("popup.graph.messageName")}
-                    selected={field.value}
-                    onChange={(i) => {
-                      field.onChange(i.value);
-                    }}
-                    onCreate={(i) => {
-                      setMsgNameList((prev) => [
-                        ...prev,
-                        {
-                          value: i,
-                          label: i,
-                        },
-                      ]);
-                      field.onChange(i);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+            <FormField
+              control={form.control}
+              name="msg_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("popup.graph.messageName")}</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      key={`${msgType}` + "-" + `${srcExtension}`}
+                      disabled={isMsgNameLoading}
+                      isLoading={isMsgNameLoading}
+                      options={msgNameList}
+                      placeholder={t("popup.graph.messageName")}
+                      selected={field.value}
+                      onChange={(i) => {
+                        field.onChange(i.value);
+                      }}
+                      onCreate={(i) => {
+                        setMsgNameList((prev) => [
+                          ...prev,
+                          {
+                            value: i,
+                            label: i,
+                          },
+                        ]);
+                        field.onChange(i);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         <FormField
           control={form.control}
           name="dest_extension"
@@ -771,7 +769,7 @@ export const GraphAddConnectionWidget = (props: {
                         {t("popup.graph.destExtension")}
                       </SelectLabel>
                       {nodes
-                        .filter((i) => i.id !== form.watch("src_extension"))
+                        .filter((i) => i.id !== srcExtension)
                         .map((node) => (
                           <SelectItem key={node.id} value={node.data.name}>
                             {node.data.name}

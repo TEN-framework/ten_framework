@@ -50,9 +50,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -206,7 +206,7 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str = include_str!(
             "test_data_embed/initial_property_add_connection_2.json"
         )
@@ -388,8 +388,8 @@ mod tests {
 
         let all_pkgs_json_str = vec![(
             test_dir.clone(),
-            include_str!("../test_data_embed/app_manifest.json").to_string(),
-            include_str!("../test_data_embed/app_property.json").to_string(),
+            include_str!("../../../../test_data/app_manifest.json").to_string(),
+            include_str!("../../../../test_data/app_property.json").to_string(),
         )];
 
         // Create the property.json file in the temporary directory.
@@ -397,7 +397,7 @@ mod tests {
             std::path::Path::new(&test_dir).join(PROPERTY_JSON_FILENAME);
         std::fs::write(
             &property_path,
-            include_str!("../test_data_embed/app_property.json"),
+            include_str!("../../../../test_data/app_property.json"),
         )
         .unwrap();
 
@@ -456,9 +456,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -621,9 +621,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -786,9 +786,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -926,9 +926,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -1078,9 +1078,9 @@ mod tests {
 
         // Load both the app package JSON and extension addon package JSONs.
         let app_manifest_json_str =
-            include_str!("../test_data_embed/app_manifest.json").to_string();
+            include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str =
-            include_str!("../test_data_embed/app_property.json").to_string();
+            include_str!("../../../../test_data/app_property.json").to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
