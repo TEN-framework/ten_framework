@@ -31,7 +31,7 @@ use ten_manager::{
     output::TmanOutputCli,
 };
 
-use crate::test_case::mock::inject_all_pkgs_for_mock;
+use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
 #[actix_rt::test]
 async fn test_cmd_designer_graphs_app_property_not_exist() {

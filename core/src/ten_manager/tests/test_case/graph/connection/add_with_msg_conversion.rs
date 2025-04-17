@@ -27,8 +27,8 @@ mod tests {
     use ten_rust::pkg_info::create_uri_to_pkg_info_map;
     use ten_rust::pkg_info::message::MsgType;
 
+    use crate::test_case::common::mock::inject_all_standard_pkgs_for_mock;
     use crate::test_case::graph::connection::create_test_node;
-    use crate::test_case::mock::inject_all_standard_pkgs_for_mock;
 
     #[test]
     fn test_add_connection_with_msg_conversion() -> Result<()> {

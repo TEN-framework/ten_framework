@@ -35,7 +35,7 @@ mod tests {
         output::TmanOutputCli,
     };
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_delete_graph_node_invalid_graph() {

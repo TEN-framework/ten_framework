@@ -40,7 +40,7 @@ mod tests {
         pkg_info::{constants::PROPERTY_JSON_FILENAME, message::MsgType},
     };
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_1() {

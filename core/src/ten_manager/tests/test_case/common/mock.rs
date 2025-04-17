@@ -109,15 +109,15 @@ pub fn inject_all_standard_pkgs_for_mock(
     let all_pkgs_json_str = vec![
         (
             app_base_dir.to_string(),
-            include_str!("../test_data/app_manifest.json").to_string(),
-            include_str!("../test_data/app_property.json").to_string(),
+            include_str!("../../test_data/app_manifest.json").to_string(),
+            include_str!("../../test_data/app_property.json").to_string(),
         ),
         (
             format!(
                 "{}{}",
                 app_base_dir, "/ten_packages/extension/extension_addon_1"
             ),
-            include_str!("../test_data/extension_addon_1_manifest.json")
+            include_str!("../../test_data/extension_addon_1_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -126,7 +126,7 @@ pub fn inject_all_standard_pkgs_for_mock(
                 "{}{}",
                 app_base_dir, "/ten_packages/extension/extension_addon_2"
             ),
-            include_str!("../test_data/extension_addon_2_manifest.json")
+            include_str!("../../test_data/extension_addon_2_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -135,7 +135,7 @@ pub fn inject_all_standard_pkgs_for_mock(
                 "{}{}",
                 app_base_dir, "/ten_packages/extension/extension_addon_3"
             ),
-            include_str!("../test_data/extension_addon_3_manifest.json")
+            include_str!("../../test_data/extension_addon_3_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),
@@ -144,7 +144,7 @@ pub fn inject_all_standard_pkgs_for_mock(
                 "{}{}",
                 app_base_dir, "/ten_packages/extension/extension_addon_4"
             ),
-            include_str!("../test_data/extension_addon_4_manifest.json")
+            include_str!("../../test_data/extension_addon_4_manifest.json")
                 .to_string(),
             "{}".to_string(),
         ),

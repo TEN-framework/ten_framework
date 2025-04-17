@@ -8,7 +8,6 @@ mod cmd;
 mod common;
 mod designer;
 mod graph;
-mod mock;
 mod registry;
 mod schema;
 mod version_utils;
