@@ -74,30 +74,27 @@ export const ContextItem = (props: IContextMenuItem) => {
     return (
       <Button
         variant="ghost"
-        asChild
         className={cn(
           "flex w-full justify-start px-2.5 py-1.5 whitespace-nowrap",
           "h-auto font-normal cursor-pointer"
         )}
         {...props}
       >
-        <div className="flex items-center">
-          <span
-            className={cn(
-              "flex items-center shrink-0 justify-center",
-              "mr-2 h-[1em] w-5"
-            )}
-          >
-            {props.icon || null}
-          </span>
-          <span className="flex-1 text-left">{props.label}</span>
-          <div className="min-w-4 ml-auto">
-            {props.shortcut && (
-              <span className="text-xs text-muted-foreground">
-                {props.shortcut}
-              </span>
-            )}
-          </div>
+        <span
+          className={cn(
+            "flex items-center shrink-0 justify-center",
+            "mr-2 h-[1em] w-5"
+          )}
+        >
+          {props.icon || null}
+        </span>
+        <span className="flex-1 text-left">{props.label}</span>
+        <div className="min-w-4 ml-auto">
+          {props.shortcut && (
+            <span className="text-xs text-muted-foreground">
+              {props.shortcut}
+            </span>
+          )}
         </div>
       </Button>
     );
