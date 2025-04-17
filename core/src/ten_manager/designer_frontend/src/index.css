@@ -4,10 +4,319 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* TEN */
+:root {
+  --ten_brand_black6-dark: #ffffff;
+  --ten_brand_black6-light: #0e0e0e;
+  --ten_brand_black6_click-dark: #cfe0d4;
+  --ten_brand_black6_click-light: #191725;
+  --ten_brand_black6_hover-dark: #e1fffe;
+  --ten_brand_black6_hover-light: #18171c;
+  --ten_brand_main6-dark: #ffffff;
+  --ten_brand_main6-light: #0094f7;
+  --ten_btn2-dark: #2c3641;
+  --ten_btn2-light: rgba(227 231 239 / 0.5);
+  --ten_chamfer_l-dark: 12px;
+  --ten_chamfer_l-rem-dark: 0.75rem;
+  --ten_chamfer_l-light: 12px;
+  --ten_chamfer_l-rem-light: 0.75rem;
+  --ten_chamfer_m-dark: 8px;
+  --ten_chamfer_m-rem-dark: 0.5rem;
+  --ten_chamfer_m-light: 8px;
+  --ten_chamfer_m-rem-light: 0.5rem;
+  --ten_chamfer_s-dark: 6px;
+  --ten_chamfer_s-rem-dark: 0.375rem;
+  --ten_chamfer_s-light: 6px;
+  --ten_chamfer_s-rem-light: 0.375rem;
+  --ten_chamfer_xl-dark: 16px;
+  --ten_chamfer_xl-rem-dark: 1rem;
+  --ten_chamfer_xl-light: 16px;
+  --ten_chamfer_xl-rem-light: 1rem;
+  --ten_chamfer_xs-dark: 4px;
+  --ten_chamfer_xs-rem-dark: 0.25rem;
+  --ten_chamfer_xs-light: 4px;
+  --ten_chamfer_xs-rem-light: 0.25rem;
+  --ten_chamfer_xxl-dark: 20px;
+  --ten_chamfer_xxl-rem-dark: 1.25rem;
+  --ten_chamfer_xxl-light: 20px;
+  --ten_chamfer_xxl-rem-light: 1.25rem;
+  --ten_chamfer_xxxl-dark: 24px;
+  --ten_chamfer_xxxl-rem-dark: 1.5rem;
+  --ten_chamfer_xxxl-light: 24px;
+  --ten_chamfer_xxxl-rem-light: 1.5rem;
+  --ten_click-dark: #444444;
+  --ten_click-light: #ececf3;
+  --ten_color_blue6-dark: #3e75ff;
+  --ten_color_blue6-light: #1f7dff;
+  --ten_color_bluish6-dark: #1fe9ff;
+  --ten_color_bluish6-light: #3d24da;
+  --ten_color_green6-dark: #29ce69;
+  --ten_color_green6-light: #41d298;
+  --ten_color_greenlish6-dark: #b1ff10;
+  --ten_color_greenlish6-light: #b1ff10;
+  --ten_color_pink6-dark: #fd398a;
+  --ten_color_pink6-light: #fd398a;
+  --ten_color_purple6-dark: #7b63ff;
+  --ten_color_purple6-light: #7b63ff;
+  --ten_color_yellow6-dark: #ffdf3e;
+  --ten_color_yellow6-light: #ff7402;
+  --ten_disable-dark: rgba(33 33 40 / 0.5);
+  --ten_disable-light: rgba(241 245 249 / 0.9);
+  --ten_fill1-dark: #121212;
+  --ten_fill1-light: #ffffff;
+  --ten_fill2-dark: rgba(33 37 43 / 0.95);
+  --ten_fill2-light: rgba(255 255 255 / 0.95);
+  --ten_fill3-dark: #2c2c2c;
+  --ten_fill3-light: #f9f9f9;
+  --ten_fill4-dark: rgba(83 82 104 / 0.3);
+  --ten_fill4-light: rgba(227 231 239 / 0.35);
+  --ten_fill5-dark: rgba(83 82 104 / 0.6);
+  --ten_fill5-light: rgba(246 249 255 / 0.5);
+  --ten_hover-dark: rgba(83 82 104 / 0.3);
+  --ten_hover-light: rgba(227 231 239 / 0.4);
+  --ten_icontext1-dark: #ffffff;
+  --ten_icontext1-light: #21212b;
+  --ten_icontext2-dark: rgba(255 255 255 / 0.8);
+  --ten_icontext2-light: #8e8f9e;
+  --ten_icontext3-dark: rgba(255 255 255 / 0.6);
+  --ten_icontext3-light: #b0b1ba;
+  --ten_icontext4-dark: rgba(255 255 255 / 0.3);
+  --ten_icontext4-light: rgba(176 177 186 / 0.8);
+  --ten_icontext_inverse1-dark: #000000;
+  --ten_icontext_inverse1-light: #ffffff;
+  --ten_input-dark: #272d39;
+  --ten_input-light: rgba(247 247 247 / 0.75);
+  --ten_input2-dark: #262c37;
+  --ten_input2-light: #ffffff;
+  --ten_kit_hover-dark: #e1fffe;
+  --ten_kit_hover-light: #1e2737;
+  --ten_kit_hover2-dark: rgba(83 82 104 / 0.5);
+  --ten_kit_hover2-light: #ffffff;
+  --ten_line-dark: rgba(83 82 104 / 0.5);
+  --ten_line-light: rgba(227 231 239 / 0.5);
+  --ten_line2-dark: rgba(83 82 104 / 0.8);
+  --ten_line2-light: #e2e5ea;
+  --ten_line3-dark: #282b32;
+  --ten_line3-light: rgba(227 231 239 / 0.5);
+  --ten_nomal_fill-dark: #f7f8fb;
+  --ten_nomal_fill-light: #f7f8fb;
+  --ten_nomal_input-dark: #f4f5fb;
+  --ten_nomal_input-light: #f4f5fb;
+  --ten_nomal_line-dark: #eeeff9;
+  --ten_nomal_line-light: #eeeff9;
+  --ten_red-dark: #e6544b;
+  --ten_red-light: #f5655c;
+  --ten_whte10-dark: #ffffff;
+  --ten_whte10-light: #ffffff;
+}
+
+:root {
+  --ten-brand-black-6: var(--ten_brand_black6-light);
+  --ten-brand-black-6-click: var(--ten_brand_black6_click-light);
+  --ten-brand-black-6-hover: var(--ten_brand_black6_hover-light);
+  --ten-brand-main-6: var(--ten_brand_main6-light);
+  --ten-btn-2: var(--ten_btn2-light);
+  --ten-click: var(--ten_click-light);
+  --ten-disable: var(--ten_disable-light);
+  --ten-fill-1: var(--ten_fill1-light);
+  --ten-fill-2: var(--ten_fill2-light);
+  --ten-fill-3: var(--ten_fill3-light);
+  --ten-fill-4: var(--ten_fill4-light);
+  --ten-fill-5: var(--ten_fill5-light);
+  --ten-green-6: var(--ten_color_green6-light);
+  --ten-greenlish-6: var(--ten_color_greenlish6-light);
+  --ten-hover: var(--ten_hover-light);
+  --ten-icontext-1: var(--ten_icontext1-light);
+  --ten-icontext-2: var(--ten_icontext2-light);
+  --ten-icontext-3: var(--ten_icontext3-light);
+  --ten-icontext-4: var(--ten_icontext4-light);
+  --ten-icontext-inverse-1: var(--ten_icontext_inverse1-light);
+  --ten-input: var(--ten_input-light);
+  --ten-input-2: var(--ten_input2-light);
+  --ten-kit-hover: var(--ten_kit_hover-light);
+  --ten-kit-hover-2: var(--ten_kit_hover2-light);
+  --ten-line: var(--ten_line-light);
+  --ten-line-2: var(--ten_line2-light);
+  --ten-line-3: var(--ten_line3-light);
+  --ten-nomal-fill: var(--ten_nomal_fill-light);
+  --ten-nomal-input: var(--ten_nomal_input-light);
+  --ten-nomal-line: var(--ten_nomal_line-light);
+  --ten-pink-6: var(--ten_color_pink6-light);
+  --ten-purple-6: var(--ten_color_purple6-light);
+  --ten-red: var(--ten_red-light);
+  --ten-whte-10: var(--ten_whte10-light);
+  --ten-yellow-6: var(--ten_color_yellow6-light);
+  --ten-blue-6: var(--ten_color_blue6-light);
+  --ten-bluish-6: var(--ten_color_bluish6-light);
+
+  --ten-chamfer-l: var(--ten_chamfer_l-rem-light);
+  --ten-chamfer-m: var(--ten_chamfer_m-rem-light);
+  --ten-chamfer-s: var(--ten_chamfer_s-rem-light);
+  --ten-chamfer-xl: var(--ten_chamfer_xl-rem-light);
+  --ten-chamfer-xs: var(--ten_chamfer_xs-rem-light);
+  --ten-chamfer-xxl: var(--ten_chamfer_xxl-rem-light);
+  --ten-chamfer-xxxl: var(--ten_chamfer_xxxl-rem-light);
+}
+
+.dark {
+  --ten-brand-black-6: var(--ten_brand_black6-dark);
+  --ten-brand-black-6-click: var(--ten_brand_black6_click-dark);
+  --ten-brand-black-6-hover: var(--ten_brand_black6_hover-dark);
+  --ten-brand-main-6: var(--ten_brand_main6-dark);
+  --ten-btn-2: var(--ten_btn2-dark);
+  --ten-click: var(--ten_click-dark);
+  --ten-disable: var(--ten_disable-dark);
+  --ten-fill-1: var(--ten_fill1-dark);
+  --ten-fill-2: var(--ten_fill2-dark);
+  --ten-fill-3: var(--ten_fill3-dark);
+  --ten-fill-4: var(--ten_fill4-dark);
+  --ten-fill-5: var(--ten_fill5-dark);
+  --ten-green-6: var(--ten_color_green6-dark);
+  --ten-greenlish-6: var(--ten_color_greenlish6-dark);
+  --ten-hover: var(--ten_hover-dark);
+  --ten-icontext-1: var(--ten_icontext1-dark);
+  --ten-icontext-2: var(--ten_icontext2-dark);
+  --ten-icontext-3: var(--ten_icontext3-dark);
+  --ten-icontext-4: var(--ten_icontext4-dark);
+  --ten-icontext-inverse-1: var(--ten_icontext_inverse1-dark);
+  --ten-input: var(--ten_input-dark);
+  --ten-input-2: var(--ten_input2-dark);
+  --ten-kit-hover: var(--ten_kit_hover-dark);
+  --ten-kit-hover-2: var(--ten_kit_hover2-dark);
+  --ten-line: var(--ten_line-dark);
+  --ten-line-2: var(--ten_line2-dark);
+  --ten-line-3: var(--ten_line3-dark);
+  --ten-nomal-fill: var(--ten_nomal_fill-dark);
+  --ten-nomal-input: var(--ten_nomal_input-dark);
+  --ten-nomal-line: var(--ten_nomal_line-dark);
+  --ten-pink-6: var(--ten_color_pink6-dark);
+  --ten-purple-6: var(--ten_color_purple6-dark);
+  --ten-red: var(--ten_red-dark);
+  --ten-whte-10: var(--ten_whte10-dark);
+  --ten-yellow-6: var(--ten_color_yellow6-dark);
+  --ten-blue-6: var(--ten_color_blue6-dark);
+  --ten-bluish-6: var(--ten_color_bluish6-dark);
+}
+
+:root {
+--shadow-drop-shadow-xs-light: rgba(20 20 43 / 0.06);
+--shadow-drop-shadow-xs-dark: rgba(40 40 40 / 0.06);
+--shadow-drop-shadow-sm-light: rgba(227 236 243 / 0.8);
+--shadow-drop-shadow-sm-dark: rgba(40 40 40 / 0.8);
+--shadow-drop-shadow-md-light: rgba(227 236 243 / 0.9);
+--shadow-drop-shadow-md-dark: rgba(40 40 40 / 0.9);
+--shadow-drop-shadow-lg-light: rgba(20 20 43 / 0.14);
+--shadow-drop-shadow-lg-dark: rgba(40 40 40 / 0.14);
+--shadow-drop-shadow-xl-light: rgba(20 20 43 / 0.16);
+--shadow-drop-shadow-xl-dark: rgba(40 40 40 / 0.16);
+--shadow-drop-shadow-2xl-light: rgba(20 20 43 / 0.24);
+--shadow-drop-shadow-2xl-dark: rgba(40 40 40 / 0.24);
+--shadow-drop-shadow-up-light: rgba(20 20 43 / 0.08);
+--shadow-drop-shadow-up-dark: rgba(40 40 40 / 0.08);
+}
+
+:root {
+  --shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-light);
+  --shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-light);
+  --shadow-drop-shadow-md: var(--shadow-drop-shadow-md-light);
+  --shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-light);
+  --shadow-drop-shadow-up: var(--shadow-drop-shadow-up-light);
+  --shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-light);
+  --shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-light);
+}
+
+.dark {
+  --shadow-drop-shadow-2xl: var(--shadow-drop-shadow-2xl-dark);
+  --shadow-drop-shadow-lg: var(--shadow-drop-shadow-lg-dark);
+  --shadow-drop-shadow-md: var(--shadow-drop-shadow-md-dark);
+  --shadow-drop-shadow-sm: var(--shadow-drop-shadow-sm-dark);
+  --shadow-drop-shadow-up: var(--shadow-drop-shadow-up-dark);
+  --shadow-drop-shadow-xl: var(--shadow-drop-shadow-xl-dark);
+  --shadow-drop-shadow-xs: var(--shadow-drop-shadow-xs-dark);
+}
+
+:root {
+  --size-s: 32px;
+  --size-s-rem: 2rem;
+  --size-defaultt: 36px;
+  --size-default-rem: 2.25rem;
+  --size-l: 40px;
+  --size-l-rem: 2.5rem;
+  --size-xl: 44px;
+  --size-xl-rem: 2.75rem;
+  --size-2xl: 48px;
+  --size-2xl-rem: 3rem;
+  --size-xs: 24px;
+  --size-xs-rem: 1.5rem;
+}
+
+@theme {
+  --color-ten-brand-black-6: var(--ten-brand-black-6);
+  --color-ten-brand-black-6-click: var(--ten-brand-black-6-click);
+  --color-ten-brand-black-6-hover: var(--ten-brand-black-6-hover);
+  --color-ten-brand-main-6: var(--ten-brand-main-6);
+  --color-ten-btn-2: var(--ten-btn-2);
+  --color-ten-click: var(--ten-click);
+  --color-ten-disable: var(--ten-disable);
+  --color-ten-fill-1: var(--ten-fill-1);
+  --color-ten-fill-2: var(--ten-fill-2);
+  --color-ten-fill-3: var(--ten-fill-3);
+  --color-ten-fill-4: var(--ten-fill-4);
+  --color-ten-fill-5: var(--ten-fill-5);
+  --color-ten-green-6: var(--ten-green-6);
+  --color-ten-greenlish-6: var(--ten-greenlish-6);
+  --color-ten-hover: var(--ten-hover);
+  --color-ten-icontext-1: var(--ten-icontext-1);
+  --color-ten-icontext-2: var(--ten-icontext-2);
+  --color-ten-icontext-3: var(--ten-icontext-3);
+  --color-ten-icontext-4: var(--ten-icontext-4);
+  --color-ten-icontext-inverse-1: var(--ten-icontext-inverse-1);
+  --color-ten-input: var(--ten-input);
+  --color-ten-input-2: var(--ten-input-2);
+  --color-ten-kit-hover: var(--ten-kit-hover);
+  --color-ten-kit-hover-2: var(--ten-kit-hover-2);
+  --color-ten-line: var(--ten-line);
+  --color-ten-line-2: var(--ten-line-2);
+  --color-ten-line-3: var(--ten-line-3);
+  --color-ten-nomal-fill: var(--ten-nomal-fill);
+  --color-ten-nomal-input: var(--ten-nomal-input);
+  --color-ten-nomal-line: var(--ten-nomal-line);
+  --color-ten-pink-6: var(--ten-pink-6);
+  --color-ten-purple-6: var(--ten-purple-6);
+  --color-ten-red: var(--ten-red);
+  --color-ten-whte-10: var(--ten-whte-10);
+  --color-ten-yellow-6: var(--ten-yellow-6);
+  --color-ten-blue-6: var(--ten-blue-6);
+  --color-ten-bluish-6: var(--ten-bluish-6);
+
+  --shadow-2xl: var(--shadow-drop-shadow-2xl);
+  --shadow-lg: var(--shadow-drop-shadow-lg);
+  --shadow-md: var(--shadow-drop-shadow-md);
+  --shadow-sm: var(--shadow-drop-shadow-sm);
+  --shadow-up: var(--shadow-drop-shadow-up);
+  --shadow-xl: var(--shadow-drop-shadow-xl);
+  --shadow-xs: var(--shadow-drop-shadow-xs);
+
+  --spacing-sm: var(--size-s-rem);
+  --spacing-md: var(--size-default-rem);
+  --spacing-lg: var(--size-l-rem);
+  --spacing-xl: var(--size-xl-rem);
+  --spacing-xxl: var(--size-2xl-rem);
+  --spacing-xs: var(--size-xs-rem);
+
+  --radius-sm: var(--ten-chamfer-s);
+  --radius-md: var(--ten-chamfer-m);
+  --radius-lg: var(--ten-chamfer-l);
+  --radius-xl: var(--ten-chamfer-xl);
+  --radius-xs: var(--ten-chamfer-xs);
+  --radius-xxl: var(--ten-chamfer-xxl);
+  --radius-xxxl: var(--ten-chamfer-xxxl);
+}
+
 @theme inline {
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-lg: var(--ten-chamfer-l);
+  --radius-md: var(--ten-chamfer-m);
+  --radius-sm: var(--ten-chamfer-s);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -63,57 +372,26 @@
 }
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222.2 84% 4.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(220.47 98.26% 36.08%);
-  --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(0, 0%, 91%);
-  --secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --muted: hsl(210 40% 96.1%);
-  --muted-foreground: hsl(215.4 16.3% 46.9%);
-  --accent: hsl(209, 85%, 89%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
-  --destructive: hsl(0 92.99% 56.11%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(214.3 31.8% 91.4%);
-  --input: hsl(214.3 31.8% 91.4%);
-  --ring: hsl(220.67 97.83% 36.08%);
-  --chart-1: hsl(220.47 98.26% 36.08%);
-  --chart-2: hsl(210 40% 96.1%);
-  --chart-3: hsl(210 40% 96.1%);
-  --chart-4: hsl(210 40% 99.1%);
-  --chart-5: hsl(220.47 101.26% 36.08%);
-  --radius: 0.5rem;
-}
-.dark {
-  --background: hsl(233 18% 19%);
-  --foreground: hsl(173 24% 93%);
-  --card: hsl(233 18% 17%);
-  --card-foreground: hsl(173 24% 98%);
-  --popover: hsl(233 18% 16%);
-  --popover-foreground: hsl(0 0% 100%);
-  --primary: hsl(44 100% 71%);
-  --primary-foreground: hsl(44 100% 11%);
-  --secondary: hsl(44 30% 25%);
-  --secondary-foreground: hsl(44 30% 85%);
-  --muted: hsl(233 12% 23%);
-  --muted-foreground: hsl(233 12% 73%);
-  --accent: hsl(233 18% 34%);
-  --accent-foreground: hsl(233 18% 94%);
-  --destructive: hsl(10 90% 57%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(233 8% 24%);
-  --input: hsl(233 8% 27%);
-  --ring: hsl(44 100% 71%);
-  --chart-1: hsl(44 100% 71%);
-  --chart-2: hsl(44 30% 25%);
-  --chart-3: hsl(233 18% 34%);
-  --chart-4: hsl(44 30% 28%);
-  --chart-5: hsl(44 103% 71%);
+  --background: var(--ten-fill-2);
+  --foreground: var(--ten-icontext-1);;
+  --card: var(--ten-fill-2);
+  --card-foreground: var(--ten-icontext-1);
+  --popover: var(--ten-fill-2);
+  --popover-foreground: var(--ten-icontext-1);
+  --primary: var(--ten-icontext-1);
+  --primary-foreground: var(--ten-icontext-inverse-1);
+  --secondary: var(--ten-click);
+  --secondary-foreground: var(--ten-icontext-1);
+  --muted: var(--ten-click);
+  --muted-foreground: var(--ten-icontext-1);
+  --accent: var(--ten-fill-4);
+  --accent-foreground: var(--ten-icontext-1);
+  --destructive: var(--ten-red);
+  --destructive-foreground: var(--ten-icontext-inverse-1);
+  --border: var(--ten-line-2);
+  --input: var(--ten-line-2);
+  --ring: var(--ten-icontext-1);
+  --radius: var(--ten-chamfer-m);
 }
 
 @layer base {
