@@ -45,6 +45,88 @@
         "required": [
           "foo"
         ]
+      },
+      {
+        "name": "cmd1",
+        "property": {
+          "param1": {
+            "type": "int8"
+          },
+          "param2": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "property": {
+            "mapped_detail": {
+              "type": "bool"
+            }
+          }
+        }
+      },
+      {
+        "name": "cmd2",
+        "property": {
+          "param1": {
+            "type": "int8"
+          },
+          "param2": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "property": {
+            "detail": {
+              "type": "bool"
+            }
+          }
+        }
+      },
+      {
+        "name": "cmd_incompatible",
+        "property": {
+          "param1": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "data_out": [
+      {
+        "name": "data1",
+        "property": {
+          "text_data": {
+            "type": "buf"
+          }
+        }
+      },
+      {
+        "name": "data_incompatible",
+        "property": {
+          "value": {
+            "type": "float32"
+          }
+        }
+      }
+    ],
+    "video_frame_out": [
+      {
+        "name": "video1",
+        "property": {
+          "width": {
+            "type": "uint64"
+          }
+        }
+      }
+    ],
+    "audio_frame_out": [
+      {
+        "name": "audio1",
+        "property": {
+          "format": {
+            "type": "uint8"
+          }
+        }
       }
     ]
   }
