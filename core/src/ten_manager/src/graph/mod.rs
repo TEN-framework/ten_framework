@@ -11,7 +11,7 @@ pub mod nodes;
 
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use uuid::Uuid;
 
 pub use connections::update_graph_connections_all_fields;
@@ -83,11 +83,11 @@ pub fn graphs_cache_remove_by_app_base_dir(
 /// Replace the nodes and connections in a graph with new nodes and connections.
 ///
 /// If the connections vector is empty, it sets graph.connections to None.
-fn replace_graph_nodes_and_connections(
+pub fn replace_graph_nodes_and_connections(
     graph: &mut Graph,
     nodes: &[GraphNode],
     connections: &[GraphConnection],
-) {
+) -> Result<()> {
     // Replace the nodes with a copy of the provided nodes.
     graph.nodes = nodes.to_vec();
 
@@ -98,6 +98,8 @@ fn replace_graph_nodes_and_connections(
     } else {
         graph.connections = Some(connections.to_owned());
     }
+
+    Ok(())
 }
 
 /// Update a graph with nodes and connections from the provided request payload.
@@ -109,7 +111,7 @@ pub fn update_graph_endpoint(
     graph_id: &Uuid,
     nodes: &[GraphNode],
     connections: &[GraphConnection],
-) -> Result<(), String> {
+) -> Result<()> {
     // Find the graph info by ID
     if let Some(graph_info) =
         graphs_cache_find_by_id_mut(graphs_cache, graph_id)
@@ -119,10 +121,9 @@ pub fn update_graph_endpoint(
             &mut graph_info.graph,
             nodes,
             connections,
-        );
-        Ok(())
+        )
     } else {
-        Err(format!("Graph with ID {} not found", graph_id))
+        Err(anyhow!("Graph with ID {} not found", graph_id))
     }
 }
 
