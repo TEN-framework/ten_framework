@@ -31,7 +31,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_has_no_extensions() {
         let property_json_str =
-            include_str!("test_data_embed/predefined_graph_no_extensions.json");
+            include_str!("../../test_data/predefined_graph_no_extensions.json");
 
         let mut graphs_cache = HashMap::new();
 
@@ -54,7 +54,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_has_extension_duplicated() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_has_duplicated_extension.json"
+            "../../test_data/predefined_graph_has_duplicated_extension.json"
         );
 
         let mut graphs_cache = HashMap::new();
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_start_graph_cmd_has_extension_duplicated() {
         let cmd_str = include_str!(
-            "test_data_embed/start_graph_cmd_has_duplicated_extension.json"
+            "../../test_data/start_graph_cmd_has_duplicated_extension.json"
         );
 
         let graph: Graph = Graph::from_str(cmd_str).unwrap();
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_connection_src_not_found() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_connection_src_not_found.json"
+            "../../test_data/predefined_graph_connection_src_not_found.json"
         );
 
         let mut graphs_cache = HashMap::new();
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_connection_dest_not_found() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_connection_dest_not_found.json"
+            "../../test_data/predefined_graph_connection_dest_not_found.json"
         );
 
         let mut graphs_cache = HashMap::new();
@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_node_app_localhost() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_connection_app_localhost.json"
+            "../../test_data/predefined_graph_connection_app_localhost.json"
         );
 
         let mut graphs_cache = HashMap::new();
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn test_start_graph_cmd_single_app_node_app_localhost() {
         let graph_str = include_str!(
-            "test_data_embed/start_graph_cmd_single_app_node_app_localhost.json"
+            "../../test_data/start_graph_cmd_single_app_node_app_localhost.json"
         );
 
         let graph = Graph::from_str(graph_str);
@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn test_start_graph_cmd_multi_apps_node_app_localhost() {
         let graph_str = include_str!(
-            "test_data_embed/start_graph_cmd_multi_apps_node_app_localhost.json"
+            "../../test_data/start_graph_cmd_multi_apps_node_app_localhost.json"
         );
         let graph = Graph::from_str(graph_str);
 
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_connection_app_localhost() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_connection_app_localhost.json"
+            "../../test_data/predefined_graph_connection_app_localhost.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_nodes_not_all_declared() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_app_in_nodes_not_all_declared.json"
+            "../../test_data/predefined_graph_app_in_nodes_not_all_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_connections_not_all_declared() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_app_in_connections_not_all_declared.json"
+            "../../test_data/predefined_graph_app_in_connections_not_all_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -267,7 +267,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_connections_should_not_declared() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_app_in_connections_should_not_declared.json"
+            "../../test_data/predefined_graph_app_in_connections_should_not_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -288,7 +288,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_dest_not_all_declared() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_app_in_dest_not_all_declared.json"
+            "../../test_data/predefined_graph_app_in_dest_not_all_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -309,7 +309,7 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_dest_should_not_declared() {
         let property_str = include_str!(
-            "test_data_embed/predefined_graph_app_in_dest_should_not_declared.json"
+            "../../test_data/predefined_graph_app_in_dest_should_not_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -330,7 +330,7 @@ mod tests {
     #[test]
     fn test_graph_same_extension_in_two_section_of_connections() {
         let graph_str = include_str!(
-            "test_data_embed/graph_same_extension_in_two_section_of_connections.json"
+            "../../test_data/graph_same_extension_in_two_section_of_connections.json"
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
@@ -347,7 +347,7 @@ mod tests {
     #[test]
     fn test_graph_duplicated_cmd_name_in_one_connection() {
         let graph_str = include_str!(
-            "test_data_embed/graph_duplicated_cmd_name_in_one_connection.json"
+            "../../test_data/graph_duplicated_cmd_name_in_one_connection.json"
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
@@ -362,7 +362,7 @@ mod tests {
     #[test]
     fn test_graph_messages_same_name_in_different_type_are_ok() {
         let graph_str = include_str!(
-            "test_data_embed/graph_messages_same_name_in_different_type_are_ok.json"
+            "../../test_data/graph_messages_same_name_in_different_type_are_ok.json"
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
@@ -373,7 +373,7 @@ mod tests {
     #[test]
     fn test_graph_app_can_not_be_empty_string() {
         let graph_str = include_str!(
-            "test_data_embed/graph_app_can_not_be_empty_string.json"
+            "../../test_data/graph_app_can_not_be_empty_string.json"
         );
         let graph = Graph::from_str(graph_str);
 
@@ -388,7 +388,7 @@ mod tests {
     #[test]
     fn test_graph_message_conversion_fixed_value() {
         let graph_str = include_str!(
-            "test_data_embed/graph_message_conversion_fixed_value.json"
+            "../../test_data/graph_message_conversion_fixed_value.json"
         );
         let graph = Graph::from_str(graph_str).unwrap();
 

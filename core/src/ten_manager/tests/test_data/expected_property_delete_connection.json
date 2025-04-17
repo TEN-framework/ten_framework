@@ -72,41 +72,6 @@
             "addon": "extension_addon_3",
             "name": "extension_3"
           }
-        ],
-        "connections": [
-          {
-            "app": "http://example.com:8000",
-            "extension": "extension_1",
-            "cmd": [
-              {
-                "name": "hello_world",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ]
-              },
-              {
-                "name": "test_cmd1",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_2"
-                  }
-                ]
-              },
-              {
-                "name": "test_cmd2",
-                "dest": [
-                  {
-                    "app": "http://example.com:8000",
-                    "extension": "extension_3"
-                  }
-                ]
-              }
-            ]
-          }
         ]
       },
       {
@@ -122,5 +87,6 @@
         ]
       }
     ]
-  }
+  },
+  "app_property": "sample value"
 }
