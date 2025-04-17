@@ -25,6 +25,14 @@
         }
       },
       {
+        "name": "test_cmd_2",
+        "property": {
+          "test_property": {
+            "type": "int8"
+          }
+        }
+      },
+      {
         "name": "has_required",
         "property": {
           "foo": {
