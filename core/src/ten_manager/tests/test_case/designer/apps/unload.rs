@@ -12,7 +12,7 @@ mod tests {
     use actix_web::{test, web, App};
     use ten_manager::config::internal::TmanInternalConfig;
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::inject_all_pkgs_for_mock;
     use ten_manager::config::TmanConfig;
     use ten_manager::constants::TEST_DIR;
     use ten_manager::designer::apps::unload::{

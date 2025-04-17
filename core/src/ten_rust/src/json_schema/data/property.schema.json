@@ -126,7 +126,53 @@
                   "original_path": {
                     "$ref": "#/$defs/notEmptyString"
                   }
-                }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "conversion_mode": {
+                          "const": "fixed_value"
+                        }
+                      },
+                      "required": [
+                        "conversion_mode"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "value"
+                      ],
+                      "not": {
+                        "required": [
+                          "original_path"
+                        ]
+                      }
+                    },
+                    "else": {
+                      "if": {
+                        "properties": {
+                          "conversion_mode": {
+                            "const": "from_original"
+                          }
+                        },
+                        "required": [
+                          "conversion_mode"
+                        ]
+                      },
+                      "then": {
+                        "required": [
+                          "original_path"
+                        ],
+                        "not": {
+                          "required": [
+                            "value"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
               }
             },
             "result": {
@@ -294,7 +340,53 @@
               "original_path": {
                 "$ref": "#/$defs/notEmptyString"
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "conversion_mode": {
+                      "const": "fixed_value"
+                    }
+                  },
+                  "required": [
+                    "conversion_mode"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "original_path"
+                    ]
+                  }
+                },
+                "else": {
+                  "if": {
+                    "properties": {
+                      "conversion_mode": {
+                        "const": "from_original"
+                      }
+                    },
+                    "required": [
+                      "conversion_mode"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "original_path"
+                    ],
+                    "not": {
+                      "required": [
+                        "value"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }

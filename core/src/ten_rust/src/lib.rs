@@ -9,6 +9,7 @@ mod bindings;
 pub mod constants;
 pub mod crypto;
 pub mod env;
+pub mod fs;
 pub mod graph;
 pub mod interface;
 pub mod json;

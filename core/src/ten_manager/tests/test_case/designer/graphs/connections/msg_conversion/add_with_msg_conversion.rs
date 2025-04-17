@@ -34,7 +34,7 @@ mod tests {
         pkg_info::{constants::PROPERTY_JSON_FILENAME, message::MsgType},
     };
 
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
+    use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
     #[actix_web::test]
     async fn test_add_graph_connection_with_msg_conversion() {
@@ -119,7 +119,7 @@ mod tests {
 
         // Create msg_conversion rules.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -142,7 +142,7 @@ mod tests {
                     ],
                     keep_original: Some(false),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -296,7 +296,7 @@ mod tests {
 
         // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -307,7 +307,7 @@ mod tests {
                     }],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -468,7 +468,7 @@ mod tests {
 
         // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -487,7 +487,7 @@ mod tests {
                     ],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -648,7 +648,7 @@ mod tests {
 
         // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -667,7 +667,7 @@ mod tests {
                     ],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -829,7 +829,7 @@ mod tests {
 
         // Create msg_conversion rules with result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -848,7 +848,7 @@ mod tests {
                     ],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {

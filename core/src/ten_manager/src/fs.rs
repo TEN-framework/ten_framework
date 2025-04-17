@@ -4,20 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{env, io};
-use std::{
-    fs::File,
-    io::Read,
-    path::{Path, PathBuf},
-};
+use std::env;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use fs_extra::dir::CopyOptions;
 
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use ten_rust::pkg_info::pkg_type::PkgType;
-
-use super::error::TmanError;
 
 pub fn copy_folder_recursively(
     src_dir_path: &String,
@@ -50,26 +44,6 @@ pub fn pathbuf_to_string_lossy(path_buf: &Path) -> String {
     // Convert the PathBuf to a String, replacing invalid UTF-8 sequences with �
     // (U+FFFD)
     path_buf.to_string_lossy().into_owned()
-}
-
-pub fn read_file_to_string<P: AsRef<Path>>(
-    path: P,
-) -> Result<String, TmanError> {
-    let path_ref = path.as_ref();
-
-    let mut file = File::open(path_ref).map_err(|e| match e.kind() {
-        io::ErrorKind::NotFound => {
-            TmanError::FileNotFound(path_ref.to_string_lossy().to_string())
-        }
-        _ => TmanError::InvalidPath(
-            path_ref.to_string_lossy().to_string(),
-            e.to_string(),
-        ),
-    })?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .map_err(|e| TmanError::ReadFileContentError(e.to_string()))?;
-    Ok(contents)
 }
 
 /// Check if the directory specified by `path` is an app directory.

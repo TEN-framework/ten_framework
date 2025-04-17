@@ -8,13 +8,13 @@ use std::process;
 use std::sync::Arc;
 
 use console::Emoji;
+use ten_manager::cmd::execute_cmd;
 use ten_manager::config::internal::TmanInternalConfig;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd_line;
 use ten_manager::constants::GITHUB_RELEASE_PAGE;
 use ten_manager::output::{TmanOutput, TmanOutputCli};
-use ten_manager::runner::run_tman_command;
 use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 
@@ -59,12 +59,13 @@ fn main() {
         std::process::exit(0);
     }
 
-    let result = run_tman_command(
+    let rt = Runtime::new().unwrap();
+    let result = rt.block_on(execute_cmd(
         parsed_cmd.tman_config,
         Arc::new(TmanInternalConfig::default()),
         parsed_cmd.command_data.unwrap(),
         out.clone(),
-    );
+    ));
 
     if let Err(e) = result {
         out.error_line(&format!("{}  Error: {:?}", Emoji("🔴", ":-("), e));

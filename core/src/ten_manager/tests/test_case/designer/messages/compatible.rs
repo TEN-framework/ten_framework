@@ -25,7 +25,7 @@ use ten_manager::{
 };
 use ten_rust::pkg_info::message::{MsgDirection, MsgType};
 
-use crate::test_case::mock::inject_all_pkgs_for_mock;
+use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
 #[actix_web::test]
 async fn test_get_compatible_messages_success() {

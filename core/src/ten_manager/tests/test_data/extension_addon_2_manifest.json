@@ -106,6 +106,35 @@
         "required": [
           "foo"
         ]
+      },
+      {
+        "name": "cmd6",
+        "property": {
+          "bar": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bar"
+        ]
+      },
+      {
+        "name": "cmd8",
+        "property": {
+          "param1": {
+            "type": "int8"
+          },
+          "param2": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "property": {
+            "detail": {
+              "type": "string"
+            }
+          }
+        }
       }
     ],
     "data_in": [

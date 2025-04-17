@@ -5,11 +5,11 @@
     "extension_group": "extension_group_1",
     "api": {
       "property": {
-        "test_property": {
-          "type": "int8"
-        },
         "key": {
           "type": "string"
+        },
+        "test_property": {
+          "type": "int8"
         }
       },
       "cmd_out": [
@@ -62,11 +62,11 @@
         {
           "name": "cmd1",
           "property": {
-            "param2": {
-              "type": "string"
-            },
             "param1": {
               "type": "int8"
+            },
+            "param2": {
+              "type": "string"
             }
           },
           "result": {
@@ -80,11 +80,11 @@
         {
           "name": "cmd2",
           "property": {
-            "param1": {
-              "type": "int8"
-            },
             "param2": {
               "type": "string"
+            },
+            "param1": {
+              "type": "int8"
             }
           },
           "result": {
@@ -98,11 +98,11 @@
         {
           "name": "cmd3",
           "property": {
-            "b": {
-              "type": "int8"
-            },
             "a": {
               "type": "string"
+            },
+            "b": {
+              "type": "int8"
             }
           }
         },
@@ -147,6 +147,24 @@
           }
         },
         {
+          "name": "cmd8",
+          "property": {
+            "param2": {
+              "type": "string"
+            },
+            "param1": {
+              "type": "int8"
+            }
+          },
+          "result": {
+            "property": {
+              "detail": {
+                "type": "bool"
+              }
+            }
+          }
+        },
+        {
           "name": "cmd_incompatible",
           "property": {
             "param1": {
@@ -175,9 +193,6 @@
         {
           "name": "data2",
           "property": {
-            "a": {
-              "type": "string"
-            },
             "b": {
               "type": "object",
               "properties": {
@@ -191,6 +206,9 @@
               "required": [
                 "c"
               ]
+            },
+            "a": {
+              "type": "string"
             }
           }
         },
@@ -331,6 +349,35 @@
           "required": [
             "foo"
           ]
+        },
+        {
+          "name": "cmd6",
+          "property": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "bar"
+          ]
+        },
+        {
+          "name": "cmd8",
+          "property": {
+            "param1": {
+              "type": "int8"
+            },
+            "param2": {
+              "type": "string"
+            }
+          },
+          "result": {
+            "property": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
         }
       ],
       "data_in": [
@@ -345,9 +392,6 @@
         {
           "name": "data2",
           "property": {
-            "a": {
-              "type": "string"
-            },
             "b": {
               "type": "object",
               "properties": {
@@ -362,6 +406,9 @@
                 "c",
                 "d"
               ]
+            },
+            "a": {
+              "type": "string"
             }
           }
         }

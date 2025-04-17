@@ -15,12 +15,6 @@ use super::designer_state::create_designer_state;
 /// Starts a test server for the given endpoint path and returns the server
 /// address. This is a common function used by multiple test cases to avoid
 /// code duplication.
-///
-/// # Parameters
-/// * `endpoint_path` - The path to route requests to (e.g.,
-///   "/api/designer/v1/packages")
-/// * `endpoint_factory` - A function that creates the endpoint handler (e.g.,
-///   `web::post().to(get_packages_endpoint)`)
 pub async fn start_test_server<F>(
     endpoint_path: &str,
     endpoint_factory: F,

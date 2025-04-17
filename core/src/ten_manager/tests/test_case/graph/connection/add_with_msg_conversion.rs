@@ -27,8 +27,8 @@ mod tests {
     use ten_rust::pkg_info::create_uri_to_pkg_info_map;
     use ten_rust::pkg_info::message::MsgType;
 
+    use crate::test_case::common::mock::inject_all_standard_pkgs_for_mock;
     use crate::test_case::graph::connection::create_test_node;
-    use crate::test_case::mock::inject_all_pkgs_for_mock;
 
     #[test]
     fn test_add_connection_with_msg_conversion() -> Result<()> {
@@ -64,7 +64,7 @@ mod tests {
                     app: Some("http://example.com:8000".to_string()),
                     extension: "extension_2".to_string(),
                     msg_conversion: Some(MsgAndResultConversion {
-                        msg: MsgConversion {
+                        msg: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
                                 rules: vec![
@@ -87,7 +87,7 @@ mod tests {
                                 ],
                                 keep_original: Some(true),
                             },
-                        },
+                        }),
                         result: Some(MsgConversion {
                             conversion_type: MsgConversionType::PerProperty,
                             rules: MsgConversionRules {
@@ -143,58 +143,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_fixed_value_msg_conversion() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -217,7 +173,7 @@ mod tests {
 
         // Create a message conversion with fixed value.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![
@@ -240,7 +196,7 @@ mod tests {
                     ],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -287,12 +243,12 @@ mod tests {
 
         // Check conversion type.
         assert_eq!(
-            dest_msg_conversion.msg.conversion_type,
+            dest_msg_conversion.msg.as_ref().unwrap().conversion_type,
             MsgConversionType::PerProperty
         );
 
         // Check rules.
-        let rules = &dest_msg_conversion.msg.rules;
+        let rules = &dest_msg_conversion.msg.as_ref().unwrap().rules;
         assert_eq!(rules.keep_original, Some(true));
         assert_eq!(rules.rules.len(), 2);
 
@@ -313,59 +269,215 @@ mod tests {
     }
 
     #[test]
-    fn test_add_connection_with_from_original_msg_conversion() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
+    fn test_add_connection_with_fixed_value_msg_conversion_with_required() {
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: Some(MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FixedValue,
+                        original_path: None,
+                        value: Some(serde_json::Value::String(
+                            "some_string_value".to_string(),
+                        )),
+                    }],
+                    keep_original: Some(true),
+                },
+            }),
+            result: None,
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd6".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion.clone()),
+        );
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_add_connection_with_fixed_value_result_conversion_with_required() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: None,
+            result: Some(MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FixedValue,
+                        original_path: None,
+                        value: Some(serde_json::Value::String(
+                            "some_string_value".to_string(),
+                        )),
+                    }],
+                    keep_original: Some(true),
+                },
+            }),
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd8".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion),
+        );
+        println!("result: {:?}", result);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_add_connection_with_from_original_msg_conversion_with_required() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: Some(MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FromOriginal,
+                        original_path: Some("foo".to_string()),
+                        value: None,
+                    }],
+                    keep_original: Some(true),
+                },
+            }),
+            result: None,
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd6".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion.clone()),
+        );
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_add_connection_with_from_original_msg_conversion() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -388,7 +500,7 @@ mod tests {
 
         // Create a message conversion with from_original mode.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -399,7 +511,7 @@ mod tests {
                     }],
                     keep_original: Some(false),
                 },
-            },
+            }),
             result: None,
         };
 
@@ -435,7 +547,7 @@ mod tests {
         let dest_msg_conversion = dest.msg_conversion.as_ref().unwrap();
 
         // Check rules.
-        let rules = &dest_msg_conversion.msg.rules;
+        let rules = &dest_msg_conversion.msg.as_ref().unwrap().rules;
         assert_eq!(rules.keep_original, Some(false));
         assert_eq!(rules.rules.len(), 1);
 
@@ -449,58 +561,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_msg_and_result_conversion() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -523,7 +591,7 @@ mod tests {
 
         // Create a message conversion with both message and result conversion.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -534,7 +602,7 @@ mod tests {
                     }],
                     keep_original: Some(true),
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -579,7 +647,10 @@ mod tests {
         assert!(dest_msg_conversion.result.is_some());
 
         // Check message conversion.
-        assert_eq!(dest_msg_conversion.msg.rules.rules[0].path, "mapped_param");
+        assert_eq!(
+            dest_msg_conversion.msg.as_ref().unwrap().rules.rules[0].path,
+            "mapped_param"
+        );
 
         // Check result conversion.
         let result_conversion = dest_msg_conversion.result.as_ref().unwrap();
@@ -599,58 +670,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_invalid_msg_conversion() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -673,13 +700,13 @@ mod tests {
 
         // Create an invalid message conversion with empty rules.
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![],
                     keep_original: None,
                 },
-            },
+            }),
             result: None,
         };
 
@@ -706,69 +733,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_invalid_forward_conversion_1() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_4_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -800,7 +772,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -811,7 +783,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -849,69 +821,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_result_conversion_success() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_4_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -943,7 +860,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -954,7 +871,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -991,69 +908,14 @@ mod tests {
 
     #[test]
     fn test_add_connection_with_result_conversion_failure() {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_4_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -1085,7 +947,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -1096,7 +958,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
@@ -1134,69 +996,14 @@ mod tests {
     #[test]
     fn test_add_connection_with_msg_conversion_without_result_conversion_failure(
     ) {
-        let all_pkgs_json_str = vec![
-            (
-                TEST_DIR.to_string(),
-                include_str!("../../../test_data/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../test_data/app_property.json")
-                    .to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_1_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_2_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_3"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_3_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-            (
-                format!(
-                    "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
-                ),
-                include_str!(
-                    "../../../test_data/extension_addon_4_manifest.json"
-                )
-                .to_string(),
-                "{}".to_string(),
-            ),
-        ];
-
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
-        let inject_ret = inject_all_pkgs_for_mock(
+        inject_all_standard_pkgs_for_mock(
             &mut pkgs_cache,
             &mut graphs_cache,
-            all_pkgs_json_str,
+            TEST_DIR,
         );
-        assert!(inject_ret.is_ok());
 
         let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
@@ -1228,7 +1035,7 @@ mod tests {
         };
 
         let msg_conversion = MsgAndResultConversion {
-            msg: MsgConversion {
+            msg: Some(MsgConversion {
                 conversion_type: MsgConversionType::PerProperty,
                 rules: MsgConversionRules {
                     rules: vec![MsgConversionRule {
@@ -1239,7 +1046,7 @@ mod tests {
                     }],
                     keep_original: None,
                 },
-            },
+            }),
             result: None,
         };
 

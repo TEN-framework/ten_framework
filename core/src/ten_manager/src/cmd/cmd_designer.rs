@@ -15,7 +15,6 @@ use actix_web::{http::header, web, App, HttpServer};
 use anyhow::{Ok, Result};
 use clap::{value_parser, Arg, ArgMatches, Command};
 use console::Emoji;
-// use webbrowser;
 
 use crate::{
     config::{internal::TmanInternalConfig, TmanConfig},

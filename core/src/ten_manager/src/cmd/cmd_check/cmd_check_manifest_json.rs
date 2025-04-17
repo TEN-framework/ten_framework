@@ -9,11 +9,12 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
-use ten_rust::json_schema::ten_validate_manifest_json_string;
+use ten_rust::{
+    fs::read_file_to_string, json_schema::ten_validate_manifest_json_string,
+};
 
 use crate::{
     config::{internal::TmanInternalConfig, TmanConfig},
-    fs::read_file_to_string,
     output::TmanOutput,
 };
 

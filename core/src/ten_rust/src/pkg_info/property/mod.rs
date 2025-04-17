@@ -18,9 +18,8 @@ use uuid::Uuid;
 use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
     pkg_type::PkgType,
-    utils::read_file_to_string,
 };
-use crate::json_schema;
+use crate::{fs::read_file_to_string, json_schema};
 use crate::{
     graph::{graph_info::GraphInfo, is_app_default_loc_or_none},
     json_schema::ten_validate_property_json_string,
