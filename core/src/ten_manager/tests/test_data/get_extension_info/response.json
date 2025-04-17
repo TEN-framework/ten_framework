@@ -7,6 +7,9 @@
       "property": {
         "test_property": {
           "type": "int8"
+        },
+        "key": {
+          "type": "string"
         }
       },
       "cmd_out": [
