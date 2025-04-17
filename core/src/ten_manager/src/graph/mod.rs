@@ -16,6 +16,7 @@ pub use connections::update_graph_connections_all_fields;
 pub use nodes::update_graph_node_all_fields;
 
 use ten_rust::graph::graph_info::GraphInfo;
+use ten_rust::graph::{connection::GraphConnection, node::GraphNode, Graph};
 
 pub fn graphs_cache_find_by_name<'a>(
     graphs_cache: &'a HashMap<Uuid, GraphInfo>,
@@ -73,5 +74,25 @@ pub fn graphs_cache_remove_by_app_base_dir(
     // Remove the graphs
     for uuid in graph_uuids_to_remove {
         graphs_cache.remove(&uuid);
+    }
+}
+
+/// Replace the nodes and connections in a graph with new nodes and connections.
+///
+/// If the connections vector is empty, it sets graph.connections to None.
+pub fn replace_graph_nodes_and_connections(
+    graph: &mut Graph,
+    nodes: &[GraphNode],
+    connections: &[GraphConnection],
+) {
+    // Replace the nodes with a copy of the provided nodes.
+    graph.nodes = nodes.to_vec();
+
+    // If the connections vector is empty, set graph.connections to None,
+    // otherwise set it to Some with a copy of the provided connections.
+    if connections.is_empty() {
+        graph.connections = None;
+    } else {
+        graph.connections = Some(connections.to_owned());
     }
 }
