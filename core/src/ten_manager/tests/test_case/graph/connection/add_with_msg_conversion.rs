@@ -269,7 +269,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_connection_with_fixed_value_msg_conversion_with_required_1() {
+    fn test_add_connection_with_fixed_value_msg_conversion_with_required() {
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 
@@ -336,7 +336,88 @@ mod tests {
     }
 
     #[test]
-    fn test_add_connection_with_fixed_value_msg_conversion_with_required_2() {
+    fn test_add_connection_with_fixed_value_result_conversion_with_required() {
+        let mut pkgs_cache = HashMap::new();
+        let mut graphs_cache = HashMap::new();
+
+        inject_all_standard_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            TEST_DIR,
+        );
+
+        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
+
+        // Create a graph with two nodes.
+        let mut graph = Graph {
+            nodes: vec![
+                create_test_node(
+                    "ext1",
+                    "extension_addon_1",
+                    Some("http://example.com:8000"),
+                ),
+                create_test_node(
+                    "ext2",
+                    "extension_addon_2",
+                    Some("http://example.com:8000"),
+                ),
+            ],
+            connections: None,
+        };
+
+        // Create a message conversion with fixed value.
+        let msg_conversion = MsgAndResultConversion {
+            msg: MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "param1".to_string(),
+                        conversion_mode: MsgConversionMode::FixedValue,
+                        original_path: None,
+                        value: Some(serde_json::Value::Number(
+                            serde_json::Number::from(42),
+                        )),
+                    }],
+                    keep_original: Some(true),
+                },
+            },
+            result: Some(MsgConversion {
+                conversion_type: MsgConversionType::PerProperty,
+                rules: MsgConversionRules {
+                    rules: vec![MsgConversionRule {
+                        path: "bar".to_string(),
+                        conversion_mode: MsgConversionMode::FixedValue,
+                        original_path: None,
+                        value: Some(serde_json::Value::String(
+                            "some_string_value".to_string(),
+                        )),
+                    }],
+                    keep_original: Some(true),
+                },
+            }),
+        };
+
+        // Test adding a connection with msg_conversion.
+        let result = graph_add_connection(
+            &mut graph,
+            &Some(TEST_DIR.to_string()),
+            Some("http://example.com:8000".to_string()),
+            "ext1".to_string(),
+            MsgType::Cmd,
+            "cmd8".to_string(),
+            Some("http://example.com:8000".to_string()),
+            "ext2".to_string(),
+            &uri_to_pkg_info,
+            &pkgs_cache,
+            Some(msg_conversion),
+        );
+        println!("result: {:?}", result);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_add_connection_with_from_original_msg_conversion_with_required() {
         let mut pkgs_cache = HashMap::new();
         let mut graphs_cache = HashMap::new();
 

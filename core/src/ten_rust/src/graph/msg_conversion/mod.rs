@@ -183,7 +183,7 @@ impl MsgConversion {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MsgAndResultConversion {
     #[serde(flatten)]
-    pub msg: MsgConversion,
+    pub msg: MsgConversion, // =-=-=
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<MsgConversion>,
