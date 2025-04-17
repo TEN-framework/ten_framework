@@ -58,7 +58,6 @@ tokio-macros = "2.5.0"
 url = { version = "2.5" }
 uuid = { version = "1.0" }
 walkdir = { version = "2.5" }
-webbrowser = { version = "1.0", default-features = false }
 zip = { version = "2.2", default-features = false, features = [
   "deflate",
   "time",
