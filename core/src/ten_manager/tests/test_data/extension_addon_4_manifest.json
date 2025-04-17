@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "addon4",
+  "name": "extension_addon_4",
   "version": "1.0.0",
   "api": {
     "cmd_in": [

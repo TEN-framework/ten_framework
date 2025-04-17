@@ -123,8 +123,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -156,7 +162,7 @@ mod tests {
             nodes: vec![
                 create_test_node(
                     "ext1",
-                    "addon1",
+                    "extension_addon_1",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(
@@ -216,8 +222,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -280,8 +292,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -310,7 +328,11 @@ mod tests {
 
         // Create a graph with only one node.
         let mut graph = Graph {
-            nodes: vec![create_test_node("ext1", "addon1", Some("app1"))],
+            nodes: vec![create_test_node(
+                "ext1",
+                "extension_addon_1",
+                Some("app1"),
+            )],
             connections: None,
         };
 
@@ -344,8 +366,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -377,7 +405,7 @@ mod tests {
             nodes: vec![
                 create_test_node(
                     "ext1",
-                    "addon1",
+                    "extension_addon_1",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(
@@ -456,8 +484,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -489,7 +523,7 @@ mod tests {
             nodes: vec![
                 create_test_node(
                     "ext1",
-                    "addon1",
+                    "extension_addon_1",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(
@@ -587,8 +621,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -620,7 +660,7 @@ mod tests {
             nodes: vec![
                 create_test_node(
                     "ext1",
-                    "addon1",
+                    "extension_addon_1",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(
@@ -693,8 +733,14 @@ mod tests {
                     .to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon1"),
-                include_str!("test_data_embed/ext_1_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -708,8 +754,14 @@ mod tests {
                 "{}".to_string(),
             ),
             (
-                format!("{}{}", TEST_DIR, "/ten_packages/extension/addon4"),
-                include_str!("test_data_embed/ext_4_manifest.json").to_string(),
+                format!(
+                    "{}{}",
+                    TEST_DIR, "/ten_packages/extension/extension_addon_4"
+                ),
+                include_str!(
+                    "../../../test_data/extension_addon_4_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -731,7 +783,7 @@ mod tests {
             nodes: vec![
                 create_test_node(
                     "ext1",
-                    "addon1",
+                    "extension_addon_1",
                     Some("http://example.com:8000"),
                 ),
                 create_test_node(
@@ -746,7 +798,7 @@ mod tests {
                 ),
                 create_test_node(
                     "ext4",
-                    "addon4",
+                    "extension_addon_4",
                     Some("http://example.com:8000"),
                 ),
             ],
