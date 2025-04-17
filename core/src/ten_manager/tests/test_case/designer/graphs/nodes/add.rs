@@ -315,12 +315,12 @@ mod tests {
 
         // Read test data from embedded JSON files
         let input_property_json_str = include_str!(
-            "test_data_embed/input_property_with_ordered_fields.json"
+            "../../../../test_data/input_property_with_ordered_fields.json"
         );
         let input_manifest_json_str =
-            include_str!("test_data_embed/test_app_manifest.json");
+            include_str!("../../../../test_data/test_app_manifest.json");
         let expected_property = include_str!(
-            "test_data_embed/expected_property_with_new_node.json"
+            "../../../../test_data/expected_property_with_new_node.json"
         );
 
         // Write input files to temp directory.
@@ -453,7 +453,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/test_addon_manifest.json")
+                include_str!("../../../../test_data/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
@@ -511,7 +511,7 @@ mod tests {
             std::fs::read_to_string(&property_path).unwrap();
 
         let expected_property_json_str =
-            include_str!("test_data_embed/expected_property_after_adding_in_test_delete_graph_node_success.json");
+            include_str!("../../../../test_data/expected_property_after_adding_in_test_delete_graph_node_success.json");
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
@@ -569,7 +569,7 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("test_data_embed/test_addon_manifest.json")
+                include_str!("../../../../test_data/test_addon_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
