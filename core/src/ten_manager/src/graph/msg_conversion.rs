@@ -485,6 +485,7 @@ pub fn msg_conversion_get_final_target_schema(
         if keep_original {
             if let Some(src_msg_schema) = src_msg_schema {
                 converted_schema = src_msg_schema.clone();
+                converted_schema.required = src_msg_schema.required.clone();
 
                 // Update the name to the destination message name.
                 converted_schema.name = dest_msg_name.to_string();
