@@ -67,15 +67,7 @@ pub struct MsgConversionRule {
 }
 
 impl MsgConversionRule {
-    /// Validates a message conversion rule by checking that:
-    /// 1. The target property path is not empty.
-    /// 2. The required fields for each conversion mode are present:
-    ///    - For FixedValue mode: 'value' field must be provided.
-    ///    - For FromOriginal mode: 'original_path' field must be provided.
-    ///
-    /// # Returns
-    /// * `Ok(())` if the rule is valid.
-    /// * `Err` with a descriptive error message if validation fails.
+    /// Validates a message conversion rule.
     pub fn validate(&self) -> Result<()> {
         if self.path.is_empty() {
             return Err(anyhow::anyhow!("property path is empty"));
@@ -142,15 +134,6 @@ where
 
 impl MsgConversionRules {
     /// Validates the message conversion rules configuration.
-    ///
-    /// This method performs the following validations:
-    /// 1. Checks that the rules collection is not empty.
-    /// 2. Validates each individual conversion rule in the collection.
-    ///
-    /// # Returns
-    /// * `Ok(())` if all rules are valid.
-    /// * `Err` with a descriptive error message if validation fails, including
-    ///   the index of the problematic rule for easier debugging.
     pub fn validate(&self) -> Result<()> {
         if self.rules.is_empty() {
             return Err(anyhow::anyhow!("conversion rules are empty"));
@@ -192,16 +175,6 @@ pub struct MsgAndResultConversion {
 
 impl MsgAndResultConversion {
     /// Validates both message and result conversion configurations.
-    ///
-    /// This method performs the following validations:
-    /// 1. Validates the message conversion configuration.
-    /// 2. If a result conversion is specified, validates it as well.
-    ///
-    /// # Returns
-    /// * `Ok(())` if both message and result conversion configurations are
-    ///   valid.
-    /// * `Err` with a descriptive error message if validation fails, with
-    ///   context about which part of the conversion (message or result) failed.
     pub fn validate(&self) -> Result<()> {
         // Validate the message conversion configuration.
         if let Some(msg) = &self.msg {
