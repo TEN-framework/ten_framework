@@ -208,7 +208,7 @@ mod tests {
         let app_manifest_json_str =
             include_str!("../../../../test_data/app_manifest.json").to_string();
         let app_property_json_str = include_str!(
-            "test_data_embed/initial_property_add_connection_2.json"
+            "../../../../test_data/initial_property_add_connection_2.json"
         )
         .to_string();
 

@@ -175,26 +175,26 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 TEST_DIR.to_string(),
-                include_str!("test_data_embed/get_connections_have_all_data_type/app_manifest.json")
+                include_str!("../../../../test_data/get_connections_have_all_data_type/app_manifest.json")
                     .to_string(),
-                include_str!("test_data_embed/get_connections_have_all_data_type/app_property.json")
+                include_str!("../../../../test_data/get_connections_have_all_data_type/app_property.json")
                     .to_string(),
             ),
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_1"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
-                include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_1_manifest.json")
+                include_str!("../../../../test_data/get_connections_have_all_data_type/extension_addon_1_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
             (
                 format!(
                     "{}{}",
-                    TEST_DIR, "/ten_packages/extension/extension_2"
+                    TEST_DIR, "/ten_packages/extension/extension_addon_2"
                 ),
-                include_str!("test_data_embed/get_connections_have_all_data_type/extension_addon_2_manifest.json")
+                include_str!("../../../../test_data/get_connections_have_all_data_type/extension_addon_2_manifest.json")
                     .to_string(),
                 "{}".to_string(),
             ),
