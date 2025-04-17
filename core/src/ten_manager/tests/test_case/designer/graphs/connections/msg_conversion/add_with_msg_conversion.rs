@@ -407,7 +407,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -531,7 +532,7 @@ mod tests {
 
         eprintln!("resp: {:?}", resp);
 
-        // assert!(resp.status().is_success());
+        assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
@@ -586,7 +587,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
@@ -765,7 +767,8 @@ mod tests {
             include_str!("../../../../../test_data/app_manifest.json")
                 .to_string();
         let app_property_json_str =
-            include_str!("test_data_embed/app_property.json").to_string();
+            include_str!("../../../../../test_data/app_property.json")
+                .to_string();
 
         // Create the property.json file in the temporary directory.
         let property_path =
