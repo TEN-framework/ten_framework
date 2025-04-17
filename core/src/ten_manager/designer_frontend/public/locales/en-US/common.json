@@ -270,6 +270,9 @@
       "title": "Currently Working in",
       "baseDir": "Base Dir",
       "graphName": "Graph Name"
+    },
+    "feedback": {
+      "title": "Feedback"
     }
   },
   "preferences": {

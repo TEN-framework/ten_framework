@@ -11,6 +11,8 @@ export const TEN_FRAMEWORK_RELEASE_URL =
 export const TEN_AGENT_URL = "https://agent.theten.ai/";
 export const TEN_AGENT_GITHUB_URL =
   "https://github.com/TEN-framework/TEN-Agent";
+export const TEN_FRAMEWORK_DESIGNER_FEEDBACK_ISSUE_URL =
+  TEN_FRAMEWORK_GITHUB_URL + "issues/new?template=designer_feedback_fe.yml";
 
 export const TEN_DEFAULT_APP_RUN_SCRIPT = "start";
 

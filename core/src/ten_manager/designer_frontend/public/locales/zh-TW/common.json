@@ -270,6 +270,9 @@
       "title": "目前工作區",
       "baseDir": "基礎目錄",
       "graphName": "圖譜名稱"
+    },
+    "feedback": {
+      "title": "回饋"
     }
   },
   "preferences": {
