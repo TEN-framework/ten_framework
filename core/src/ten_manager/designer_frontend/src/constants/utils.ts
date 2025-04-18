@@ -6,10 +6,11 @@
 //
 import { TEN_DEFAULT_BACKEND_WS_ENDPOINT } from "@/constants";
 
-export const getWSEndpointFromWindow = (host?: string): string => {
-  if (host) {
-    return `ws://${host}`;
-  } else if (typeof window !== "undefined" && window.location) {
+export const getWSEndpointFromWindow = (): string => {
+  if (process.env.NODE_ENV === "development") {
+    return `ws://localhost:49483`;
+  }
+  if (typeof window !== "undefined" && window.location) {
     const { protocol, host } = window.location;
     const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
     return `${wsProtocol}//${host}`;
