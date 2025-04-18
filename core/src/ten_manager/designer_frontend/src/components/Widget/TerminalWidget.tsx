@@ -15,10 +15,8 @@ import { Terminal as XTermTerminal } from "@xterm/xterm";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { FitAddon } from "@xterm/addon-fit";
-import {
-  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEN_PATH_WS_TERMINAL,
-} from "@/constants";
+import { TEN_PATH_WS_TERMINAL } from "@/constants";
+import { getWSEndpointFromWindow } from "@/constants/utils";
 
 import type { ITerminalWidgetData } from "@/types/widgets";
 
@@ -105,7 +103,7 @@ const TerminalWidget = forwardRef<unknown, ITerminalWidgetProps>(
 
       // Initialize the websocket connection to the backend.
       const wsUrl =
-        TEN_DEFAULT_BACKEND_WS_ENDPOINT +
+        getWSEndpointFromWindow() +
         TEN_PATH_WS_TERMINAL +
         `?path=${encodeURIComponent(data.url)}`;
       ws.current = new WebSocket(wsUrl);
