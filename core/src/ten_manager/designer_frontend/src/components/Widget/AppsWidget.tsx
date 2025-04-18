@@ -90,10 +90,8 @@ import {
   CONTAINER_DEFAULT_ID,
   GROUP_LOG_VIEWER_ID,
 } from "@/constants/widgets";
-import {
-  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEN_PATH_WS_BUILTIN_FUNCTION,
-} from "@/constants";
+import { TEN_PATH_WS_BUILTIN_FUNCTION } from "@/constants";
+import { getWSEndpointFromWindow } from "@/constants/utils";
 import {
   ETemplateLanguage,
   ETemplateType,
@@ -246,7 +244,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
 
       title: <LogViewerPopupTitle />,
       metadata: {
-        wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+        wsUrl: getWSEndpointFromWindow() + TEN_PATH_WS_BUILTIN_FUNCTION,
         scriptType: ELogViewerScriptType.INSTALL_ALL,
         script: {
           type: ELogViewerScriptType.INSTALL_ALL,

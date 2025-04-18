@@ -24,7 +24,7 @@ import { useWidgetStore, useAppStore } from "@/store";
 import { AppFileManager } from "@/components/FileManager/AppFolder";
 import { postLoadDir, useApps } from "@/api/services/apps";
 import { CONTAINER_DEFAULT_ID, GROUP_LOG_VIEWER_ID } from "@/constants/widgets";
-import { TEN_DEFAULT_BACKEND_WS_ENDPOINT } from "@/constants";
+import { getWSEndpointFromWindow } from "@/constants/utils";
 import {
   AppsManagerWidget,
   AppTemplateWidget,
@@ -148,7 +148,7 @@ export const AppRunPopupContent = (props: { widget: IDefaultWidget }) => {
 
       title: <LogViewerPopupTitle />,
       metadata: {
-        wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_EXEC,
+        wsUrl: getWSEndpointFromWindow() + TEN_PATH_WS_EXEC,
         scriptType: ELogViewerScriptType.RUN_SCRIPT,
         script: {
           type: ELogViewerScriptType.RUN_SCRIPT,

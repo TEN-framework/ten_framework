@@ -34,10 +34,8 @@ import {
   ITenPackageLocal,
 } from "@/types/extension";
 import { useListTenCloudStorePackages } from "@/api/services/extension";
-import {
-  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEN_PATH_WS_BUILTIN_FUNCTION,
-} from "@/constants";
+import { TEN_PATH_WS_BUILTIN_FUNCTION } from "@/constants";
+import { getWSEndpointFromWindow } from "@/constants/utils";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import { postReloadApps } from "@/api/services/apps";
@@ -152,7 +150,7 @@ export const ExtensionBaseItem = React.forwardRef<
 
         title: <LogViewerPopupTitle />,
         metadata: {
-          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+          wsUrl: getWSEndpointFromWindow() + TEN_PATH_WS_BUILTIN_FUNCTION,
           scriptType: ELogViewerScriptType.INSTALL,
           script: {
             type: ELogViewerScriptType.INSTALL,
