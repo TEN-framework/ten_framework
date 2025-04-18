@@ -514,7 +514,7 @@ bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
               ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
               ten_string_get_raw_str(short_name));
 
-          // TODO(xilin): Return the result of loading the addon using all
+          // TODO(xilin): _Return the result_ of loading the addon using all
           // addon loaders.
           ten_addon_try_load_specific_addon_using_all_addon_loaders(
               ten_env, TEN_ADDON_TYPE_EXTENSION,

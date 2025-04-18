@@ -11,7 +11,6 @@
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
-#include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/app/close.h"

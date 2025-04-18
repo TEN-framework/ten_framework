@@ -157,8 +157,8 @@ void ten_addon_manager_register_all_addons(ten_addon_manager_t *self,
 void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
                                                   void *register_ctx) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(self->app && ten_app_check_integrity(self->app, true),
-             "Invalid argument.");
+  TEN_ASSERT(self->app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self->app, true), "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 
@@ -188,8 +188,8 @@ void ten_addon_manager_register_all_addon_loaders(ten_addon_manager_t *self,
 void ten_addon_manager_register_all_protocols(ten_addon_manager_t *self,
                                               void *register_ctx) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(self->app && ten_app_check_integrity(self->app, true),
-             "Invalid argument.");
+  TEN_ASSERT(self->app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self->app, true), "Invalid argument.");
 
   ten_mutex_lock(self->mutex);
 

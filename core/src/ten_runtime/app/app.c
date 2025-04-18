@@ -42,10 +42,13 @@ static void ten_app_inherit_thread_ownership(ten_app_t *self) {
   // thread.
   ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
       &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(&self->ten_env->thread_check,
                                           &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(&self->path_table->thread_check,
                                           &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(&self->extension_store.thread_check,
                                           &self->thread_check);
   ten_sanitizer_thread_check_inherit_from(
@@ -54,6 +57,7 @@ static void ten_app_inherit_thread_ownership(ten_app_t *self) {
                                           &self->thread_check);
   ten_sanitizer_thread_check_inherit_from(
       &self->addon_loader_store.thread_check, &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(
       &self->addon_loader_singleton_store.thread_check, &self->thread_check);
 }

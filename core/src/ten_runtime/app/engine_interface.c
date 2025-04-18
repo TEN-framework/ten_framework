@@ -13,7 +13,6 @@
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"

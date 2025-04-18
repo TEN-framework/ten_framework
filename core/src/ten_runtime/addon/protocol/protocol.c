@@ -236,12 +236,12 @@ bool ten_addon_create_protocol_with_uri(
   }
 
   // We have to switch to the addon manager app thread to find the addon host
-  // according to the uri. If we find one, we can use it to create a protocol
+  // according to the URI. If we find one, we can use it to create a protocol
   // instance.
   //
   // If we don't find one, for now we will callback with NULL to indicate the
-  // failure. In the future, we will try to load the protocol addon and find the
-  // addon host again.
+  // failure. In the future, if the protocol is also dynamically loaded, we will
+  // try to load the protocol addon and find the addon host again.
 
   ten_app_t *addon_manager_app =
       ten_addon_manager_get_belonging_app(ten_addon_manager_get_instance());

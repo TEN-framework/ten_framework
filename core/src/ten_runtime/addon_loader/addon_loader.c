@@ -47,9 +47,9 @@ void ten_addon_loader_singleton_store_init(
 
 void ten_addon_loader_singleton_store_deinit(
     ten_addon_loader_singleton_store_t *store) {
-  TEN_ASSERT(
-      store && ten_addon_loader_singleton_store_check_integrity(store, false),
-      "Invalid argument.");
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_singleton_store_check_integrity(store, false),
+             "Invalid argument.");
 
   TEN_ASSERT(ten_list_is_empty(&store->store), "Should not happen.");
 
@@ -350,8 +350,8 @@ void ten_addon_loader_addons_create_singleton_instance(
   TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_addon_store_t *addon_loader_store = &app->addon_loader_store;
-  TEN_ASSERT(addon_loader_store &&
-                 ten_addon_store_check_integrity(addon_loader_store, true),
+  TEN_ASSERT(addon_loader_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(addon_loader_store, true),
              "Should not happen.");
 
   ten_addon_loader_singleton_store_t *addon_loader_singleton_store =
