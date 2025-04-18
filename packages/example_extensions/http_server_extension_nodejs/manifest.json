@@ -1,12 +1,12 @@
 {
   "type": "extension",
   "name": "http_server_extension_nodejs",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "dependencies": [
     {
       "type": "system",
       "name": "ten_runtime_nodejs",
-      "version": "0.9.5"
+      "version": "0.9.6"
     }
   ],
   "package": {
