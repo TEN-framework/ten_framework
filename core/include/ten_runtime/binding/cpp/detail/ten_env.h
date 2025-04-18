@@ -642,6 +642,7 @@ class ten_env_t {
   }
 
   bool init_manifest_from_json(const char *json_str, error_t *err);
+  bool on_load_addon_done(void *context, error_t *err);
 
   bool send_cmd_internal(std::unique_ptr<cmd_t> &&cmd,
                          result_handler_func_t &&result_handler = nullptr,

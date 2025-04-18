@@ -310,6 +310,48 @@ static void ten_app_notify_create_addon_instance_failed(
   }
 }
 
+static void ten_app_addon_loaded_using_all_addon_loaders(ten_env_t *ten_env,
+                                                         void *cb_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_context_t *addon_context = (ten_addon_context_t *)cb_data;
+  TEN_ASSERT(addon_context, "Invalid argument.");
+
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
+  TEN_ASSERT(register_ctx, "Failed to allocate memory.");
+
+  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+  TEN_ASSERT(manager, "Should not happen.");
+
+  bool success = ten_addon_manager_register_specific_addon(
+      manager, addon_context->addon_type,
+      ten_string_get_raw_str(&addon_context->addon_name), register_ctx);
+  if (!success) {
+    TEN_LOGE("Failed to load the addon %s using all addon loaders.",
+             ten_string_get_raw_str(&addon_context->addon_name));
+    ten_addon_register_ctx_destroy(register_ctx);
+
+    ten_app_notify_create_addon_instance_failed(app, addon_context);
+    return;
+  }
+
+  ten_addon_register_ctx_destroy(register_ctx);
+
+  ten_addon_host_t *addon_host = ten_addon_store_find_by_type(
+      app, addon_context->addon_type,
+      ten_string_get_raw_str(&addon_context->addon_name));
+  TEN_ASSERT(addon_host, "Should not happen.");
+
+  ten_addon_host_create_instance_async(
+      addon_host, ten_string_get_raw_str(&addon_context->instance_name),
+      addon_context);
+}
+
 static void ten_app_create_addon_instance(ten_app_t *app,
                                           ten_addon_context_t *addon_context) {
   TEN_ASSERT(app, "Invalid argument.");
@@ -346,58 +388,47 @@ static void ten_app_create_addon_instance(ten_app_t *app,
 
   ten_addon_host_t *addon_host =
       ten_addon_store_find_by_type(app, addon_type, addon_name);
-  if (!addon_host) {
-    ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
-    TEN_ASSERT(register_ctx, "Failed to allocate memory.");
-
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    // First, try to load it using the built-in native addon loader (i.e.,
-    // `dlopen`).
-    if (!ten_addon_try_load_specific_addon_using_native_addon_loader(
-            ten_string_get_raw_str(&app->base_dir), addon_type, addon_name,
-            register_ctx, &err)) {
-      TEN_LOGI(
-          "Unable to load addon %s:%s using native addon loader, will try "
-          "other methods. error: %s",
-          ten_addon_type_to_string(addon_type), addon_name,
-          ten_error_message(&err));
-
-      ten_addon_try_load_specific_addon_using_all_addon_loaders(
-          ten_env, addon_type, addon_name);
-
-      // The specific addon_name addon could be loaded by one of the addon
-      // loaders. Register the addon again.
-      if (!ten_addon_manager_register_specific_addon(
-              ten_addon_manager_get_instance(), addon_type, addon_name,
-              register_ctx)) {
-        TEN_LOGI(
-            "Unable to load addon %s:%s using all installed addon loaders. "
-            "error: %s",
-            ten_addon_type_to_string(addon_type), addon_name,
-            ten_error_message(&err));
-      }
-    }
-
-    // Find again.
-    addon_host = ten_addon_store_find_by_type(app, addon_type, addon_name);
-
-    ten_addon_register_ctx_destroy(register_ctx);
-    ten_error_deinit(&err);
-  }
-
-  if (!addon_host) {
-    TEN_LOGE(
-        "Failed to find addon %s:%s, please make sure the addon is installed.",
-        ten_addon_type_to_string(addon_type), addon_name);
-
-    ten_app_notify_create_addon_instance_failed(app, addon_context);
+  if (addon_host) {
+    // The addon already exists; create an instance of it.
+    TEN_LOGI("The addon %s already exists; create an instance of it.",
+             addon_name);
+    ten_addon_host_create_instance_async(addon_host, instance_name,
+                                         addon_context);
     return;
   }
 
-  ten_addon_host_create_instance_async(addon_host, instance_name,
-                                       addon_context);
+  // First, try to load it using the built-in native addon loader (i.e.,
+  // `dlopen`).
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create(app);
+  TEN_ASSERT(register_ctx, "Failed to allocate memory.");
+
+  if (ten_addon_try_load_specific_addon_using_native_addon_loader(
+          ten_string_get_raw_str(&app->base_dir), addon_type, addon_name,
+          register_ctx, NULL)) {
+    // Find again.
+    addon_host = ten_addon_store_find_by_type(app, addon_type, addon_name);
+  }
+
+  ten_addon_register_ctx_destroy(register_ctx);
+
+  if (addon_host) {
+    // The addon is loaded and registered using native addon loader
+    // successfully.
+    TEN_LOGD(
+        "The addon %s is loaded and registered using native addon loader "
+        "successfully.",
+        addon_name);
+    ten_addon_host_create_instance_async(addon_host, instance_name,
+                                         addon_context);
+    return;
+  }
+
+  TEN_LOGD("Try to load the addon %s using all installed addon loaders.",
+           addon_name);
+
+  ten_addon_try_load_specific_addon_using_all_addon_loaders(
+      ten_env, addon_type, addon_name,
+      ten_app_addon_loaded_using_all_addon_loaders, addon_context);
 }
 
 static void ten_app_create_addon_instance_task(void *self_, void *arg) {

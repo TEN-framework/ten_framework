@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 #if defined(OS_LINUX)
 #define _GNU_SOURCE
@@ -52,6 +53,24 @@
  * Neither Android nor iOS support unload library.
  */
 #if defined(OS_MACOS) || defined(OS_LINUX) || defined(OS_WINDOWS)
+
+typedef struct ten_addon_loader_load_specific_addon_ctx_t {
+  size_t addon_loader_count;
+  size_t on_load_done_count;
+
+  ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t cb;
+  void *cb_data;
+
+  ten_env_t *ten_env;
+} ten_addon_loader_load_specific_addon_ctx_t;
+
+typedef struct ten_addon_load_all_extensions_from_app_base_dir_ctx_t {
+  size_t addon_count;
+  size_t loaded_addon_count;
+
+  ten_addon_load_all_extensions_from_app_base_dir_cb_t cb;
+  void *cb_data;
+} ten_addon_load_all_extensions_from_app_base_dir_ctx_t;
 
 static bool load_all_dynamic_libraries_under_path(const char *path) {
   TEN_ASSERT(path, "Invalid argument.");
@@ -396,8 +415,39 @@ bool ten_addon_try_load_specific_addon_using_native_addon_loader(
   return true;
 }
 
+static void ten_addon_try_load_specific_addon_using_all_addon_loaders_cb(
+    ten_env_t *ten_env, void *user_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_ADDON_LOADER,
+             "Should not happen.");
+  ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(ten_env);
+  TEN_ASSERT(
+      addon_loader && ten_addon_loader_check_integrity(addon_loader, true),
+      "Should not happen.");
+
+  ten_addon_loader_load_specific_addon_ctx_t *ctx =
+      (ten_addon_loader_load_specific_addon_ctx_t *)user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  // TODO(xilin): Check if the addon is loaded successfully. If it is, call
+  // the callback. For now, we just call the callback when all addon loaders
+  // have been tried.
+
+  ctx->on_load_done_count++;
+
+  if (ctx->on_load_done_count == ctx->addon_loader_count) {
+    ctx->cb(ctx->ten_env, ctx->cb_data);
+
+    TEN_FREE(ctx);
+  }
+}
+
 void ten_addon_try_load_specific_addon_using_all_addon_loaders(
-    ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name) {
+    ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
+    ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t cb,
+    void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
@@ -412,22 +462,59 @@ void ten_addon_try_load_specific_addon_using_all_addon_loaders(
                  addon_loader_singleton_store, true),
              "Should not happen.");
 
+  if (ten_list_is_empty(&addon_loader_singleton_store->store)) {
+    if (cb) {
+      cb(ten_env, cb_data);
+    }
+    return;
+  }
+
+  ten_addon_loader_load_specific_addon_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_loader_load_specific_addon_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+  ctx->addon_loader_count = ten_list_size(&addon_loader_singleton_store->store);
+  ctx->on_load_done_count = 0;
+  ctx->ten_env = ten_env;
+
   ten_list_foreach (&addon_loader_singleton_store->store, iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader, "Should not happen.");
 
-    if (addon_loader) {
-      ten_addon_loader_load_addon(addon_loader, addon_type, addon_name);
-    }
+    ten_addon_loader_load_addon(
+        addon_loader, addon_type, addon_name,
+        ten_addon_try_load_specific_addon_using_all_addon_loaders_cb, ctx);
   }
 }
 
-bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
-                                                     const char *app_base_dir,
-                                                     ten_error_t *err) {
+static void ten_addon_load_all_extensions_from_app_base_dir_cb(
+    ten_env_t *ten_env, void *user_data) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+
+  ten_addon_load_all_extensions_from_app_base_dir_ctx_t *ctx =
+      (ten_addon_load_all_extensions_from_app_base_dir_ctx_t *)user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ctx->loaded_addon_count++;
+
+  if (ctx->loaded_addon_count == ctx->addon_count) {
+    ctx->cb(ten_env, ctx->cb_data);
+
+    TEN_FREE(ctx);
+  }
+}
+
+bool ten_addon_load_all_extensions_from_app_base_dir(
+    ten_env_t *ten_env, const char *app_base_dir,
+    ten_addon_load_all_extensions_from_app_base_dir_cb_t cb, void *cb_data,
+    ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+  TEN_ASSERT(cb, "Invalid argument.");
 
   bool success = true;
 
@@ -436,6 +523,9 @@ bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
                                        strlen(app_base_dir));
   ten_string_append_formatted(&extension_folder_path,
                               "/ten_packages/extension");
+
+  ten_list_t extension_addons_to_load_using_other_addon_loaders;
+  ten_list_init(&extension_addons_to_load_using_other_addon_loaders);
 
   if (ten_path_to_system_flavor(&extension_folder_path) != 0) {
     TEN_LOGE("Failed to convert path to system flavor: %s",
@@ -514,11 +604,10 @@ bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
               ten_addon_type_to_string(TEN_ADDON_TYPE_EXTENSION),
               ten_string_get_raw_str(short_name));
 
-          // TODO(xilin): _Return the result_ of loading the addon using all
-          // addon loaders.
-          ten_addon_try_load_specific_addon_using_all_addon_loaders(
-              ten_env, TEN_ADDON_TYPE_EXTENSION,
-              ten_string_get_raw_str(short_name));
+          ten_list_push_ptr_back(
+              &extension_addons_to_load_using_other_addon_loaders,
+              ten_string_clone(short_name),
+              (ten_ptr_listnode_destroy_func_t)ten_string_destroy);
         }
       }
 
@@ -529,8 +618,36 @@ bool ten_addon_load_all_extensions_from_app_base_dir(ten_env_t *ten_env,
     ten_path_close_dir(dir);
   }
 
+  if (ten_list_is_empty(&extension_addons_to_load_using_other_addon_loaders)) {
+    // Call the callback if no addon needs to be loaded using other addon
+    // loaders.
+    cb(ten_env, cb_data);
+    goto done;
+  }
+
+  // Load the addons using all other addon loaders.
+  ten_addon_load_all_extensions_from_app_base_dir_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_load_all_extensions_from_app_base_dir_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->addon_count =
+      ten_list_size(&extension_addons_to_load_using_other_addon_loaders);
+  ctx->loaded_addon_count = 0;
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+
+  ten_list_foreach (&extension_addons_to_load_using_other_addon_loaders, iter) {
+    ten_string_t *addon_name = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(addon_name, "Should not happen.");
+
+    ten_addon_try_load_specific_addon_using_all_addon_loaders(
+        ten_env, TEN_ADDON_TYPE_EXTENSION, ten_string_get_raw_str(addon_name),
+        ten_addon_load_all_extensions_from_app_base_dir_cb, ctx);
+  }
+
 done:
   ten_string_deinit(&extension_folder_path);
+  ten_list_clear(&extension_addons_to_load_using_other_addon_loaders);
   return success;
 }
 

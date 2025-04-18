@@ -32,3 +32,6 @@ TEN_RUNTIME_API bool ten_env_on_create_instance_done(ten_env_t *self,
 TEN_RUNTIME_API bool ten_env_on_destroy_instance_done(ten_env_t *self,
                                                       void *context,
                                                       ten_error_t *err);
+
+TEN_RUNTIME_API bool ten_env_on_load_addon_done(ten_env_t *self, void *context,
+                                                ten_error_t *err);
