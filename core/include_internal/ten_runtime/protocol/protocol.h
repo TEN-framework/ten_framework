@@ -373,7 +373,7 @@ TEN_RUNTIME_PRIVATE_API void ten_protocol_on_inputs(ten_protocol_t *self,
                                                     ten_list_t *msgs);
 
 TEN_RUNTIME_PRIVATE_API ten_string_t *ten_protocol_uri_to_transport_uri(
-    const char *uri);
+    ten_protocol_t *self, const char *uri);
 
 TEN_RUNTIME_PRIVATE_API void ten_protocol_set_uri(ten_protocol_t *self,
                                                   ten_string_t *uri);

@@ -28,6 +28,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
+#include "ten_utils/value/value_object.h"
 
 bool ten_protocol_check_integrity(ten_protocol_t *self, bool check_thread) {
   TEN_ASSERT(self, "Should not happen.");
@@ -398,28 +399,30 @@ void ten_protocol_set_addon(ten_protocol_t *self,
   ten_ref_inc_ref(&addon_host->ref);
 }
 
-ten_string_t *ten_protocol_uri_to_transport_uri(const char *uri) {
+ten_string_t *ten_protocol_uri_to_transport_uri(ten_protocol_t *self,
+                                                const char *uri) {
   TEN_ASSERT(uri && strlen(uri), "Should not happen.");
 
-  ten_string_t *protocol = ten_uri_get_protocol(uri);
-  ten_string_t *host = ten_uri_get_host(uri);
+  ten_string_t *protocol_str = ten_uri_get_protocol(uri);
+  ten_string_t *host_str = ten_uri_get_host(uri);
   uint16_t port = ten_uri_get_port(uri);
 
-  // TODO(xilin):
-  // If we need to retrieve the corresponding transport_type from the manifest
-  // settings of the loaded protocol, we would need to switch to the app thread
-  // where the addon_host resides, which would necessarily be an asynchronous
-  // operation. Therefore, we currently use the default transport_type: tcp. In
-  // the future, if new protocols are added that use different transport_types,
-  // this design will need to be reconsidered.
+  ten_addon_host_t *addon_host = self->addon_host;
+  TEN_ASSERT(addon_host, "Should not happen.");
 
-  const char *transport_type = TEN_STR_TCP;
+  const char *transport_type = ten_value_object_peek_string(
+      &addon_host->manifest, TEN_STR_TRANSPORT_TYPE);
+  if (!transport_type) {
+    TEN_LOGW("No transport type found in the manifest, use the default: %s.",
+             TEN_STR_TCP);
+    transport_type = TEN_STR_TCP;
+  }
 
   ten_string_t *transport_uri = ten_string_create_formatted(
-      "%s://%s:%d/", transport_type, ten_string_get_raw_str(host), port);
+      "%s://%s:%d/", transport_type, ten_string_get_raw_str(host_str), port);
 
-  ten_string_destroy(protocol);
-  ten_string_destroy(host);
+  ten_string_destroy(protocol_str);
+  ten_string_destroy(host_str);
 
   return transport_uri;
 }
