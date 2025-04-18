@@ -58,7 +58,7 @@ typedef struct ten_addon_loader_load_specific_addon_ctx_t {
   size_t addon_loader_count;
   size_t on_load_done_count;
 
-  ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t cb;
+  ten_addon_try_load_specific_addon_using_all_addon_loaders_func_t cb;
   void *cb_data;
 
   ten_env_t *ten_env;
@@ -68,7 +68,7 @@ typedef struct ten_addon_load_all_extensions_from_app_base_dir_ctx_t {
   size_t addon_count;
   size_t loaded_addon_count;
 
-  ten_addon_load_all_extensions_from_app_base_dir_cb_t cb;
+  ten_addon_load_all_extensions_from_app_base_dir_func_t cb;
   void *cb_data;
 } ten_addon_load_all_extensions_from_app_base_dir_ctx_t;
 
@@ -423,9 +423,9 @@ static void ten_addon_try_load_specific_addon_using_all_addon_loaders_cb(
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_ADDON_LOADER,
              "Should not happen.");
   ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(ten_env);
-  TEN_ASSERT(
-      addon_loader && ten_addon_loader_check_integrity(addon_loader, true),
-      "Should not happen.");
+  TEN_ASSERT(addon_loader, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
+             "Should not happen.");
 
   ten_addon_loader_load_specific_addon_ctx_t *ctx =
       (ten_addon_loader_load_specific_addon_ctx_t *)user_data;
@@ -446,7 +446,7 @@ static void ten_addon_try_load_specific_addon_using_all_addon_loaders_cb(
 
 void ten_addon_try_load_specific_addon_using_all_addon_loaders(
     ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t cb,
+    ten_addon_try_load_specific_addon_using_all_addon_loaders_func_t cb,
     void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
@@ -463,6 +463,7 @@ void ten_addon_try_load_specific_addon_using_all_addon_loaders(
              "Should not happen.");
 
   if (ten_list_is_empty(&addon_loader_singleton_store->store)) {
+    // When there are no addon_loaders, directly call the callback.
     if (cb) {
       cb(ten_env, cb_data);
     }
@@ -509,7 +510,7 @@ static void ten_addon_load_all_extensions_from_app_base_dir_cb(
 
 bool ten_addon_load_all_extensions_from_app_base_dir(
     ten_env_t *ten_env, const char *app_base_dir,
-    ten_addon_load_all_extensions_from_app_base_dir_cb_t cb, void *cb_data,
+    ten_addon_load_all_extensions_from_app_base_dir_func_t cb, void *cb_data,
     ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");

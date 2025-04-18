@@ -19,8 +19,8 @@ void ten_addon_loader_on_init_done(ten_env_t *self) {
   TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
              "Should not happen.");
 
-  if (addon_loader->on_init_done_cb) {
-    addon_loader->on_init_done_cb(self, addon_loader->on_init_done_cb_data);
+  if (addon_loader->on_init_done) {
+    addon_loader->on_init_done(self, addon_loader->on_init_done_data);
   }
 }
 
@@ -34,8 +34,8 @@ bool ten_addon_loader_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader, true),
              "Should not happen.");
 
-  if (addon_loader->on_deinit_done_cb) {
-    addon_loader->on_deinit_done_cb(self, addon_loader->on_deinit_done_cb_data);
+  if (addon_loader->on_deinit_done) {
+    addon_loader->on_deinit_done(self, addon_loader->on_deinit_done_data);
   }
 
   return true;

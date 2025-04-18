@@ -17,10 +17,11 @@ typedef struct ten_app_t ten_app_t;
 
 typedef void (*ten_addon_register_func_t)(void *register_ctx);
 
-typedef void (*ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t)(
+typedef void (
+    *ten_addon_try_load_specific_addon_using_all_addon_loaders_func_t)(
     ten_env_t *ten_env, void *cb_data);
 
-typedef void (*ten_addon_load_all_extensions_from_app_base_dir_cb_t)(
+typedef void (*ten_addon_load_all_extensions_from_app_base_dir_func_t)(
     ten_env_t *ten_env, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API bool
@@ -35,7 +36,7 @@ ten_addon_try_load_specific_addon_using_native_addon_loader(
 TEN_RUNTIME_PRIVATE_API void
 ten_addon_try_load_specific_addon_using_all_addon_loaders(
     ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    ten_addon_try_load_specific_addon_using_all_addon_loaders_cb_t cb,
+    ten_addon_try_load_specific_addon_using_all_addon_loaders_func_t cb,
     void *cb_data);
 
 // Traverse the <app_base_dir>/ten_packages/extension/ directory and attempt
@@ -46,5 +47,5 @@ ten_addon_try_load_specific_addon_using_all_addon_loaders(
 // registry but not executed.
 TEN_RUNTIME_PRIVATE_API bool ten_addon_load_all_extensions_from_app_base_dir(
     ten_env_t *ten_env, const char *app_base_dir,
-    ten_addon_load_all_extensions_from_app_base_dir_cb_t cb, void *cb_data,
+    ten_addon_load_all_extensions_from_app_base_dir_func_t cb, void *cb_data,
     ten_error_t *err);

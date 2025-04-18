@@ -48,17 +48,17 @@ typedef void (*ten_addon_loader_on_load_addon_func_t)(
     ten_addon_loader_t *addon_loader, ten_env_t *ten_env,
     TEN_ADDON_TYPE addon_type, const char *addon_name, void *context);
 
-typedef void (*ten_addon_loader_on_init_done_cb_t)(ten_env_t *ten_env,
-                                                   void *cb_data);
-
-typedef void (*ten_addon_loader_on_deinit_done_cb_t)(ten_env_t *ten_env,
+typedef void (*ten_addon_loader_on_init_done_func_t)(ten_env_t *ten_env,
                                                      void *cb_data);
 
-typedef void (*ten_addon_loader_on_load_addon_done_cb_t)(ten_env_t *ten_env,
-                                                         void *cb_data);
+typedef void (*ten_addon_loader_on_deinit_done_func_t)(ten_env_t *ten_env,
+                                                       void *cb_data);
+
+typedef void (*ten_addon_loader_on_load_addon_done_func_t)(ten_env_t *ten_env,
+                                                           void *cb_data);
 
 typedef struct ten_addon_loader_load_addon_ctx_t {
-  ten_addon_loader_on_load_addon_done_cb_t cb;
+  ten_addon_loader_on_load_addon_done_func_t cb;
   void *cb_data;
 } ten_addon_loader_load_addon_ctx_t;
 
@@ -74,11 +74,11 @@ typedef struct ten_addon_loader_t {
   ten_addon_loader_on_deinit_func_t on_deinit;
   ten_addon_loader_on_load_addon_func_t on_load_addon;
 
-  ten_addon_loader_on_init_done_cb_t on_init_done_cb;
-  void *on_init_done_cb_data;
+  ten_addon_loader_on_init_done_func_t on_init_done;
+  void *on_init_done_data;
 
-  ten_addon_loader_on_deinit_done_cb_t on_deinit_done_cb;
-  void *on_deinit_done_cb_data;
+  ten_addon_loader_on_deinit_done_func_t on_deinit_done;
+  void *on_deinit_done_data;
 
   ten_env_t *ten_env;
 } ten_addon_loader_t;
@@ -107,7 +107,7 @@ TEN_RUNTIME_API void ten_addon_loader_destroy(ten_addon_loader_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_load_addon(
     ten_addon_loader_t *self, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    ten_addon_loader_on_load_addon_done_cb_t cb, void *cb_data);
+    ten_addon_loader_on_load_addon_done_func_t cb, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_on_load_addon_done(
     ten_env_t *ten_env, void *context);
