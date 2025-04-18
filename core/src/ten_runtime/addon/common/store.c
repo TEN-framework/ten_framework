@@ -60,8 +60,8 @@ static void ten_addon_host_remove_from_store(ten_addon_host_t *addon_host) {
 
 ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
                                        const char *name) {
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
-             "Invalid argument.");
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true), "Invalid argument.");
   TEN_ASSERT(name, "Invalid argument.");
 
   ten_addon_host_t *result = NULL;
@@ -80,8 +80,8 @@ ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
 }
 
 void ten_addon_store_add(ten_addon_store_t *store, ten_addon_host_t *addon) {
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
-             "Invalid argument.");
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true), "Invalid argument.");
   TEN_ASSERT(addon, "Invalid argument.");
 
   ten_list_push_ptr_back(
@@ -90,8 +90,8 @@ void ten_addon_store_add(ten_addon_store_t *store, ten_addon_host_t *addon) {
 }
 
 ten_addon_t *ten_addon_store_del(ten_addon_store_t *store, const char *name) {
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
-             "Invalid argument.");
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true), "Invalid argument.");
   TEN_ASSERT(name, "Invalid argument.");
 
   ten_addon_t *addon = NULL;
@@ -111,8 +111,8 @@ ten_addon_t *ten_addon_store_del(ten_addon_store_t *store, const char *name) {
 }
 
 void ten_addon_store_del_all(ten_addon_store_t *store) {
-  TEN_ASSERT(store && ten_addon_store_check_integrity(store, true),
-             "Invalid argument.");
+  TEN_ASSERT(store, "Invalid argument.");
+  TEN_ASSERT(ten_addon_store_check_integrity(store, true), "Invalid argument.");
 
   // Clear the store's list, which will call the destroy function for each node,
   // properly decreasing the refcount of each addon.

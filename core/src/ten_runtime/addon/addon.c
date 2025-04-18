@@ -335,8 +335,8 @@ static void ten_app_create_addon_instance(ten_app_t *app,
   if (ten_c_string_is_empty(addon_name) ||
       ten_c_string_is_empty(instance_name)) {
     TEN_LOGI(
-        "The addon name or instance name is empty, will not create the "
-        "addon instance.");
+        "The addon name or instance name is empty, will not create the addon "
+        "instance.");
 
     ten_app_notify_create_addon_instance_failed(app, addon_context);
     return;
