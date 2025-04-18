@@ -69,17 +69,14 @@ static bool ten_app_check_start_graph_cmd_from_connection(
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   bool rc = ten_app_check_start_graph_cmd(self, cmd, err);
-  if (!rc && connection) {
-    ten_shared_ptr_t *ret_cmd =
-        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, cmd);
-    ten_msg_set_property(ret_cmd, TEN_STR_DETAIL,
-                         ten_value_create_string(ten_error_message(err)), NULL);
-    ten_msg_clear_and_set_dest_from_msg_src(ret_cmd, cmd);
-    ten_connection_send_msg(connection, ret_cmd);
-    ten_shared_ptr_destroy(ret_cmd);
+  if (!rc) {
+    // TODO(xilin): The graph check does not support message conversion now, so we
+    // can not return false here. WIP: issues#160.
+    TEN_LOGW("[%s] The predefined graph is invalid, %s", ten_app_get_uri(self),
+             ten_error_message(err));
   }
 
-  return rc;
+  return true;
 }
 
 bool ten_app_handle_start_graph_cmd(ten_app_t *self,
