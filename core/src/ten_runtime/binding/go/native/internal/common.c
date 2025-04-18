@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/go/interface/ten/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
 
 #include <stdlib.h>
 #include <string.h>

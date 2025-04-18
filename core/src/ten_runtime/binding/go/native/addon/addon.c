@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/go/interface/ten/addon.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/addon.h"
 
 #include <stdint.h>
 
@@ -23,8 +23,8 @@
 #include "ten_runtime/addon/addon_manager.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
-#include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/ten_env.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"

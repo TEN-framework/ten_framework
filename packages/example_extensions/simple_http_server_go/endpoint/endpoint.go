@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"time"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type Endpoint struct {

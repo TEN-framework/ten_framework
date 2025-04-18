@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "ten_runtime/binding/go/interface/ten/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_GO_VALUE_SIGNATURE 0x34898DCE3ED53FB8U

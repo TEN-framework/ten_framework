@@ -13,7 +13,7 @@ import (
 	"io"
 	"os"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type defaultExtension struct {

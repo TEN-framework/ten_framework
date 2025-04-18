@@ -4,13 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/go/interface/ten/data.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/data.h"
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/msg/data/data.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "ten_runtime/binding/go/interface/ten/msg.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/msg.h"
 #include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/data/data.h"
 #include "ten_utils/lib/error.h"

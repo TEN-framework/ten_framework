@@ -41,7 +41,7 @@ static void ten_py_ten_env_tester_c_part_destroyed(
 static PyObject *create_actual_py_ten_env_tester_instance(
     ten_py_ten_env_tester_t *py_ten_env_tester) {
   // Import the Python module where TenEnvTester is defined.
-  PyObject *module_name = PyUnicode_FromString("ten.test");
+  PyObject *module_name = PyUnicode_FromString("ten_runtime.test");
   PyObject *module = PyImport_Import(module_name);
   Py_DECREF(module_name);
 

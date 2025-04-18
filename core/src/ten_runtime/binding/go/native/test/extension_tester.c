@@ -14,9 +14,9 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "include_internal/ten_runtime/test/env_tester.h"
 #include "ten_runtime/binding/common.h"
-#include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/msg.h"
-#include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/msg.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/ten_env.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/check.h"
 

@@ -7,7 +7,7 @@
 import os
 import queue
 import threading
-from ten import (
+from ten_runtime import (
     Extension,
     TenEnv,
     Cmd,

@@ -13,7 +13,7 @@ package {{package_name}}
 import (
 	"fmt"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type {{class_name_prefix}}Extension struct {

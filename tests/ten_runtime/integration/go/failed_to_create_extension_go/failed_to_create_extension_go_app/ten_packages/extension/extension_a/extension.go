@@ -8,7 +8,7 @@
 package default_extension_go
 
 import (
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type baseExtension struct {

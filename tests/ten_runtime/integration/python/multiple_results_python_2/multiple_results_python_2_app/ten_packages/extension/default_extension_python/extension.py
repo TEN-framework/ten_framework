@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 from typing import Optional
-from ten import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
+from ten_runtime import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
 
 
 class DefaultExtension(Extension):

@@ -10,8 +10,8 @@
 
 #include <stdbool.h>
 
-#include "src/ten_runtime/binding/go/interface/ten/common.h"
-#include "src/ten_runtime/binding/go/interface/ten/metadata.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/common.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/metadata.h"
 
 #define TEN_GO_METADATA_SIGNATURE 0xC3D0D91971B40C4FU
 

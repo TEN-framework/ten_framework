@@ -13,7 +13,7 @@ import (
 	"fmt"
 
 	"go_common_dep/types"
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type extensionA struct {

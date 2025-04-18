@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#include "ten_runtime/binding/go/interface/ten/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/check.h"
 

@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-from ten import (
+from ten_runtime import (
     Cmd,
     Data,
     AudioFrame,

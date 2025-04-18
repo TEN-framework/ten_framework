@@ -6,7 +6,7 @@
 #
 import threading
 import asyncio
-from ten import (
+from ten_runtime import (
     Extension,
     TenEnv,
     Cmd,

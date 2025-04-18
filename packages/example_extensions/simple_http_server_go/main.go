@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"ten_packages/extension/simple_http_server_go/endpoint"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type httpExtension struct {
