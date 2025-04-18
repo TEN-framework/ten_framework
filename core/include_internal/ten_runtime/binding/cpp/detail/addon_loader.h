@@ -64,7 +64,7 @@ class addon_loader_t : public binding_handle_t {
   // **Note:** This function, used to dynamically load other addons, may be
   // called from multiple threads. Therefore, it must be thread-safe.
   virtual void on_load_addon(ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
-                             const char *addon_name) = 0;
+                             const char *addon_name, void *context) = 0;
 
  private:
   static void proxy_on_init(ten_addon_loader_t *addon_loader,
@@ -100,7 +100,7 @@ class addon_loader_t : public binding_handle_t {
   static void proxy_on_load_addon(ten_addon_loader_t *addon_loader,
                                   ::ten_env_t *ten_env,
                                   TEN_ADDON_TYPE addon_type,
-                                  const char *addon_name) {
+                                  const char *addon_name, void *context) {
     TEN_ASSERT(addon_loader, "Should not happen.");
 
     auto *cpp_addon_loader =
@@ -112,7 +112,7 @@ class addon_loader_t : public binding_handle_t {
             reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
     cpp_addon_loader->invoke_cpp_addon_loader_on_load_addon(
-        *cpp_ten_env, addon_type, addon_name);
+        *cpp_ten_env, addon_type, addon_name, context);
   }
 
   void invoke_cpp_addon_loader_on_init(ten_env_t &ten_env) {
@@ -137,9 +137,10 @@ class addon_loader_t : public binding_handle_t {
 
   void invoke_cpp_addon_loader_on_load_addon(ten_env_t &ten_env,
                                              TEN_ADDON_TYPE addon_type,
-                                             const char *addon_name) {
+                                             const char *addon_name,
+                                             void *context) {
     try {
-      on_load_addon(ten_env, addon_type, addon_name);
+      on_load_addon(ten_env, addon_type, addon_name, context);
     } catch (...) {
       TEN_ASSERT(0, "Should not happen.");
       // NOLINTNEXTLINE(concurrency-mt-unsafe)

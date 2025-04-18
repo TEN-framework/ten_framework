@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
+#include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "include_internal/ten_runtime/binding/python/common.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
@@ -192,8 +193,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
   // calls `ten_py_gil_state_ensure` and `ten_py_gil_state_release`, thread
   // safety is ensured.
   void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
-                     TEN_ADDON_TYPE addon_type,
-                     const char *addon_name) override {
+                     TEN_ADDON_TYPE addon_type, const char *addon_name,
+                     void *context) override {
     // Load the specified addon.
     TEN_LOGD("[Python addon loader] on_load_addon, %s:%s",
              ten_addon_type_to_string(addon_type), addon_name);
@@ -220,6 +221,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     ten_py_gil_state_release(ten_py_gil_state);
 
     TEN_LOGD("[Python addon loader] released GIL");
+
+    ten::ten_env_internal_accessor_t::on_load_addon_done(ten_env, context);
   }
 
  private:

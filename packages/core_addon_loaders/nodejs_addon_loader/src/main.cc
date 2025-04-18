@@ -19,6 +19,7 @@
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
+#include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/module.h"
 
 using node::CommonEnvironmentSetup;
@@ -43,10 +44,11 @@ class load_addon_data_t {
  public:
   std::string addon_name;
   nodejs_addon_loader_t *loader;
-  bool addon_loaded_{false};
+  void *context;
 
-  load_addon_data_t(const char *addon_name, nodejs_addon_loader_t *loader)
-      : addon_name(addon_name), loader(loader) {}
+  load_addon_data_t(const char *addon_name, nodejs_addon_loader_t *loader,
+                    void *context)
+      : addon_name(addon_name), loader(loader), context(context) {}
 };
 
 class nodejs_addon_loader_t : public ten::addon_loader_t {
@@ -216,13 +218,14 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   // TEN addons.
   void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
                      TEN_UNUSED TEN_ADDON_TYPE addon_type,
-                     const char *addon_name) override {
+                     const char *addon_name, void *context) override {
     if (this->setup_ == nullptr || this->event_loop_ == nullptr) {
       std::cerr << "Nodejs addon loader not initialized" << '\n';
+      ten::ten_env_internal_accessor_t::on_load_addon_done(ten_env, context);
       return;
     }
 
-    load_addon_with_esm(addon_name);
+    load_addon_with_esm(addon_name, context);
   }
 
  private:
@@ -502,10 +505,10 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     ten_string_destroy(module_path);
   }
 
-  void load_addon_with_cjs(const char *addon_name) {
+  void load_addon_with_cjs(const char *addon_name, void *context) {
     auto *load_addon_handle = new uv_async_t();
 
-    auto *load_addon_data = new load_addon_data_t(addon_name, this);
+    auto *load_addon_data = new load_addon_data_t(addon_name, this, context);
     load_addon_handle->data = load_addon_data;
 
     uv_async_init(this->event_loop_, load_addon_handle, [](uv_async_t *handle) {
@@ -555,24 +558,19 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
                  delete async_handle;
                });
 
-      load_addon_data->addon_loaded_ = true;
-      this_ptr->cv_.notify_one();
+      this_ptr->notify([load_addon_data](ten::ten_env_t &ten_env) {
+        ten::ten_env_internal_accessor_t::on_load_addon_done(
+            ten_env, load_addon_data->context);
+      });
     });
 
     uv_async_send(load_addon_handle);
-
-    // Wait for the addon to be loaded.
-    std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(
-        lock, [load_addon_data]() { return load_addon_data->addon_loaded_; });
-
-    delete load_addon_data;
   }
 
-  void load_addon_with_esm(const char *addon_name) {
+  void load_addon_with_esm(const char *addon_name, void *context) {
     auto *load_addon_handle = new uv_async_t();
 
-    auto *load_addon_data = new load_addon_data_t(addon_name, this);
+    auto *load_addon_data = new load_addon_data_t(addon_name, this, context);
     load_addon_handle->data = load_addon_data;
 
     uv_async_init(this->event_loop_, load_addon_handle, [](uv_async_t *handle) {
@@ -609,17 +607,25 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
                 auto *load_addon_data =
                     static_cast<load_addon_data_t *>(data->Value());
 
-                load_addon_data->addon_loaded_ = true;
-                load_addon_data->loader->cv_.notify_one();
+                load_addon_data->loader->notify(
+                    [load_addon_data](ten::ten_env_t &ten_env) {
+                      ten::ten_env_internal_accessor_t::on_load_addon_done(
+                          ten_env, load_addon_data->context);
+                      delete load_addon_data;
+                    });
               },
               v8::External::New(context->GetIsolate(), load_addon_data))
               .ToLocalChecked();
 
       // Set the callback function as a global property.
+      std::string callback_name =
+          "__registerAddonCompletedCallback_" + addon_name + "_" +
+          std::to_string(reinterpret_cast<uintptr_t>(load_addon_data->context));
+
       global
           ->Set(context,
                 v8::String::NewFromUtf8(context->GetIsolate(),
-                                        "__registerAddonCompletedCallback",
+                                        callback_name.c_str(),
                                         v8::NewStringType::kNormal)
                     .ToLocalChecked(),
                 callback_fn)
@@ -635,10 +641,14 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
           addon_name +
           "');\n"
           "  p.then(() => {\n"
-          "    global.__registerAddonCompletedCallback();\n"
+          "    global." +
+          callback_name +
+          "();\n"
           "  }).catch((err) => {\n"
           "    console.error('Error registering addon:', err);\n"
-          "    global.__registerAddonCompletedCallback();\n"
+          "    global." +
+          callback_name +
+          "();\n"
           "  });\n"
           "  return p;\n"
           "})();\n";
@@ -667,21 +677,11 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     });
 
     uv_async_send(load_addon_handle);
-
-    // Wait for the addon to be loaded.
-    std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(
-        lock, [load_addon_data]() { return load_addon_data->addon_loaded_; });
-
-    delete load_addon_data;
   }
 
   std::unique_ptr<CommonEnvironmentSetup> setup_{nullptr};
   uv_loop_s *event_loop_{nullptr};
   std::thread node_thread_;
-
-  std::mutex mutex_;
-  std::condition_variable cv_;
 
   ten::ten_env_t *ten_env_{nullptr};
 };

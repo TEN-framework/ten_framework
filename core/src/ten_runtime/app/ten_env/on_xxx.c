@@ -122,29 +122,16 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
   ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
 }
 
-static void ten_app_continue_run_after_builtin_addons_completed(
-    ten_env_t *ten_env) {
+static void ten_app_continue_run_after_load_all_extensions_if_specified(
+    ten_env_t *ten_env, void *self_) {
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
-  ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self, "Should not happen.");
+  ten_app_t *self = (ten_app_t *)self_;
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (self->preload_all_addons) {
-    if (!ten_addon_load_all_extensions_from_app_base_dir(
-            ten_env, ten_string_get_raw_str(&self->base_dir), &err)) {
-      TEN_LOGW(
-          "Failed to load extensions from app base dir during preload all "
-          "addons: %s",
-          ten_error_message(&err));
-
-      goto error;
-    }
-  }
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     TEN_LOGW("[%s] Failed to get predefined graphs from property.",
@@ -173,6 +160,37 @@ static void ten_app_continue_run_after_builtin_addons_completed(
 error:
   ten_app_close(self, NULL);
 done:
+  ten_error_deinit(&err);
+}
+
+static void ten_app_continue_run_after_builtin_addons_completed(
+    ten_env_t *ten_env) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+
+  ten_app_t *self = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  if (self->preload_all_addons) {
+    if (!ten_addon_load_all_extensions_from_app_base_dir(
+            ten_env, ten_string_get_raw_str(&self->base_dir),
+            ten_app_continue_run_after_load_all_extensions_if_specified, self,
+            &err)) {
+      TEN_LOGW(
+          "Failed to load extensions from app base dir during preload all "
+          "addons: %s",
+          ten_error_message(&err));
+
+      ten_app_close(self, NULL);
+    }
+  } else {
+    ten_app_continue_run_after_load_all_extensions_if_specified(ten_env, self);
+  }
+
   ten_error_deinit(&err);
 }
 

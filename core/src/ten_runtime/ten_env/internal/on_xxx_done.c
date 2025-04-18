@@ -205,6 +205,17 @@ bool ten_env_on_destroy_instance_done(ten_env_t *self, void *context,
   return true;
 }
 
+bool ten_env_on_load_addon_done(ten_env_t *self, void *context,
+                                TEN_UNUSED ten_error_t *err) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
+  TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ADDON_LOADER,
+             "Should not happen.");
+
+  return ten_addon_loader_on_load_addon_done(self, context);
+}
+
 bool ten_env_on_start_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",

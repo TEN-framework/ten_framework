@@ -17,6 +17,11 @@ class ten_env_internal_accessor_t {
     return ten_env.init_manifest_from_json(json_str, err);
   }
 
+  static bool on_load_addon_done(ten_env_t &ten_env, void *context,
+                                 error_t *err = nullptr) {
+    return ten_env.on_load_addon_done(context, err);
+  }
+
   static ::ten_env_t *get_c_ten_env(ten_env_t &ten_env) {
     return ten_env.get_c_ten_env();
   }

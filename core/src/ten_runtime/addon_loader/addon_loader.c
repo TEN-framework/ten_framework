@@ -152,13 +152,40 @@ static void ten_addon_loader_deinit(ten_addon_loader_t *self,
 
 void ten_addon_loader_load_addon(ten_addon_loader_t *self,
                                  TEN_ADDON_TYPE addon_type,
-                                 const char *addon_name) {
+                                 const char *addon_name,
+                                 ten_addon_loader_on_load_addon_done_cb_t cb,
+                                 void *cb_data) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_addon_loader_check_integrity(self, true), "Invalid argument.");
 
-  if (self->on_load_addon) {
-    self->on_load_addon(self, self->ten_env, addon_type, addon_name);
+  ten_addon_loader_load_addon_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_loader_load_addon_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+
+  TEN_ASSERT(self->on_load_addon, "Should not happen.");
+  self->on_load_addon(self, self->ten_env, addon_type, addon_name, ctx);
+}
+
+bool ten_addon_loader_on_load_addon_done(ten_env_t *ten_env, void *context) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
+  TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_ADDON_LOADER,
+             "Should not happen.");
+
+  ten_addon_loader_load_addon_ctx_t *ctx =
+      (ten_addon_loader_load_addon_ctx_t *)context;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  if (ctx->cb) {
+    ctx->cb(ten_env, ctx->cb_data);
   }
+
+  TEN_FREE(ctx);
+
+  return true;
 }
 
 static void ten_app_thread_on_addon_loader_init_done(void *app_,
