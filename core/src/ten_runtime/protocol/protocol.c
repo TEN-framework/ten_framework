@@ -409,6 +409,7 @@ ten_string_t *ten_protocol_uri_to_transport_uri(ten_protocol_t *self,
 
   ten_addon_host_t *addon_host = self->addon_host;
   TEN_ASSERT(addon_host, "Should not happen.");
+  TEN_ASSERT(ten_addon_host_check_integrity(addon_host), "Should not happen.");
 
   const char *transport_type = ten_value_object_peek_string(
       &addon_host->manifest, TEN_STR_TRANSPORT_TYPE);
