@@ -42,10 +42,24 @@ static void ten_app_inherit_thread_ownership(ten_app_t *self) {
   // thread.
   ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
       &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(&self->ten_env->thread_check,
                                           &self->thread_check);
+
   ten_sanitizer_thread_check_inherit_from(&self->path_table->thread_check,
                                           &self->thread_check);
+
+  ten_sanitizer_thread_check_inherit_from(&self->extension_store.thread_check,
+                                          &self->thread_check);
+  ten_sanitizer_thread_check_inherit_from(
+      &self->extension_group_store.thread_check, &self->thread_check);
+  ten_sanitizer_thread_check_inherit_from(&self->protocol_store.thread_check,
+                                          &self->thread_check);
+  ten_sanitizer_thread_check_inherit_from(
+      &self->addon_loader_store.thread_check, &self->thread_check);
+
+  ten_sanitizer_thread_check_inherit_from(
+      &self->addon_loader_singleton_store.thread_check, &self->thread_check);
 }
 
 static void *ten_app_routine(void *args) {
@@ -145,6 +159,8 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   TEN_ADDON_STORE_INIT(self->protocol_store);
   TEN_ADDON_STORE_INIT(self->addon_loader_store);
 
+  TEN_ADDON_LOADER_SINGLETON_STORE_INIT(self->addon_loader_singleton_store);
+
   self->preload_all_addons = false;
 
   self->user_data = NULL;
@@ -183,6 +199,8 @@ void ten_app_destroy(ten_app_t *self) {
   ten_addon_store_deinit(&self->extension_group_store);
   ten_addon_store_deinit(&self->protocol_store);
   ten_addon_store_deinit(&self->addon_loader_store);
+
+  ten_addon_loader_singleton_store_deinit(&self->addon_loader_singleton_store);
 
   ten_mutex_destroy(self->in_msgs_lock);
   ten_list_clear(&self->in_msgs);

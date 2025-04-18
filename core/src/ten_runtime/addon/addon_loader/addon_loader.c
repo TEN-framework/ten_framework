@@ -13,32 +13,8 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
-#include "ten_utils/container/list.h"
-#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
-
-static ten_thread_once_t g_addon_loader_store_once = TEN_THREAD_ONCE_INIT;
-
-static ten_addon_store_t g_addon_loader_store = {
-    NULL,
-    TEN_LIST_INIT_VAL,
-};
-
-static void init_addon_loader_store(void) {
-  ten_addon_store_init(&g_addon_loader_store);
-}
-
-ten_addon_store_t *ten_addon_loader_get_global_store(void) {
-  ten_thread_once(&g_addon_loader_store_once, init_addon_loader_store);
-  return &g_addon_loader_store;
-}
-
-ten_addon_t *ten_addon_unregister_addon_loader(const char *name) {
-  TEN_ASSERT(name, "Should not happen.");
-
-  return ten_addon_unregister(ten_addon_loader_get_global_store(), name);
-}
 
 ten_addon_host_t *ten_addon_register_addon_loader(const char *name,
                                                   const char *base_dir,
@@ -48,8 +24,22 @@ ten_addon_host_t *ten_addon_register_addon_loader(const char *name,
                             register_ctx);
 }
 
-void ten_addon_unregister_all_addon_loader(void) {
-  ten_addon_store_del_all(ten_addon_loader_get_global_store());
+void ten_addon_unregister_all_addon_loader(ten_env_t *ten_env) {
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
+
+  ten_app_t *app = ten_env_get_attached_app(ten_env);
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
+
+  ten_addon_store_t *addon_store = &app->addon_loader_store;
+  TEN_ASSERT(addon_store, "Should not happen.");
+  TEN_ASSERT(ten_addon_store_check_integrity(addon_store, true),
+             "Should not happen.");
+
+  ten_addon_store_del_all(addon_store);
 }
 
 // This function is called in the app thread, so `ten_env` is the app's

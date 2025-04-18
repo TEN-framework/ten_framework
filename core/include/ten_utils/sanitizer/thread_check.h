@@ -15,6 +15,11 @@
 
 #define TEN_SANITIZER_THREAD_CHECK_SIGNATURE 0x6204388773560E59U
 
+#define TEN_SANITIZER_THREAD_CHECK_INIT_VAL           \
+  (ten_sanitizer_thread_check_t) {                    \
+    TEN_SANITIZER_THREAD_CHECK_SIGNATURE, NULL, false \
+  }
+
 typedef struct ten_sanitizer_thread_check_t {
   ten_signature_t signature;
 

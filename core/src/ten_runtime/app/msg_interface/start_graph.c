@@ -59,7 +59,8 @@ static bool ten_app_fill_start_graph_cmd_extensions_info_from_predefined_graph(
 bool ten_app_handle_start_graph_cmd(ten_app_t *self,
                                     ten_connection_t *connection,
                                     ten_shared_ptr_t *cmd, ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Invalid argument.");

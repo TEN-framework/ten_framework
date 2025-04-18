@@ -40,6 +40,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value_get.h"
 
 ten_predefined_graph_info_t *ten_predefined_graph_info_create(void) {
@@ -72,7 +73,8 @@ static ten_shared_ptr_t *
 ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_app_t *self, ten_predefined_graph_info_t *predefined_graph_info,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(predefined_graph_info, "Invalid argument.");
 
   const char *app_uri = ten_app_get_uri(self);
@@ -176,8 +178,8 @@ done:
 }
 
 static void ten_app_start_auto_start_predefined_graph_result_handler(
-    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *user_data,
-    ten_error_t *err) {
+    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
+    TEN_UNUSED void *user_data, ten_error_t *err) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
   TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),

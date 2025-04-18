@@ -44,17 +44,12 @@ typedef struct ten_app_on_addon_loader_deinit_done_ctx_t {
   void *cb_data;
 } ten_app_on_addon_loader_deinit_done_ctx_t;
 
-TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
-    void);
-
 TEN_RUNTIME_API ten_addon_host_t *ten_addon_register_addon_loader(
     const char *name, const char *base_dir, ten_addon_t *addon,
     void *register_ctx);
 
-TEN_RUNTIME_API ten_addon_t *ten_addon_unregister_addon_loader(
-    const char *name);
-
-TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_addon_loader(void);
+TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_addon_loader(
+    ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_create_addon_loader(
     ten_env_t *ten_env, const char *addon_name, const char *instance_name,
@@ -69,6 +64,3 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_loader_destroy_all_singleton_instances(
     ten_env_t *ten_env,
     ten_addon_loader_on_all_singleton_instances_destroyed_cb_t cb,
     void *cb_data);
-
-TEN_RUNTIME_PRIVATE_API void
-ten_addon_loader_destroy_all_singleton_instances_immediately(void);

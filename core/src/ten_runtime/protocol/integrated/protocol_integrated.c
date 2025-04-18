@@ -408,7 +408,7 @@ static void ten_protocol_integrated_listen(
   ten_transport_set_close_cb(transport,
                              ten_protocol_integrated_on_transport_closed, self);
 
-  ten_string_t *transport_uri = ten_protocol_uri_to_transport_uri(uri);
+  ten_string_t *transport_uri = ten_protocol_uri_to_transport_uri(self_, uri);
 
   TEN_LOGI("%s start listening.", ten_string_get_raw_str(transport_uri));
 
@@ -845,7 +845,7 @@ static void ten_protocol_integrated_connect_to(
       self->base.attached_target.connection->attached_target.remote);
   TEN_ASSERT(loop, "Should not happen.");
 
-  ten_string_t *transport_uri = ten_protocol_uri_to_transport_uri(uri);
+  ten_string_t *transport_uri = ten_protocol_uri_to_transport_uri(self_, uri);
   TEN_ASSERT(transport_uri, "Should not happen.");
 
   // Create a transport for the connection attempt.
