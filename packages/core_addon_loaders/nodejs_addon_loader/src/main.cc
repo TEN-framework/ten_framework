@@ -6,7 +6,6 @@
 //
 #include <uv.h>
 
-#include <condition_variable>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -62,6 +61,13 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       this->node_thread_.join();
     }
   }
+
+  // @{
+  nodejs_addon_loader_t(nodejs_addon_loader_t &other) = delete;
+  nodejs_addon_loader_t(nodejs_addon_loader_t &&other) = delete;
+  nodejs_addon_loader_t &operator=(const nodejs_addon_loader_t &other) = delete;
+  nodejs_addon_loader_t &operator=(nodejs_addon_loader_t &&other) = delete;
+  // @}
 
   void on_init(ten::ten_env_t &ten_env) override {
     this->ten_env_ = &ten_env;

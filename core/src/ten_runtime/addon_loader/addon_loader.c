@@ -97,8 +97,8 @@ ten_addon_loader_t *ten_addon_loader_create(
   self->on_deinit = on_deinit;
   self->on_load_addon = on_load_addon;
 
-  self->on_init_done_cb = NULL;
-  self->on_init_done_cb_data = NULL;
+  self->on_init_done = NULL;
+  self->on_init_done_data = NULL;
 
   self->ten_env = ten_env_create_for_addon_loader(self);
 
@@ -119,13 +119,13 @@ void ten_addon_loader_destroy(ten_addon_loader_t *self) {
 }
 
 static void ten_addon_loader_init(ten_addon_loader_t *self,
-                                  ten_addon_loader_on_init_done_cb_t cb,
+                                  ten_addon_loader_on_init_done_func_t cb,
                                   void *cb_data) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_addon_loader_check_integrity(self, true), "Invalid argument.");
 
-  self->on_init_done_cb = cb;
-  self->on_init_done_cb_data = cb_data;
+  self->on_init_done = cb;
+  self->on_init_done_data = cb_data;
 
   if (self->on_init) {
     self->on_init(self, self->ten_env);
@@ -135,13 +135,13 @@ static void ten_addon_loader_init(ten_addon_loader_t *self,
 }
 
 static void ten_addon_loader_deinit(ten_addon_loader_t *self,
-                                    ten_addon_loader_on_deinit_done_cb_t cb,
+                                    ten_addon_loader_on_deinit_done_func_t cb,
                                     void *cb_data) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_addon_loader_check_integrity(self, true), "Invalid argument.");
 
-  self->on_deinit_done_cb = cb;
-  self->on_deinit_done_cb_data = cb_data;
+  self->on_deinit_done = cb;
+  self->on_deinit_done_data = cb_data;
 
   if (self->on_deinit) {
     self->on_deinit(self, self->ten_env);
@@ -153,7 +153,7 @@ static void ten_addon_loader_deinit(ten_addon_loader_t *self,
 void ten_addon_loader_load_addon(ten_addon_loader_t *self,
                                  TEN_ADDON_TYPE addon_type,
                                  const char *addon_name,
-                                 ten_addon_loader_on_load_addon_done_cb_t cb,
+                                 ten_addon_loader_on_load_addon_done_func_t cb,
                                  void *cb_data) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_addon_loader_check_integrity(self, true), "Invalid argument.");
