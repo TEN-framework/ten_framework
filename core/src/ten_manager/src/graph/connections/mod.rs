@@ -30,7 +30,7 @@ pub fn update_graph_connections_all_fields(
     connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
 ) -> Result<()> {
     // Get ten object if it exists.
-    let ten_obj = match property_all_fields.get_mut("_ten") {
+    let ten_obj = match property_all_fields.get_mut("ten") {
         Some(Value::Object(obj)) => obj,
         _ => return write_property_json_file(pkg_url, property_all_fields),
     };

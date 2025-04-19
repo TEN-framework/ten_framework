@@ -597,11 +597,11 @@ void send_ten_msg_with_req_body(
 
     std::unique_ptr<ten::cmd_t> cmd = nullptr;
 
-    if (cmd_json.contains("_ten")) {
-      if (cmd_json["_ten"].contains("type")) {
+    if (cmd_json.contains("ten")) {
+      if (cmd_json["ten"].contains("type")) {
         // Should be a TEN internal command.
 
-        if (cmd_json["_ten"]["type"] == "close_app") {
+        if (cmd_json["ten"]["type"] == "close_app") {
           cmd = ten::cmd_close_app_t::create();
 
           // Set the destination of the command to the localhost.
@@ -609,16 +609,16 @@ void send_ten_msg_with_req_body(
         } else {
           assert(0 && "Handle more internal command types.");
         }
-      } else if (cmd_json["_ten"].contains("name")) {
+      } else if (cmd_json["ten"].contains("name")) {
         // Should be a custom command.
 
         cmd = ten::cmd_t::create(
-            cmd_json["_ten"]["name"].get<std::string>().c_str());
+            cmd_json["ten"]["name"].get<std::string>().c_str());
 
         // If the cmd_json contains "dest", it means the command should be sent
         // to a specific extension.
-        if (cmd_json["_ten"].contains("dest")) {
-          auto dest = cmd_json["_ten"]["dest"];
+        if (cmd_json["ten"].contains("dest")) {
+          auto dest = cmd_json["ten"]["dest"];
 
           try {
             cmd->set_dest(dest["app"].get<std::string>().c_str(),

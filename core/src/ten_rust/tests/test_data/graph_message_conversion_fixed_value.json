@@ -28,7 +28,7 @@
                 "type": "per_property",
                 "rules": [
                   {
-                    "path": "_ten.name",
+                    "path": "ten.name",
                     "conversion_mode": "fixed_value",
                     "value": "bbb"
                   },

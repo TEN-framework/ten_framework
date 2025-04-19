@@ -20,7 +20,7 @@ class test_app : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "error://127.0.0.1:8001/",
                         "log": {
                           "level": 2

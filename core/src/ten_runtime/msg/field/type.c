@@ -23,7 +23,7 @@ bool ten_raw_msg_type_from_json(ten_msg_t *self, ten_json_t *json,
   TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
-  bool success = ten_json_object_peek(json, TEN_STR_UNDERLINE_TEN, &ten_json);
+  bool success = ten_json_object_peek(json, TEN_STR_TEN, &ten_json);
   if (!success) {
     return true;
   }
@@ -58,7 +58,7 @@ bool ten_raw_msg_type_to_json(ten_msg_t *self, ten_json_t *json,
 
   ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek_or_create_object(
-      json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      json, TEN_STR_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");
 
   ten_json_object_set_string(

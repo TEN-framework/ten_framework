@@ -32,7 +32,7 @@ mod tests {
         all_fields.insert("version".to_string(), json!("1.0.0"));
         all_fields.insert("description".to_string(), json!("Test App"));
 
-        // Create _ten field with predefined_graphs.
+        // Create ten field with predefined_graphs.
         let mut ten_obj = Map::new();
         let mut graphs = Vec::new();
 
@@ -102,9 +102,9 @@ mod tests {
 
         graphs.push(Value::Object(graph1));
         ten_obj.insert("predefined_graphs".to_string(), Value::Array(graphs));
-        all_fields.insert("_ten".to_string(), Value::Object(ten_obj));
+        all_fields.insert("ten".to_string(), Value::Object(ten_obj));
 
-        // Add more fields after _ten.
+        // Add more fields after ten.
         all_fields.insert("license".to_string(), json!("Apache-2.0"));
         all_fields.insert("author".to_string(), json!("Test Author"));
 
@@ -160,12 +160,12 @@ mod tests {
         assert_eq!(field_names[0], "name");
         assert_eq!(field_names[1], "version");
         assert_eq!(field_names[2], "description");
-        assert_eq!(field_names[3], "_ten");
+        assert_eq!(field_names[3], "ten");
         assert_eq!(field_names[4], "license");
         assert_eq!(field_names[5], "author");
 
         // Verify nodes were updated correctly.
-        let updated_graph = &updated_property["_ten"]["predefined_graphs"][0];
+        let updated_graph = &updated_property["ten"]["predefined_graphs"][0];
         let updated_nodes = updated_graph["nodes"].as_array().unwrap();
 
         // Check nodes order (first, third, new).

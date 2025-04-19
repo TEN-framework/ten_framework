@@ -1,5 +1,5 @@
 {
-  "_ten": {
+  "ten": {
     "log": {
       "level": 2,
       "file": "test.log"

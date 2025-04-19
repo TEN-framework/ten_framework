@@ -1,5 +1,5 @@
 {
-  "_ten": {
+  "ten": {
     "uri": "http://example.com:8000",
     "predefined_graphs": [
       {

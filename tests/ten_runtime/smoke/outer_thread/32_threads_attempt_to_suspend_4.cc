@@ -116,7 +116,7 @@ class test_extension_1 : public ten::extension_t {
 
     // clang-format off
     bool rc = ten_env.init_property_from_json( R"({
-      "_ten": {
+      "ten": {
         "path_timeout": 1200000000
       }
     })");
@@ -332,7 +332,7 @@ class test_extension_2 : public ten::extension_t {
 
     // clang-format off
     bool rc = ten_env.init_property_from_json( R"({
-      "_ten": {
+      "ten": {
         "path_timeout": 1200000000
       }
     })");
@@ -393,7 +393,7 @@ class test_app : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
         R"({
-             "_ten": {
+             "ten": {
                "uri": "msgpack://127.0.0.1:8001/",
                "log": {
                  "level": 2

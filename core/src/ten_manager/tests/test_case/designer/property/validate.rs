@@ -133,13 +133,13 @@ mod tests {
         )
         .await;
 
-        // Valid property JSON with _ten field
+        // Valid property JSON with ten field
         let req = test::TestRequest::post()
             .uri("/")
             .set_json(&ValidatePropertyRequestPayload {
                 property_json_str: r#"
                 {
-                  "_ten": {
+                  "ten": {
                     "log_level": 2,
                     "log": {
                       "level": 2,
@@ -192,7 +192,7 @@ mod tests {
             .set_json(&ValidatePropertyRequestPayload {
                 property_json_str: r#"
                 {
-                  "_ten": {
+                  "ten": {
                     "predefined_graphs": [
                       {
                         "name": "default",
@@ -298,7 +298,7 @@ mod tests {
             .set_json(&ValidatePropertyRequestPayload {
                 property_json_str: r#"
                 {
-                  "_ten": {
+                  "ten": {
                     "predefined_graphs": [
                       {
                         "name": "default",
@@ -358,7 +358,7 @@ mod tests {
             .set_json(&ValidatePropertyRequestPayload {
                 property_json_str: r#"
                 {
-                  "_ten": {
+                  "ten": {
                     "predefined_graphs": [
                       {
                         "name": "default",
@@ -430,7 +430,7 @@ mod tests {
             .set_json(&ValidatePropertyRequestPayload {
                 property_json_str: r#"
                 {
-                  "_ten": {
+                  "ten": {
                     "predefined_graphs": [
                       {
                         "nodes": [

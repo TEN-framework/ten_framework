@@ -79,7 +79,7 @@ mod tests {
                 .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -317,7 +317,7 @@ mod tests {
         .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -505,7 +505,7 @@ mod tests {
         .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -568,7 +568,7 @@ mod tests {
                 rules: MsgConversionRules {
                     rules: vec![
                         MsgConversionRule {
-                            path: "_ten.name".to_string(),
+                            path: "ten.name".to_string(),
                             conversion_mode: MsgConversionMode::FixedValue,
                             original_path: None,
                             value: Some(serde_json::json!("change_name")),
@@ -698,7 +698,7 @@ mod tests {
                 .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -906,7 +906,7 @@ mod tests {
                 .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -1017,7 +1017,7 @@ mod tests {
                 rules: MsgConversionRules {
                     rules: vec![
                         MsgConversionRule {
-                            path: "_ten.name".to_string(),
+                            path: "ten.name".to_string(),
                             conversion_mode: MsgConversionMode::FixedValue,
                             original_path: None,
                             value: Some(serde_json::json!("change_name")),
@@ -1122,7 +1122,7 @@ mod tests {
         .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (
@@ -1185,7 +1185,7 @@ mod tests {
                 rules: MsgConversionRules {
                     rules: vec![
                         MsgConversionRule {
-                            path: "_ten.name".to_string(),
+                            path: "ten.name".to_string(),
                             conversion_mode: MsgConversionMode::FixedValue,
                             original_path: None,
                             value: Some(serde_json::json!("change_name")),
@@ -1294,7 +1294,7 @@ mod tests {
         .to_string();
 
         // The empty property for addons.
-        let empty_property = r#"{"_ten":{}}"#.to_string();
+        let empty_property = r#"{"ten":{}}"#.to_string();
 
         let all_pkgs_json = vec![
             (

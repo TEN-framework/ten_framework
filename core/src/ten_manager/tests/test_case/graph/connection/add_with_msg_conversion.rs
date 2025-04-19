@@ -178,7 +178,7 @@ mod tests {
                 rules: MsgConversionRules {
                     rules: vec![
                         MsgConversionRule {
-                            path: "_ten.name".to_string(),
+                            path: "ten.name".to_string(),
                             conversion_mode: MsgConversionMode::FixedValue,
                             original_path: None,
                             value: Some(serde_json::Value::String(
@@ -254,7 +254,7 @@ mod tests {
 
         // Check first rule.
         let rule1 = &rules.rules[0];
-        assert_eq!(rule1.path, "_ten.name");
+        assert_eq!(rule1.path, "ten.name");
         assert_eq!(rule1.conversion_mode, MsgConversionMode::FixedValue);
         assert_eq!(
             rule1.value.as_ref().unwrap().as_str().unwrap(),

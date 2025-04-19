@@ -54,7 +54,7 @@ pub async fn get_apps_endpoint(
                             .and_then(|app_pkg_info| {
                                 app_pkg_info.property.as_ref()
                             })
-                            .and_then(|property| property._ten.as_ref())
+                            .and_then(|property| property.ten.as_ref())
                             .and_then(|ten| ten.uri.as_ref())
                             .map(|uri| uri.to_string());
 

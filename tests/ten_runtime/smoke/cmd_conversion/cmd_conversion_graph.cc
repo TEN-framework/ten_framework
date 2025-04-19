@@ -60,7 +60,7 @@ class test_app : public ten::app_t {
     rc = ten_env.init_property_from_json(
         // clang-format off
                  R"###({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "log": {
                           "level": 2
@@ -93,7 +93,7 @@ class test_app : public ten::app_t {
                                 "msg_conversion": {
                                   "type": "per_property",
                                   "rules": [{
-                                    "path": "_ten.name",
+                                    "path": "ten.name",
                                     "conversion_mode": "fixed_value",
                                     "value": "hello_mapping"
                                   }]
