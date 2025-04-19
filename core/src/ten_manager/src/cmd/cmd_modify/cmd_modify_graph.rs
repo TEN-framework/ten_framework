@@ -16,7 +16,7 @@ use ten_rust::{
 
 use crate::{
     cmd::cmd_modify::jq_util::jq_run,
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     output::TmanOutput,
 };
 
@@ -87,8 +87,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
 }
 
 pub async fn execute_cmd(
-    _tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    _tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: ModifyGraphCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

@@ -11,7 +11,10 @@ use std::{collections::HashMap, path::Path, sync::Arc};
 
 use anyhow::{anyhow, Result};
 
-use crate::{config::TmanConfig, output::TmanOutput};
+use crate::{
+    config::{is_verbose, TmanConfig},
+    output::TmanOutput,
+};
 use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp,
     graph::graph_info::GraphInfo,
@@ -20,8 +23,8 @@ use ten_rust::{
 
 /// Retrieves information about all installed packages for the specified
 /// application.
-pub fn tman_get_all_installed_pkgs_info_of_app(
-    tman_config: Arc<TmanConfig>,
+pub async fn tman_get_all_installed_pkgs_info_of_app(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     app_path: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgInfo>> {
@@ -30,7 +33,7 @@ pub fn tman_get_all_installed_pkgs_info_of_app(
     // Use the to_vec method to combine all package types into a single vector.
     let all_pkgs = pkg_info_struct.to_vec();
 
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line(&format!("{:?}", all_pkgs));
     }
     Ok(all_pkgs)

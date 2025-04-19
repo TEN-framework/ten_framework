@@ -20,7 +20,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
     registry::{get_package, get_package_list},
@@ -121,8 +121,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: FetchCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -135,7 +135,7 @@ pub async fn execute_cmd(
 
     // Query the package from the registry.
     let mut found_packages = get_package_list(
-        &tman_config,
+        tman_config.clone(),
         Some(command_data.pkg_type),
         Some(command_data.pkg_name.clone()),
         Some(command_data.version_req.clone()),
@@ -157,7 +157,7 @@ pub async fn execute_cmd(
 
     let mut temp_file = tempfile::NamedTempFile::new()?;
     get_package(
-        tman_config.clone(),
+        tman_config,
         &package.basic_info.type_and_name.pkg_type,
         &package.basic_info.type_and_name.name,
         &package.basic_info.version,

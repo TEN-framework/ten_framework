@@ -19,7 +19,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     create::create_pkg_in_path,
     output::TmanOutput,
     version_utils::parse_pkg_name_version_req,
@@ -154,8 +154,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: CreateCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -166,7 +166,7 @@ pub async fn execute_cmd(
         .context("Failed to get current working directory")?;
 
     create_pkg_in_path(
-        &tman_config,
+        tman_config,
         &cwd,
         &command_data.pkg_type,
         &command_data.pkg_name,

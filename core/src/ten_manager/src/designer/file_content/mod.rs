@@ -6,7 +6,7 @@
 //
 use std::fs;
 use std::path::Path;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ struct GetFileContentResponseData {
 
 pub async fn get_file_content_endpoint(
     request_payload: web::Json<GetFileContentRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let file_path = request_payload.file_path.clone();
 
@@ -42,14 +42,7 @@ pub async fn get_file_content_endpoint(
             Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
-            let state_read = state.read().map_err(|e| {
-                actix_web::error::ErrorInternalServerError(format!(
-                    "Failed to acquire read lock: {}",
-                    e
-                ))
-            })?;
-
-            state_read.out.error_line(&format!(
+            state.out.error_line(&format!(
                 "Error reading file at path {}: {}",
                 file_path, err
             ));
@@ -73,7 +66,7 @@ pub struct SaveFileRequestPayload {
 
 pub async fn save_file_content_endpoint(
     request_payload: web::Json<SaveFileRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let file_path_str = request_payload.file_path.clone();
     let content = &request_payload.content; // Access the content field.
@@ -83,14 +76,7 @@ pub async fn save_file_content_endpoint(
     // Attempt to create parent directories if they don't exist.
     if let Some(parent) = file_path.parent() {
         if let Err(e) = fs::create_dir_all(parent) {
-            let state_read = state.read().map_err(|e| {
-                actix_web::error::ErrorInternalServerError(format!(
-                    "Failed to acquire read lock: {}",
-                    e
-                ))
-            })?;
-
-            state_read.out.error_line(&format!(
+            state.out.error_line(&format!(
                 "Error creating directories for {}: {}",
                 parent.display(),
                 e
@@ -116,14 +102,7 @@ pub async fn save_file_content_endpoint(
             Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
-            let state_read = state.read().map_err(|e| {
-                actix_web::error::ErrorInternalServerError(format!(
-                    "Failed to acquire read lock: {}",
-                    e
-                ))
-            })?;
-
-            state_read.out.error_line(&format!(
+            state.out.error_line(&format!(
                 "Error writing file at path {}: {}",
                 file_path.display(),
                 err

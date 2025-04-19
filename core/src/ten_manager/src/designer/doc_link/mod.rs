@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -81,7 +81,7 @@ static DOC_LINKS: OnceLock<Map<String, Value>> = OnceLock::new();
 /// JSON payload with a "key" property and returns the corresponding doc link.
 pub async fn get_doc_link_endpoint(
     request_payload: web::Json<GetDocLinkRequestPayload>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let key = &request_payload.key;
     let locale = &request_payload.locale;

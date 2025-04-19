@@ -14,7 +14,8 @@ use indicatif::HumanDuration;
 
 use ten_rust::pkg_info::get_pkg_info_from_path;
 
-use crate::config::internal::TmanInternalConfig;
+use crate::config::is_verbose;
+use crate::config::metadata::TmanMetadata;
 use crate::config::TmanConfig;
 use crate::constants::DOT_TEN_DIR;
 use crate::constants::PACKAGE_DIR_IN_DOT_TEN_DIR;
@@ -42,12 +43,12 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: PublishCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing publish command");
         out.normal_line(&format!("{:?}", command_data));
     }
@@ -80,7 +81,8 @@ pub async fn execute_cmd(
         &output_path,
         &cwd,
         out.clone(),
-    )?;
+    )
+    .await?;
 
     upload_package(
         tman_config.clone(),

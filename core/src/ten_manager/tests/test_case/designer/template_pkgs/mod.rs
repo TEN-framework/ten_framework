@@ -4,15 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     constants::{DEFAULT_APP_NODEJS, DEFAULT_EXTENSION_CPP},
     designer::{
         response::{ApiResponse, Status},
@@ -29,13 +26,15 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 #[actix_web::test]
 async fn test_get_template_app_typescript() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new()
@@ -70,13 +69,15 @@ async fn test_get_template_app_typescript() {
 #[actix_web::test]
 async fn test_get_template_extension_cpp() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new()
@@ -111,13 +112,15 @@ async fn test_get_template_extension_cpp() {
 #[actix_web::test]
 async fn test_get_template_unsupported() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new()

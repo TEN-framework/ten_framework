@@ -34,7 +34,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{is_verbose, metadata::TmanMetadata, TmanConfig},
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
     fs::{check_is_addon_folder, find_nearest_app_dir},
@@ -282,7 +282,7 @@ ten_package("app_for_standalone") {
 }
 
 fn prepare_basic_standalone_app_dir(
-    _tman_config: Arc<TmanConfig>,
+    _tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
@@ -314,7 +314,7 @@ fn prepare_basic_standalone_app_dir(
 
 /// Prepare the `.ten/app/` folder in the extension standalone mode.
 async fn prepare_standalone_app_dir(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
@@ -330,7 +330,7 @@ async fn prepare_standalone_app_dir(
 
 /// Path logic for standalone mode and non-standalone mode.
 async fn determine_app_dir_to_work_with(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     standalone: bool,
     specified_cwd: &Path,
 ) -> Result<PathBuf> {
@@ -356,12 +356,12 @@ async fn determine_app_dir_to_work_with(
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: InstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing install command");
         out.normal_line(&format!("command_data: {:?}", command_data));
         out.normal_line(&format!("tman_config: {:?}", tman_config));
@@ -446,7 +446,8 @@ pub async fn execute_cmd(
         tman_config.clone(),
         &app_dir_to_work_with,
         out.clone(),
-    )?;
+    )
+    .await?;
 
     out.normal_line(&format!(
         "{}  Filter compatible packages...",
@@ -459,7 +460,8 @@ pub async fn execute_cmd(
         &mut all_compatible_installed_pkgs,
         &command_data.support,
         out.clone(),
-    );
+    )
+    .await?;
 
     if command_data.local_path.is_some() {
         // tman install <local_path>
@@ -630,22 +632,23 @@ from manifest-lock.json...",
         &all_candidates,
         locked_pkgs.as_ref(),
         out.clone(),
-    )?;
+    )
+    .await?;
 
     // If there are answers are found, print out all the answers.
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("\n");
         out.normal_line("Result:");
     }
 
     if let Some(ref usable_model) = usable_model {
         for result in usable_model {
-            if tman_config.verbose {
+            if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(" {:?}", result));
             }
         }
     }
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("");
     }
 
@@ -676,7 +679,7 @@ from manifest-lock.json...",
             out.clone(),
         );
 
-        if has_conflict && !tman_config.assume_yes {
+        if has_conflict && !tman_config.read().await.assume_yes {
             if out.is_interactive() {
                 // "y" for continuing to install, "n" for stopping.
                 let ans = Confirm::new(

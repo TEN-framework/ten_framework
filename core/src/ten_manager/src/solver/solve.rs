@@ -21,7 +21,7 @@ use ten_rust::pkg_info::{
     pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
-use crate::config::TmanConfig;
+use crate::config::{is_verbose, TmanConfig};
 use crate::output::TmanOutput;
 #[derive(Debug)]
 pub struct DependencyRelationship {
@@ -30,8 +30,8 @@ pub struct DependencyRelationship {
     pub dependency: ManifestDependency,
 }
 
-fn get_model(
-    tman_config: Arc<TmanConfig>,
+async fn get_model(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     model: &Model,
     is_usable: &mut bool,
     out: Arc<Box<dyn TmanOutput>>,
@@ -41,7 +41,7 @@ fn get_model(
         .symbols(ShowType::SHOWN)
         .expect("Failed to retrieve symbols in the model.");
 
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Model:");
     }
 
@@ -49,7 +49,7 @@ fn get_model(
     *is_usable = true;
 
     for symbol in atoms {
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(" {}", symbol));
         }
 
@@ -58,7 +58,8 @@ fn get_model(
             *is_usable = false;
         }
     }
-    if tman_config.verbose {
+
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("");
     }
 
@@ -66,17 +67,17 @@ fn get_model(
 }
 
 #[allow(dead_code)]
-fn print_prefix(
-    tman_config: Arc<TmanConfig>,
+async fn print_prefix(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     depth: u8,
     out: Arc<Box<dyn TmanOutput>>,
 ) {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("");
     }
 
     for _ in 0..depth {
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line("  ");
         }
     }
@@ -84,8 +85,8 @@ fn print_prefix(
 
 // Recursively print the configuration object.
 #[allow(dead_code)]
-fn print_configuration(
-    tman_config: Arc<TmanConfig>,
+async fn print_configuration(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     conf: &Configuration,
     key: Id,
     depth: u8,
@@ -104,30 +105,32 @@ fn print_configuration(
             let subkey = conf
                 .array_at(key, i)
                 .expect("Failed to retrieve statistics array.");
-            print_prefix(tman_config.clone(), depth, out.clone());
+            print_prefix(tman_config.clone(), depth, out.clone()).await;
 
-            print_configuration(
+            Box::pin(print_configuration(
                 tman_config.clone(),
                 conf,
                 subkey,
                 depth + 1,
                 out.clone(),
-            );
+            ))
+            .await;
         }
     } else if configuration_type.contains(ConfigurationType::MAP) {
         let size = conf.map_size(key).unwrap();
         for i in 0..size {
             let name = conf.map_subkey_name(key, i).unwrap();
             let subkey = conf.map_at(key, name).unwrap();
-            print_prefix(tman_config.clone(), depth, out.clone());
+            print_prefix(tman_config.clone(), depth, out.clone()).await;
 
-            print_configuration(
+            Box::pin(print_configuration(
                 tman_config.clone(),
                 conf,
                 subkey,
                 depth + 1,
                 out.clone(),
-            );
+            ))
+            .await;
         }
     } else {
         unreachable!()
@@ -136,8 +139,8 @@ fn print_configuration(
 
 // recursively print the statistics object
 #[allow(dead_code)]
-fn print_statistics(
-    tman_config: Arc<TmanConfig>,
+async fn print_statistics(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     stats: &Statistics,
     key: u64,
     depth: u8,
@@ -160,15 +163,16 @@ fn print_statistics(
                 let subkey = stats
                     .array_at(key, i)
                     .expect("Failed to retrieve statistics array.");
-                print_prefix(tman_config.clone(), depth, out.clone());
+                print_prefix(tman_config.clone(), depth, out.clone()).await;
 
-                print_statistics(
+                Box::pin(print_statistics(
                     tman_config.clone(),
                     stats,
                     subkey,
                     depth + 1,
                     out.clone(),
-                );
+                ))
+                .await;
             }
         }
 
@@ -177,15 +181,16 @@ fn print_statistics(
             for i in 0..size {
                 let name = stats.map_subkey_name(key, i).unwrap();
                 let subkey = stats.map_at(key, name).unwrap();
-                print_prefix(tman_config.clone(), depth, out.clone());
+                print_prefix(tman_config.clone(), depth, out.clone()).await;
 
-                print_statistics(
+                Box::pin(print_statistics(
                     tman_config.clone(),
                     stats,
                     subkey,
                     depth + 1,
                     out.clone(),
-                );
+                ))
+                .await;
             }
         }
 
@@ -199,8 +204,8 @@ type SolveOutcome = (UsableModel, NonUsableModels);
 type SolveResult = Result<SolveOutcome>;
 
 #[allow(unused_assignments)]
-fn solve(
-    tman_config: Arc<TmanConfig>,
+async fn solve(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     input: &str,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> SolveResult {
@@ -209,7 +214,7 @@ fn solve(
     let mut ctl = control({
         let args = vec![];
 
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             // args.push("--verbose".to_string());
         }
 
@@ -293,7 +298,9 @@ fn solve(
                     model,
                     &mut is_usable,
                     out.clone(),
-                ) {
+                )
+                .await
+                {
                     if is_usable {
                         usable_model = Some(m);
 
@@ -309,7 +316,7 @@ fn solve(
             }
             // Stop if there are no more models.
             Ok(None) => {
-                if tman_config.verbose {
+                if is_verbose(tman_config.clone()).await {
                     out.normal_line("No more models");
                 }
                 break;
@@ -603,8 +610,8 @@ fn create_input_str_for_all_possible_pkgs_info(
     Ok(())
 }
 
-fn create_input_str(
-    tman_config: Arc<TmanConfig>,
+async fn create_input_str(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: &PkgType,
     pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
@@ -644,15 +651,15 @@ fn create_input_str(
         }
     }
 
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line(&format!("Input: \n{}", input_str));
     }
 
     Ok(input_str)
 }
 
-pub fn solve_all(
-    tman_config: Arc<TmanConfig>,
+pub async fn solve_all(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: &PkgType,
     pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
@@ -668,6 +675,7 @@ pub fn solve_all(
         all_candidates,
         locked_pkgs,
         out.clone(),
-    )?;
-    solve(tman_config, &input_str, out)
+    )
+    .await?;
+    solve(tman_config, &input_str, out).await
 }

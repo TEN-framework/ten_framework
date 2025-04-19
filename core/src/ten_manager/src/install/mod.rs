@@ -29,6 +29,7 @@ use ten_rust::pkg_info::{
 use super::{config::TmanConfig, registry::get_package};
 use crate::{
     cmd::cmd_install::{InstallCommand, LocalInstallMode},
+    config::is_verbose,
     fs::copy_folder_recursively,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
@@ -130,7 +131,7 @@ fn install_local_dependency_pkg_info(
 }
 
 async fn install_non_local_dependency_pkg_info(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
     out: Arc<Box<dyn TmanOutput>>,
@@ -172,14 +173,14 @@ async fn install_non_local_dependency_pkg_info(
 }
 
 pub async fn install_pkg_info(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     base_dir: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if pkg_info.is_installed {
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(
                 "{}:{} has already been installed.",
                 get_pkg_type(pkg_info),
@@ -431,8 +432,8 @@ pub fn write_installing_pkg_into_manifest_file(
 
 /// Filter out the packages in `all_pkgs` that meet the current environment's
 /// requirements and treat them as candidates.
-pub fn filter_compatible_pkgs_to_candidates(
-    tman_config: Arc<TmanConfig>,
+pub async fn filter_compatible_pkgs_to_candidates(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     all_pkgs: &Vec<PkgInfo>,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
@@ -440,9 +441,9 @@ pub fn filter_compatible_pkgs_to_candidates(
     >,
     support: &ManifestSupport,
     out: Arc<Box<dyn TmanOutput>>,
-) {
+) -> Result<()> {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(
                 "Check support score for {:?}",
                 existed_pkg
@@ -457,7 +458,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         if compatible_score >= 0 {
             existed_pkg.compatible_score = compatible_score;
 
-            if tman_config.verbose {
+            if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
                     "The existed {} package {} is compatible with the current system.",
                     get_pkg_type(existed_pkg),
@@ -472,7 +473,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         } else {
             // The existed package is not compatible with the current system, so
             // it should not be considered as a candidate.
-            if tman_config.verbose {
+            if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
                     "The existed {} package {} is not compatible with the current \
                 system.",
@@ -482,6 +483,8 @@ pub fn filter_compatible_pkgs_to_candidates(
             }
         }
     }
+
+    Ok(())
 }
 
 fn get_supports_str(pkg: &PkgInfo) -> String {

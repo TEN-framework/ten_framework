@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use semver::VersionReq;
@@ -46,28 +46,8 @@ pub struct GetPackagesResponseData {
 
 pub async fn get_packages_endpoint(
     request_query: web::Query<GetPackagesRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let tman_config_clone;
-    let out_clone;
-    {
-        let state_read = state.read().map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to acquire read lock: {}",
-                e
-            ))
-        })?;
-
-        // Destructure to avoid multiple mutable borrows.
-        let DesignerState {
-            tman_config, out, ..
-        } = &*state_read;
-
-        // Clone the values we need
-        tman_config_clone = tman_config.clone();
-        out_clone = out.clone();
-    }
-
     // Parse version requirement if provided.
     let version_req = if let Some(version_req_str) = &request_query.version_req
     {
@@ -87,13 +67,13 @@ pub async fn get_packages_endpoint(
 
     // Call the registry function to get package list with optional parameters.
     match registry::get_package_list(
-        &tman_config_clone,
+        state.tman_config.clone(),
         request_query.pkg_type,
         request_query.name.clone(),
         version_req,
         request_query.page_size,
         request_query.page,
-        &out_clone,
+        &state.out,
     )
     .await
     {

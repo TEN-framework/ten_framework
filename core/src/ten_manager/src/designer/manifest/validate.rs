@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, Responder};
 use anyhow::Result;
@@ -29,7 +29,7 @@ pub struct ValidateManifestResponseData {
 
 pub async fn validate_manifest_endpoint(
     request_payload: web::Json<ValidateManifestRequestPayload>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let manifest_json_str = &request_payload.manifest_json_str;
 

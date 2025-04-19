@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use anyhow::Result;
 
@@ -13,15 +13,9 @@ use crate::designer::DesignerState;
 pub async fn extract_command_from_manifest(
     base_dir: &String,
     name: &String,
-    state: Arc<RwLock<DesignerState>>,
+    state: Arc<DesignerState>,
 ) -> Result<String> {
-    let state_read = state
-        .read()
-        .map_err(|e| anyhow::anyhow!("Failed to acquire read lock: {}", e))?;
-
-    let DesignerState { pkgs_cache, .. } = &*state_read;
-
-    let pkgs_cache = pkgs_cache.read().await;
+    let pkgs_cache = state.pkgs_cache.read().await;
 
     let base_dir_pkg_info = pkgs_cache.get(base_dir).unwrap();
 

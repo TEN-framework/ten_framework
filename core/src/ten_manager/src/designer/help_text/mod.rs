@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -77,7 +77,7 @@ static HELP_TEXTS: OnceLock<Map<String, Value>> = OnceLock::new();
 /// JSON payload with a "key" property and returns the corresponding help text.
 pub async fn get_help_text_endpoint(
     request_payload: web::Json<GetHelpTextRequestPayload>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let key = &request_payload.key;
     let locale = &request_payload.locale;

@@ -29,7 +29,7 @@ use super::found_result::{
     get_pkg_registry_info_from_manifest, PkgRegistryInfo,
 };
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
-use crate::config::TmanConfig;
+use crate::config::{is_verbose, TmanConfig};
 use crate::constants::{
     DEFAULT_REGISTRY_PAGE_SIZE, TEN_PACKAGE_FILE_EXTENSION,
 };
@@ -161,7 +161,7 @@ fn is_same_file_by_hash(
 }
 
 pub async fn get_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -190,7 +190,7 @@ pub async fn get_package(
         if let Ok(true) = is_same_file_by_hash(&cached_file_path, url) {
             // If the content is the same, directly copy the cached file to
             // `temp_path`.
-            if tman_config.verbose {
+            if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
                     "{}  Found the package file ({}) in the package cache, using it directly.",
                     Emoji("🚀", ":-)"),
@@ -231,7 +231,7 @@ pub async fn get_package(
 
     fs::copy(&path_url, temp_path.path())?;
 
-    if tman_config.enable_package_cache {
+    if tman_config.read().await.enable_package_cache {
         // Place the downloaded file into the cache.
         store_file_to_package_cache(
             pkg_type,
@@ -475,7 +475,7 @@ fn search_versions(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
-    _tman_config: &Arc<TmanConfig>,
+    _tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,

@@ -109,7 +109,7 @@ pub fn filter_solver_results_by_type_and_name<'a>(
 }
 
 pub async fn install_solver_results_in_app_folder(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     command_data: &InstallCommand,
     solver_results: &Vec<&PkgInfo>,
     app_dir: &Path,

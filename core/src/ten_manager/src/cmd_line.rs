@@ -24,7 +24,7 @@ pub struct ArgsCfg {
 }
 
 pub struct ParsedCmd {
-    pub tman_config: Arc<TmanConfig>,
+    pub tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pub command_data: Option<crate::cmd::CommandData>,
     pub show_version: bool,
 }
@@ -179,7 +179,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
     if matches.get_flag("VERSION") {
         // If `--version` exists, do not parse subcommands.
         return Ok(ParsedCmd {
-            tman_config: Arc::new(tman_config),
+            tman_config: Arc::new(tokio::sync::RwLock::new(tman_config)),
             command_data: None,
             show_version: true,
         });
@@ -231,7 +231,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
 
     // Return the fully constructed ParsedCmd.
     Ok(ParsedCmd {
-        tman_config: Arc::new(tman_config),
+        tman_config: Arc::new(tokio::sync::RwLock::new(tman_config)),
         command_data: Some(command_data),
         show_version: false,
     })

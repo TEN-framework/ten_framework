@@ -4,11 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::{http::header, web, App, HttpServer};
@@ -17,7 +13,7 @@ use clap::{value_parser, Arg, ArgMatches, Command};
 use console::Emoji;
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{is_verbose, metadata::TmanMetadata, TmanConfig},
     constants::DESIGNER_BACKEND_DEFAULT_PORT,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
@@ -85,12 +81,12 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: DesignerCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing designer command");
         out.normal_line(&format!("{:?}", command_data));
         out.normal_line(&format!("{:?}", tman_config));
@@ -115,13 +111,13 @@ pub async fn execute_cmd(
         }
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
+    let state = Arc::new(DesignerState {
         tman_config,
-        tman_internal_config,
+        tman_metadata,
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     let mut actual_base_dir_opt: Option<String> = Some(base_dir);
 
@@ -138,11 +134,8 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        // =-=-=
-        let state_write = state.write().unwrap();
-
-        let mut pkgs_cache = state_write.pkgs_cache.write().await;
-        let mut graphs_cache = state_write.graphs_cache.write().await;
+        let mut pkgs_cache = state.pkgs_cache.write().await;
+        let mut graphs_cache = state.graphs_cache.write().await;
 
         get_all_pkgs_in_app(
             &mut pkgs_cache,

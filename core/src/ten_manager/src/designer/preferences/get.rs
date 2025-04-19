@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
@@ -20,16 +20,9 @@ pub struct GetPreferencesResponseData {
 
 /// Get the full content of designer frontend preferences.
 pub async fn get_preferences_endpoint(
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let preferences = state_read.tman_config.designer.clone();
+    let preferences = state.tman_config.read().await.designer.clone();
 
     let response_data = GetPreferencesResponseData { preferences };
     let response = ApiResponse {

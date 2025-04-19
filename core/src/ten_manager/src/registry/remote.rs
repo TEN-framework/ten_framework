@@ -23,6 +23,7 @@ use tokio::time::sleep;
 use ten_rust::pkg_info::PkgInfo;
 
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
+use crate::config::is_verbose;
 use crate::constants::{
     DEFAULT_REGISTRY_PAGE_SIZE, REMOTE_REGISTRY_MAX_RETRIES,
     REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS, REMOTE_REGISTRY_RETRY_DELAY_MS,
@@ -32,7 +33,7 @@ use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::found_result::PkgRegistryInfo};
 
 async fn retry_async<'a, F, T>(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     max_retries: u32,
     retry_delay: Duration,
     out: Arc<Box<dyn TmanOutput>>,
@@ -47,7 +48,7 @@ where
         match operation().await {
             Ok(result) => return Ok(result),
             Err(e) => {
-                if tman_config.verbose {
+                if is_verbose(tman_config.clone()).await {
                     out.normal_line(&format!(
                         "Attempt {} failed: {:?}",
                         attempt + 1,
@@ -74,7 +75,7 @@ struct UploadInfo {
 }
 
 async fn get_package_upload_info(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     client: &reqwest::Client,
     pkg_info: &PkgInfo,
@@ -124,7 +125,7 @@ async fn get_package_upload_info(
                     content_format: Some("gzip".to_string()),
                 });
 
-                if tman_config.verbose {
+                if is_verbose(tman_config.clone()).await {
                     out.normal_line(&format!(
                         "Payload of publishing: {}",
                         payload
@@ -133,7 +134,7 @@ async fn get_package_upload_info(
 
                 let mut headers = HeaderMap::new();
 
-                if let Some(user_token) = &tman_config.user_token {
+                if let Some(user_token) = &tman_config.read().await.user_token {
                     let basic_token = format!("Basic {}", user_token);
                     headers.insert(
                         AUTHORIZATION,
@@ -146,7 +147,7 @@ async fn get_package_upload_info(
                         })?,
                     );
                 } else {
-                    if tman_config.verbose {
+                    if is_verbose(tman_config.clone()).await {
                         out.normal_line("Authorization token is missing");
                     }
                     return Err(anyhow!("Authorization token is missing"));
@@ -191,7 +192,7 @@ async fn get_package_upload_info(
 }
 
 async fn upload_package_to_remote(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     client: &reqwest::Client,
     package_file_path: &str,
     url: &str,
@@ -252,7 +253,7 @@ async fn upload_package_to_remote(
 }
 
 async fn ack_of_uploading(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     client: &reqwest::Client,
     resource_id: &str,
@@ -306,7 +307,7 @@ async fn ack_of_uploading(
 }
 
 pub async fn upload_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
@@ -360,7 +361,7 @@ fn parse_content_range(content_range: &str) -> Option<(u64, u64, u64)> {
 }
 
 pub async fn get_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -384,7 +385,7 @@ pub async fn get_package(
     {
         // If the filename matches, directly copy the cached file to
         // `temp_file`.
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(
               "{}  Found the package file ({}) in the package cache, using it directly.",
               Emoji("🚀", ":-)"),
@@ -519,7 +520,7 @@ pub async fn get_package(
     // Only print when `download_complete` is `true`.
     if *download_complete.read().await {
         let temp_file_borrow = temp_file.read().await;
-        if tman_config.verbose {
+        if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(
                 "Package downloaded successfully from {} and written to {}",
                 url,
@@ -527,7 +528,7 @@ pub async fn get_package(
             ));
         }
 
-        if tman_config.enable_package_cache {
+        if tman_config.read().await.enable_package_cache {
             // Place the downloaded file into the cache.
             let downloaded_path = temp_file_borrow.path();
             store_file_to_package_cache(
@@ -587,7 +588,7 @@ struct RegistryPackagesData {
 /// * If parsing the JSON response fails.
 #[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
-    tman_config: &Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
@@ -652,7 +653,7 @@ pub async fn get_package_list(
                             .append_pair("page", &current_page.to_string());
                     } // query is dropped here
 
-                    if tman_config.verbose {
+                    if is_verbose(tman_config.clone()).await {
                         let query_info = format!(
                             "{}{}{}",
                             pkg_type.as_ref().map_or("".to_string(), |pt| format!("type={} ", pt)),
@@ -720,7 +721,7 @@ pub async fn get_package_list(
                     let packages_is_empty = api_response.data.packages.is_empty();
                     results.extend(api_response.data.packages);
 
-                    if tman_config.verbose {
+                    if is_verbose(tman_config.clone()).await {
                         out.normal_line(&format!(
                             "Fetched {} packages (total: {}) at page {} for {}:{}@{}",
                             results.len(),
@@ -749,7 +750,7 @@ pub async fn get_package_list(
 }
 
 pub async fn delete_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     base_url: &str,
     pkg_type: PkgType,
     name: &str,
@@ -806,7 +807,8 @@ pub async fn delete_package(
 
                 let mut headers = HeaderMap::new();
 
-                if let Some(admin_token) = &tman_config.admin_token {
+                if let Some(admin_token) = &tman_config.read().await.admin_token
+                {
                     let basic_token = format!("Basic {}", admin_token);
                     headers.insert(
                         AUTHORIZATION,
@@ -819,7 +821,7 @@ pub async fn delete_package(
                         })?,
                     );
                 } else {
-                    if tman_config.verbose {
+                    if is_verbose(tman_config.clone()).await {
                         out.normal_line("Authorization token is missing");
                     }
                     return Err(anyhow!("Authorization token is missing"));

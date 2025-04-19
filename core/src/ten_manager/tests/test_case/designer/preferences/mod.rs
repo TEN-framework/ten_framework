@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 use actix_web::{test, web, App};
 use serde_json::{self, json};
 
-use ten_manager::config::internal::TmanInternalConfig;
+use ten_manager::config::metadata::TmanMetadata;
 use ten_manager::{
     config::TmanConfig,
     designer::{
@@ -36,13 +36,15 @@ use ten_manager::{
 #[actix_web::test]
 async fn test_get_preferences_success() {
     // Create test state.
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app = test::init_service(
@@ -85,8 +87,10 @@ async fn test_get_preferences_success() {
 async fn test_get_preferences_invalid_path() {
     // Create test state.
     let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -180,13 +184,15 @@ async fn test_update_preferences_success() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app = test::init_service(
@@ -226,19 +232,12 @@ async fn test_update_preferences_success() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state
-        .read()
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to acquire read lock: {}",
-                e
-            ))
-        })
-        .expect("Failed to acquire read lock");
-
-    assert_eq!(state_read.tman_config.designer.logviewer_line_size, 2000);
+    assert_eq!(
+        state.tman_config.read().await.designer.logviewer_line_size,
+        2000
+    );
     assert!(matches!(
-        state_read.tman_config.designer.locale,
+        state.tman_config.read().await.designer.locale,
         Locale::EnUs
     ));
 }
@@ -251,13 +250,15 @@ async fn test_update_preferences_invalid_schema() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app =
@@ -299,13 +300,15 @@ async fn test_update_preferences_field_success() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app = test::init_service(
@@ -343,17 +346,10 @@ async fn test_update_preferences_field_success() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state
-        .read()
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to acquire read lock: {}",
-                e
-            ))
-        })
-        .expect("Failed to acquire read lock");
-
-    assert_eq!(state_read.tman_config.designer.logviewer_line_size, 2000);
+    assert_eq!(
+        state.tman_config.read().await.designer.logviewer_line_size,
+        2000
+    );
 }
 
 #[actix_web::test]
@@ -364,13 +360,15 @@ async fn test_update_preferences_field_invalid_value() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app =
@@ -408,13 +406,15 @@ async fn test_update_preferences_field_invalid_field() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app =
@@ -457,13 +457,15 @@ async fn test_update_preferences_field_locale() {
         ..TmanConfig::default()
     };
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-    }));
+    });
 
     // Create test app.
     let app = test::init_service(
@@ -501,18 +503,8 @@ async fn test_update_preferences_field_locale() {
 
     // Verify config was updated (though we're not actually writing to file
     // in test).
-    let state_read = state
-        .read()
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to acquire read lock: {}",
-                e
-            ))
-        })
-        .expect("Failed to acquire read lock");
-
     assert!(matches!(
-        state_read.tman_config.designer.locale,
+        state.tman_config.read().await.designer.locale,
         Locale::ZhCn
     ));
 }

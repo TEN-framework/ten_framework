@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use console::Emoji;
 use ten_manager::cmd::execute_cmd;
-use ten_manager::config::internal::TmanInternalConfig;
+use ten_manager::config::metadata::TmanMetadata;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd_line;
@@ -62,7 +62,7 @@ fn main() {
     let rt = Runtime::new().unwrap();
     let result = rt.block_on(execute_cmd(
         parsed_cmd.tman_config,
-        Arc::new(TmanInternalConfig::default()),
+        Arc::new(tokio::sync::RwLock::new(TmanMetadata::default())),
         parsed_cmd.command_data.unwrap(),
         out.clone(),
     ));

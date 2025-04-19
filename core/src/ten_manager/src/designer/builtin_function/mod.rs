@@ -8,7 +8,7 @@ mod install;
 mod install_all;
 pub mod msg;
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix::{Actor, Handler, Message, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
@@ -18,7 +18,7 @@ use anyhow::Result;
 use msg::InboundMsg;
 use msg::OutboundMsg;
 
-use crate::config::internal::TmanInternalConfig;
+use crate::config::metadata::TmanMetadata;
 use crate::config::TmanConfig;
 use crate::designer::DesignerState;
 
@@ -54,20 +54,20 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
-    tman_config: Arc<TmanConfig>,
-    tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
 }
 
 impl WsBuiltinFunction {
     fn new(
         builtin_function_parser: BuiltinFunctionParser,
-        tman_config: Arc<TmanConfig>,
-        tman_internal_config: Arc<TmanInternalConfig>,
+        tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+        tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     ) -> Self {
         Self {
             builtin_function_parser,
             tman_config,
-            tman_internal_config,
+            tman_metadata,
         }
     }
 }
@@ -199,17 +199,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
 pub async fn builtin_function_endpoint(
     req: HttpRequest,
     stream: web::Payload,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<HttpResponse, Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let tman_config = state_read.tman_config.clone();
-    let tman_internal_config = state_read.tman_internal_config.clone();
+    let tman_config = state.tman_config.clone();
+    let tman_metadata = state.tman_metadata.clone();
 
     let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
@@ -235,11 +228,7 @@ pub async fn builtin_function_endpoint(
     });
 
     ws::start(
-        WsBuiltinFunction::new(
-            default_parser,
-            tman_config,
-            tman_internal_config,
-        ),
+        WsBuiltinFunction::new(default_parser, tman_config, tman_metadata),
         &req,
         stream,
     )

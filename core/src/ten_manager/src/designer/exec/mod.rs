@@ -9,7 +9,7 @@ mod msg;
 mod run_script;
 
 use std::process::Child;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix::{Actor, Handler, Message, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
@@ -152,7 +152,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
 pub async fn exec_endpoint(
     req: HttpRequest,
     stream: web::Payload,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<HttpResponse, Error> {
     let state_clone = state.get_ref().clone();
 

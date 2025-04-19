@@ -4,11 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod internal;
+pub mod metadata;
 
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -156,4 +157,10 @@ pub fn read_config(
     } else {
         Ok(None)
     }
+}
+
+pub async fn is_verbose(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+) -> bool {
+    tman_config.read().await.verbose
 }

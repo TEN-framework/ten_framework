@@ -6,14 +6,11 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{http::StatusCode, test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         designer::{
             property::validate::{
                 validate_property_endpoint, ValidatePropertyRequestPayload,
@@ -27,13 +24,17 @@ mod tests {
     async fn test_validate_property_valid_empty() {
         // Setup.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -67,13 +68,17 @@ mod tests {
     async fn test_validate_property_valid_with_basic_fields() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -117,13 +122,17 @@ mod tests {
     async fn test_validate_property_valid_with_ten_field() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -170,13 +179,17 @@ mod tests {
     async fn test_validate_property_valid_with_predefined_graphs() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -229,13 +242,17 @@ mod tests {
     async fn test_validate_property_invalid_json_syntax() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -276,13 +293,17 @@ mod tests {
     async fn test_validate_property_invalid_additional_properties() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -336,13 +357,17 @@ mod tests {
     async fn test_validate_property_invalid_non_alphanumeric_field() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(
@@ -408,13 +433,17 @@ mod tests {
     async fn test_validate_property_invalid_missing_required_fields() {
         // Setup
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
-        let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+        let state = web::Data::new(Arc::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(state.clone()).service(

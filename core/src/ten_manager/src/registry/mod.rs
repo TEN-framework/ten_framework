@@ -24,12 +24,14 @@ use super::constants::DEFAULT;
 use crate::output::TmanOutput;
 
 pub async fn upload_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     package_file_path: &str,
     pkg_info: &PkgInfo,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     let default_registry_url = tman_config
+        .read()
+        .await
         .registry
         .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
@@ -69,7 +71,7 @@ pub async fn upload_package(
 }
 
 pub async fn get_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -135,7 +137,7 @@ pub async fn get_package(
 ///   supported).
 /// * If there's an error retrieving the package list from the registry.
 pub async fn get_package_list(
-    tman_config: &Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
@@ -145,6 +147,8 @@ pub async fn get_package_list(
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL from configuration.
     let default_registry_url = tman_config
+        .read()
+        .await
         .registry
         .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
@@ -195,7 +199,7 @@ pub async fn get_package_list(
 }
 
 pub async fn delete_package(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: PkgType,
     name: &String,
     version: &Version,
@@ -204,6 +208,8 @@ pub async fn delete_package(
 ) -> Result<()> {
     // Retrieve the default registry URL.
     let default_registry_url = tman_config
+        .read()
+        .await
         .registry
         .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
