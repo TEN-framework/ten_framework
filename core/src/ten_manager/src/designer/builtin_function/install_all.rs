@@ -43,8 +43,9 @@ impl WsBuiltinFunction {
         let tman_config = self.tman_config.clone();
         let tman_metadata = self.tman_metadata.clone();
 
-        // Call `execute_cmd()` in an async task.
+        // Use tokio::task::spawn_local to handle the non-Send clingo parts.
         tokio::task::spawn_local(async move {
+            // Now perform the actual work.
             let result = crate::cmd::cmd_install::execute_cmd(
                 tman_config,
                 tman_metadata,
@@ -53,8 +54,7 @@ impl WsBuiltinFunction {
             )
             .await;
 
-            // Notify the WebSocket client that the task is complete, and
-            // determine the exit code based on the result.
+            // Notify the WebSocket client that the task is complete.
             let exit_code = if result.is_ok() { 0 } else { -1 };
             let error_message = if let Err(err) = result {
                 Some(err.to_string())
