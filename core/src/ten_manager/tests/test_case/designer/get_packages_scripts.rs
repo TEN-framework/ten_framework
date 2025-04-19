@@ -30,28 +30,32 @@ mod tests {
     #[actix_web::test]
     async fn test_get_apps_scripts_success() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        let _ = get_all_pkgs_in_app(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            &"tests/test_data/app_with_uri".to_string(),
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        assert_eq!(
-            designer_state
-                .pkgs_cache
-                .get("tests/test_data/app_with_uri")
-                .unwrap()
-                .len(),
-            3
-        );
+            let _ = get_all_pkgs_in_app(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                &"tests/test_data/app_with_uri".to_string(),
+            );
+
+            assert_eq!(
+                pkgs_cache
+                    .get("tests/test_data/app_with_uri")
+                    .unwrap()
+                    .len(),
+                3
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -103,8 +107,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));

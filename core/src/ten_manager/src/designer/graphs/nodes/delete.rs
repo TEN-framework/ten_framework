@@ -155,9 +155,12 @@ pub async fn delete_graph_node_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -189,7 +192,7 @@ pub async fn delete_graph_node_endpoint(
 
     // Try to update property.json file if possible
     update_property_json_if_needed(
-        pkgs_cache,
+        &mut pkgs_cache,
         graph_info,
         &request_payload.name,
         &request_payload.addon,

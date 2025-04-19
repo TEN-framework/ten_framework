@@ -29,12 +29,12 @@ use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
 #[actix_web::test]
 async fn test_get_compatible_messages_success() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -64,16 +64,21 @@ async fn test_get_compatible_messages_success() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         let graph_id = graphs_cache.iter().find_map(|(uuid, info)| {
             if info
                 .name
@@ -148,12 +153,12 @@ async fn test_get_compatible_messages_success() {
 
 #[actix_web::test]
 async fn test_get_compatible_messages_fail() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -183,16 +188,21 @@ async fn test_get_compatible_messages_fail() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         graphs_cache
             .iter()
             .find_map(|(uuid, info)| {
@@ -244,12 +254,12 @@ async fn test_get_compatible_messages_fail() {
 
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_1() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -279,16 +289,21 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         graphs_cache
             .iter()
             .find_map(|(uuid, info)| {
@@ -363,12 +378,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
 
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_2() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -398,16 +413,21 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         graphs_cache
             .iter()
             .find_map(|(uuid, info)| {
@@ -482,12 +502,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
 
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_3() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -517,16 +537,21 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         graphs_cache
             .iter()
             .find_map(|(uuid, info)| {
@@ -601,12 +626,12 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
 
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_4() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -636,16 +661,21 @@ async fn test_get_compatible_messages_cmd_has_required_success_4() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     // Find the uuid of the "default" graph.
     let graph_id = {
-        let graphs_cache = &designer_state.graphs_cache;
+        let graphs_cache = &designer_state.graphs_cache.read().await;
         graphs_cache
             .iter()
             .find_map(|(uuid, info)| {

@@ -79,6 +79,9 @@ pub async fn update_graph_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Convert GraphNodeForUpdate to GraphNode
     let graph_nodes: Vec<GraphNode> = request_payload
         .nodes
@@ -87,7 +90,7 @@ pub async fn update_graph_endpoint(
         .collect();
 
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -104,27 +107,28 @@ pub async fn update_graph_endpoint(
         }
     };
 
-    let pkg_info =
-        match belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
-        {
-            Ok(Some(pkg_info)) => pkg_info,
-            Ok(None) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: "App package not found".to_string(),
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-            Err(err) => {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: err.to_string(),
-                    error: None,
-                };
-                return Ok(HttpResponse::BadRequest().json(error_response));
-            }
-        };
+    let pkg_info = match belonging_pkg_info_find_by_graph_info_mut(
+        &mut pkgs_cache,
+        graph_info,
+    ) {
+        Ok(Some(pkg_info)) => pkg_info,
+        Ok(None) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "App package not found".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+        Err(err) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: err.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
     // Access the graph and update it.
     match replace_graph_nodes_and_connections(

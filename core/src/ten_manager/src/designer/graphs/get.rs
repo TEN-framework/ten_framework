@@ -36,8 +36,9 @@ pub async fn get_graphs_endpoint(
         ))
     })?;
 
-    let graphs: Vec<GetGraphsResponseData> = state_read
-        .graphs_cache
+    let graphs_cache = state_read.graphs_cache.read().await;
+
+    let graphs: Vec<GetGraphsResponseData> = graphs_cache
         .iter()
         .map(|(uuid, graph_info)| GetGraphsResponseData {
             uuid: uuid.to_string(),

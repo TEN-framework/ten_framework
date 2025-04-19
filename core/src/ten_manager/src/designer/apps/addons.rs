@@ -117,11 +117,11 @@ pub async fn get_app_addons_endpoint(
         ))
     })?;
 
+    let pkgs_cache = state_read.pkgs_cache.read().await;
+
     // Check if base_dir exists in pkgs_cache.
     if request_payload.base_dir.is_empty()
-        || !state_read
-            .pkgs_cache
-            .contains_key(&request_payload.base_dir)
+        || !pkgs_cache.contains_key(&request_payload.base_dir)
     {
         let error_response = ErrorResponse {
             status: Status::Fail,
@@ -135,9 +135,7 @@ pub async fn get_app_addons_endpoint(
     let mut all_addons: Vec<GetAppAddonsSingleResponseData> = Vec::new();
 
     // Get the PkgsInfoInApp and extract only the requested packages from it.
-    if let Some(base_dir_pkg_info) =
-        state_read.pkgs_cache.get(&request_payload.base_dir)
-    {
+    if let Some(base_dir_pkg_info) = pkgs_cache.get(&request_payload.base_dir) {
         let addon_type_filter = request_payload.addon_type.as_ref();
 
         // Only process these packages if no addon_type filter is specified or

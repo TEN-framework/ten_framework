@@ -160,21 +160,30 @@ pub async fn exec_endpoint(
     // instance of the `WsRunApp` actor.
 
     let default_parser: CmdParser = Box::new(move |text: &str| {
-        // Attempt to parse the JSON text from client.
-        let inbound = serde_json::from_str::<InboundMsg>(text)
-            .with_context(|| format!("Failed to parse {} into JSON", text))?;
+        let state_clone_inner = state_clone.clone();
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            // Attempt to parse the JSON text from client.
+            let inbound = serde_json::from_str::<InboundMsg>(text)
+                .with_context(|| {
+                    format!("Failed to parse {} into JSON", text)
+                })?;
 
-        match inbound {
-            InboundMsg::ExecCmd { base_dir, cmd } => Ok((cmd, Some(base_dir))),
-            InboundMsg::RunScript { base_dir, name } => {
-                let cmd = extract_command_from_manifest(
-                    &base_dir,
-                    &name,
-                    state_clone.clone(),
-                )?;
-                Ok((cmd, Some(base_dir)))
+            match inbound {
+                InboundMsg::ExecCmd { base_dir, cmd } => {
+                    Ok((cmd, Some(base_dir)))
+                }
+                InboundMsg::RunScript { base_dir, name } => {
+                    let cmd = extract_command_from_manifest(
+                        &base_dir,
+                        &name,
+                        state_clone_inner,
+                    )
+                    .await?;
+                    Ok((cmd, Some(base_dir)))
+                }
             }
-        }
+        })
     });
 
     ws::start(WsRunCmd::new(default_parser), &req, stream)

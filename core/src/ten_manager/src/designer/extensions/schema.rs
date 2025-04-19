@@ -39,7 +39,7 @@ pub async fn get_extension_schema_endpoint(
         ))
     })?;
 
-    let pkgs_cache = &state_read.pkgs_cache;
+    let pkgs_cache = state_read.pkgs_cache.read().await;
 
     // Check if app exists.
     let pkgs_info_in_app = match pkgs_cache.get(&request_payload.app_base_dir) {

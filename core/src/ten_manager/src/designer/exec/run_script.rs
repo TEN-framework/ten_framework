@@ -10,7 +10,7 @@ use anyhow::Result;
 
 use crate::designer::DesignerState;
 
-pub fn extract_command_from_manifest(
+pub async fn extract_command_from_manifest(
     base_dir: &String,
     name: &String,
     state: Arc<RwLock<DesignerState>>,
@@ -20,6 +20,8 @@ pub fn extract_command_from_manifest(
         .map_err(|e| anyhow::anyhow!("Failed to acquire read lock: {}", e))?;
 
     let DesignerState { pkgs_cache, .. } = &*state_read;
+
+    let pkgs_cache = pkgs_cache.read().await;
 
     let base_dir_pkg_info = pkgs_cache.get(base_dir).unwrap();
 

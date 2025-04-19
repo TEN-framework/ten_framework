@@ -25,12 +25,12 @@ mod tests {
     #[actix_web::test]
     async fn test_unload_app_success() {
         // Create designer state with an app in pkgs_cache.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Add a simple package to the pkgs_cache.
@@ -41,15 +41,20 @@ mod tests {
                 .to_string(),
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        // Verify that the app is in the pkgs_cache.
-        assert!(designer_state.pkgs_cache.contains_key(TEST_DIR));
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+
+            // Verify that the app is in the pkgs_cache.
+            assert!(pkgs_cache.contains_key(TEST_DIR));
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -89,7 +94,9 @@ mod tests {
 
         // Verify that the app has been removed from pkgs_cache.
         let state = designer_state.read().unwrap();
-        assert!(!state.pkgs_cache.contains_key(TEST_DIR));
+
+        let pkgs_cache = state.pkgs_cache.read().await;
+        assert!(!pkgs_cache.contains_key(TEST_DIR));
     }
 
     #[actix_web::test]
@@ -99,8 +106,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -147,8 +154,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));

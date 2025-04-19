@@ -28,12 +28,12 @@ mod tests {
     #[actix_web::test]
     async fn test_reload_app_error_base_dir_not_found() {
         // Set up the designer state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject initial package data.
@@ -44,12 +44,17 @@ mod tests {
                 .to_string(),
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -102,15 +107,15 @@ mod tests {
         // fail.
 
         // Set up the designer state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig {
                 verbose: true,
                 ..TmanConfig::default()
             }),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // We'll use a special path that should cause get_all_pkgs to fail.
@@ -121,9 +126,10 @@ mod tests {
         let empty_pkg_info = PkgsInfoInApp::default();
 
         // Inject an entry with the invalid path.
-        designer_state
-            .pkgs_cache
-            .insert(invalid_path.to_string(), empty_pkg_info);
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            pkgs_cache.insert(invalid_path.to_string(), empty_pkg_info);
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 

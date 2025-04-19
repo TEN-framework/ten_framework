@@ -30,8 +30,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -70,8 +70,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -120,8 +120,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -173,8 +173,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -232,8 +232,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -279,8 +279,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -339,8 +339,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -411,8 +411,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 

@@ -204,9 +204,12 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -222,7 +225,7 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
 
     // Validate connection schema first.
     if let Err(e) = validate_connection_schema(
-        pkgs_cache,
+        &mut pkgs_cache,
         &mut graph_info.graph,
         &graph_info.app_base_dir,
         &MsgConversionValidateInfo {
@@ -252,9 +255,11 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         return Ok(HttpResponse::BadRequest().json(error_response));
     }
 
-    if let Err(e) =
-        update_property_all_fields(graph_info, &request_payload, pkgs_cache)
-    {
+    if let Err(e) = update_property_all_fields(
+        graph_info,
+        &request_payload,
+        &mut pkgs_cache,
+    ) {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: format!("Failed to update property.json file: {}", e),

@@ -135,9 +135,12 @@ pub async fn add_graph_connection_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -160,7 +163,7 @@ pub async fn add_graph_connection_endpoint(
         request_payload.msg_name.clone(),
         request_payload.dest_app.clone(),
         request_payload.dest_extension.clone(),
-        pkgs_cache,
+        &mut pkgs_cache,
         request_payload.msg_conversion.clone(),
     ) {
         let error_response = ErrorResponse {
@@ -172,7 +175,7 @@ pub async fn add_graph_connection_endpoint(
     }
 
     if let Ok(Some(pkg_info)) =
-        belonging_pkg_info_find_by_graph_info_mut(pkgs_cache, graph_info)
+        belonging_pkg_info_find_by_graph_info_mut(&mut pkgs_cache, graph_info)
     {
         // Update property.json file with the updated graph.
         if let Some(property) = &mut pkg_info.property {

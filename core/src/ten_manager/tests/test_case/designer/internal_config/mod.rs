@@ -49,8 +49,8 @@ async fn test_get_graph_ui_empty() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -110,8 +110,8 @@ async fn test_set_and_get_graph_ui() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -221,8 +221,8 @@ async fn test_update_graph_ui() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(tman_internal_config),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 
@@ -321,8 +321,8 @@ async fn test_get_nonexistent_graph_ui() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(tman_internal_config),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
 

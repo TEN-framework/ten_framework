@@ -108,6 +108,9 @@ pub async fn get_graph_nodes_endpoint(
         ..
     } = &*state_read;
 
+    let pkgs_cache = pkgs_cache.read().await;
+    let graphs_cache = graphs_cache.read().await;
+
     let graph_id = &request_payload.graph_id;
 
     let graph_info = graphs_cache.get(&request_payload.graph_id);
@@ -117,7 +120,7 @@ pub async fn get_graph_nodes_endpoint(
     };
 
     let extension_graph_nodes =
-        match get_extension_nodes_in_graph(graph_id, graphs_cache) {
+        match get_extension_nodes_in_graph(graph_id, &graphs_cache) {
             Ok(exts) => exts,
             Err(err) => {
                 let error_response = ErrorResponse::from_error(
@@ -136,7 +139,7 @@ pub async fn get_graph_nodes_endpoint(
 
     for extension_graph_node in extension_graph_nodes {
         let pkg_info = get_pkg_info_for_extension_addon(
-            pkgs_cache,
+            &pkgs_cache,
             app_base_dir_of_graph,
             &extension_graph_node.app,
             &extension_graph_node.addon,

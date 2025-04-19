@@ -129,13 +129,16 @@ pub async fn get_compatible_messages_endpoint(
         ..
     } = &*state_read;
 
+    let pkgs_cache = pkgs_cache.read().await;
+    let graphs_cache = graphs_cache.read().await;
+
     let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
         Some(graph_info) => &graph_info.app_base_dir,
         None => &None,
     };
 
-    match find_pkgs_cache_entry_by_app_uri(pkgs_cache, &request_payload.app) {
+    match find_pkgs_cache_entry_by_app_uri(&pkgs_cache, &request_payload.app) {
         Some((_, pkgs_info_in_app)) => {
             if pkgs_info_in_app.app_pkg_info.is_none() {
                 let error_response = ErrorResponse {
@@ -149,7 +152,7 @@ pub async fn get_compatible_messages_endpoint(
 
             let extension_graph_nodes = match get_extension_nodes_in_graph(
                 &request_payload.graph_id,
-                graphs_cache,
+                &graphs_cache,
             ) {
                 Ok(exts) => exts,
                 Err(err) => {
@@ -193,7 +196,7 @@ pub async fn get_compatible_messages_endpoint(
             desired_msg_dir.toggle();
 
             if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
-                pkgs_cache,
+                &pkgs_cache,
                 app_base_dir_of_graph,
                 &extension_graph_node.app,
                 &extension_graph_node.addon,
@@ -215,7 +218,7 @@ pub async fn get_compatible_messages_endpoint(
                         match get_compatible_msg_extension(
                             extension_graph_nodes,
                             app_base_dir_of_graph,
-                            pkgs_cache,
+                            &pkgs_cache,
                             &desired_msg_dir,
                             src_cmd_schema,
                             &msg_ty,
@@ -271,7 +274,7 @@ pub async fn get_compatible_messages_endpoint(
                         match get_compatible_msg_extension(
                             extension_graph_nodes,
                             app_base_dir_of_graph,
-                            pkgs_cache,
+                            &pkgs_cache,
                             &desired_msg_dir,
                             src_msg_schema,
                             &msg_ty,

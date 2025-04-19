@@ -44,12 +44,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_1() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -107,20 +107,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -281,12 +290,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_2() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -345,20 +354,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -469,12 +487,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_3() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -533,20 +551,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -663,12 +690,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_schema_failure_1() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -726,20 +753,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -871,12 +907,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_schema_failure_2() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -934,20 +970,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -1086,12 +1131,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_msg_conversion_schema_failure_3() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -1150,20 +1195,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -1257,12 +1311,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_connection_remove_msg_conversion() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test.
@@ -1322,18 +1376,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
+
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         // First, add a connection with initial message conversion.
         let initial_msg_conversion = MsgAndResultConversion {
@@ -1363,32 +1428,6 @@ mod tests {
             }),
         };
 
-        // Add a connection with msg_conversion.
-        let add_request_payload = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd_remove_conversion".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: Some(initial_msg_conversion),
-        };
-
-        // Now update the connection to remove the message conversion.
-        let update_request_payload =
-            UpdateGraphConnectionMsgConversionRequestPayload {
-                graph_id: *graph_id,
-                src_app: Some("http://example.com:8000".to_string()),
-                src_extension: "extension_1".to_string(),
-                msg_type: MsgType::Cmd,
-                msg_name: "test_cmd_remove_conversion".to_string(),
-                dest_app: Some("http://example.com:8000".to_string()),
-                dest_extension: "extension_2".to_string(),
-                // Set to None to remove the msg_conversion.
-                msg_conversion: None,
-            };
-
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
@@ -1406,6 +1445,18 @@ mod tests {
         )
         .await;
 
+        // Add a connection with msg_conversion.
+        let add_request_payload = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd_remove_conversion".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: Some(initial_msg_conversion),
+        };
+
         // Add the initial connection.
         let add_req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -1417,6 +1468,20 @@ mod tests {
             add_resp.status().is_success(),
             "Failed to add initial connection"
         );
+
+        // Now update the connection to remove the message conversion.
+        let update_request_payload =
+            UpdateGraphConnectionMsgConversionRequestPayload {
+                graph_id: graph_id_clone,
+                src_app: Some("http://example.com:8000".to_string()),
+                src_extension: "extension_1".to_string(),
+                msg_type: MsgType::Cmd,
+                msg_name: "test_cmd_remove_conversion".to_string(),
+                dest_app: Some("http://example.com:8000".to_string()),
+                dest_extension: "extension_2".to_string(),
+                // Set to None to remove the msg_conversion.
+                msg_conversion: None,
+            };
 
         let update_req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/msg_conversion/update")

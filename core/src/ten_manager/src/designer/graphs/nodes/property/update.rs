@@ -89,9 +89,12 @@ pub async fn update_graph_node_property_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -110,7 +113,7 @@ pub async fn update_graph_node_property_endpoint(
         &request_payload.app,
         &request_payload.addon,
         &graph_info.app_base_dir,
-        pkgs_cache,
+        &pkgs_cache,
     ) {
         let error_response = ErrorResponse {
             status: Status::Fail,
@@ -131,7 +134,7 @@ pub async fn update_graph_node_property_endpoint(
     }
 
     if let Err(e) = update_graph_node_in_property_all_fields(
-        pkgs_cache,
+        &mut pkgs_cache,
         graph_info,
         &request_payload.name,
         &request_payload.addon,
