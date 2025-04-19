@@ -12,6 +12,7 @@ pub mod nodes;
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
+use ten_rust::_0_8_compatible::get_ten_field_string;
 use uuid::Uuid;
 
 pub use connections::update_graph_connections_all_fields;
@@ -135,7 +136,9 @@ pub fn update_graph_all_fields(
     connections: &[GraphConnection],
 ) -> Result<()> {
     // Get ten object if it exists.
-    let ten_obj = match property_all_fields.get_mut("ten") {
+    let ten_field_str = get_ten_field_string();
+
+    let ten_obj = match property_all_fields.get_mut(&ten_field_str) {
         Some(serde_json::Value::Object(obj)) => obj,
         _ => return write_property_json_file(pkg_url, property_all_fields),
     };
