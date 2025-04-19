@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::{PkgsInfoInApp},
     graph::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         msg_conversion::MsgAndResultConversion,
@@ -162,7 +162,6 @@ pub fn graph_add_connection(
     msg_name: String,
     dest_app: Option<String>,
     dest_extension: String,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     msg_conversion: Option<MsgAndResultConversion>,
 ) -> Result<()> {
@@ -192,7 +191,6 @@ pub fn graph_add_connection(
     // Validate connection schema.
     validate_connection_schema(
         pkgs_cache,
-        uri_to_pkg_info,
         graph,
         graph_app_base_dir,
         &MsgConversionValidateInfo {

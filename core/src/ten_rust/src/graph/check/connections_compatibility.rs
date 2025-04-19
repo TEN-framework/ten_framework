@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::{
         connection::{GraphConnection, GraphDestination},
         Graph,
@@ -30,7 +30,6 @@ impl Graph {
         &self,
         graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         msg_type: &MsgType,
         msg_name: &str,
         src_msg_schema: Option<&TenMsgSchema>,
@@ -47,7 +46,6 @@ impl Graph {
 
             let extension_pkg_info = match get_pkg_info_for_extension_addon(
                 pkgs_cache,
-                uri_to_pkg_info,
                 graph_app_base_dir,
                 &dest.app,
                 dest_addon,
@@ -94,7 +92,6 @@ impl Graph {
         &self,
         graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         connection: &GraphConnection,
         ignore_missing_apps: bool,
     ) -> Result<()> {
@@ -106,7 +103,6 @@ impl Graph {
 
         let extension_pkg_info = match get_pkg_info_for_extension_addon(
           pkgs_cache,
-          uri_to_pkg_info,
           graph_app_base_dir,
           &src_app_uri.as_ref().map(|s| s.to_string()),
           src_addon,
@@ -119,7 +115,7 @@ impl Graph {
                   src_addon
               ))
           }
-      };
+        };
 
         // Check command flows.
         if let Some(cmd_flows) = &connection.cmd {
@@ -136,7 +132,6 @@ impl Graph {
                 if let Err(e) = self.check_msg_flow_compatible(
                     graph_app_base_dir,
                     pkgs_cache,
-                    uri_to_pkg_info,
                     &MsgType::Cmd,
                     flow.name.as_str(),
                     src_cmd_schema,
@@ -163,7 +158,6 @@ impl Graph {
                 if let Err(e) = self.check_msg_flow_compatible(
                     graph_app_base_dir,
                     pkgs_cache,
-                    uri_to_pkg_info,
                     &MsgType::Data,
                     flow.name.as_str(),
                     src_msg_schema,
@@ -190,7 +184,6 @@ impl Graph {
                 if let Err(e) = self.check_msg_flow_compatible(
                     graph_app_base_dir,
                     pkgs_cache,
-                    uri_to_pkg_info,
                     &MsgType::VideoFrame,
                     flow.name.as_str(),
                     src_msg_schema,
@@ -217,7 +210,6 @@ impl Graph {
                 if let Err(e) = self.check_msg_flow_compatible(
                     graph_app_base_dir,
                     pkgs_cache,
-                    uri_to_pkg_info,
                     &MsgType::AudioFrame,
                     flow.name.as_str(),
                     src_msg_schema,
@@ -250,7 +242,6 @@ impl Graph {
         &self,
         graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         if self.connections.is_none() {
@@ -265,7 +256,6 @@ impl Graph {
             if let Err(e) = self.check_connection_compatibility(
                 graph_app_base_dir,
                 pkgs_cache,
-                uri_to_pkg_info,
                 connection,
                 ignore_missing_apps,
             ) {

@@ -9,10 +9,10 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::{msg_conversion::MsgAndResultConversion, Graph},
     pkg_info::{
-        get_pkg_info_for_extension_addon,
+        find_pkgs_cache_entry_by_app_uri, get_pkg_info_for_extension_addon,
         manifest::api::ManifestApiPropertyAttributes,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
@@ -46,7 +46,6 @@ pub struct MsgConversionValidateInfo<'a> {
 fn validate_msg_conversion_c_schema_oneway(
     graph_app_base_dir: &Option<String>,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     compared_schema_properties: &Option<
         HashMap<String, ManifestApiPropertyAttributes>,
@@ -64,7 +63,6 @@ fn validate_msg_conversion_c_schema_oneway(
         if let Some(target_extension_pkg_info) =
             get_pkg_info_for_extension_addon(
                 pkgs_cache,
-                uri_to_pkg_info,
                 graph_app_base_dir,
                 target_app,
                 target_extension_addon,
@@ -97,7 +95,6 @@ fn validate_msg_conversion_c_schema_oneway(
 
 fn validate_msg_conversion_schema(
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph: &mut Graph,
     graph_app_base_dir: &Option<String>,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
@@ -127,7 +124,6 @@ fn validate_msg_conversion_schema(
 
     let (converted_schema, converted_result_schema) =
         msg_conversion_get_final_target_schema(
-            uri_to_pkg_info,
             graph_app_base_dir,
             pkgs_cache,
             msg_conversion_validate_info.src_app,
@@ -156,7 +152,6 @@ fn validate_msg_conversion_schema(
         validate_msg_conversion_c_schema_oneway(
             graph_app_base_dir,
             msg_conversion_validate_info,
-            uri_to_pkg_info,
             pkgs_cache,
             &converted_schema.property,
             &converted_schema.required,
@@ -179,7 +174,6 @@ fn validate_msg_conversion_schema(
         validate_msg_conversion_c_schema_oneway(
             graph_app_base_dir,
             msg_conversion_validate_info,
-            uri_to_pkg_info,
             pkgs_cache,
             &converted_result_schema.property,
             &converted_result_schema.required,
@@ -193,7 +187,7 @@ fn validate_msg_conversion_schema(
         // schema and destination result schema are compatible.
         let (src_c_msg_schema, dest_c_msg_schema, error_message) =
             get_src_and_dest_c_msg_schema(
-                uri_to_pkg_info,
+                pkgs_cache,
                 graph,
                 msg_conversion_validate_info,
             )?;
@@ -221,7 +215,7 @@ fn validate_msg_conversion_schema(
 
 /// Finds package info for source and destination apps and extensions.
 fn find_pkg_infos<'a>(
-    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     src_app: &Option<String>,
     src_extension_addon_name: &str,
     dest_app: &Option<String>,
@@ -234,52 +228,54 @@ fn find_pkg_infos<'a>(
      -> Result<Option<&'a PkgInfo>> {
         let entity_type = if is_source { "Source" } else { "Destination" };
 
-        if let Some(base_dir_pkg_info) = uri_to_pkg_info.get(app_uri) {
-            // Check if app exists.
-            if base_dir_pkg_info.pkgs_info_in_app.app_pkg_info.is_none() {
-                return Err(anyhow::anyhow!(
-                    "{} app '{:?}' found in map but app_pkg_info is None",
-                    entity_type,
-                    app_uri
-                ));
-            }
-
-            // Find extension in extension_pkg_info.
-            if let Some(extension_pkgs_info) =
-                &base_dir_pkg_info.pkgs_info_in_app.extension_pkgs_info
-            {
-                let found_extension_pkg_info =
-                    extension_pkgs_info.iter().find(|pkg| {
-                        assert!(
-                            pkg.manifest.type_and_name.pkg_type
-                                == PkgType::Extension
-                        );
-
-                        pkg.manifest.type_and_name.name == extension_name
-                    });
-
-                if found_extension_pkg_info.is_none() {
-                    return Err(anyhow::anyhow!(
-                              "{} extension '{}' not found in the installed packages for app '{:?}'",
-                              entity_type, extension_name, app_uri
-                          ));
-                }
-
-                return Ok(found_extension_pkg_info);
-            }
-
-            // If we reach here, no package was found.
-            Err(anyhow::anyhow!(
-                "{} extension '{}' not found in the installed packages for app '{:?}'",
-                entity_type, extension_name, app_uri
-            ))
-        } else {
-            Err(anyhow::anyhow!(
+        let Some((_, base_dir_pkg_info)) =
+            find_pkgs_cache_entry_by_app_uri(pkgs_cache, app_uri)
+        else {
+            return Err(anyhow::anyhow!(
                 "{} app '{:?}' not found in the installed packages",
                 entity_type,
                 app_uri
-            ))
+            ));
+        };
+
+        // Check if app exists.
+        if base_dir_pkg_info.app_pkg_info.is_none() {
+            return Err(anyhow::anyhow!(
+                "{} app '{:?}' found in map but app_pkg_info is None",
+                entity_type,
+                app_uri
+            ));
         }
+
+        // Find extension in extension_pkg_info.
+        if let Some(extension_pkgs_info) =
+            &base_dir_pkg_info.extension_pkgs_info
+        {
+            let found_extension_pkg_info =
+                extension_pkgs_info.iter().find(|pkg| {
+                    assert!(
+                        pkg.manifest.type_and_name.pkg_type
+                            == PkgType::Extension
+                    );
+
+                    pkg.manifest.type_and_name.name == extension_name
+                });
+
+            if found_extension_pkg_info.is_none() {
+                return Err(anyhow::anyhow!(
+                              "{} extension '{}' not found in the installed packages for app '{:?}'",
+                              entity_type, extension_name, app_uri
+                          ));
+            }
+
+            return Ok(found_extension_pkg_info);
+        }
+
+        // If we reach here, no package was found.
+        Err(anyhow::anyhow!(
+                "{} extension '{}' not found in the installed packages for app '{:?}'",
+                entity_type, extension_name, app_uri
+            ))
     };
 
     // Find both source and destination package info.
@@ -293,7 +289,7 @@ fn find_pkg_infos<'a>(
 }
 
 fn get_src_and_dest_c_msg_schema<'a>(
-    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
 ) -> Result<(
@@ -312,7 +308,7 @@ fn get_src_and_dest_c_msg_schema<'a>(
     )?;
 
     let (src_extension_pkg_info, dest_extension_pkg_info) = find_pkg_infos(
-        uri_to_pkg_info,
+        pkgs_cache,
         msg_conversion_validate_info.src_app,
         src_extension_addon,
         msg_conversion_validate_info.dest_app,
@@ -406,13 +402,13 @@ fn get_src_and_dest_c_msg_schema<'a>(
 
 /// Checks schema compatibility between source and destination.
 fn check_schema_compatibility(
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
+    pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
 ) -> Result<()> {
     let (src_c_msg_schema, dest_c_msg_schema, error_message) =
         get_src_and_dest_c_msg_schema(
-            uri_to_pkg_info,
+            pkgs_cache,
             graph,
             msg_conversion_validate_info,
         )?;
@@ -437,7 +433,6 @@ fn check_schema_compatibility(
 
 pub fn validate_connection_schema(
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph: &mut Graph,
     graph_app_base_dir: &Option<String>,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
@@ -445,14 +440,13 @@ pub fn validate_connection_schema(
     if msg_conversion_validate_info.msg_conversion.is_some() {
         validate_msg_conversion_schema(
             pkgs_cache,
-            uri_to_pkg_info,
             graph,
             graph_app_base_dir,
             msg_conversion_validate_info,
         )?;
     } else {
         check_schema_compatibility(
-            uri_to_pkg_info,
+            pkgs_cache,
             graph,
             msg_conversion_validate_info,
         )?;

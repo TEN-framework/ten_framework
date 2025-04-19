@@ -9,9 +9,7 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::{
-    create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
-};
+use ten_rust::pkg_info::get_pkg_info_for_extension_addon;
 use uuid::Uuid;
 
 use ten_rust::graph::node::GraphNode;
@@ -110,19 +108,6 @@ pub async fn get_graph_nodes_endpoint(
         ..
     } = &*state_read;
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     let graph_id = &request_payload.graph_id;
 
     let graph_info = graphs_cache.get(&request_payload.graph_id);
@@ -152,7 +137,6 @@ pub async fn get_graph_nodes_endpoint(
     for extension_graph_node in extension_graph_nodes {
         let pkg_info = get_pkg_info_for_extension_addon(
             pkgs_cache,
-            &uri_to_pkg_info,
             app_base_dir_of_graph,
             &extension_graph_node.app,
             &extension_graph_node.addon,

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     pkg_info::{get_pkg_info_for_extension_addon, PkgInfo},
 };
 
@@ -34,13 +34,11 @@ pub fn validate_extension_property(
     property: &Option<serde_json::Value>,
     app: &Option<String>,
     addon: &String,
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph_app_base_dir: &Option<String>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
 ) -> Result<(), String> {
     if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
         pkgs_cache,
-        uri_to_pkg_info,
         graph_app_base_dir,
         app,
         addon,

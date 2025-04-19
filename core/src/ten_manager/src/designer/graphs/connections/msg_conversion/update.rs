@@ -21,7 +21,7 @@ use ten_rust::{
         graph_info::GraphInfo,
         msg_conversion::MsgAndResultConversion,
     },
-    pkg_info::{create_uri_to_pkg_info_map, message::MsgType},
+    pkg_info::message::MsgType,
 };
 
 use crate::{
@@ -220,23 +220,9 @@ pub async fn update_graph_connection_msg_conversion_endpoint(
         }
     };
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     // Validate connection schema first.
     if let Err(e) = validate_connection_schema(
         pkgs_cache,
-        &uri_to_pkg_info,
         &mut graph_info.graph,
         &graph_info.app_base_dir,
         &MsgConversionValidateInfo {

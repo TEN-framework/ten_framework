@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::msg_conversion::{
         MsgAndResultConversion, MsgConversionMode, MsgConversionRule,
     },
@@ -470,7 +470,6 @@ fn get_msg_schema<'a>(
     graph_app_base_dir: &Option<String>,
     app: &Option<String>,
     extension_addon: &String,
-    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     msg_direction: &MsgDirection,
     msg_type: &MsgType,
@@ -479,7 +478,6 @@ fn get_msg_schema<'a>(
     let msg_schema = if let Some(extension_pkg_info) =
         get_pkg_info_for_extension_addon(
             pkgs_cache,
-            uri_to_pkg_info,
             graph_app_base_dir,
             app,
             extension_addon,
@@ -514,7 +512,6 @@ fn get_msg_schema<'a>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn msg_conversion_get_final_target_schema(
-    uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     graph_app_base_dir: &Option<String>,
     pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     src_app: &Option<String>,
@@ -532,7 +529,6 @@ pub fn msg_conversion_get_final_target_schema(
         graph_app_base_dir,
         src_app,
         src_extension_addon,
-        uri_to_pkg_info,
         pkgs_cache,
         &MsgDirection::Out,
         msg_type,
@@ -631,7 +627,6 @@ pub fn msg_conversion_get_final_target_schema(
             graph_app_base_dir,
             dest_app,
             dest_extension_addon,
-            uri_to_pkg_info,
             pkgs_cache,
             &MsgDirection::In,
             msg_type,

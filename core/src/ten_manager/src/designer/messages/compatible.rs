@@ -14,7 +14,7 @@ use uuid::Uuid;
 use ten_rust::{
     graph::node::GraphNode,
     pkg_info::{
-        create_uri_to_pkg_info_map, get_pkg_info_for_extension_addon,
+        find_pkgs_cache_entry_by_app_uri, get_pkg_info_for_extension_addon,
         message::{MsgDirection, MsgType},
     },
 };
@@ -129,92 +129,76 @@ pub async fn get_compatible_messages_endpoint(
         ..
     } = &*state_read;
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {
         Some(graph_info) => &graph_info.app_base_dir,
         None => &None,
     };
 
-    if let Some(pkgs_info_in_app) = uri_to_pkg_info.get(&request_payload.app) {
-        let pkgs_info_in_app = &pkgs_info_in_app.pkgs_info_in_app;
+    match find_pkgs_cache_entry_by_app_uri(pkgs_cache, &request_payload.app) {
+        Some((_, pkgs_info_in_app)) => {
+            if pkgs_info_in_app.app_pkg_info.is_none() {
+                let error_response = ErrorResponse {
+                    status: Status::Fail,
+                    message: "Application package information is missing"
+                        .to_string(),
+                    error: None,
+                };
+                return Ok(HttpResponse::NotFound().json(error_response));
+            }
 
-        if pkgs_info_in_app.app_pkg_info.is_none() {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "Application package information is missing"
-                    .to_string(),
-                error: None,
+            let extension_graph_nodes = match get_extension_nodes_in_graph(
+                &request_payload.graph_id,
+                graphs_cache,
+            ) {
+                Ok(exts) => exts,
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        format!(
+                            "Error fetching runtime extensions for graph '{}'",
+                            request_payload.graph_id
+                        )
+                        .as_str(),
+                    );
+                    return Ok(HttpResponse::NotFound().json(error_response));
+                }
             };
-            return Ok(HttpResponse::NotFound().json(error_response));
-        }
 
-        let extension_graph_nodes = match get_extension_nodes_in_graph(
-            &request_payload.graph_id,
-            graphs_cache,
-        ) {
-            Ok(exts) => exts,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Error fetching runtime extensions for graph '{}'",
-                        request_payload.graph_id
-                    )
-                    .as_str(),
-                );
-                return Ok(HttpResponse::NotFound().json(error_response));
-            }
-        };
+            let extension_graph_node = match get_extension_graph_node(
+                extension_graph_nodes,
+                &request_payload.app,
+                &request_payload.extension_group,
+                &request_payload.extension,
+            ) {
+                Ok(ext) => ext,
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        format!(
+                            "Failed to find the extension: {}",
+                            request_payload.extension
+                        )
+                        .as_str(),
+                    );
 
-        let extension_graph_node = match get_extension_graph_node(
-            extension_graph_nodes,
-            &request_payload.app,
-            &request_payload.extension_group,
-            &request_payload.extension,
-        ) {
-            Ok(ext) => ext,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Failed to find the extension: {}",
-                        request_payload.extension
-                    )
-                    .as_str(),
-                );
+                    return Ok(HttpResponse::NotFound().json(error_response));
+                }
+            };
 
-                return Ok(HttpResponse::NotFound().json(error_response));
-            }
-        };
+            let msg_ty = request_payload.msg_type.clone();
+            let msg_dir = request_payload.msg_direction.clone();
 
-        let msg_ty = request_payload.msg_type.clone();
-        let msg_dir = request_payload.msg_direction.clone();
+            let mut desired_msg_dir = msg_dir.clone();
+            desired_msg_dir.toggle();
 
-        let mut desired_msg_dir = msg_dir.clone();
-        desired_msg_dir.toggle();
-
-        if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
-            pkgs_cache,
-            &uri_to_pkg_info,
-            app_base_dir_of_graph,
-            &extension_graph_node.app,
-            &extension_graph_node.addon,
-        ) {
-            let compatible_list =
-                match msg_ty {
+            if let Some(extension_pkg_info) = get_pkg_info_for_extension_addon(
+                pkgs_cache,
+                app_base_dir_of_graph,
+                &extension_graph_node.app,
+                &extension_graph_node.addon,
+            ) {
+                let compatible_list = match msg_ty {
                     MsgType::Cmd => {
                         let src_cmd_schema = extension_pkg_info
                             .schema_store
@@ -230,7 +214,6 @@ pub async fn get_compatible_messages_endpoint(
 
                         match get_compatible_msg_extension(
                             extension_graph_nodes,
-                            &uri_to_pkg_info,
                             app_base_dir_of_graph,
                             pkgs_cache,
                             &desired_msg_dir,
@@ -287,7 +270,6 @@ pub async fn get_compatible_messages_endpoint(
 
                         match get_compatible_msg_extension(
                             extension_graph_nodes,
-                            &uri_to_pkg_info,
                             app_base_dir_of_graph,
                             pkgs_cache,
                             &desired_msg_dir,
@@ -312,33 +294,35 @@ pub async fn get_compatible_messages_endpoint(
                     }
                 };
 
-            let response_data: Vec<GetCompatibleMsgsSingleResponseData> =
-                compatible_list.into_iter().map(Into::into).collect();
+                let response_data: Vec<GetCompatibleMsgsSingleResponseData> =
+                    compatible_list.into_iter().map(Into::into).collect();
 
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: response_data,
-                meta: None,
+                let response = ApiResponse {
+                    status: Status::Ok,
+                    data: response_data,
+                    meta: None,
+                };
+
+                Ok(HttpResponse::Ok().json(response))
+            } else {
+                let error_response = ErrorResponse::from_error(
+                    &anyhow::anyhow!("Extension not found"),
+                    format!(
+                        "Error fetching runtime extensions for graph '{}'",
+                        request_payload.graph_id
+                    )
+                    .as_str(),
+                );
+                Ok(HttpResponse::NotFound().json(error_response))
+            }
+        }
+        None => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "App not found".to_string(),
+                error: None,
             };
-
-            Ok(HttpResponse::Ok().json(response))
-        } else {
-            let error_response = ErrorResponse::from_error(
-                &anyhow::anyhow!("Extension not found"),
-                format!(
-                    "Error fetching runtime extensions for graph '{}'",
-                    request_payload.graph_id
-                )
-                .as_str(),
-            );
             Ok(HttpResponse::NotFound().json(error_response))
         }
-    } else {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: "App not found".to_string(),
-            error: None,
-        };
-        Ok(HttpResponse::NotFound().json(error_response))
     }
 }

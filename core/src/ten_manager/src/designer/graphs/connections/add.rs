@@ -15,7 +15,7 @@ use ten_rust::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         msg_conversion::MsgAndResultConversion,
     },
-    pkg_info::{create_uri_to_pkg_info_map, message::MsgType},
+    pkg_info::message::MsgType,
 };
 use uuid::Uuid;
 
@@ -135,19 +135,6 @@ pub async fn add_graph_connection_endpoint(
         ..
     } = &mut *state_write;
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
         graphs_cache,
@@ -173,7 +160,6 @@ pub async fn add_graph_connection_endpoint(
         request_payload.msg_name.clone(),
         request_payload.dest_app.clone(),
         request_payload.dest_extension.clone(),
-        &uri_to_pkg_info,
         pkgs_cache,
         request_payload.msg_conversion.clone(),
     ) {

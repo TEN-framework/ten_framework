@@ -24,7 +24,6 @@ mod tests {
     };
     use ten_rust::graph::Graph;
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
-    use ten_rust::pkg_info::create_uri_to_pkg_info_map;
     use ten_rust::pkg_info::message::MsgType;
 
     use crate::test_case::common::mock::inject_all_standard_pkgs_for_mock;
@@ -152,8 +151,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -210,7 +207,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion.clone()),
         );
@@ -279,8 +275,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -327,7 +321,6 @@ mod tests {
             "cmd6".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion.clone()),
         );
@@ -345,8 +338,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -394,7 +385,6 @@ mod tests {
             "cmd8".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -413,8 +403,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -460,7 +448,6 @@ mod tests {
             "cmd6".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion.clone()),
         );
@@ -478,8 +465,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -525,7 +510,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -569,8 +553,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -627,7 +609,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -679,8 +660,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -720,7 +699,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -741,8 +719,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -808,7 +784,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -829,8 +804,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -896,7 +869,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -916,8 +888,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -983,7 +953,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
@@ -1004,8 +973,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with two nodes.
         let mut graph = Graph {
@@ -1060,7 +1027,6 @@ mod tests {
             "cmd2".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             Some(msg_conversion),
         );
