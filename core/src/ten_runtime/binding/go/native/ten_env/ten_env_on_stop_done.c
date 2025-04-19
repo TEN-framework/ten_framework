@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
-#include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"

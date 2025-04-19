@@ -6,7 +6,7 @@
 #
 import json
 from typing import Optional
-from ten import (
+from ten_runtime import (
     Extension,
     TenEnv,
     Cmd,

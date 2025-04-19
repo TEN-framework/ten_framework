@@ -4,7 +4,7 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from ten import Extension
+from ten_runtime import Extension
 
 
 class DefaultExtension(Extension):

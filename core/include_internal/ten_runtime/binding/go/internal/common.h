@@ -10,7 +10,7 @@
 
 #include <stddef.h>
 
-#include "src/ten_runtime/binding/go/interface/ten/common.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_utils/lib/error.h"
 
 #define TEN_GO_STATUS_ERR_MSG_BUF_SIZE 256

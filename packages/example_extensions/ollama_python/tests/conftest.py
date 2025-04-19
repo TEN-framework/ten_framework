@@ -5,7 +5,7 @@
 #
 import threading
 import pytest
-from ten import (
+from ten_runtime import (
     App,
     TenEnv,
 )

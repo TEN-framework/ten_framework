@@ -14,7 +14,7 @@ import (
 
 	"runtime/pprof"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 type defaultApp struct {

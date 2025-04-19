@@ -8,7 +8,7 @@
 
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
-#include "src/ten_runtime/binding/go/interface/ten/common.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_GO_EXTENSION_TESTER_SIGNATURE 0xF542240B13C47F46U

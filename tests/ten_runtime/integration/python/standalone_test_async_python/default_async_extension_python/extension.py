@@ -6,7 +6,7 @@
 #
 import asyncio
 import time
-from ten import (
+from ten_runtime import (
     AudioFrame,
     VideoFrame,
     AsyncExtension,

@@ -3,7 +3,7 @@
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
 #
-from ten import App, TenEnv
+from ten_runtime import App, TenEnv
 
 
 class DefaultApp(App):

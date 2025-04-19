@@ -6,7 +6,7 @@
 #
 import threading
 from typing import Optional
-from ten import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
+from ten_runtime import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
 
 
 class DefaultExtension(Extension):

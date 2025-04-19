@@ -14,7 +14,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"ten_framework/ten"
+	ten "ten_framework/ten_runtime"
 )
 
 const concurrency = 100

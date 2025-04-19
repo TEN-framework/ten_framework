@@ -78,8 +78,8 @@ static void ten_py_addon_register_func(TEN_ADDON_TYPE addon_type,
   // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
 
-  PyObject *ten_module = PyImport_ImportModule("ten");
-  TEN_ASSERT(ten_module, "Failed to import ten module.");
+  PyObject *ten_module = PyImport_ImportModule("ten_runtime");
+  TEN_ASSERT(ten_module, "Failed to import ten_runtime module.");
 
   PyObject *addon_manager = PyObject_GetAttrString(ten_module, "_AddonManager");
   TEN_ASSERT(addon_manager, "Failed to get _AddonManager from ten module.");

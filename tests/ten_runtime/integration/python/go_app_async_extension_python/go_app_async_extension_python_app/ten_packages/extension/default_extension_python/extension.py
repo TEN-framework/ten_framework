@@ -11,7 +11,7 @@
 
 import asyncio
 from typing import Optional
-from ten import (
+from ten_runtime import (
     AsyncExtension,
     AsyncTenEnv,
     Cmd,

@@ -8,7 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
-#include "src/ten_runtime/binding/go/interface/ten/msg.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/msg.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_GO_MSG_SIGNATURE 0xB0E144BC5D3B1AB9U

@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
-#include "src/ten_runtime/binding/go/interface/ten/common.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_utils/lib/signature.h"
 

@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-from ten import AsyncExtension, AsyncTenEnv, Cmd, CmdResult
+from ten_runtime import AsyncExtension, AsyncTenEnv, Cmd, CmdResult
 
 
 class DefaultExtension(AsyncExtension):

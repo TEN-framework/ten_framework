@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/go/interface/ten/video_frame.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/video_frame.h"
 
 #include <stdint.h>
 
@@ -12,7 +12,7 @@
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/video_frame/video_frame.h"
-#include "ten_runtime/binding/go/interface/ten/msg.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/msg.h"
 #include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"

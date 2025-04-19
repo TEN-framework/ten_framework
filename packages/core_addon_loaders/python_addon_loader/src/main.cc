@@ -386,7 +386,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
 
   static void register_all_addons() {
     ten_py_run_simple_string(
-        "from ten import _AddonManager\n"
+        "from ten_runtime import _AddonManager\n"
         "_AddonManager.register_all_addons(None)\n");
   }
 

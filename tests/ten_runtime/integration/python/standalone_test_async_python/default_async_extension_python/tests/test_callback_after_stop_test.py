@@ -6,7 +6,7 @@
 #
 import asyncio
 import json
-from ten import (
+from ten_runtime import (
     Cmd,
     AsyncExtensionTester,
     AsyncTenEnvTester,

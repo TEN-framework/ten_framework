@@ -4,7 +4,7 @@
 # See the LICENSE file for more information.
 #
 import websockets
-from ten import (
+from ten_runtime import (
     Addon,
     AsyncExtension,
     register_addon_as_extension,

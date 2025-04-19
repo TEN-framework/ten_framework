@@ -5,7 +5,7 @@
 #
 import asyncio
 from aiohttp import web, web_request, WSMsgType
-from ten import (
+from ten_runtime import (
     Addon,
     AsyncExtension,
     register_addon_as_extension,

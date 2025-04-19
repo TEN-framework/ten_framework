@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/go/interface/ten/extension.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/extension.h"
 
 #include <stdint.h>
 
@@ -15,9 +15,9 @@
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "ten_runtime/binding/common.h"
-#include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/msg.h"
-#include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/common.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/msg.h"
+#include "ten_runtime/binding/go/interface/ten_runtime/ten_env.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"

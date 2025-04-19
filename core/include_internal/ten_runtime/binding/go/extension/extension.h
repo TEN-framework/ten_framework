@@ -7,7 +7,7 @@
 #include "ten_runtime/ten_config.h"
 
 #include "include_internal/ten_runtime/extension/extension.h"
-#include "src/ten_runtime/binding/go/interface/ten/common.h"
+#include "src/ten_runtime/binding/go/interface/ten_runtime/common.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_GO_EXTENSION_SIGNATURE 0x1FE0849BF9788807U
