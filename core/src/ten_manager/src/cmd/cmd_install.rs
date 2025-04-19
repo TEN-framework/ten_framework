@@ -363,8 +363,6 @@ pub async fn execute_cmd(
 ) -> Result<()> {
     if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing install command");
-        out.normal_line(&format!("command_data: {:?}", command_data));
-        out.normal_line(&format!("tman_config: {:?}", tman_config));
     }
 
     let started = Instant::now();

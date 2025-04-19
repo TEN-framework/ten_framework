@@ -39,7 +39,7 @@ impl WsBuiltinFunction {
 
         let addr = addr.clone();
 
-        // Clone the tman_config to avoid borrowing self in the async task.
+        // Clone the config and metadata before the async block.
         let tman_config = self.tman_config.clone();
         let tman_metadata = self.tman_metadata.clone();
 
