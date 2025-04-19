@@ -37,7 +37,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(error_client_send_json__extension_2,
 void test_app_on_configure(TEN_UNUSED ten_app_t *self, ten_env_t *ten_env) {
   bool result = ten_env_init_property_from_json(ten_env,
                                                 "{\
-                          \"_ten\": {\
+                          \"ten\": {\
                           \"uri\": \"msgpack://127.0.0.1:8001/\",\
                           \"log\": {\
                             \"level\": 2\

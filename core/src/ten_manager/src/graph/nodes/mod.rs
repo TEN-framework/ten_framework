@@ -34,8 +34,8 @@ pub fn update_graph_node_all_fields(
     nodes_to_remove: Option<&[GraphNode]>,
     nodes_to_modify: Option<&[GraphNode]>,
 ) -> Result<()> {
-    // Get the _ten object from property_all_fields.
-    let ten_obj = match property_all_fields.get_mut("_ten") {
+    // Get the ten object from property_all_fields.
+    let ten_obj = match property_all_fields.get_mut("ten") {
         Some(Value::Object(obj)) => obj,
         _ => {
             // Write back the unchanged property and return
@@ -43,7 +43,7 @@ pub fn update_graph_node_all_fields(
         }
     };
 
-    // Get the predefined_graphs array from _ten.
+    // Get the predefined_graphs array from ten.
     let predefined_graphs = match ten_obj.get_mut("predefined_graphs") {
         Some(Value::Array(graphs)) => graphs,
         _ => {

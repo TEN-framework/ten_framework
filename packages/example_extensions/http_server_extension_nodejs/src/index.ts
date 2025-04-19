@@ -34,7 +34,7 @@ class HttpServerExtension extends Extension {
 
   async handler(
     req: http.IncomingMessage,
-    res: http.ServerResponse
+    res: http.ServerResponse,
   ): Promise<void> {
     if (
       req.method === "POST" &&
@@ -60,26 +60,26 @@ class HttpServerExtension extends Extension {
           return;
         }
 
-        // if '_ten' not in the JSON data.
-        if (!("_ten" in jsonData)) {
-          console.log("No _ten in JSON data");
+        // if 'ten' not in the JSON data.
+        if (!("ten" in jsonData)) {
+          console.log("No ten in JSON data");
 
           res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("No `_ten` in JSON data");
+          res.end("No `ten` in JSON data");
           return;
         }
 
-        const _ten = jsonData["_ten"];
-        if ("type" in _ten && _ten["type"] == "close_app") {
-          let closeAppCmd = Cmd.Create("ten:close_app");
+        const ten = jsonData["ten"];
+        if ("type" in ten && ten["type"] == "close_app") {
+          const closeAppCmd = Cmd.Create("ten:close_app");
           closeAppCmd.setDest("localhost");
           this.tenEnv!.sendCmd(closeAppCmd);
 
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ message: "OK" }));
           return;
-        } else if ("name" in _ten) {
-          const name = _ten["name"];
+        } else if ("name" in ten) {
+          const name = ten["name"];
           const cmd = Cmd.Create(name);
           cmd.setPropertyFromJson("", body);
           cmd.setPropertyString("method", req.method!);
@@ -101,13 +101,13 @@ class HttpServerExtension extends Extension {
                   res.end("Internal Server Error");
                 }
               }
-            }
+            },
           );
         } else {
-          console.error("Invalid _ten");
+          console.error("Invalid ten");
 
           res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("Invalid _ten");
+          res.end("Invalid ten");
         }
       });
     }
@@ -161,7 +161,7 @@ class HttpServerExtensionAddon extends Addon {
 
   async onCreateInstance(
     _tenEnv: TenEnv,
-    instanceName: string
+    instanceName: string,
   ): Promise<Extension> {
     return new HttpServerExtension(instanceName);
   }

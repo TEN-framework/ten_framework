@@ -53,7 +53,7 @@ class test_app : public ten::app_t {
     rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "log": {
                           "level": 2
                         },
@@ -114,7 +114,7 @@ TEST(ExtensionTest, HttpServerExtensionTwoExtensions) {  // NOLINT
   ten_string_t resp;
   TEN_STRING_INIT(resp);
   ten_test_http_client_post("http://127.0.0.1:8001/",
-                            R"({"_ten": {"name": "hello_world"}})", &resp);
+                            R"({"ten": {"name": "hello_world"}})", &resp);
   EXPECT_EQ(std::string(ten_string_get_raw_str(&resp)), "\"hello world, too\"");
 
   ten_string_deinit(&resp);

@@ -282,7 +282,7 @@ fn convert_rules_to_schema_properties(
 ) -> Result<()> {
     // Process each conversion rule.
     for (index, rule) in conversion_rules.iter().enumerate() {
-        // Skip the _ten.name rule if we found it earlier.
+        // Skip the ten.name rule if we found it earlier.
         if Some(index) == ten_name_rule_index {
             continue;
         }
@@ -673,7 +673,7 @@ pub fn msg_conversion_get_dest_msg_name(
     let mut ten_name_rule_index = None;
 
     if let Some(msg_conversion) = &msg_conversion.msg {
-        // Find the special `_ten.name` rule if it exists.
+        // Find the special `ten.name` rule if it exists.
         for (index, rule) in msg_conversion.rules.rules.iter().enumerate() {
             if rule.path == TEN_NAME_RULE_PATH
                 && rule.conversion_mode == MsgConversionMode::FixedValue

@@ -2,7 +2,7 @@
   "name": "test-package",
   "version": "1.0.0",
   "description": "Test Package",
-  "_ten": {
+  "ten": {
     "predefined_graphs": [
       {
         "name": "test_graph",

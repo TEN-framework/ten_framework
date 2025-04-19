@@ -23,7 +23,7 @@ mod tests {
     fn test_parse_property_with_known_fields() {
         let json_data = r#"
         {
-            "_ten": {
+            "ten": {
                 "predefined_graphs": [],
                 "uri": "http://example.com"
             }
@@ -41,20 +41,20 @@ mod tests {
         )
         .unwrap();
 
-        assert!(property._ten.is_some());
-        let ten_in_property = property._ten.unwrap();
+        assert!(property.ten.is_some());
+        let ten_in_property = property.ten.unwrap();
 
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
         assert!(graphs_cache.is_empty());
-        assert_eq!(property.all_fields.len(), 1); // Should contain _ten field.
-        assert!(property.all_fields.contains_key("_ten"));
+        assert_eq!(property.all_fields.len(), 1); // Should contain ten field.
+        assert!(property.all_fields.contains_key("ten"));
     }
 
     #[test]
     fn test_parse_property_with_additional_fields() {
         let json_data = r#"
         {
-            "_ten": {
+            "ten": {
                 "predefined_graphs": [],
                 "uri": "http://example.com"
             },
@@ -73,12 +73,12 @@ mod tests {
         )
         .unwrap();
 
-        assert!(property._ten.is_some());
-        let ten_in_property = property._ten.unwrap();
+        assert!(property.ten.is_some());
+        let ten_in_property = property.ten.unwrap();
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
         assert!(graphs_cache.is_empty());
 
-        // Should contain _ten and global_field_1.
+        // Should contain ten and global_field_1.
         assert_eq!(property.all_fields.len(), 2);
         assert_eq!(
             property.all_fields.get("global_field_1").unwrap(),
@@ -100,7 +100,7 @@ mod tests {
             None,
         )
         .unwrap();
-        assert!(property._ten.is_some());
+        assert!(property.ten.is_some());
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
 
@@ -133,7 +133,7 @@ mod tests {
             None,
         )
         .unwrap();
-        assert!(property._ten.is_some());
+        assert!(property.ten.is_some());
 
         let (_, graph_info) = graphs_cache.into_iter().next().unwrap();
 

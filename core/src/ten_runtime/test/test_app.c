@@ -33,7 +33,7 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
     // The default property.json content of the test app.
     rc = ten_env_init_property_from_json(ten_env,
                                          "{\
-                                               \"_ten\": {\
+                                               \"ten\": {\
                                                  \"log\": {\
                                                    \"level\": 2\
                                                  }\

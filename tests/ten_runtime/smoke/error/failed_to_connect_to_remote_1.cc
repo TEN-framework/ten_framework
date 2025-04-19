@@ -70,7 +70,7 @@ class test_app_1 : public ten::app_t {
     rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "log": {
                           "level": 2

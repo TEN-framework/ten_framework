@@ -500,7 +500,7 @@
   },
   "type": "object",
   "properties": {
-    "_ten": {
+    "ten": {
       "type": "object",
       "additionalProperties": false,
       "properties": {

@@ -144,7 +144,7 @@ mod tests {
     fn test_validate_invalid_graph_invalid_additional_property() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -174,7 +174,7 @@ mod tests {
     fn test_validate_invalid_command_name_empty() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -216,7 +216,7 @@ mod tests {
     fn test_validate_invalid_cmd_no_dest() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -254,7 +254,7 @@ mod tests {
     fn test_validate_extension_property() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -283,7 +283,7 @@ mod tests {
     fn test_validate_extension_no_cmds() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -896,7 +896,7 @@ mod tests {
     fn test_graph_msg_conversions() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [{
               "name": "default",
               "auto_start": false,
@@ -922,7 +922,7 @@ mod tests {
                     "msg_conversion": {
                       "type": "per_property",
                       "rules": [{
-                        "path": "_ten.name",
+                        "path": "ten.name",
                         "conversion_mode": "fixed_value",
                         "value": "hello mapping"
                       },{
@@ -955,7 +955,7 @@ mod tests {
     fn test_validate_property_cmd_must_be_alphanumeric() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "predefined_graphs": [
               {
                 "name": "default",
@@ -1057,7 +1057,7 @@ mod tests {
     fn test_validate_property_json_valid() {
         let property = r#"
         {
-          "_ten": {
+          "ten": {
             "log": {
               "level": 2,
               "file": "api.log"

@@ -96,7 +96,7 @@ fn extract_app_uri(
         // Check the app package first.
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
-                if let Some(ten) = &property._ten {
+                if let Some(ten) = &property.ten {
                     if let Some(uri) = &ten.uri {
                         return Some(uri.to_string());
                     }

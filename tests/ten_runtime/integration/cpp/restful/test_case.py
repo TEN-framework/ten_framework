@@ -12,7 +12,7 @@ from .utils import http, build_config, build_pkg, fs_utils
 def run_test_post():
     resp = http.post(
         "http://127.0.0.1:8001/",
-        {"_ten": {"name": "hello_world"}},
+        {"ten": {"name": "hello_world"}},
     )
 
     assert resp == '"hello_world, too"'

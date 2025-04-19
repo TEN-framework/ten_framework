@@ -134,8 +134,8 @@ pub fn update_graph_all_fields(
     nodes: &[GraphNode],
     connections: &[GraphConnection],
 ) -> Result<()> {
-    // Get _ten object if it exists.
-    let ten_obj = match property_all_fields.get_mut("_ten") {
+    // Get ten object if it exists.
+    let ten_obj = match property_all_fields.get_mut("ten") {
         Some(serde_json::Value::Object(obj)) => obj,
         _ => return write_property_json_file(pkg_url, property_all_fields),
     };

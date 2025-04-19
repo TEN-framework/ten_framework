@@ -24,7 +24,7 @@ class test_extension_1 : public ten::extension_t {
     // then they will be terminated.
     ten_env.init_property_from_json(
         R"({
-                      "_ten": {
+                      "ten": {
                         "path_check_interval": 1000000,
                         "path_timeout": {
                           "in_path": 60000000,
@@ -80,7 +80,7 @@ class test_app : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
         R"({
-             "_ten": {
+             "ten": {
                "uri": "msgpack://127.0.0.1:8001/",
                "log": {
                  "level": 2

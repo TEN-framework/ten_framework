@@ -1,5 +1,5 @@
 {
-  "_ten": {
+  "ten": {
     "uri": "msgpack://127.0.0.1:8001/",
     "log": {
       "level": 2
@@ -90,7 +90,7 @@
                       "type": "per_property",
                       "rules": [
                         {
-                          "path": "_ten.name",
+                          "path": "ten.name",
                           "conversion_mode": "fixed_value",
                           "value": "muxer_complete"
                         }
@@ -113,7 +113,7 @@
                       "type": "per_property",
                       "rules": [
                         {
-                          "path": "_ten.name",
+                          "path": "ten.name",
                           "conversion_mode": "fixed_value",
                           "value": "demuxer_complete"
                         }

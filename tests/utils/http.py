@@ -131,7 +131,7 @@ def stop_app(ip: str, port: int, timeout=10, is_https=False) -> bool:
         schema = "https"
 
     uri = "%s://%s:%d/" % (schema, ip, port)
-    body = json.dumps({"_ten": {"type": "close_app"}}).encode("utf8")
+    body = json.dumps({"ten": {"type": "close_app"}}).encode("utf8")
     header = {"Content-Type": "application/json"}
 
     req = request.Request(url=uri, data=body, headers=header, method="POST")

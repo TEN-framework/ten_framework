@@ -31,18 +31,18 @@ class HttpServerExtension(AsyncExtension):
         method = request.method
         url = request.path
 
-        if "_ten" not in data:
+        if "ten" not in data:
             return web.Response(status=404, text="Not found")
         else:
             # If the command is a 'close_app' command, send it to the app.
-            if "type" in data["_ten"] and data["_ten"]["type"] == "close_app":
+            if "type" in data["ten"] and data["ten"]["type"] == "close_app":
                 close_app_cmd = Cmd.create("ten:close_app")
                 close_app_cmd.set_dest("localhost", None, None, None)
                 asyncio.create_task(self.ten_env.send_cmd(close_app_cmd))
                 return web.Response(status=200, text="OK")
-            elif "name" in data["_ten"]:
+            elif "name" in data["ten"]:
                 # Send the command to the TEN runtime.
-                cmd = Cmd.create(data["_ten"]["name"])
+                cmd = Cmd.create(data["ten"]["name"])
                 cmd.set_property_string("method", method)
                 cmd.set_property_string("url", url)
 

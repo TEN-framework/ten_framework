@@ -22,7 +22,7 @@ typedef struct ten_msg_field_process_data_t {
   ten_value_t *field_value;
 
   // Whether this field is a user-defined field. If it is not user-defined, then
-  // it is a `_ten` field.
+  // it is a `ten` field.
   bool is_user_defined_properties;
 
   // Whether the value has been modified. Some logic checks if the value has

@@ -14,7 +14,7 @@ pub const ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE: &str =
     "'localhost' is not allowed in graph definition, and the graph seems to be a single-app graph, just remove the 'app' field";
 
 pub const ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE: &str =
-    "'localhost' is not allowed in graph definition, change the content of 'app' field to be consistent with '_ten::uri'";
+    "'localhost' is not allowed in graph definition, change the content of 'app' field to be consistent with 'ten::uri'";
 
 pub const ERR_MSG_GRAPH_MIXED_APP_DECLARATIONS: &str = "Either all nodes should have 'app' declared, or none should, but not a mix of both.";
 

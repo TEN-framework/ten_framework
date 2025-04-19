@@ -90,7 +90,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
 
   ten_json_t ten_json = TEN_JSON_INIT_VAL(json_ctx, false);
   bool success = ten_json_object_peek_or_create_object(
-      &start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      &start_graph_cmd_json, TEN_STR_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");
 
   ten_json_t nodes_json = TEN_JSON_INIT_VAL(json_ctx, false);

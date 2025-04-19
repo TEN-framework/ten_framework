@@ -62,7 +62,7 @@ class test_app : public ten::app_t {
 
     rc = ten_env.init_property_from_json(
         "{\
-                     \"_ten\": {\
+                     \"ten\": {\
                      \"uri\": \"msgpack://127.0.0.1:8001/\"},\
                      \"" PROP_NAME "\": " TEN_XSTR(APP_PROP_VAL) "}");
     ASSERT_EQ(rc, true);
