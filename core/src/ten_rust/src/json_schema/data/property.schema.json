@@ -496,11 +496,8 @@
           "type": "boolean"
         }
       ]
-    }
-  },
-  "type": "object",
-  "properties": {
-    "_ten": {
+    },
+    "tenConfiguration": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -508,9 +505,9 @@
           "$ref": "#/$defs/uri"
         },
         // @{
-        // The log_level and log_file below are for versions of ten framework
-        // prior to 0.9. After most users have upgraded to 0.9, we can and
-        // should remove the schema definitions for these 2 fields.
+        // TODO(Wei): The log_level and log_file below are for versions of ten
+        // framework prior to 0.9. After most users have upgraded to 0.9, we
+        // can and should remove the schema definitions for these 2 fields.
         "log_level": {
           "$ref": "#/$defs/logLevels"
         },
@@ -666,6 +663,20 @@
         }
       }
     }
+  },
+  "type": "object",
+  "properties": {
+    // @{
+    // TODO(Wei): The _ten below is for versions of ten framework prior to 0.9.
+    // After most users have upgraded to 0.9, we can and should remove the
+    // schema definitions for the _ten field.
+    "ten": {
+      "$ref": "#/$defs/tenConfiguration"
+    },
+    "_ten": {
+      "$ref": "#/$defs/tenConfiguration"
+    }
+    // @}
   },
   "patternProperties": {
     "^[A-Za-z_][A-Za-z0-9_]*$": {

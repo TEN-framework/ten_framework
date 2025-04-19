@@ -28,22 +28,22 @@ use crate::{
 /// Represents the property configuration of a TEN package.
 ///
 /// The property configuration consists of two parts:
-/// 1. A special `_ten` field that contains TEN-specific configuration.
+/// 1. A special `ten` field that contains TEN-specific configuration.
 /// 2. All fields from property.json, stored with preserved order.
 ///
 /// This structure is typically serialized to and deserialized from a JSON file
-/// named `property.json` in the package directory. The `_ten` field serves as a
-/// cache for the "_ten" field in property.json for faster access, while
+/// named `property.json` in the package directory. The `ten` field serves as a
+/// cache for the "ten" field in property.json for faster access, while
 /// `all_fields` stores all fields from property.json with preserved order.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Property {
     /// TEN-specific configuration properties as a cache for faster access.
     /// This field is not serialized and is only used for internal processing.
     #[serde(skip)]
-    pub _ten: Option<TenInProperty>,
+    pub ten: Option<TenInProperty>,
 
     /// All fields from property.json, stored with order preserved.
-    /// This includes the "_ten" field if it exists in property.json.
+    /// This includes the "ten" field if it exists in property.json.
     #[serde(flatten)]
     pub all_fields: Map<String, Value>,
 }
@@ -66,9 +66,9 @@ pub fn parse_property_from_str(
 
     let mut property: Property = serde_json::from_str(s)?;
 
-    // Extract _ten field from all_fields if it exists.
+    // Extract ten field from all_fields if it exists.
     if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY) {
-        // Process the _ten field manually instead of using
+        // Process the ten field manually instead of using
         // serde_json::from_value directly. Create a TenInProperty with empty
         // predefined_graphs.
         let mut ten_in_property = TenInProperty {
@@ -119,7 +119,7 @@ pub fn parse_property_from_str(
             }
         }
 
-        property._ten = Some(ten_in_property);
+        property.ten = Some(ten_in_property);
     }
 
     property.validate_and_complete()?;

@@ -2,7 +2,7 @@
   "name": "test-app",
   "version": "1.0.0",
   "description": "Test App",
-  "_ten": {
+  "ten": {
     "predefined_graphs": [
       {
         "name": "test_graph",

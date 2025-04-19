@@ -12,7 +12,7 @@ from .utils import http, build_config, build_pkg, fs_utils
 def get_large_result():
     resp = http.post(
         "http://127.0.0.1:8001/",
-        {"_ten": {"name": "hello_world"}},
+        {"ten": {"name": "hello_world"}},
     )
 
     print(len(resp))

@@ -86,7 +86,7 @@ class test_remote_app : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8088/",
                         "log": {
                           "level": 2
@@ -156,7 +156,7 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
 
   ten::extension_tester_internal_accessor_t::init_test_app_property_from_json(
       *tester, R"({
-           "_ten": {
+           "ten": {
              "uri": "client:aaa"
            }
         })");

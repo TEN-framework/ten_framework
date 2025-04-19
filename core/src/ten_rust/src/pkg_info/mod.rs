@@ -401,7 +401,7 @@ pub fn create_uri_to_pkg_info_map<'a>(
     for (base_dir, base_dir_pkg_info) in pkgs_cache.iter() {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             if let Some(property) = &app_pkg.property {
-                if let Some(ten) = &property._ten {
+                if let Some(ten) = &property.ten {
                     // Map the URI to the PkgsInfoInApp, using None if URI is
                     // None
                     let key = ten.uri.clone();

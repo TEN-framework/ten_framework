@@ -108,7 +108,7 @@ pub async fn execute_cmd(
 
     // Find the specified predefined_graph.
     let graphs_val = property_json
-        .pointer_mut("/_ten/predefined_graphs")
+        .pointer_mut("/ten/predefined_graphs")
         .ok_or_else(|| {
             anyhow::anyhow!(
                 "No predefined_graphs in {}",

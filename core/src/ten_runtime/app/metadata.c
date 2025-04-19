@@ -40,7 +40,7 @@ ten_value_t *ten_app_get_ten_namespace_properties(ten_app_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
-  return ten_value_object_peek(&self->property, TEN_STR_UNDERLINE_TEN);
+  return ten_value_object_peek(&self->property, TEN_STR_TEN);
 }
 
 bool ten_app_init_one_event_loop_per_engine_config(ten_app_t *self,

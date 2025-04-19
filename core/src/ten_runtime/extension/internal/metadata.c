@@ -166,7 +166,7 @@ static ten_value_t *ten_extension_get_ten_namespace_properties(
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
 
-  return ten_value_object_peek(&self->property, TEN_STR_UNDERLINE_TEN);
+  return ten_value_object_peek(&self->property, TEN_STR_TEN);
 }
 
 static bool ten_extension_graph_property_resolve_placeholders(
@@ -283,7 +283,7 @@ void ten_extension_merge_properties_from_graph(ten_extension_t *self) {
 // Determine the internal properties of the extension according to the
 // 'ten' object in the extension's property store. like:
 // {
-//   "_ten": {
+//   "ten": {
 //     "path_timeout": {
 //       "in_path": 5000000,
 //       "out_path": 1000000,
@@ -311,7 +311,7 @@ bool ten_extension_handle_ten_namespace_properties(
       ten_extension_get_ten_namespace_properties(self);
   if (ten_namespace_properties == NULL) {
     TEN_LOGI("[%s] `%s` section is not found in the property, skip.",
-             ten_extension_get_name(self, true), TEN_STR_UNDERLINE_TEN);
+             ten_extension_get_name(self, true), TEN_STR_TEN);
     return true;
   }
 

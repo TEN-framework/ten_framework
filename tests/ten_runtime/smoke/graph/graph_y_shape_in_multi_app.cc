@@ -81,7 +81,7 @@ class test_app_1 : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "long_running_mode": true,
                         "log": {
@@ -103,7 +103,7 @@ class test_app_2 : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8002/",
                         "one_event_loop_per_engine": true,
                         "long_running_mode": true,
@@ -126,7 +126,7 @@ class test_app_3 : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8003/",
                         "long_running_mode": true,
                         "log": {

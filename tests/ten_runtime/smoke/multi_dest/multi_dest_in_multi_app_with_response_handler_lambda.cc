@@ -41,7 +41,7 @@
     void on_configure(ten::ten_env_t &ten_env) {                                  \
       /* clang-format off */                                                    \
       bool rc = ten_env.init_property_from_json(                          \
-                   "{\"_ten\": { \"uri\": \"msgpack://127.0.0.1:" #port "/\",   \
+                   "{\"ten\": { \"uri\": \"msgpack://127.0.0.1:" #port "/\",   \
                    \"long_running_mode\": true }                                \
                    }");                                                         \
       ASSERT_EQ(rc, true); \

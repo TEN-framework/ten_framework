@@ -620,11 +620,11 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
   TEN_ASSERT(json, "Should not happen.");
 
   if (!field->is_user_defined_properties) {
-    // Internal fields are uniformly stored in the "_ten" section.
+    // Internal fields are uniformly stored in the "ten" section.
     if (include_internal_field) {
       ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
-      bool success = ten_json_object_peek_or_create_object(
-          json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      bool success =
+          ten_json_object_peek_or_create_object(json, TEN_STR_TEN, &ten_json);
       TEN_ASSERT(success, "Should not happen.");
 
       ten_json_t result_json = TEN_JSON_INIT_VAL(ten_json.ctx, false);
@@ -655,7 +655,7 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
     const char *key = NULL;
     ten_json_t *item = NULL;
     ten_json_object_foreach(json, key, item) {
-      if (ten_c_string_is_equal(key, TEN_STR_UNDERLINE_TEN)) {
+      if (ten_c_string_is_equal(key, TEN_STR_TEN)) {
         // The "ten" section is reserved for internal usage.
         continue;
       }
@@ -714,12 +714,12 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
   TEN_ASSERT(json, "Should not happen.");
 
   if (!field->is_user_defined_properties) {
-    // Internal fields are uniformly stored in the "_ten" section.
+    // Internal fields are uniformly stored in the "ten" section.
 
     if (include_internal_field) {
       ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
-      bool success = ten_json_object_peek_or_create_object(
-          json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      bool success =
+          ten_json_object_peek_or_create_object(json, TEN_STR_TEN, &ten_json);
       TEN_ASSERT(success, "Should not happen.");
 
       ten_json_t field_json = TEN_JSON_INIT_VAL(ten_json.ctx, false);
@@ -1185,12 +1185,11 @@ static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
     switch (item->type) {
     case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
       if ((item_iter.index == 0) &&
-          !strcmp(TEN_STR_UNDERLINE_TEN,
-                  ten_string_get_raw_str(&item->obj_item_str))) {
-        // It is the '_ten::' namespace.
+          !strcmp(TEN_STR_TEN, ten_string_get_raw_str(&item->obj_item_str))) {
+        // It is the 'ten::' namespace.
         in_ten_namespace = true;
 
-        // Remove the '_ten' namespace path part.
+        // Remove the 'ten' namespace path part.
         ten_list_remove_front(&paths);
 
         ten_raw_msg_set_ten_property_func_t set_ten_property =
@@ -1257,12 +1256,11 @@ ten_value_t *ten_raw_msg_peek_property(ten_msg_t *self, const char *path,
     switch (item->type) {
     case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
       if ((item_iter.index == 0) &&
-          !strcmp(TEN_STR_UNDERLINE_TEN,
-                  ten_string_get_raw_str(&item->obj_item_str))) {
-        // It is the '_ten::' namespace.
+          !strcmp(TEN_STR_TEN, ten_string_get_raw_str(&item->obj_item_str))) {
+        // It is the 'ten::' namespace.
         in_ten_namespace = true;
 
-        // Remove the '_ten' namespace path part.
+        // Remove the 'ten' namespace path part.
         ten_list_remove_front(&paths);
 
         ten_raw_msg_peek_ten_property_func_t peek_ten_property =

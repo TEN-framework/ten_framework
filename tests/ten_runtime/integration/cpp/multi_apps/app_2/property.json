@@ -1,5 +1,5 @@
 {
-  "_ten": {
+  "ten": {
     "long_running_mode": true,
     "uri": "msgpack://127.0.0.1:8002/",
     "predefined_graphs": [

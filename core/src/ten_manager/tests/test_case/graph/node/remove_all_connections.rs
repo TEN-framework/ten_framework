@@ -30,7 +30,7 @@ mod tests {
         let mut all_fields = Map::new();
         all_fields.insert("name".to_string(), json!("test-app"));
 
-        // Create _ten field with predefined_graphs.
+        // Create ten field with predefined_graphs.
         let mut ten_obj = Map::new();
         let mut graphs = Vec::new();
 
@@ -76,7 +76,7 @@ mod tests {
 
         graphs.push(Value::Object(graph1));
         ten_obj.insert("predefined_graphs".to_string(), Value::Array(graphs));
-        all_fields.insert("_ten".to_string(), Value::Object(ten_obj));
+        all_fields.insert("ten".to_string(), Value::Object(ten_obj));
 
         // Write the initial property to the temp directory.
         let property_path = Path::new(&temp_path).join(PROPERTY_JSON_FILENAME);
@@ -123,7 +123,7 @@ mod tests {
             serde_json::from_str(&updated_property_json)?;
 
         // Verify nodes were removed.
-        let updated_graph = &updated_property["_ten"]["predefined_graphs"][0];
+        let updated_graph = &updated_property["ten"]["predefined_graphs"][0];
         let updated_nodes = updated_graph["nodes"].as_array().unwrap();
         assert_eq!(updated_nodes.len(), 0);
 

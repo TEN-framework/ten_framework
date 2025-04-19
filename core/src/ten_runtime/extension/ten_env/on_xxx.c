@@ -162,7 +162,7 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
 
   rc = ten_extension_handle_ten_namespace_properties(
       extension, extension->extension_context);
-  TEN_ASSERT(rc, "[%s] Failed to handle '_ten' properties.",
+  TEN_ASSERT(rc, "[%s] Failed to handle 'ten' properties.",
              ten_string_get_raw_str(&extension->name));
 
   ten_value_t *api_definition = ten_metadata_init_schema_store(

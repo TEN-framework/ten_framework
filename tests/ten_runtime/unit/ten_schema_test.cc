@@ -30,7 +30,7 @@ TEST(SchemaTest, SchemaStoreValidateProperty) {  // NOLINT
           }
         },
         "result": {
-          "_ten": {
+          "ten": {
             "detail": {
               "type": "string"
             }

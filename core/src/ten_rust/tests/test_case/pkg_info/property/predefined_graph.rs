@@ -24,7 +24,7 @@ mod tests {
             None,
         )
         .unwrap();
-        assert!(property._ten.is_some());
+        assert!(property.ten.is_some());
 
         assert!(graphs_cache.len() == 1);
 

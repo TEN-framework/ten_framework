@@ -57,7 +57,7 @@ class test_app : public ten::app_t {
   void on_configure(ten::ten_env_t &ten_env) override {
     ten_env.init_property_from_json(
         R"({
-                      "_ten": {
+                      "ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "log": {
                           "level": 2

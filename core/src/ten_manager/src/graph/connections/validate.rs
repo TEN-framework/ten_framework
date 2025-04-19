@@ -115,7 +115,7 @@ fn validate_msg_conversion_schema(
     )?;
 
     // Default to using `src_msg_name` as the `dest_msg_name`, but check if
-    // there's a special rule for `_ten.name` to determine the `dest_msg_name`.
+    // there's a special rule for `ten.name` to determine the `dest_msg_name`.
     let (dest_msg_name, ten_name_rule_index) =
         msg_conversion_get_dest_msg_name(
             msg_conversion_validate_info.msg_name,

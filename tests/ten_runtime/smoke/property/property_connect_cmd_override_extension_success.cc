@@ -43,7 +43,7 @@ class test_app : public ten::app_t {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  "{\
-                     \"_ten\": {\
+                     \"ten\": {\
                        \"uri\": \"msgpack://127.0.0.1:8001/\"\
                      }\
                    }"
