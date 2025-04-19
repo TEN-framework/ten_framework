@@ -4,12 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     designer::{
         manifest::validate::{
             validate_manifest_endpoint, ValidateManifestRequestPayload,
@@ -24,13 +24,15 @@ use ten_manager::{
 #[actix_rt::test]
 async fn test_validate_manifest_valid() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -79,13 +81,15 @@ async fn test_validate_manifest_valid() {
 #[actix_rt::test]
 async fn test_validate_manifest_with_api() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -168,13 +172,15 @@ async fn test_validate_manifest_with_api() {
 #[actix_rt::test]
 async fn test_validate_app_manifest_with_incorrect_api() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -259,13 +265,15 @@ async fn test_validate_app_manifest_with_incorrect_api() {
 #[actix_rt::test]
 async fn test_validate_app_manifest_with_correct_api() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -321,13 +329,15 @@ async fn test_validate_app_manifest_with_correct_api() {
 #[actix_rt::test]
 async fn test_validate_manifest_missing_required_fields() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -378,13 +388,15 @@ async fn test_validate_manifest_missing_required_fields() {
 #[actix_rt::test]
 async fn test_validate_manifest_invalid_type() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -437,13 +449,15 @@ async fn test_validate_manifest_invalid_type() {
 #[actix_rt::test]
 async fn test_validate_manifest_invalid_version_format() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(
@@ -496,13 +510,15 @@ async fn test_validate_manifest_invalid_version_format() {
 #[actix_rt::test]
 async fn test_validate_manifest_invalid_json_syntax() {
     // Create the application state.
-    let designer_state = Arc::new(RwLock::new(DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+    let designer_state = Arc::new(DesignerState {
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: Default::default(),
         graphs_cache: Default::default(),
-    }));
+    });
 
     // Initialize test application with the endpoint.
     let app = test::init_service(

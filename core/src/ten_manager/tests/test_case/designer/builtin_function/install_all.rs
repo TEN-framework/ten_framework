@@ -4,17 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use actix_web::{test, web, App};
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 use ten_manager::{
-    config::internal::TmanInternalConfig,
+    config::metadata::TmanMetadata,
     designer::builtin_function::{builtin_function_endpoint, msg::InboundMsg},
 };
 use ten_manager::{
@@ -106,14 +103,16 @@ async fn test_ws_builtin_function_install_all() {
 #[actix_rt::test]
 async fn test_cmd_builtin_function_install_all() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     // Initialize the test service with the WebSocket endpoint.
     let app = test::init_service(

@@ -9,9 +9,9 @@ mod msg;
 mod run_script;
 
 use std::process::Child;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
-use actix::{Actor, Handler, Message, StreamHandler};
+use actix::{Actor, AsyncContext, Handler, Message, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::Context;
@@ -34,8 +34,18 @@ pub enum RunCmdOutput {
 
 /// `CmdParser` returns a tuple: the 1st element is the command string, and
 /// the 2nd is an optional working directory.
-pub type CmdParser =
-    Box<dyn Fn(&str) -> Result<(String, Option<String>)> + Send + Sync>;
+pub type CmdParser = Box<
+    dyn Fn(
+            &str,
+        ) -> std::pin::Pin<
+            Box<
+                dyn std::future::Future<
+                        Output = Result<(String, Option<String>)>,
+                    > + Send,
+            >,
+        > + Send
+        + Sync,
+>;
 
 pub struct WsRunCmd {
     child: Option<Child>,
@@ -124,21 +134,29 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
         ctx: &mut Self::Context,
     ) {
         match item {
-            Ok(ws::Message::Text(text)) => match (self.cmd_parser)(&text) {
-                Ok((cmd, working_directory)) => {
-                    if let Some(dir) = working_directory {
-                        self.working_directory = Some(dir);
-                    }
+            Ok(ws::Message::Text(text)) => {
+                let fut = (self.cmd_parser)(&text);
+                let actor_addr = ctx.address();
 
-                    self.cmd_run(&cmd, ctx);
-                }
-                Err(e) => {
-                    let err_out = OutboundMsg::Error { msg: e.to_string() };
-                    let out_str = serde_json::to_string(&err_out).unwrap();
-                    ctx.text(out_str);
-                    ctx.close(None);
-                }
-            },
+                actix::spawn(async move {
+                    match fut.await {
+                        Ok((cmd, working_directory)) => {
+                            actor_addr.do_send(ProcessCommand {
+                                cmd,
+                                working_directory,
+                            });
+                        }
+                        Err(e) => {
+                            let err_out =
+                                OutboundMsg::Error { msg: e.to_string() };
+                            let out_str =
+                                serde_json::to_string(&err_out).unwrap();
+                            actor_addr.do_send(SendText(out_str));
+                            actor_addr.do_send(CloseConnection);
+                        }
+                    }
+                });
+            }
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Close(_)) => {
                 ctx.close(None);
@@ -149,10 +167,66 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
     }
 }
 
+// New message types for async communication.
+#[derive(Message)]
+#[rtype(result = "()")]
+struct ProcessCommand {
+    cmd: String,
+    working_directory: Option<String>,
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct SendText(String);
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct CloseConnection;
+
+impl Handler<SendText> for WsRunCmd {
+    type Result = ();
+
+    fn handle(
+        &mut self,
+        msg: SendText,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
+        ctx.text(msg.0);
+    }
+}
+
+impl Handler<CloseConnection> for WsRunCmd {
+    type Result = ();
+
+    fn handle(
+        &mut self,
+        _: CloseConnection,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
+        ctx.close(None);
+    }
+}
+
+impl Handler<ProcessCommand> for WsRunCmd {
+    type Result = ();
+
+    fn handle(
+        &mut self,
+        msg: ProcessCommand,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
+        if let Some(dir) = msg.working_directory {
+            self.working_directory = Some(dir);
+        }
+
+        self.cmd_run(&msg.cmd, ctx);
+    }
+}
+
 pub async fn exec_endpoint(
     req: HttpRequest,
     stream: web::Payload,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<HttpResponse, Error> {
     let state_clone = state.get_ref().clone();
 
@@ -161,12 +235,13 @@ pub async fn exec_endpoint(
 
     let default_parser: CmdParser = Box::new(move |text: &str| {
         let state_clone_inner = state_clone.clone();
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        let text_owned = text.to_owned();
+
+        Box::pin(async move {
             // Attempt to parse the JSON text from client.
-            let inbound = serde_json::from_str::<InboundMsg>(text)
+            let inbound = serde_json::from_str::<InboundMsg>(&text_owned)
                 .with_context(|| {
-                    format!("Failed to parse {} into JSON", text)
+                    format!("Failed to parse {} into JSON", text_owned)
                 })?;
 
             match inbound {

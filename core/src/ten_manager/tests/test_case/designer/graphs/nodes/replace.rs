@@ -6,14 +6,11 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::nodes::replace::{
@@ -39,8 +36,12 @@ mod tests {
     async fn test_replace_graph_node_invalid_graph() {
         // Setup a designer state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -57,7 +58,7 @@ mod tests {
             );
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Setup test app.
         let app = test::init_service(
@@ -99,8 +100,12 @@ mod tests {
     async fn test_replace_graph_node_not_found() {
         // Setup a designer state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -125,7 +130,7 @@ mod tests {
             *id
         };
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Setup test app.
         let app = test::init_service(
@@ -186,8 +191,12 @@ mod tests {
 
         // Initialize test state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -236,7 +245,7 @@ mod tests {
             *id
         };
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         // Setup test app.
         let app = test::init_service(
@@ -251,8 +260,7 @@ mod tests {
 
         // Find an existing node name for our test.
         let existing_node_name = {
-            let designer_state = designer_state_arc.read().unwrap();
-            let graphs_cache = designer_state.graphs_cache.read().await;
+            let graphs_cache = designer_state_arc.graphs_cache.read().await;
 
             let graph_info = graphs_cache.get(&graph_id).unwrap();
 
@@ -350,8 +358,12 @@ mod tests {
 
         // Initialize test state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -400,7 +412,7 @@ mod tests {
             *id
         };
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         // Setup test app.
         let app = test::init_service(
@@ -415,8 +427,7 @@ mod tests {
 
         // Find an existing node name for our test.
         let existing_node_name = {
-            let designer_state = designer_state_arc.read().unwrap();
-            let graphs_cache = designer_state.graphs_cache.read().await;
+            let graphs_cache = designer_state_arc.graphs_cache.read().await;
             let graph_info = graphs_cache.get(&graph_id).unwrap();
 
             // Assuming there's at least one node in the graph.
@@ -494,8 +505,12 @@ mod tests {
     async fn test_replace_graph_node_success() {
         // Setup a designer state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -524,7 +539,7 @@ mod tests {
             *id
         };
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         // Setup test app.
         let app = test::init_service(
@@ -539,8 +554,7 @@ mod tests {
 
         // Find an existing node name and addon for our test.
         let (existing_node_name, existing_app_uri) = {
-            let designer_state = designer_state_arc.read().unwrap();
-            let graphs_cache = designer_state.graphs_cache.read().await;
+            let graphs_cache = designer_state_arc.graphs_cache.read().await;
             let graph_info = graphs_cache.get(&graph_id).unwrap();
 
             // Assuming there's at least one node in the graph.
@@ -581,8 +595,7 @@ mod tests {
         assert!(response.data.success);
 
         // Verify the node was actually updated.
-        let designer_state = designer_state_arc.read().unwrap();
-        let graphs_cache = designer_state.graphs_cache.read().await;
+        let graphs_cache = designer_state_arc.graphs_cache.read().await;
         let graph_info = graphs_cache.get(&graph_id).unwrap();
         let updated_node = graph_info
             .graph

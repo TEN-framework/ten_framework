@@ -12,7 +12,7 @@ use std::str::FromStr;
 use anyhow::Result;
 use serde_json::Value;
 
-use ten_rust::graph::node::GraphNode;
+use ten_rust::{_0_8_compatible::get_ten_field_string, graph::node::GraphNode};
 
 use crate::json::write_property_json_file;
 
@@ -35,7 +35,9 @@ pub fn update_graph_node_all_fields(
     nodes_to_modify: Option<&[GraphNode]>,
 ) -> Result<()> {
     // Get the ten object from property_all_fields.
-    let ten_obj = match property_all_fields.get_mut("ten") {
+    let ten_field_str = get_ten_field_string();
+
+    let ten_obj = match property_all_fields.get_mut(&ten_field_str) {
         Some(Value::Object(obj)) => obj,
         _ => {
             // Write back the unchanged property and return

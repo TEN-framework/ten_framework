@@ -11,7 +11,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::constants::INTERNAL_CONFIG_JSON;
+use crate::constants::METADATA_FILE;
 
 use super::get_default_home_dir;
 
@@ -30,30 +30,30 @@ pub struct GraphGeometry {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct GraphUiConfig {
+pub struct GraphUiMetadata {
     pub graphs_geometry: HashMap<Uuid, GraphGeometry>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct TmanInternalConfig {
-    pub graph_ui: GraphUiConfig,
+pub struct TmanMetadata {
+    pub graph_ui: GraphUiMetadata,
 }
 
-fn get_default_internal_config_path() -> PathBuf {
+fn get_default_metadata_path() -> PathBuf {
     let mut config_path = get_default_home_dir();
-    config_path.push(INTERNAL_CONFIG_JSON);
+    config_path.push(METADATA_FILE);
     config_path
 }
 
 // Read the internal configuration from the specified path.
-pub fn read_internal_config() -> Result<Option<TmanInternalConfig>> {
-    let config_path = get_default_internal_config_path();
+pub fn read_metadata() -> Result<Option<TmanMetadata>> {
+    let config_path = get_default_metadata_path();
     if !config_path.exists() {
         return Ok(None);
     }
 
     let config_data = fs::read_to_string(config_path.clone())?;
-    let config: TmanInternalConfig = serde_json::from_str(&config_data)?;
+    let config: TmanMetadata = serde_json::from_str(&config_data)?;
 
     Ok(Some(config))
 }

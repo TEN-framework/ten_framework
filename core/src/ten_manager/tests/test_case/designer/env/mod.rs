@@ -14,7 +14,7 @@ mod tests {
     use actix_web::{test, web, App};
 
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         designer::{env::get_env_endpoint, DesignerState},
         output::TmanOutputCli,
     };
@@ -22,13 +22,17 @@ mod tests {
     #[actix_web::test]
     async fn test_get_env_success() {
         // Create test state.
-        let state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        let state = Arc::new(DesignerState {
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-        }));
+        });
 
         // Create test app.
         let app = test::init_service(
@@ -63,8 +67,12 @@ mod tests {
     async fn test_get_env_error() {
         // Create test state
         let state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),

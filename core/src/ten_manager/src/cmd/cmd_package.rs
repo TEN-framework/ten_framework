@@ -14,7 +14,7 @@ use indicatif::HumanDuration;
 use ten_rust::pkg_info::get_pkg_info_from_path;
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{is_verbose, metadata::TmanMetadata, TmanConfig},
     constants::{DOT_TEN_DIR, PACKAGE_DIR_IN_DOT_TEN_DIR},
     output::TmanOutput,
     package_file::{create_package_tar_gz_file, get_tpkg_file_name},
@@ -62,12 +62,12 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: PackageCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing package command");
         out.normal_line(&format!("{:?}", command_data));
     }
@@ -120,7 +120,8 @@ pub async fn execute_cmd(
         &output_path,
         &cwd,
         out.clone(),
-    )?;
+    )
+    .await?;
 
     out.normal_line(&format!(
         "{}  Pack package to {:?} in {}",

@@ -25,6 +25,7 @@ use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 
 use super::config::TmanConfig;
 use super::registry::get_package_list;
+use crate::config::is_verbose;
 use crate::output::TmanOutput;
 use crate::registry::pkg_list_cache::{is_superset_of, PackageListCache};
 
@@ -155,7 +156,7 @@ fn process_local_dependency_to_get_candidate(
 
 #[allow(clippy::too_many_arguments)]
 async fn process_non_local_dependency_to_get_candidate(
-    tman_config: &Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     support: &ManifestSupport,
     dependency: &ManifestDependency,
     all_compatible_installed_pkgs: &HashMap<
@@ -201,7 +202,7 @@ async fn process_non_local_dependency_to_get_candidate(
     // Retrieve all packages from the registry that meet the specified
     // criteria.
     let results = get_package_list(
-        tman_config,
+        tman_config.clone(),
         Some(pkg_type_name.pkg_type),
         Some(pkg_type_name.name.clone()),
         // With the current design, if there is new information, it will
@@ -259,7 +260,7 @@ async fn process_non_local_dependency_to_get_candidate(
             // the most appropriate one.
             candidate_pkg_info.compatible_score = compatible_score;
 
-            if tman_config.verbose {
+            if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
                     "=> Found a candidate: {}:{}@{}[{}]",
                     candidate_pkg_info.manifest.type_and_name.pkg_type,
@@ -291,7 +292,7 @@ async fn process_non_local_dependency_to_get_candidate(
 }
 
 struct DependenciesContext<'a> {
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     support: &'a ManifestSupport,
     merged_dependencies: &'a mut HashMap<PkgTypeAndName, MergedVersionReq>,
     all_compatible_installed_pkgs:
@@ -344,7 +345,7 @@ async fn process_dependencies_to_get_candidates(
                 }
 
                 process_non_local_dependency_to_get_candidate(
-                    &ctx.tman_config,
+                    ctx.tman_config.clone(),
                     ctx.support,
                     manifest_dep,
                     ctx.all_compatible_installed_pkgs,
@@ -417,7 +418,7 @@ fn clean_up_all_candidates(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn get_all_candidates_from_deps(
-    tman_config: Arc<TmanConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     support: &ManifestSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
     extra_dep: Option<&ManifestDependency>,

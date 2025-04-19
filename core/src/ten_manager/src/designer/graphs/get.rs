@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -27,16 +27,9 @@ pub struct GetGraphsResponseData {
 
 pub async fn get_graphs_endpoint(
     _request_payload: web::Json<GetGraphsRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let graphs_cache = state_read.graphs_cache.read().await;
+    let graphs_cache = state.graphs_cache.read().await;
 
     let graphs: Vec<GetGraphsResponseData> = graphs_cache
         .iter()

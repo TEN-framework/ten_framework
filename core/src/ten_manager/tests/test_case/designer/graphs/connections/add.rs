@@ -6,14 +6,11 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         designer::{
             graphs::connections::add::{
                 add_graph_connection_endpoint,
@@ -36,8 +33,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_success_1() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -137,7 +138,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
@@ -206,8 +207,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_success_2() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -328,7 +333,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
@@ -398,8 +403,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_invalid_graph() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -437,7 +446,7 @@ mod tests {
             assert!(inject_ret.is_ok());
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
@@ -471,8 +480,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_preserves_order() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -572,7 +585,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()
@@ -650,8 +663,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_file_comparison() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -751,7 +768,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()
@@ -829,8 +846,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_data_type() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -916,7 +937,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()
@@ -982,8 +1003,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_graph_connection_frame_types() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -1069,7 +1094,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()
@@ -1147,8 +1172,12 @@ mod tests {
     #[actix_web::test]
     async fn test_add_multiple_connections_preservation_order() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -1247,7 +1276,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state_arc = Arc::new(RwLock::new(designer_state));
+        let designer_state_arc = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()

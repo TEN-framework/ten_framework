@@ -6,7 +6,7 @@
 //
 use std::fs;
 use std::path::Path;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{
     error::{ErrorForbidden, ErrorNotFound},
@@ -38,7 +38,7 @@ pub struct DirListResponseData {
 
 pub async fn list_dir_endpoint(
     request_payload: web::Json<ListDirRequestPayload>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let path = Path::new(&request_payload.path);
 

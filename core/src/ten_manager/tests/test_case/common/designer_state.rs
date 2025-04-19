@@ -4,20 +4,17 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use ten_manager::{
-    config::{internal::TmanInternalConfig, read_config, TmanConfig},
+    config::{metadata::TmanMetadata, read_config, TmanConfig},
     designer::DesignerState,
     output::TmanOutputCli,
 };
 
 use super::tman_config::find_config_json;
 
-pub fn create_designer_state() -> Arc<RwLock<DesignerState>> {
+pub fn create_designer_state() -> Arc<DesignerState> {
     let tman_config_file_path =
         find_config_json().map(|p| p.to_string_lossy().into_owned());
 
@@ -35,12 +32,14 @@ pub fn create_designer_state() -> Arc<RwLock<DesignerState>> {
 
     // Setup designer state
     let designer_state = DesignerState {
-        tman_config: Arc::new(tman_config),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(tman_config)),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
-    Arc::new(RwLock::new(designer_state))
+    Arc::new(designer_state)
 }

@@ -9,13 +9,13 @@ mod tests {
     use std::collections::HashMap;
     use std::fs::{self, File};
     use std::io::Write;
-    use std::sync::{Arc, RwLock};
+    use std::sync::Arc;
 
     use actix_web::{test, web, App};
     use serde::{Deserialize, Serialize};
     use tempfile::tempdir;
 
-    use ten_manager::config::internal::TmanInternalConfig;
+    use ten_manager::config::metadata::TmanMetadata;
     use ten_manager::{
         config::TmanConfig,
         designer::{
@@ -52,13 +52,17 @@ mod tests {
         writeln!(file, "Hello, world!").unwrap();
 
         // Initialize DesignerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        let state = web::Data::new(Arc::new(DesignerState {
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-        })));
+        }));
 
         // Configure the `list_dir` route.
         let app = test::init_service(App::new().app_data(state.clone()).route(
@@ -104,13 +108,17 @@ mod tests {
         writeln!(f2, "File 2").unwrap();
 
         // Initialize DesignerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        let state = web::Data::new(Arc::new(DesignerState {
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-        })));
+        }));
 
         // Configure the `list_dir` route.
         let app = test::init_service(App::new().app_data(state.clone()).route(
@@ -148,13 +156,17 @@ mod tests {
 
     #[actix_web::test]
     async fn test_list_dir_with_non_existing_path() {
-        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        let state = web::Data::new(Arc::new(DesignerState {
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-        })));
+        }));
 
         let app = test::init_service(App::new().app_data(state.clone()).route(
             "/api/designer/v1/dir-list",

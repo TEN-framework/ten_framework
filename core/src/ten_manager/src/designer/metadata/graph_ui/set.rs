@@ -4,13 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::config::internal::GraphGeometry;
+use crate::config::metadata::GraphGeometry;
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
 
@@ -27,23 +27,17 @@ pub struct SetGraphUiResponseData {
 
 pub async fn set_graph_ui_endpoint(
     request_payload: web::Json<SetGraphUiRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().unwrap();
-
     // Extract the payload data.
     let payload = request_payload.into_inner();
     let graph_id = payload.graph_id;
     let graph_geometry = payload.graph_geometry;
 
-    let internal_config = Arc::get_mut(&mut state_write.tman_internal_config)
-        .ok_or_else(|| {
-        actix_web::error::ErrorInternalServerError(
-            "Failed to get mutable TmanInternalConfig",
-        )
-    })?;
-
-    internal_config
+    state
+        .tman_metadata
+        .write()
+        .await
         .graph_ui
         .graphs_geometry
         .insert(graph_id, graph_geometry);

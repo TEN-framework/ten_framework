@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -46,24 +46,11 @@ pub struct AddGraphNodeResponsePayload {
 
 pub async fn add_graph_node_endpoint(
     request_payload: web::Json<AddGraphNodeRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Get a write lock on the state since we need to modify the graph.
-    let mut state_write = state.write().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire write lock: {}",
-            e
-        ))
-    })?;
-
-    let DesignerState {
-        pkgs_cache,
-        graphs_cache,
-        ..
-    } = &mut *state_write;
-
-    let mut pkgs_cache = pkgs_cache.write().await;
-    let mut graphs_cache = graphs_cache.write().await;
+    let mut pkgs_cache = state.pkgs_cache.write().await;
+    let mut graphs_cache = state.graphs_cache.write().await;
 
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(

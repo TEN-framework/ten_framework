@@ -4,13 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::config::internal::GraphGeometry;
+use crate::config::metadata::GraphGeometry;
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
 
@@ -27,15 +27,15 @@ pub struct GetGraphUiResponseData {
 
 pub async fn get_graph_ui_endpoint(
     request_payload: web::Json<GetGraphUiRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let graph_id = request_payload.graph_id;
 
-    let state_read = state.read().unwrap();
-
     // Look for the graph geometry with the given graph_id.
-    let graph_geometry = state_read
-        .tman_internal_config
+    let graph_geometry = state
+        .tman_metadata
+        .read()
+        .await
         .graph_ui
         .graphs_geometry
         .get(&graph_id)

@@ -6,14 +6,11 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{http::StatusCode, test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         designer::{
             apps::reload::{reload_app_endpoint, ReloadPkgsRequestPayload},
             response::{ApiResponse, Status},
@@ -28,8 +25,12 @@ mod tests {
     async fn test_reload_app_success_with_base_dir() {
         // Set up the designer state with initial data.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -54,7 +55,7 @@ mod tests {
             );
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Set up the test service.
         let app = test::init_service(
@@ -93,8 +94,7 @@ mod tests {
 
         // Verify that the package cache still contains the base_dir entry
         // (it was reloaded, not removed).
-        let state_read = designer_state.read().unwrap();
-        let pkgs_cache = state_read.pkgs_cache.read().await;
+        let pkgs_cache = designer_state.pkgs_cache.read().await;
         assert!(pkgs_cache.contains_key("tests/test_data/app_with_uri"));
     }
 
@@ -104,8 +104,12 @@ mod tests {
     async fn test_reload_app_success_without_base_dir() {
         // Set up the designer state with initial data.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -130,7 +134,7 @@ mod tests {
             );
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Set up the test service.
         let app = test::init_service(
@@ -166,8 +170,7 @@ mod tests {
         assert_eq!(api_response.data, "Packages reloaded successfully");
 
         // Verify that the package cache still contains the base_dir entry.
-        let state_read = designer_state.read().unwrap();
-        let pkgs_cache = state_read.pkgs_cache.read().await;
+        let pkgs_cache = designer_state.pkgs_cache.read().await;
         assert!(pkgs_cache.contains_key("tests/test_data/app_with_uri"));
     }
 }

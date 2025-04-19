@@ -6,14 +6,11 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         designer::{
             graphs::update::{
                 update_graph_endpoint, GraphNodeForUpdate,
@@ -43,8 +40,12 @@ mod tests {
     async fn test_update_graph_success() {
         // Create a designer state with an empty graphs cache.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -94,7 +95,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Create a test app with the update_graph_endpoint.
         let app = test::init_service(
@@ -200,13 +201,17 @@ mod tests {
     #[actix_web::test]
     async fn test_update_graph_not_found() {
         // Create a designer state with an empty graphs cache.
-        let designer_state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        let designer_state = Arc::new(DesignerState {
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
-        }));
+        });
 
         // Create a test app with the update_graph_endpoint.
         let app = test::init_service(
@@ -254,8 +259,12 @@ mod tests {
     async fn test_update_graph_empty_connections() {
         // Create a designer state with an empty graphs cache.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -305,7 +314,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Create a test app with the update_graph_endpoint.
         let app = test::init_service(

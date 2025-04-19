@@ -7,11 +7,11 @@
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use std::sync::{Arc, RwLock};
+    use std::sync::Arc;
 
     use actix_web::{http::StatusCode, test, web, App};
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         constants::TEST_DIR,
         designer::{
             apps::reload::{reload_app_endpoint, ReloadPkgsRequestPayload},
@@ -29,8 +29,12 @@ mod tests {
     async fn test_reload_app_error_base_dir_not_found() {
         // Set up the designer state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -56,7 +60,7 @@ mod tests {
             assert!(inject_ret.is_ok());
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Set up the test service.
         let app = test::init_service(
@@ -108,11 +112,13 @@ mod tests {
 
         // Set up the designer state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig {
+            tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig {
                 verbose: true,
                 ..TmanConfig::default()
-            }),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            })),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -131,7 +137,7 @@ mod tests {
             pkgs_cache.insert(invalid_path.to_string(), empty_pkg_info);
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Set up the test service.
         let app = test::init_service(

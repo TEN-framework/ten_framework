@@ -16,10 +16,10 @@ pub mod file_content;
 pub mod frontend;
 pub mod graphs;
 pub mod help_text;
-pub mod internal_config;
 pub mod locale;
 pub mod manifest;
 pub mod messages;
+pub mod metadata;
 pub mod preferences;
 pub mod property;
 pub mod registry;
@@ -28,10 +28,7 @@ pub mod template_pkgs;
 pub mod terminal;
 pub mod version;
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use actix_web::web;
 use uuid::Uuid;
@@ -40,12 +37,12 @@ use ten_rust::{
     base_dir_pkg_info::PkgsInfoInApp, graph::graph_info::GraphInfo,
 };
 
-use crate::config::{internal::TmanInternalConfig, TmanConfig};
+use crate::config::{metadata::TmanMetadata, TmanConfig};
 use crate::output::TmanOutput;
 
 pub struct DesignerState {
-    pub tman_config: Arc<TmanConfig>,
-    pub tman_internal_config: Arc<TmanInternalConfig>,
+    pub tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    pub tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: tokio::sync::RwLock<HashMap<String, PkgsInfoInApp>>,
     pub graphs_cache: tokio::sync::RwLock<HashMap<Uuid, GraphInfo>>,
@@ -53,7 +50,7 @@ pub struct DesignerState {
 
 pub fn configure_routes(
     cfg: &mut web::ServiceConfig,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) {
     cfg.service(
         web::scope("/api/designer/v1")
@@ -192,11 +189,11 @@ pub fn configure_routes(
             // Internal config endpoints.
             .route(
                 "/internal-config/graph-ui/set",
-                web::post().to(internal_config::graph_ui::set::set_graph_ui_endpoint),
+                web::post().to(metadata::graph_ui::set::set_graph_ui_endpoint),
             )
             .route(
                 "/internal-config/graph-ui/get",
-                web::post().to(internal_config::graph_ui::get::get_graph_ui_endpoint),
+                web::post().to(metadata::graph_ui::get::get_graph_ui_endpoint),
             )
             // File system endpoints.
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))

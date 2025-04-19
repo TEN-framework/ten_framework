@@ -7,10 +7,10 @@
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use std::sync::{Arc, RwLock};
+    use std::sync::Arc;
 
     use actix_web::{test, web, App};
-    use ten_manager::config::internal::TmanInternalConfig;
+    use ten_manager::config::metadata::TmanMetadata;
 
     use crate::test_case::common::mock::inject_all_pkgs_for_mock;
     use ten_manager::config::TmanConfig;
@@ -26,8 +26,12 @@ mod tests {
     async fn test_unload_app_success() {
         // Create designer state with an app in pkgs_cache.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -56,7 +60,7 @@ mod tests {
             assert!(pkgs_cache.contains_key(TEST_DIR));
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Initialize test service.
         let app = test::init_service(
@@ -92,10 +96,7 @@ mod tests {
         assert_eq!(response.status, Status::Ok);
         assert_eq!(response.data["success"], true);
 
-        // Verify that the app has been removed from pkgs_cache.
-        let state = designer_state.read().unwrap();
-
-        let pkgs_cache = state.pkgs_cache.read().await;
+        let pkgs_cache = designer_state.pkgs_cache.read().await;
         assert!(!pkgs_cache.contains_key(TEST_DIR));
     }
 
@@ -103,14 +104,18 @@ mod tests {
     async fn test_unload_app_invalid_base_dir() {
         // Create designer state without any apps in pkgs_cache.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Initialize test service.
         let app = test::init_service(
@@ -151,14 +156,18 @@ mod tests {
     async fn test_unload_app_not_loaded() {
         // Create designer state without any apps in pkgs_cache.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         // Initialize test service.
         let app = test::init_service(

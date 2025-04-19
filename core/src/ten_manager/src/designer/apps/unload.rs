@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -30,24 +30,10 @@ pub struct UnloadAppResponseData {
 
 pub async fn unload_app_endpoint(
     request_payload: web::Json<UnloadAppRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire write lock: {}",
-            e
-        ))
-    })?;
-
-    // Destructure to avoid multiple mutable borrows.
-    let DesignerState {
-        pkgs_cache,
-        graphs_cache,
-        ..
-    } = &mut *state_write;
-
-    let mut pkgs_cache = pkgs_cache.write().await;
-    let mut graphs_cache = graphs_cache.write().await;
+    let mut pkgs_cache = state.pkgs_cache.write().await;
+    let mut graphs_cache = state.graphs_cache.write().await;
 
     // Check if the base_dir exists in pkgs_cache.
     if !pkgs_cache.contains_key(&request_payload.base_dir) {

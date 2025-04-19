@@ -14,7 +14,7 @@ use ten_rust::{
 };
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     output::TmanOutput,
 };
 
@@ -48,8 +48,8 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    _tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    _tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: CheckPropertyJsonCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

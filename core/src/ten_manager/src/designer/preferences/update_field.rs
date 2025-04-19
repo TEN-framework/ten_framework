@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -25,21 +25,9 @@ pub struct UpdatePreferencesFieldRequestPayload {
 /// Update a specific field in designer frontend preferences.
 pub async fn update_preferences_field_endpoint(
     request_payload: web::Json<UpdatePreferencesFieldRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state_write = state.write().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire write lock: {}",
-            e
-        ))
-    })?;
-
-    let tman_config =
-        Arc::get_mut(&mut state_write.tman_config).ok_or_else(|| {
-            actix_web::error::ErrorInternalServerError(
-                "Failed to get mutable TmanConfig",
-            )
-        })?;
+    let mut tman_config = state.tman_config.write().await;
 
     // Update specific field in designer frontend preferences.
     let mut designer_value = serde_json::to_value(&tman_config.designer)
@@ -65,7 +53,7 @@ pub async fn update_preferences_field_endpoint(
         .map_err(actix_web::error::ErrorBadRequest)?;
 
     // Save to config file.
-    save_config_to_file(tman_config)?;
+    save_config_to_file(&mut tman_config)?;
 
     let response = ApiResponse {
         status: Status::Ok,

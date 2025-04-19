@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -27,16 +27,9 @@ pub struct GetAppsResponseData {
 }
 
 pub async fn get_apps_endpoint(
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let pkgs_cache = state_read.pkgs_cache.read().await;
+    let pkgs_cache = state.pkgs_cache.read().await;
 
     let response = ApiResponse {
         status: Status::Ok,

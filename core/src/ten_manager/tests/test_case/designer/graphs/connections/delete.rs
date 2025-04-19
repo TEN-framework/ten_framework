@@ -6,10 +6,7 @@
 //
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::HashMap,
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap, sync::Arc};
 
     use actix_web::{test, web, App};
     use ten_rust::pkg_info::{
@@ -19,7 +16,7 @@ mod tests {
     use uuid::Uuid;
 
     use ten_manager::{
-        config::{internal::TmanInternalConfig, TmanConfig},
+        config::{metadata::TmanMetadata, TmanConfig},
         constants::TEST_DIR,
         designer::{
             graphs::connections::delete::{
@@ -41,8 +38,12 @@ mod tests {
     #[actix_web::test]
     async fn test_delete_graph_connection_invalid_graph() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -59,7 +60,7 @@ mod tests {
             );
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
@@ -101,8 +102,12 @@ mod tests {
     #[actix_web::test]
     async fn test_delete_graph_connection_nonexistent_connection() {
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -131,7 +136,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
@@ -192,8 +197,12 @@ mod tests {
 
         // Initialize test state.
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            tman_internal_config: Arc::new(TmanInternalConfig::default()),
+            tman_config: Arc::new(tokio::sync::RwLock::new(
+                TmanConfig::default(),
+            )),
+            tman_metadata: Arc::new(tokio::sync::RwLock::new(
+                TmanMetadata::default(),
+            )),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
             graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -230,7 +239,7 @@ mod tests {
             graph_id_clone = *graph_id;
         }
 
-        let designer_state = Arc::new(RwLock::new(designer_state));
+        let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
             App::new()
@@ -272,11 +281,7 @@ mod tests {
         assert!(response.data.success);
 
         // Verify the connection was actually removed from the data.
-        let state_read = designer_state.read().unwrap();
-
-        let DesignerState { graphs_cache, .. } = &*state_read;
-
-        let graphs_cache = graphs_cache.read().await;
+        let graphs_cache = designer_state.graphs_cache.read().await;
         if let Some(predefined_graph) =
             graphs_cache_find_by_id(&graphs_cache, &graph_id_clone)
         {

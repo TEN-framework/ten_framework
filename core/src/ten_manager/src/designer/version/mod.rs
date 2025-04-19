@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ struct CheckUpdateResponseData {
 }
 
 pub async fn get_version_endpoint(
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let version_info = GetVersionResponseData {
         version: VERSION.to_string(),

@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -114,23 +114,10 @@ fn get_extension_graph_node<'a>(
 
 pub async fn get_compatible_messages_endpoint(
     request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let DesignerState {
-        pkgs_cache,
-        graphs_cache,
-        ..
-    } = &*state_read;
-
-    let pkgs_cache = pkgs_cache.read().await;
-    let graphs_cache = graphs_cache.read().await;
+    let pkgs_cache = state.pkgs_cache.read().await;
+    let graphs_cache = state.graphs_cache.read().await;
 
     let graph_info = graphs_cache.get(&request_payload.graph_id);
     let app_base_dir_of_graph = match graph_info {

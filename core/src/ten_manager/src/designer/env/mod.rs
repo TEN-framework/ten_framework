@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder, Result};
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,7 @@ pub struct EnvInfo {
 }
 
 pub async fn get_env_endpoint(
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let current_env = ten_rust::env::get_env().map_err(|e| {
         actix_web::error::ErrorInternalServerError(e.to_string())

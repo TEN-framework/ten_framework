@@ -16,10 +16,12 @@ use serde_json::{Map, Value};
 use uuid::Uuid;
 
 use super::{
-    constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
+    constants::{PROPERTY_JSON_FILENAME, TEN_STR_PREDEFINED_GRAPHS},
     pkg_type::PkgType,
 };
-use crate::{fs::read_file_to_string, json_schema};
+use crate::{
+    _0_8_compatible::get_ten_field_string, fs::read_file_to_string, json_schema,
+};
 use crate::{
     graph::{graph_info::GraphInfo, is_app_default_loc_or_none},
     json_schema::ten_validate_property_json_string,
@@ -66,8 +68,10 @@ pub fn parse_property_from_str(
 
     let mut property: Property = serde_json::from_str(s)?;
 
+    let ten_field_str = get_ten_field_string();
+
     // Extract ten field from all_fields if it exists.
-    if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY) {
+    if let Some(ten_value) = property.all_fields.get(&ten_field_str) {
         // Process the ten field manually instead of using
         // serde_json::from_value directly. Create a TenInProperty with empty
         // predefined_graphs.
@@ -80,7 +84,7 @@ pub fn parse_property_from_str(
         if let Value::Object(map) = ten_value {
             // Extract and process predefined_graphs specially.
             if let Some(Value::Array(graphs_array)) =
-                map.get("predefined_graphs")
+                map.get(TEN_STR_PREDEFINED_GRAPHS)
             {
                 let mut graph_infos = Vec::new();
 

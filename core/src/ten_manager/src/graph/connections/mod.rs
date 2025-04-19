@@ -10,7 +10,10 @@ pub mod validate;
 use anyhow::Result;
 use serde_json::Value;
 
-use ten_rust::graph::connection::{GraphConnection, GraphMessageFlow};
+use ten_rust::{
+    _0_8_compatible::get_ten_field_string,
+    graph::connection::{GraphConnection, GraphMessageFlow},
+};
 
 use crate::json::write_property_json_file;
 
@@ -30,7 +33,9 @@ pub fn update_graph_connections_all_fields(
     connections_to_modify_msg_conversion: Option<&[GraphConnection]>,
 ) -> Result<()> {
     // Get ten object if it exists.
-    let ten_obj = match property_all_fields.get_mut("ten") {
+    let ten_field_str = get_ten_field_string();
+
+    let ten_obj = match property_all_fields.get_mut(&ten_field_str) {
         Some(Value::Object(obj)) => obj,
         _ => return write_property_json_file(pkg_url, property_all_fields),
     };

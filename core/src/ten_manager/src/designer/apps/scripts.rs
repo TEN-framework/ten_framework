@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -28,16 +28,9 @@ pub struct GetPackagesScriptsResponseData {
 
 pub async fn get_app_scripts_endpoint(
     request_payload: web::Json<GetPackagesScriptsRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!(
-            "Failed to acquire read lock: {}",
-            e
-        ))
-    })?;
-
-    let pkgs_cache = state_read.pkgs_cache.read().await;
+    let pkgs_cache = state.pkgs_cache.read().await;
 
     if let Some(base_dir_pkg_info) = pkgs_cache.get(&request_payload.base_dir) {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {

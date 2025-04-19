@@ -17,7 +17,7 @@ use ten_rust::{
 };
 
 use crate::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{is_verbose, metadata::TmanMetadata, TmanConfig},
     constants::SCRIPTS,
     output::TmanOutput,
 };
@@ -65,12 +65,12 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     cmd: RunCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line(&format!("Executing run command: {:?}", cmd));
     }
 
@@ -134,7 +134,7 @@ pub async fn execute_cmd(
     };
 
     // Execute the subprocess.
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line(&format!(
             "About to run script: {} -> {}",
             &cmd.script_name, script_cmd

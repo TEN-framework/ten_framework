@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
+use tokio::task::LocalSet;
 
 use ten_rust::pkg_info::manifest::support::ManifestSupport;
 
@@ -50,13 +51,16 @@ impl WsBuiltinFunction {
 
         // Clone the tman_config to avoid borrowing self in the async task.
         let tman_config = self.tman_config.clone();
-        let tman_internal_config = self.tman_internal_config.clone();
+        let tman_metadata = self.tman_metadata.clone();
 
-        // Call `execute_cmd()` in an async task.
-        tokio::spawn(async move {
+        // Create a LocalSet to ensure spawn_local runs on this thread.
+        let local = LocalSet::new();
+
+        // Spawn the task within the LocalSet context.
+        local.spawn_local(async move {
             let result = crate::cmd::cmd_install::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 install_command,
                 output_ws,
             )
@@ -74,6 +78,11 @@ impl WsBuiltinFunction {
                 exit_code,
                 error_message,
             });
+        });
+
+        // Use spawn to run the LocalSet in the background.
+        actix_web::rt::spawn(async move {
+            local.await;
         });
     }
 }

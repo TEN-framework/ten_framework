@@ -21,7 +21,7 @@ use std::sync::Arc;
 use anyhow::Result;
 
 use super::config::TmanConfig;
-use crate::{config::internal::TmanInternalConfig, output::TmanOutput};
+use crate::{config::metadata::TmanMetadata, output::TmanOutput};
 
 pub enum CommandData {
     Create(self::cmd_create::CreateCommand),
@@ -38,8 +38,8 @@ pub enum CommandData {
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: CommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -47,7 +47,7 @@ pub async fn execute_cmd(
         CommandData::Create(cmd) => {
             crate::cmd::cmd_create::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -56,7 +56,7 @@ pub async fn execute_cmd(
         CommandData::Install(cmd) => {
             crate::cmd::cmd_install::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -65,7 +65,7 @@ pub async fn execute_cmd(
         CommandData::Fetch(cmd) => {
             crate::cmd::cmd_fetch::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -74,7 +74,7 @@ pub async fn execute_cmd(
         CommandData::Uninstall(cmd) => {
             crate::cmd::cmd_uninstall::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -83,7 +83,7 @@ pub async fn execute_cmd(
         CommandData::Package(cmd) => {
             crate::cmd::cmd_package::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -92,7 +92,7 @@ pub async fn execute_cmd(
         CommandData::Publish(cmd) => {
             crate::cmd::cmd_publish::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -101,7 +101,7 @@ pub async fn execute_cmd(
         CommandData::Delete(cmd) => {
             crate::cmd::cmd_delete::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -110,7 +110,7 @@ pub async fn execute_cmd(
         CommandData::Designer(cmd) => {
             crate::cmd::cmd_designer::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -119,7 +119,7 @@ pub async fn execute_cmd(
         CommandData::Check(cmd) => {
             crate::cmd::cmd_check::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -128,7 +128,7 @@ pub async fn execute_cmd(
         CommandData::Modify(cmd) => {
             crate::cmd::cmd_modify::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )
@@ -137,7 +137,7 @@ pub async fn execute_cmd(
         CommandData::Run(cmd) => {
             crate::cmd::cmd_run::execute_cmd(
                 tman_config,
-                tman_internal_config,
+                tman_metadata,
                 cmd,
                 out,
             )

@@ -4,23 +4,20 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use actix_web::{http::StatusCode, test, web};
 use uuid::Uuid;
 
 use ten_manager::{
     config::{
-        internal::{
-            GraphGeometry, GraphUiConfig, NodeGeometry, TmanInternalConfig,
+        metadata::{
+            GraphGeometry, GraphUiMetadata, NodeGeometry, TmanMetadata,
         },
         TmanConfig,
     },
     designer::{
-        internal_config::graph_ui::{
+        metadata::graph_ui::{
             get::{
                 get_graph_ui_endpoint, GetGraphUiRequestPayload,
                 GetGraphUiResponseData,
@@ -46,13 +43,15 @@ async fn test_get_graph_ui_empty() {
 
     // Create a clean state with empty config.
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+    let state = web::Data::new(Arc::new(designer_state));
 
     // Create app with the endpoint.
     let app = test::init_service(
@@ -107,13 +106,15 @@ async fn test_set_and_get_graph_ui() {
 
     // Create a clean state with empty config.
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+    let state = web::Data::new(Arc::new(designer_state));
 
     // Create app with both endpoints.
     let app = test::init_service(
@@ -208,23 +209,25 @@ async fn test_update_graph_ui() {
     };
 
     // Create a designer state with pre-filled graph_ui config.
-    let mut graph_ui_config = GraphUiConfig::default();
+    let mut graph_ui_config = GraphUiMetadata::default();
     graph_ui_config
         .graphs_geometry
         .insert(graph_id, initial_graph_geometry);
 
-    let tman_internal_config = TmanInternalConfig {
+    let tman_metadata = TmanMetadata {
         graph_ui: graph_ui_config,
     };
 
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(tman_internal_config),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            tman_metadata,
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+    let state = web::Data::new(Arc::new(designer_state));
 
     // Create app with both endpoints.
     let app = test::init_service(
@@ -308,23 +311,25 @@ async fn test_get_nonexistent_graph_ui() {
 
     // Create a designer state with pre-filled graph_ui config for only one
     // graph.
-    let mut graph_ui_config = GraphUiConfig::default();
+    let mut graph_ui_config = GraphUiMetadata::default();
     graph_ui_config
         .graphs_geometry
         .insert(existing_graph_id, graph_geometry);
 
-    let tman_internal_config = TmanInternalConfig {
+    let tman_metadata = TmanMetadata {
         graph_ui: graph_ui_config,
     };
 
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(tman_internal_config),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            tman_metadata,
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
-    let state = web::Data::new(Arc::new(RwLock::new(designer_state)));
+    let state = web::Data::new(Arc::new(designer_state));
 
     // Create app with the get endpoint.
     let app = test::init_service(

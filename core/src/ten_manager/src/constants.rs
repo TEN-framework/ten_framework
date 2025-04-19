@@ -78,6 +78,6 @@ pub const TEN_NAME_RULE_PATH: &str = "ten.name";
 
 pub const PACKAGE_CACHE: &str = "package_cache";
 pub const CONFIG_JSON: &str = "config.json";
-pub const INTERNAL_CONFIG_JSON: &str = "internal_config.json";
+pub const METADATA_FILE: &str = "metadata.json";
 
 pub const BUF_WRITER_BUF_SIZE: usize = 1024 * 1024;

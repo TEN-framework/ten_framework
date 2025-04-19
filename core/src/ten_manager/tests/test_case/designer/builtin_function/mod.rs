@@ -6,10 +6,7 @@
 //
 pub mod install_all;
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use actix_web::{
     http::{header, StatusCode},
@@ -17,7 +14,7 @@ use actix_web::{
 };
 
 use ten_manager::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     designer::{builtin_function::builtin_function_endpoint, DesignerState},
     output::TmanOutputCli,
 };
@@ -25,14 +22,16 @@ use ten_manager::{
 #[actix_rt::test]
 async fn test_cmd_builtin_function_websocket_connection() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     // Initialize the test service with the WebSocket endpoint.
     let app = test::init_service(

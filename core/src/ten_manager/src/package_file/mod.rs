@@ -22,6 +22,7 @@ use ten_rust::pkg_info::{
 };
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
+use crate::config::is_verbose;
 use crate::output::TmanOutput;
 use crate::{constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy};
 use package::tar_gz_files_to_file;
@@ -39,8 +40,8 @@ pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
     Ok(output_pkg_file_name)
 }
 
-pub fn create_package_tar_gz_file(
-    tman_config: Arc<TmanConfig>,
+pub async fn create_package_tar_gz_file(
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     output_pkg_file_path: &Path,
     folder_to_tar_gz: &Path,
     out: Arc<Box<dyn TmanOutput>>,
@@ -145,7 +146,7 @@ pub fn create_package_tar_gz_file(
         }
     }
 
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Files to be packed:");
         for file in &files_to_include {
             out.normal_line(&format!("> {:?}", file));

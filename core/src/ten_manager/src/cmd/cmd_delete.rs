@@ -16,7 +16,8 @@ use semver::Version;
 
 use ten_rust::pkg_info::pkg_type::PkgType;
 
-use crate::config::internal::TmanInternalConfig;
+use crate::config::is_verbose;
+use crate::config::metadata::TmanMetadata;
 use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::delete_package};
 
@@ -77,12 +78,12 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: Arc<TmanConfig>,
-    _tman_internal_config: Arc<TmanInternalConfig>,
+    tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
+    _tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     command_data: DeleteCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    if tman_config.verbose {
+    if is_verbose(tman_config.clone()).await {
         out.normal_line("Executing delete command");
         out.normal_line(&format!("{:?}", command_data));
     }

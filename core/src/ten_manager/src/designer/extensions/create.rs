@@ -4,10 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::{path::Path, sync::Arc};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
@@ -40,7 +37,7 @@ pub struct CreateExtensionResponseData {
 
 pub async fn create_extension_endpoint(
     request_payload: web::Json<CreateExtensionRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let CreateExtensionRequestPayload {
         base_dir,
@@ -76,36 +73,16 @@ pub async fn create_extension_endpoint(
         return Ok(HttpResponse::Conflict().json(error_response));
     }
 
-    let tman_config_clone;
-    let out_clone;
-    {
-        let state_read = state.read().map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to acquire read lock: {}",
-                e
-            ))
-        })?;
-
-        // Destructure to avoid multiple mutable borrows.
-        let DesignerState {
-            tman_config, out, ..
-        } = &*state_read;
-
-        // Clone the values we need
-        tman_config_clone = tman_config.clone();
-        out_clone = out.clone();
-    }
-
     // Create extension using create_pkg_in_path.
     match create_pkg_in_path(
-        &tman_config_clone,
+        state.tman_config.clone(),
         Path::new(&base_dir),
         &PkgType::Extension,
         &extension_name,
         &template_name,
         &VersionReq::default(),
         None,
-        &out_clone,
+        &state.out,
     )
     .await
     {
@@ -113,22 +90,8 @@ pub async fn create_extension_endpoint(
             let extension_path_str =
                 extension_path.to_string_lossy().to_string();
 
-            let mut state_write = state.write().map_err(|e| {
-                actix_web::error::ErrorInternalServerError(format!(
-                    "Failed to acquire write lock: {}",
-                    e
-                ))
-            })?;
-
-            // Destructure to avoid multiple mutable borrows.
-            let DesignerState {
-                pkgs_cache,
-                graphs_cache,
-                ..
-            } = &mut *state_write;
-
-            let mut pkgs_cache = pkgs_cache.write().await;
-            let mut graphs_cache = graphs_cache.write().await;
+            let mut pkgs_cache = state.pkgs_cache.write().await;
+            let mut graphs_cache = state.graphs_cache.write().await;
 
             // Try to load the newly created extension into the cache.
             if let Err(err) = get_all_pkgs_in_app(

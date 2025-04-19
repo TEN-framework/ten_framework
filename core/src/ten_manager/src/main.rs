@@ -7,9 +7,10 @@
 use std::process;
 use std::sync::Arc;
 
+use anyhow::Result;
 use console::Emoji;
 use ten_manager::cmd::execute_cmd;
-use ten_manager::config::internal::TmanInternalConfig;
+use ten_manager::config::metadata::TmanMetadata;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd_line;
@@ -18,10 +19,11 @@ use ten_manager::output::{TmanOutput, TmanOutputCli};
 use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 
-fn check_update_from_cmdline(out: Arc<Box<dyn TmanOutput>>) {
+fn check_update_from_cmdline(out: Arc<Box<dyn TmanOutput>>) -> Result<()> {
     out.normal_line("Checking for new version...");
 
-    let rt = Runtime::new().unwrap();
+    let rt = Runtime::new()?;
+
     match rt.block_on(check_update()) {
         Ok((true, latest)) => {
             out.normal_line(&format!(
@@ -36,6 +38,8 @@ fn check_update_from_cmdline(out: Arc<Box<dyn TmanOutput>>) {
             out.normal_line(&err_msg.to_string());
         }
     }
+
+    Ok(())
 }
 
 fn main() {
@@ -53,16 +57,34 @@ fn main() {
         out.normal_line(&format!("TEN Framework version: {}", VERSION));
 
         // Call the update check function
-        check_update_from_cmdline(out.clone());
-
-        // If `--version` is passed, ignore other parameters and exit directly.
-        std::process::exit(0);
+        match check_update_from_cmdline(out.clone()) {
+            Ok(_) => {
+                // If `--version` is passed, ignore other parameters and exit
+                // directly.
+                process::exit(0);
+            }
+            Err(e) => {
+                out.error_line(&format!(
+                    "{}  Error: {}",
+                    Emoji("🔴", ":-("),
+                    e
+                ));
+                process::exit(1);
+            }
+        }
     }
 
-    let rt = Runtime::new().unwrap();
+    let rt = match Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            out.error_line(&format!("{}  Error: {}", Emoji("🔴", ":-("), e));
+            process::exit(1);
+        }
+    };
+
     let result = rt.block_on(execute_cmd(
         parsed_cmd.tman_config,
-        Arc::new(TmanInternalConfig::default()),
+        Arc::new(tokio::sync::RwLock::new(TmanMetadata::default())),
         parsed_cmd.command_data.unwrap(),
         out.clone(),
     ));

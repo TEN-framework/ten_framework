@@ -5,13 +5,13 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use actix_web::{test, web, App};
 use serde_json::json;
 
 use ten_manager::{
-    config::{internal::TmanInternalConfig, TmanConfig},
+    config::{metadata::TmanMetadata, TmanConfig},
     constants::TEST_DIR,
     designer::{
         messages::compatible::{
@@ -30,8 +30,10 @@ use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 #[actix_web::test]
 async fn test_get_compatible_messages_success() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -99,7 +101,7 @@ async fn test_get_compatible_messages_success() {
         graph_id.expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
@@ -154,8 +156,10 @@ async fn test_get_compatible_messages_success() {
 #[actix_web::test]
 async fn test_get_compatible_messages_fail() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -220,7 +224,7 @@ async fn test_get_compatible_messages_fail() {
             .expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
@@ -255,8 +259,10 @@ async fn test_get_compatible_messages_fail() {
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_1() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -321,7 +327,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
             .expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
@@ -379,8 +385,10 @@ async fn test_get_compatible_messages_cmd_has_required_success_1() {
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_2() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -445,7 +453,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
             .expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
@@ -503,8 +511,10 @@ async fn test_get_compatible_messages_cmd_has_required_success_2() {
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_3() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -569,7 +579,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
             .expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
@@ -627,8 +637,10 @@ async fn test_get_compatible_messages_cmd_has_required_success_3() {
 #[actix_web::test]
 async fn test_get_compatible_messages_cmd_has_required_success_4() {
     let designer_state = DesignerState {
-        tman_config: Arc::new(TmanConfig::default()),
-        tman_internal_config: Arc::new(TmanInternalConfig::default()),
+        tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(
+            TmanMetadata::default(),
+        )),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -693,7 +705,7 @@ async fn test_get_compatible_messages_cmd_has_required_success_4() {
             .expect("Default graph should exist")
     };
 
-    let designer_state = Arc::new(RwLock::new(designer_state));
+    let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
