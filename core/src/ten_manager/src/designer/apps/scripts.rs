@@ -37,9 +37,9 @@ pub async fn get_app_scripts_endpoint(
         ))
     })?;
 
-    if let Some(base_dir_pkg_info) =
-        &state_read.pkgs_cache.get(&request_payload.base_dir)
-    {
+    let pkgs_cache = state_read.pkgs_cache.read().await;
+
+    if let Some(base_dir_pkg_info) = pkgs_cache.get(&request_payload.base_dir) {
         if let Some(app_pkg) = &base_dir_pkg_info.app_pkg_info {
             let scripts = app_pkg
                 .manifest

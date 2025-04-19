@@ -47,8 +47,8 @@ pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub tman_internal_config: Arc<TmanInternalConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
-    pub pkgs_cache: HashMap<String, PkgsInfoInApp>,
-    pub graphs_cache: HashMap<Uuid, GraphInfo>,
+    pub pkgs_cache: tokio::sync::RwLock<HashMap<String, PkgsInfoInApp>>,
+    pub graphs_cache: tokio::sync::RwLock<HashMap<Uuid, GraphInfo>>,
 }
 
 pub fn configure_routes(

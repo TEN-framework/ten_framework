@@ -40,8 +40,8 @@ async fn test_get_preferences_success() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -88,8 +88,8 @@ async fn test_get_preferences_invalid_path() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -184,8 +184,8 @@ async fn test_update_preferences_success() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -255,8 +255,8 @@ async fn test_update_preferences_invalid_schema() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -303,8 +303,8 @@ async fn test_update_preferences_field_success() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -368,8 +368,8 @@ async fn test_update_preferences_field_invalid_value() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -412,8 +412,8 @@ async fn test_update_preferences_field_invalid_field() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.
@@ -461,8 +461,8 @@ async fn test_update_preferences_field_locale() {
         tman_config: Arc::new(config),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     // Create test app.

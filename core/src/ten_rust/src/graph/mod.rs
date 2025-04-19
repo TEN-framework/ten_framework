@@ -21,7 +21,7 @@ use crate::{
     constants::{
         ERR_MSG_GRAPH_APP_FIELD_EMPTY, ERR_MSG_GRAPH_MIXED_APP_DECLARATIONS,
     },
-    pkg_info::{create_uri_to_pkg_info_map, localhost, pkg_type::PkgType},
+    pkg_info::{localhost, pkg_type::PkgType},
 };
 
 /// The state of the 'app' field declaration in all nodes in the graph.
@@ -234,26 +234,14 @@ impl Graph {
         graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
     ) -> Result<()> {
-        // Create a hash map from app URIs to PkgsInfoInApp.
-        let uri_to_pkg_info =
-            create_uri_to_pkg_info_map(pkgs_cache).map_err(|e| {
-                anyhow::anyhow!("Failed to create uri to pkg info map: {}", e)
-            })?;
-
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
         self.check_connection_extensions_exist()?;
 
-        self.check_nodes_installation(
-            graph_app_base_dir,
-            pkgs_cache,
-            &uri_to_pkg_info,
-            false,
-        )?;
+        self.check_nodes_installation(graph_app_base_dir, pkgs_cache, false)?;
         self.check_connections_compatibility(
             graph_app_base_dir,
             pkgs_cache,
-            &uri_to_pkg_info,
             false,
         )?;
 
@@ -270,28 +258,16 @@ impl Graph {
     ) -> Result<()> {
         assert!(pkgs_cache.len() == 1);
 
-        // Create a hash map from app URIs to PkgsInfoInApp.
-        let uri_to_pkg_info =
-            create_uri_to_pkg_info_map(pkgs_cache).map_err(|e| {
-                anyhow::anyhow!("Failed to create uri to pkg info map: {}", e)
-            })?;
-
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
         self.check_connection_extensions_exist()?;
 
         // In a single app, there is no information about pkg_info of other
         // apps, neither the message schemas.
-        self.check_nodes_installation(
-            graph_app_base_dir,
-            pkgs_cache,
-            &uri_to_pkg_info,
-            true,
-        )?;
+        self.check_nodes_installation(graph_app_base_dir, pkgs_cache, true)?;
         self.check_connections_compatibility(
             graph_app_base_dir,
             pkgs_cache,
-            &uri_to_pkg_info,
             true,
         )?;
 

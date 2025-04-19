@@ -41,19 +41,24 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_node_invalid_graph() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -95,33 +100,34 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_node_invalid_app_uri() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) =
-            graphs_cache_find_by_name(&designer_state.graphs_cache, "default")
-                .unwrap();
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
-        // Try to add a node with localhost app URI (which is not allowed).
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "test_node".to_string(),
-            addon: "test_addon".to_string(),
-            extension_group: None,
-            app: Some(localhost().to_string()),
-            property: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) =
+                graphs_cache_find_by_name(&graphs_cache, "default").unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -132,6 +138,16 @@ mod tests {
             ),
         )
         .await;
+
+        // Try to add a node with localhost app URI (which is not allowed).
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some(localhost().to_string()),
+            property: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -155,35 +171,37 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_node_success() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
-        // Add a node to the default graph with the same app URI as other nodes
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "test_node".to_string(),
-            addon: "test_addon".to_string(),
-            extension_group: None,
-            app: Some("http://example.com:8000".to_string()),
-            property: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -194,6 +212,16 @@ mod tests {
             ),
         )
         .await;
+
+        // Add a node to the default graph with the same app URI as other nodes
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
+            property: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -220,33 +248,34 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_node_without_app_uri_success() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) =
-            graphs_cache_find_by_name(&designer_state.graphs_cache, "default")
-                .unwrap();
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
-        // Add a node to the default graph with the same app URI as other nodes.
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "test_node".to_string(),
-            addon: "test_addon".to_string(),
-            extension_group: None,
-            app: None,
-            property: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) =
+                graphs_cache_find_by_name(&graphs_cache, "default").unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -257,6 +286,16 @@ mod tests {
             ),
         )
         .await;
+
+        // Add a node to the default graph with the same app URI as other nodes.
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "test_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: None,
+            property: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -307,12 +346,12 @@ mod tests {
         fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -322,28 +361,27 @@ mod tests {
             fs::read_to_string(&property_path).unwrap(),
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "test_graph",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a node to the test-graph.
-        let request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "new_node".to_string(),
-            addon: "new_addon".to_string(),
-            extension_group: None,
-            app: None,
-            property: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) =
+                graphs_cache_find_by_name(&graphs_cache, "test_graph").unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -356,6 +394,16 @@ mod tests {
                 ),
         )
         .await;
+
+        // Add a node to the test-graph.
+        let request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "new_node".to_string(),
+            addon: "new_addon".to_string(),
+            extension_group: None,
+            app: None,
+            property: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -406,12 +454,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -433,30 +481,30 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "test_delete_node".to_string(),
-            addon: "test_addon".to_string(),
-            extension_group: None,
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": "test_value_for_delete"
-            })),
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -471,6 +519,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": "test_value_for_delete"
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")
@@ -522,12 +582,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -549,30 +609,30 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a node to the default graph.
-        let add_request_payload = AddGraphNodeRequestPayload {
-            graph_id: *graph_id,
-            name: "test_delete_node".to_string(),
-            addon: "test_addon".to_string(),
-            extension_group: None,
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(serde_json::json!({
-                "test_property": 13
-            })),
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -587,6 +647,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Add a node to the default graph.
+        let add_request_payload = AddGraphNodeRequestPayload {
+            graph_id: graph_id_clone,
+            name: "test_delete_node".to_string(),
+            addon: "test_addon".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(serde_json::json!({
+                "test_property": 13
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/add")

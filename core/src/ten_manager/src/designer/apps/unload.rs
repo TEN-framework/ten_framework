@@ -46,6 +46,9 @@ pub async fn unload_app_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Check if the base_dir exists in pkgs_cache.
     if !pkgs_cache.contains_key(&request_payload.base_dir) {
         let error_response = ErrorResponse {
@@ -64,7 +67,7 @@ pub async fn unload_app_endpoint(
 
     // Remove any graphs associated with this app.
     let base_dir = &request_payload.base_dir;
-    graphs_cache_remove_by_app_base_dir(graphs_cache, base_dir);
+    graphs_cache_remove_by_app_base_dir(&mut graphs_cache, base_dir);
 
     let response = ApiResponse {
         status: Status::Ok,

@@ -32,8 +32,8 @@ async fn test_get_template_app_typescript() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -73,8 +73,8 @@ async fn test_get_template_extension_cpp() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -114,8 +114,8 @@ async fn test_get_template_unsupported() {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
     let designer_state = Arc::new(RwLock::new(designer_state));
 

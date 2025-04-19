@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::node::GraphNode,
     pkg_info::{
         get_pkg_info_for_extension_addon,
@@ -28,7 +28,6 @@ pub struct CompatibleExtensionAndMsg<'a> {
 #[allow(clippy::too_many_arguments)]
 pub fn get_compatible_msg_extension<'a>(
     extension_graph_nodes: &'a [GraphNode],
-    uri_to_pkg_info: &'a HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
     app_base_dir: &Option<String>,
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     desired_msg_dir: &MsgDirection,
@@ -41,7 +40,6 @@ pub fn get_compatible_msg_extension<'a>(
     for target_extension_graph_node in extension_graph_nodes {
         let target_extension_pkg_info = get_pkg_info_for_extension_addon(
             pkgs_cache,
-            uri_to_pkg_info,
             app_base_dir,
             &target_extension_graph_node.app,
             &target_extension_graph_node.addon,

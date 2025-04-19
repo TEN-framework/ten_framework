@@ -119,8 +119,8 @@ pub async fn execute_cmd(
         tman_config,
         tman_internal_config,
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     }));
 
     let mut actual_base_dir_opt: Option<String> = Some(base_dir);
@@ -138,16 +138,17 @@ pub async fn execute_cmd(
     }
 
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
-        let mut state_write = state.write().unwrap();
+        // =-=-=
+        let state_write = state.write().unwrap();
 
-        // Destructure to avoid multiple mutable borrows.
-        let DesignerState {
-            pkgs_cache,
-            graphs_cache,
-            ..
-        } = &mut *state_write;
+        let mut pkgs_cache = state_write.pkgs_cache.write().await;
+        let mut graphs_cache = state_write.graphs_cache.write().await;
 
-        get_all_pkgs_in_app(pkgs_cache, graphs_cache, actual_base_dir)?;
+        get_all_pkgs_in_app(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            actual_base_dir,
+        )?;
     }
 
     let server = HttpServer::new(move || {

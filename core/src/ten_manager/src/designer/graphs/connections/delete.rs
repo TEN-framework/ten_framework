@@ -157,9 +157,12 @@ pub async fn delete_graph_connection_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -186,7 +189,8 @@ pub async fn delete_graph_connection_endpoint(
         Ok(_) => {
             if let Ok(Some(pkg_info)) =
                 belonging_pkg_info_find_by_graph_info_mut(
-                    pkgs_cache, graph_info,
+                    &mut pkgs_cache,
+                    graph_info,
                 )
             {
                 // Update property.json file to remove the connection.

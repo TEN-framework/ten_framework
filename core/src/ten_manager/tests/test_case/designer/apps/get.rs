@@ -28,9 +28,17 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
+
+        // Create an empty PkgsInfoInApp.
+        let empty_pkg_info = PkgsInfoInApp::default();
+
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            pkgs_cache.insert(TEST_DIR.to_string(), empty_pkg_info);
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -40,15 +48,6 @@ mod tests {
                 .route("/test_get_apps_some", web::get().to(get_apps_endpoint)),
         )
         .await;
-
-        // Create an empty PkgsInfoInApp.
-        let empty_pkg_info = PkgsInfoInApp::default();
-
-        designer_state
-            .write()
-            .unwrap()
-            .pkgs_cache
-            .insert(TEST_DIR.to_string(), empty_pkg_info);
 
         let req = test::TestRequest::get()
             .uri("/test_get_apps_some")
@@ -75,8 +74,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 

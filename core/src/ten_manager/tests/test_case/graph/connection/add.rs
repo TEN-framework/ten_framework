@@ -20,7 +20,6 @@ mod tests {
     };
     use ten_rust::graph::Graph;
     use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
-    use ten_rust::pkg_info::create_uri_to_pkg_info_map;
     use ten_rust::pkg_info::message::MsgType;
 
     use crate::test_case::common::mock::inject_all_standard_pkgs_for_mock;
@@ -123,8 +122,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -152,7 +149,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -190,8 +186,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with only one node.
         let mut graph = Graph {
             nodes: vec![create_test_node(
@@ -212,7 +206,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -231,8 +224,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with only one node.
         let mut graph = Graph {
@@ -254,7 +245,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("app1".to_string()),
             "ext2".to_string(), // This node doesn't exist.
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -273,8 +263,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with three nodes.
         let mut graph = Graph {
@@ -308,7 +296,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -325,7 +312,6 @@ mod tests {
             "test_cmd_2".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext3".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -367,8 +353,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -396,7 +380,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -411,7 +394,6 @@ mod tests {
             "data1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -426,7 +408,6 @@ mod tests {
             "audio1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -441,7 +422,6 @@ mod tests {
             "video1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -472,8 +452,6 @@ mod tests {
             TEST_DIR,
         );
 
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
-
         // Create a graph with two nodes.
         let mut graph = Graph {
             nodes: vec![
@@ -501,7 +479,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -517,7 +494,6 @@ mod tests {
             "test_cmd".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -551,8 +527,6 @@ mod tests {
             &mut graphs_cache,
             TEST_DIR,
         );
-
-        let uri_to_pkg_info = create_uri_to_pkg_info_map(&pkgs_cache).unwrap();
 
         // Create a graph with three nodes.
         let mut graph = Graph {
@@ -591,7 +565,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext2".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -607,7 +580,6 @@ mod tests {
             "data1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext3".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -623,7 +595,6 @@ mod tests {
             "cmd_incompatible".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext3".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -643,7 +614,6 @@ mod tests {
             "cmd1".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext4".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -659,7 +629,6 @@ mod tests {
             "cmd2".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext4".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );
@@ -681,7 +650,6 @@ mod tests {
             "data_incompatible".to_string(),
             Some("http://example.com:8000".to_string()),
             "ext3".to_string(),
-            &uri_to_pkg_info,
             &pkgs_cache,
             None,
         );

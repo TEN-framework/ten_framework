@@ -42,12 +42,12 @@ mod tests {
     #[actix_web::test]
     async fn test_update_graph_success() {
         // Create a designer state with an empty graphs cache.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -72,20 +72,27 @@ mod tests {
             app_property_json_str,
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = &designer_state.graphs_cache.read().await;
+            let (graph_id, _) =
+                graphs_cache_find_by_name(graphs_cache, "default_with_app_uri")
+                    .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -197,8 +204,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         }));
 
         // Create a test app with the update_graph_endpoint.
@@ -246,12 +253,12 @@ mod tests {
     #[actix_web::test]
     async fn test_update_graph_empty_connections() {
         // Create a designer state with an empty graphs cache.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -276,20 +283,27 @@ mod tests {
             app_property_json_str,
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = &designer_state.graphs_cache.read().await;
+            let (graph_id, _) =
+                graphs_cache_find_by_name(graphs_cache, "default_with_app_uri")
+                    .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 

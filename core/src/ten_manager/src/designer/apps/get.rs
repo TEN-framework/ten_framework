@@ -36,14 +36,15 @@ pub async fn get_apps_endpoint(
         ))
     })?;
 
+    let pkgs_cache = state_read.pkgs_cache.read().await;
+
     let response = ApiResponse {
         status: Status::Ok,
         data: GetAppsResponseData {
-            app_info: if state_read.pkgs_cache.is_empty() {
+            app_info: if pkgs_cache.is_empty() {
                 vec![]
             } else {
-                state_read
-                    .pkgs_cache
+                pkgs_cache
                     .iter()
                     .map(|(base_dir, base_dir_pkg_info)| {
                         // Get the App package info directly from

@@ -126,10 +126,15 @@ pub async fn create_app_endpoint(
                 ..
             } = &mut *state_write;
 
+            let mut pkgs_cache = pkgs_cache.write().await;
+            let mut graphs_cache = graphs_cache.write().await;
+
             // Try to load the newly created app into the cache.
-            if let Err(err) =
-                get_all_pkgs_in_app(pkgs_cache, graphs_cache, &app_path_str)
-            {
+            if let Err(err) = get_all_pkgs_in_app(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                &app_path_str,
+            ) {
                 // Don't delete the app directory on cache update failure.
                 let error_response = ErrorResponse::from_error(
                     &err,

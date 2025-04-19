@@ -61,12 +61,12 @@ mod tests {
             .unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -90,29 +90,28 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "extension_1".to_string(),
-            addon: "extension_addon_1".to_string(),
-            extension_group: Some("extension_group_1".to_string()),
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -126,6 +125,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -174,19 +185,24 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_node_property_invalid_graph() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -230,36 +246,35 @@ mod tests {
 
     #[actix_web::test]
     async fn test_update_graph_node_property_node_not_found() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
-        // Try to update a non-existent node
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "non_existent_node".to_string(),
-            addon: "addon1".to_string(),
-            extension_group: None,
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -271,6 +286,18 @@ mod tests {
             ),
         )
         .await;
+
+        // Try to update a non-existent node
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "non_existent_node".to_string(),
+            addon: "addon1".to_string(),
+            extension_group: None,
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -314,12 +341,12 @@ mod tests {
             .unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -343,29 +370,28 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "extension_1".to_string(),
-            addon: "extension_addon_1".to_string(),
-            extension_group: Some("extension_group_1".to_string()),
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": "updated_value"
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -379,6 +405,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": "updated_value"
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -442,12 +480,12 @@ mod tests {
             .unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -471,29 +509,28 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "extension_1".to_string(),
-            addon: "extension_addon_1".to_string(),
-            extension_group: Some("extension_group_1".to_string()),
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": 32
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -507,6 +544,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": 32
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -563,12 +612,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -590,32 +639,28 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Update property of an existing node.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "extension_1".to_string(),
-            addon: "extension_addon_1".to_string(),
-            extension_group: Some("extension_group_1".to_string()),
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": {
-                    "a": 1,
-                    "b": "2"
-                }
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -629,6 +674,21 @@ mod tests {
                 ),
         )
         .await;
+
+        // Update property of an existing node.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": {
+                    "a": 1,
+                    "b": "2"
+                }
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")
@@ -688,12 +748,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -715,32 +775,28 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Update property of an existing node with invalid data.
-        let request_payload = UpdateGraphNodePropertyRequestPayload {
-            graph_id: *graph_id,
-            name: "extension_1".to_string(),
-            addon: "extension_addon_1".to_string(),
-            extension_group: Some("extension_group_1".to_string()),
-            app: Some("http://example.com:8000".to_string()),
-            property: Some(json!({
-                "key": {
-                    "a": "wrong",
-                    "b": "2"
-                }
-            })),
+        let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let (id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            *id
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -754,6 +810,21 @@ mod tests {
                 ),
         )
         .await;
+
+        // Update property of an existing node with invalid data.
+        let request_payload = UpdateGraphNodePropertyRequestPayload {
+            graph_id,
+            name: "extension_1".to_string(),
+            addon: "extension_addon_1".to_string(),
+            extension_group: Some("extension_group_1".to_string()),
+            app: Some("http://example.com:8000".to_string()),
+            property: Some(json!({
+                "key": {
+                    "a": "wrong",
+                    "b": "2"
+                }
+            })),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes/property/update")

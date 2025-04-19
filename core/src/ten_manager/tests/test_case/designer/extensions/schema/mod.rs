@@ -32,19 +32,24 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_schema_success() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -103,19 +108,24 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_schema_extension_not_found() {
         // Set up the designer state with initial data
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -153,8 +163,8 @@ mod tests {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         let designer_state = Arc::new(RwLock::new(designer_state));

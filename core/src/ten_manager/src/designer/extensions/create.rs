@@ -127,10 +127,13 @@ pub async fn create_extension_endpoint(
                 ..
             } = &mut *state_write;
 
+            let mut pkgs_cache = pkgs_cache.write().await;
+            let mut graphs_cache = graphs_cache.write().await;
+
             // Try to load the newly created extension into the cache.
             if let Err(err) = get_all_pkgs_in_app(
-                pkgs_cache,
-                graphs_cache,
+                &mut pkgs_cache,
+                &mut graphs_cache,
                 &extension_path_str,
             ) {
                 // Don't delete the extension directory on cache update failure.

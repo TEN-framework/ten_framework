@@ -40,19 +40,24 @@ mod tests {
 
     #[actix_web::test]
     async fn test_delete_graph_connection_invalid_graph() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -95,36 +100,36 @@ mod tests {
 
     #[actix_web::test]
     async fn test_delete_graph_connection_nonexistent_connection() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
-        // Try to delete a non-existent connection.
-        let request_payload = DeleteGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: None,
-            src_extension: "nonexistent_extension".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "nonexistent_message".to_string(),
-            dest_app: None,
-            dest_extension: "nonexistent_destination".to_string(),
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -135,6 +140,17 @@ mod tests {
             ),
         )
         .await;
+
+        // Try to delete a non-existent connection.
+        let request_payload = DeleteGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: None,
+            src_extension: "nonexistent_extension".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "nonexistent_message".to_string(),
+            dest_app: None,
+            dest_extension: "nonexistent_destination".to_string(),
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/delete")
@@ -175,12 +191,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -190,20 +206,29 @@ mod tests {
             std::fs::read_to_string(&property_path).unwrap(),
         )];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        let graph_id_clone = *graph_id;
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -251,8 +276,9 @@ mod tests {
 
         let DesignerState { graphs_cache, .. } = &*state_read;
 
+        let graphs_cache = graphs_cache.read().await;
         if let Some(predefined_graph) =
-            graphs_cache_find_by_id(graphs_cache, &graph_id_clone)
+            graphs_cache_find_by_id(&graphs_cache, &graph_id_clone)
         {
             // Check if the connection is gone.
             let connection_exists = predefined_graph

@@ -35,12 +35,12 @@ use crate::test_case::common::mock::inject_all_pkgs_for_mock;
 
 #[actix_rt::test]
 async fn test_cmd_designer_graphs_app_property_not_exist() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -63,12 +63,17 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
       ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
@@ -101,12 +106,12 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
 #[actix_rt::test]
 async fn test_cmd_designer_connections_has_msg_conversion() {
-    let mut designer_state = DesignerState {
+    let designer_state = DesignerState {
         tman_config: Arc::new(TmanConfig::default()),
         tman_internal_config: Arc::new(TmanInternalConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
-        pkgs_cache: HashMap::new(),
-        graphs_cache: HashMap::new(),
+        pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+        graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
     };
 
     let all_pkgs_json_str = vec![
@@ -129,12 +134,17 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
         ),
     ];
 
-    let inject_ret = inject_all_pkgs_for_mock(
-        &mut designer_state.pkgs_cache,
-        &mut designer_state.graphs_cache,
-        all_pkgs_json_str,
-    );
-    assert!(inject_ret.is_ok());
+    {
+        let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+        let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+        let inject_ret = inject_all_pkgs_for_mock(
+            &mut pkgs_cache,
+            &mut graphs_cache,
+            all_pkgs_json_str,
+        );
+        assert!(inject_ret.is_ok());
+    }
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
@@ -150,8 +160,9 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     let request_payload = GetGraphConnectionsRequestPayload {
         graph_id: {
             let state_read = designer_state.read().unwrap();
-            state_read
-                .graphs_cache
+            let graphs_cache = state_read.graphs_cache.read().await;
+
+            graphs_cache
                 .iter()
                 .find_map(|(uuid, graph)| {
                     if graph.name.as_ref().is_some_and(|name| name == "default")

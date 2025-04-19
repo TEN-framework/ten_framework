@@ -11,9 +11,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use ten_rust::{
-    graph::graph_info::GraphInfo, pkg_info::create_uri_to_pkg_info_map,
-};
+use ten_rust::graph::graph_info::GraphInfo;
 
 use crate::{
     designer::{
@@ -91,9 +89,12 @@ pub async fn update_graph_node_property_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     // Get the specified graph from graphs_cache.
     let graph_info = match graphs_cache_find_by_id_mut(
-        graphs_cache,
+        &mut graphs_cache,
         &request_payload.graph_id,
     ) {
         Some(graph_info) => graph_info,
@@ -107,26 +108,12 @@ pub async fn update_graph_node_property_endpoint(
         }
     };
 
-    // Create a hash map from app URIs to PkgsInfoInApp.
-    let uri_to_pkg_info = match create_uri_to_pkg_info_map(pkgs_cache) {
-        Ok(map) => map,
-        Err(error_message) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: error_message,
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     if let Err(e) = validate_extension_property(
         &request_payload.property,
         &request_payload.app,
         &request_payload.addon,
-        &uri_to_pkg_info,
         &graph_info.app_base_dir,
-        pkgs_cache,
+        &pkgs_cache,
     ) {
         let error_response = ErrorResponse {
             status: Status::Fail,
@@ -147,7 +134,7 @@ pub async fn update_graph_node_property_endpoint(
     }
 
     if let Err(e) = update_graph_node_in_property_all_fields(
-        pkgs_cache,
+        &mut pkgs_cache,
         graph_info,
         &request_payload.name,
         &request_payload.addon,

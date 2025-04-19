@@ -9,9 +9,9 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    base_dir_pkg_info::{PkgsInfoInApp, PkgsInfoInAppWithBaseDir},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::Graph,
-    pkg_info::pkg_type::PkgType,
+    pkg_info::{find_pkgs_cache_entry_by_app_uri, pkg_type::PkgType},
 };
 
 impl Graph {
@@ -21,7 +21,6 @@ impl Graph {
         &self,
         graph_app_base_dir: &Option<String>,
         pkgs_cache: &HashMap<String, PkgsInfoInApp>,
-        uri_to_pkg_info: &HashMap<Option<String>, PkgsInfoInAppWithBaseDir>,
         ignore_missing_apps: bool,
     ) -> Result<()> {
         // Collection to store missing packages as tuples of (app_uri,
@@ -31,15 +30,18 @@ impl Graph {
         // Iterate through all nodes in the graph to verify their installation
         // status.
         for node in &self.nodes {
-            let mut pkgs_info_in_app = uri_to_pkg_info
-                .get(&node.app)
-                .map(|pkgs_info_in_app| pkgs_info_in_app.pkgs_info_in_app);
+            let found = find_pkgs_cache_entry_by_app_uri(pkgs_cache, &node.app);
 
-            if pkgs_info_in_app.is_none() {
-                if let Some(graph_app_base_dir) = graph_app_base_dir {
-                    pkgs_info_in_app = pkgs_cache.get(graph_app_base_dir);
+            let pkgs_info_in_app = match found {
+                Some((_, pkgs_info_in_app)) => Some(pkgs_info_in_app),
+                None => {
+                    if let Some(graph_app_base_dir) = graph_app_base_dir {
+                        pkgs_cache.get(graph_app_base_dir)
+                    } else {
+                        None
+                    }
                 }
-            }
+            };
 
             if let Some(pkgs_info_in_app) = pkgs_info_in_app {
                 // Search for the package using the helper method.

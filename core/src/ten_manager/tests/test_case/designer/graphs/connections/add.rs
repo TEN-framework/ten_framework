@@ -35,12 +35,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_success_1() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -113,31 +113,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a connection between existing nodes in the default graph.
-        // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
-        let request_payload = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -148,6 +146,19 @@ mod tests {
             ),
         )
         .await;
+
+        // Add a connection between existing nodes in the default graph.
+        // Use "http://example.com:8000" for both src_app and dest_app to match the test data.
+        let request_payload = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -194,12 +205,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_success_2() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -296,28 +307,26 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) =
-            graphs_cache_find_by_name(&designer_state.graphs_cache, "default")
-                .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a connection between existing nodes in the default graph.
-        let request_payload = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: None,
-            src_extension: "aio_http_server_python".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "c1".to_string(),
-            dest_app: None,
-            dest_extension: "simple_echo_cpp".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) =
+                graphs_cache_find_by_name(&graphs_cache, "default").unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -328,6 +337,18 @@ mod tests {
             ),
         )
         .await;
+
+        // Add a connection between existing nodes in the default graph.
+        let request_payload = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: None,
+            src_extension: "aio_http_server_python".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "c1".to_string(),
+            dest_app: None,
+            dest_extension: "simple_echo_cpp".to_string(),
+            msg_conversion: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -376,12 +397,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_invalid_graph() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -404,12 +425,17 @@ mod tests {
         )
         .unwrap();
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -444,12 +470,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_preserves_order() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -522,42 +548,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add first connection.
-        let request_payload1 = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd1".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
 
-        // Add second connection to create a sequence.
-        let request_payload2 = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd2".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_3".to_string(),
-            msg_conversion: None,
-        };
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state_arc = Arc::new(RwLock::new(designer_state));
 
@@ -571,6 +584,18 @@ mod tests {
         )
         .await;
 
+        // Add first connection.
+        let request_payload1 = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd1".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
+
         let req1 = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
             .set_json(request_payload1)
@@ -578,6 +603,18 @@ mod tests {
         let resp1 = test::call_service(&app, req1).await;
 
         assert!(resp1.status().is_success());
+
+        // Add second connection to create a sequence.
+        let request_payload2 = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd2".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
+        };
 
         let req2 = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -612,12 +649,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_file_comparison() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -690,42 +727,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add first connection.
-        let request_payload1 = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd1".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
 
-        // Add second connection to create a sequence.
-        let request_payload2 = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "test_cmd2".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_3".to_string(),
-            msg_conversion: None,
-        };
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state_arc = Arc::new(RwLock::new(designer_state));
 
@@ -739,6 +763,18 @@ mod tests {
         )
         .await;
 
+        // Add first connection.
+        let request_payload1 = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd1".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
+
         let req1 = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
             .set_json(request_payload1)
@@ -746,6 +782,18 @@ mod tests {
         let resp1 = test::call_service(&app, req1).await;
 
         assert!(resp1.status().is_success());
+
+        // Add second connection to create a sequence.
+        let request_payload2 = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "test_cmd2".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
+        };
 
         let req2 = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -780,12 +828,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_data_type() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -844,30 +892,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add a DATA type connection between extensions.
-        let request_payload = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Data,
-            msg_name: "test_data".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
+
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state_arc = Arc::new(RwLock::new(designer_state));
 
@@ -880,6 +927,18 @@ mod tests {
                 ),
         )
         .await;
+
+        // Add a DATA type connection between extensions.
+        let request_payload = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Data,
+            msg_name: "test_data".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -922,12 +981,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_graph_connection_frame_types() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -986,42 +1045,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // First add an AUDIO_FRAME type connection.
-        let audio_request = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::AudioFrame,
-            msg_name: "audio_stream".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
 
-        // Then add a VIDEO_FRAME type connection.
-        let video_request = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::VideoFrame,
-            msg_name: "video_stream".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state_arc = Arc::new(RwLock::new(designer_state));
 
@@ -1035,6 +1081,18 @@ mod tests {
         )
         .await;
 
+        // First add an AUDIO_FRAME type connection.
+        let audio_request = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::AudioFrame,
+            msg_name: "audio_stream".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
+
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
             .set_json(audio_request)
@@ -1042,6 +1100,18 @@ mod tests {
         let resp = test::call_service(&app, req).await;
 
         assert!(resp.status().is_success());
+
+        // Then add a VIDEO_FRAME type connection.
+        let video_request = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::VideoFrame,
+            msg_name: "video_stream".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
@@ -1076,12 +1146,12 @@ mod tests {
 
     #[actix_web::test]
     async fn test_add_multiple_connections_preservation_order() {
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Create a temporary directory for our test to store the generated
@@ -1153,54 +1223,29 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        let (graph_id, _) = graphs_cache_find_by_name(
-            &designer_state.graphs_cache,
-            "default_with_app_uri",
-        )
-        .unwrap();
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
-        // Add first command.
-        let cmd1_request = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "cmd_1".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+        let graph_id_clone;
+        {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let (graph_id, _) = graphs_cache_find_by_name(
+                &graphs_cache,
+                "default_with_app_uri",
+            )
+            .unwrap();
 
-        // Add second command.
-        let cmd2_request = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "cmd_2".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_3".to_string(),
-            msg_conversion: None,
-        };
-
-        // Add third command.
-        let cmd3_request = AddGraphConnectionRequestPayload {
-            graph_id: *graph_id,
-            src_app: Some("http://example.com:8000".to_string()),
-            src_extension: "extension_1".to_string(),
-            msg_type: MsgType::Cmd,
-            msg_name: "cmd_3".to_string(),
-            dest_app: Some("http://example.com:8000".to_string()),
-            dest_extension: "extension_2".to_string(),
-            msg_conversion: None,
-        };
+            graph_id_clone = *graph_id;
+        }
 
         let designer_state_arc = Arc::new(RwLock::new(designer_state));
 
@@ -1214,6 +1259,18 @@ mod tests {
         )
         .await;
 
+        // Add first command.
+        let cmd1_request = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "cmd_1".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
+
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
             .set_json(cmd1_request)
@@ -1222,6 +1279,18 @@ mod tests {
 
         assert!(resp.status().is_success());
 
+        // Add second command.
+        let cmd2_request = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "cmd_2".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_3".to_string(),
+            msg_conversion: None,
+        };
+
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")
             .set_json(cmd2_request)
@@ -1229,6 +1298,18 @@ mod tests {
         let resp = test::call_service(&app, req).await;
 
         assert!(resp.status().is_success());
+
+        // Add third command.
+        let cmd3_request = AddGraphConnectionRequestPayload {
+            graph_id: graph_id_clone,
+            src_app: Some("http://example.com:8000".to_string()),
+            src_extension: "extension_1".to_string(),
+            msg_type: MsgType::Cmd,
+            msg_name: "cmd_3".to_string(),
+            dest_app: Some("http://example.com:8000".to_string()),
+            dest_extension: "extension_2".to_string(),
+            msg_conversion: None,
+        };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections/add")

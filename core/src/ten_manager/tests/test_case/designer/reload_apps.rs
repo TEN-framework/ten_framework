@@ -27,28 +27,32 @@ mod tests {
     #[actix_web::test]
     async fn test_reload_app_success_with_base_dir() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        let _ = get_all_pkgs_in_app(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            &"tests/test_data/app_with_uri".to_string(),
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        assert_eq!(
-            designer_state
-                .pkgs_cache
-                .get("tests/test_data/app_with_uri")
-                .unwrap()
-                .len(),
-            3
-        );
+            let _ = get_all_pkgs_in_app(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                &"tests/test_data/app_with_uri".to_string(),
+            );
+
+            assert_eq!(
+                pkgs_cache
+                    .get("tests/test_data/app_with_uri")
+                    .unwrap()
+                    .len(),
+                3
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -90,9 +94,8 @@ mod tests {
         // Verify that the package cache still contains the base_dir entry
         // (it was reloaded, not removed).
         let state_read = designer_state.read().unwrap();
-        assert!(state_read
-            .pkgs_cache
-            .contains_key("tests/test_data/app_with_uri"));
+        let pkgs_cache = state_read.pkgs_cache.read().await;
+        assert!(pkgs_cache.contains_key("tests/test_data/app_with_uri"));
     }
 
     /// Test successful package reload without specifying base_dir when only one
@@ -100,28 +103,32 @@ mod tests {
     #[actix_web::test]
     async fn test_reload_app_success_without_base_dir() {
         // Set up the designer state with initial data.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        let _ = get_all_pkgs_in_app(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            &"tests/test_data/app_with_uri".to_string(),
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
 
-        assert_eq!(
-            designer_state
-                .pkgs_cache
-                .get("tests/test_data/app_with_uri")
-                .unwrap()
-                .len(),
-            3
-        );
+            let _ = get_all_pkgs_in_app(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                &"tests/test_data/app_with_uri".to_string(),
+            );
+
+            assert_eq!(
+                pkgs_cache
+                    .get("tests/test_data/app_with_uri")
+                    .unwrap()
+                    .len(),
+                3
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -160,8 +167,7 @@ mod tests {
 
         // Verify that the package cache still contains the base_dir entry.
         let state_read = designer_state.read().unwrap();
-        assert!(state_read
-            .pkgs_cache
-            .contains_key("tests/test_data/app_with_uri"));
+        let pkgs_cache = state_read.pkgs_cache.read().await;
+        assert!(pkgs_cache.contains_key("tests/test_data/app_with_uri"));
     }
 }

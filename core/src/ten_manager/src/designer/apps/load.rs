@@ -48,8 +48,11 @@ pub async fn load_app_endpoint(
         ..
     } = &mut *state_write;
 
+    let mut pkgs_cache = pkgs_cache.write().await;
+    let mut graphs_cache = graphs_cache.write().await;
+
     if pkgs_cache.contains_key(&request_payload.base_dir) {
-        let app_uri = extract_app_uri(pkgs_cache, &request_payload.base_dir);
+        let app_uri = extract_app_uri(&pkgs_cache, &request_payload.base_dir);
         return Ok(HttpResponse::Ok().json(ApiResponse {
             status: Status::Ok,
             data: LoadAppResponseData { app_uri },
@@ -60,8 +63,8 @@ pub async fn load_app_endpoint(
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
         Ok(_) => {
             if let Err(err) = get_all_pkgs_in_app(
-                pkgs_cache,
-                graphs_cache,
+                &mut pkgs_cache,
+                &mut graphs_cache,
                 &request_payload.base_dir,
             ) {
                 let error_response =
@@ -70,7 +73,7 @@ pub async fn load_app_endpoint(
             }
 
             let app_uri =
-                extract_app_uri(pkgs_cache, &request_payload.base_dir);
+                extract_app_uri(&pkgs_cache, &request_payload.base_dir);
             Ok(HttpResponse::Ok().json(ApiResponse {
                 status: Status::Ok,
                 data: LoadAppResponseData { app_uri },

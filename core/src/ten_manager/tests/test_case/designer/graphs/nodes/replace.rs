@@ -38,19 +38,24 @@ mod tests {
     #[actix_web::test]
     async fn test_replace_graph_node_invalid_graph() {
         // Setup a designer state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -93,26 +98,30 @@ mod tests {
     #[actix_web::test]
     async fn test_replace_graph_node_not_found() {
         // Setup a designer state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         // Get an existing graph ID.
-        let graphs_cache_clone = designer_state.graphs_cache.clone();
         let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
             let (id, _) =
-                graphs_cache_find_by_name(&graphs_cache_clone, "default")
-                    .unwrap();
+                graphs_cache_find_by_name(&graphs_cache, "default").unwrap();
             *id
         };
 
@@ -176,12 +185,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -203,17 +212,24 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
         // Get an existing graph ID with a node we can replace.
         let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
             let (id, _) = graphs_cache_find_by_name(
-                &designer_state.graphs_cache,
+                &graphs_cache,
                 "default_with_app_uri",
             )
             .unwrap();
@@ -236,8 +252,10 @@ mod tests {
         // Find an existing node name for our test.
         let existing_node_name = {
             let designer_state = designer_state_arc.read().unwrap();
-            let graph_info =
-                designer_state.graphs_cache.get(&graph_id).unwrap();
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
+            let graph_info = graphs_cache.get(&graph_id).unwrap();
+
             // Assuming there's at least one node in the graph.
             graph_info
                 .graph
@@ -331,12 +349,12 @@ mod tests {
         std::fs::write(&manifest_path, input_manifest_json_str).unwrap();
 
         // Initialize test state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
         // Inject the test app into the mock.
@@ -358,17 +376,24 @@ mod tests {
             ),
         ];
 
-        let inject_ret = inject_all_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            all_pkgs_json_str,
-        );
-        assert!(inject_ret.is_ok());
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            let inject_ret = inject_all_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                all_pkgs_json_str,
+            );
+            assert!(inject_ret.is_ok());
+        }
 
         // Get an existing graph ID with a node we can replace.
         let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
             let (id, _) = graphs_cache_find_by_name(
-                &designer_state.graphs_cache,
+                &graphs_cache,
                 "default_with_app_uri",
             )
             .unwrap();
@@ -391,8 +416,9 @@ mod tests {
         // Find an existing node name for our test.
         let existing_node_name = {
             let designer_state = designer_state_arc.read().unwrap();
-            let graph_info =
-                designer_state.graphs_cache.get(&graph_id).unwrap();
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let graph_info = graphs_cache.get(&graph_id).unwrap();
+
             // Assuming there's at least one node in the graph.
             graph_info
                 .graph
@@ -467,25 +493,31 @@ mod tests {
     #[actix_web::test]
     async fn test_replace_graph_node_success() {
         // Setup a designer state.
-        let mut designer_state = DesignerState {
+        let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             tman_internal_config: Arc::new(TmanInternalConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-            graphs_cache: HashMap::new(),
+            pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
+            graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
         };
 
-        inject_all_standard_pkgs_for_mock(
-            &mut designer_state.pkgs_cache,
-            &mut designer_state.graphs_cache,
-            TEST_DIR,
-        );
+        {
+            let mut pkgs_cache = designer_state.pkgs_cache.write().await;
+            let mut graphs_cache = designer_state.graphs_cache.write().await;
+
+            inject_all_standard_pkgs_for_mock(
+                &mut pkgs_cache,
+                &mut graphs_cache,
+                TEST_DIR,
+            );
+        }
 
         // Get an existing graph ID with a node we can replace.
-        let graphs_cache_clone = designer_state.graphs_cache.clone();
         let graph_id = {
+            let graphs_cache = designer_state.graphs_cache.read().await;
+
             let (id, _) = graphs_cache_find_by_name(
-                &graphs_cache_clone,
+                &graphs_cache,
                 "default_with_app_uri",
             )
             .unwrap();
@@ -508,8 +540,9 @@ mod tests {
         // Find an existing node name and addon for our test.
         let (existing_node_name, existing_app_uri) = {
             let designer_state = designer_state_arc.read().unwrap();
-            let graph_info =
-                designer_state.graphs_cache.get(&graph_id).unwrap();
+            let graphs_cache = designer_state.graphs_cache.read().await;
+            let graph_info = graphs_cache.get(&graph_id).unwrap();
+
             // Assuming there's at least one node in the graph.
             let node = graph_info.graph.nodes.first().unwrap();
             (node.type_and_name.name.clone(), node.app.clone())
@@ -549,7 +582,8 @@ mod tests {
 
         // Verify the node was actually updated.
         let designer_state = designer_state_arc.read().unwrap();
-        let graph_info = designer_state.graphs_cache.get(&graph_id).unwrap();
+        let graphs_cache = designer_state.graphs_cache.read().await;
+        let graph_info = graphs_cache.get(&graph_id).unwrap();
         let updated_node = graph_info
             .graph
             .nodes
